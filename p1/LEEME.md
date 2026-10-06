@@ -1,15 +1,54 @@
-# P1 — Del barrio al negocio (versión 0.6, 6 de octubre de 2026)
+# P1 — Del barrio al negocio (versión 0.7, 6 de octubre de 2026)
 
-**Simulador de vida** de un futbolista, en vertical y pensado para iPhone, al estilo de los juegos
+**Simulador de vida** de un deportista (**fútbol** o **escalada**), en vertical y pensado para iPhone, al estilo de los juegos
 tipo BitLife: un diario de tu vida, barras de estado, un botón grande para avanzar el tiempo, menús
 de Carrera, Bienes, Relaciones y Actividades, y ventanas emergentes con decisiones e imprevistos.
-No es un simulador de fútbol: los partidos se simulan con reglas que el juego explica.
+No es un simulador deportivo: partidos y competiciones se simulan con reglas que el juego explica.
 
 - Juego: `p1/carrera_p1.html` (un único archivo, sin conexión a Internet)
 - Pruebas automáticas: `tests/p1.test.cjs` (solo para quien programa)
 - Sin anuncios, compras, cuentas de usuario ni servicios de IA externos.
-- Clubes, ciudades y estadios son **ficticios**. Los importes están en euros pero son **de juego y
+- Fútbol: clubes, ciudades y estadios **ficticios**. Escalada: **zonas, grados y competiciones reales**;
+  marcas y rivales ficticios. Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
+
+**Novedades de la versión 0.7: escalada**
+- Al empezar eliges **deporte** (fútbol o escalada) y, en escalada, tu **punto fuerte** (bloque,
+  dificultad o velocidad). La vida, los negocios, las casas, la familia y el modo pruebas son comunes;
+  la carrera, las pantallas, los logros y los imprevistos son propios de cada deporte.
+- Empiezas con **14 años en el rocódromo del barrio**. Escalando con los amigos el entrenador se fija en
+  ti y te ofrece un equipo: **club del barrio** (barato), **centro de tecnificación** (mejor y más caro,
+  lejos de casa) o **por libre**. Hasta los 18 tu familia paga cuota, bono, licencia, entrenamiento,
+  material, viajes a la roca y competiciones en España; tú puedes ganar algo ayudando en el rocódromo.
+- **5 cualidades**: fuerza de dedos, resistencia, técnica, cabeza (miedo y presión) y explosividad.
+  Cada modalidad las pesa distinto (bloque, dificultad, velocidad y la combinada olímpica).
+- **Plan semanal de escalador**: bloque en el rocódromo, tabla multipresa (prohibida antes de los 16:
+  los dedos aún crecen), vías largas, técnica con entrenador, muro de velocidad, proyectar en roca,
+  descanso activo, fisio, trabajar de monitor, equipar bloques y grabar contenido para redes.
+- **Piel y carga en los dedos**: entrenar duro gasta piel y carga los tendones. Con la carga alta llegan
+  las lesiones típicas: polea A2, hombro, codo o tobillo, con semanas de baja y pérdida de fuerza.
+- **Roca**: eliges tipo (vía o bloque), **zona real** (Siurana, Margalef, Rodellar, Chulilla, El Chorro,
+  Montserrat, Albarracín, La Pedriza y, de viaje, Fontainebleau, Céüse, Frankenjura, Magic Wood, Kalymnos,
+  Flatanger, Rocklands y Yosemite) y dificultad (asequible, proyecto o «de tu vida»). Cada zona tiene sus
+  meses buenos (Siurana en invierno, Céüse en verano…) y su coste de viaje. Encadenar grados nuevos da
+  fama, seguidores y primas; algunas vías tienen nombre propio (La Rambla, Action Directe, Silence…).
+- **Grados reales**: escala francesa en vías (de 5 a 9c) y de Fontainebleau en bloque (de 4 a 9A).
+- **Competiciones** con calendario anual: liga autonómica, Copa y Campeonato de España (categorías
+  sub-16, sub-18 y sub-20 hasta los 19 años), Copa de Europa, Copa del Mundo, Mundial (años impares),
+  Europeo (años pares) y **Juegos Olímpicos** (Los Ángeles 2028, Brisbane 2032…) con clasificatorio.
+  Resultado con tops y zonas en bloque, presa alcanzada en dificultad y tiempo en velocidad, explicado
+  con tu nivel, energía, felicidad, cabeza y presión frente al nivel de los rivales.
+- **Equipo nacional**: si haces podio en España o un buen puesto en Copa del Mundo, la federación te
+  convoca para el año siguiente (beca, viajes pagados, competiciones internacionales).
+- **Patrocinadores** según tu fama: primero material; después ofertas de dos marcas (dinero fijo
+  durante 2 años, o menos fijo con primas por podio y por encadenar 8b o más). **Seguidores** y
+  colaboraciones en redes. La fama se apaga si no das que hablar.
+- **Retirada** desde los 28 años; desde los 34 se pierde nivel cada semana.
+- **4 negocios de escalada** (también para futbolistas): escuela de escalada, tienda de material,
+  rocódromo de bloque y marca de presas, cada uno con sus propias decisiones. **Furgoneta camper**.
+- **17 imprevistos de escalada**: presa que se gira, flapper, pinchazo en el dedo, condiciones
+  perfectas, cierre de un sector por nidificación de aves, línea sin escalar (primera ascensión),
+  expedición, concentración con la selección, polémica por un grado, control antidopaje…
 
 **Novedades de la versión 0.6**
 - **Cada negocio tiene sus propias decisiones**, en su ficha (Bienes → el negocio):
@@ -108,6 +147,40 @@ semanas o una temporada entera (se para si aparece una decisión). Todo queda an
 En vidas simuladas, las pantallas 1–8 se superan entre los 17 y los 25 años, la 9 al retirarse
 (31–35 años) y la 10 entre los 39 y los 45.
 
+## 3b. Las 10 pantallas de la escalada
+
+| # | Pantalla | Objetivos | Desbloquea |
+|---|---|---|---|
+| 1 | El rocódromo del barrio | Escalar 6b en el rocódromo · entrar en un equipo | Las competiciones |
+| 2 | El equipo de competición | Competir en 3 pruebas · 7a (o 6C de bloque) en roca | Nuevos retos |
+| 3 | Campeonato de España | Top 10 en España · 7c (o 7B) en roca · ahorrar 1.500 € | Coches y furgoneta |
+| 4 | Primer patrocinador | Patrocinador · podio en España o 8a en roca (premio 5.000 €) | Escuela de escalada |
+| 5 | Profesional | Equipo nacional o 8b en roca · primer negocio | Peluquería, cafetería, tienda de escalada |
+| 6 | Copa del Mundo | Competir en una · semifinal, 8b+ o 2 negocios · 80.000 € | Inmobiliaria, rocódromo, lavandería, academia |
+| 7 | Élite mundial | Final, 8c o 3 negocios · casa propia · pareja | Hijos, tienda de deportes, restaurante |
+| 8 | Sueño olímpico | Juegos, 9a o 4 negocios · 300.000 € | Marca de presas, gimnasio, supermercado |
+| 9 | Leyenda de la roca | Retirarte · medalla, primera ascensión, 9a+ o 6 negocios · 1.000.000 € | Hotel |
+| 10 | Vida después | Rocódromo propio · 6 negocios · 3.000.000 € | ¡Fin del juego! |
+
+Siempre hay un camino de negocios por si tu techo no da para la élite mundial.
+
+**Dinero en la escalada (importes de juego):** patrocinio de 0 (material) a 5.000 €/semana; beca de la
+federación 120 €/semana (450 € de alto nivel); monitor 150 €/semana; equipador 260 €/semana;
+premios de 100 € (autonómico) a 4.000 € (Copa del Mundo) y 6.000 € (Mundial); medalla olímpica: premio
+del Consejo Superior de Deportes de 94.000, 48.000 o 30.000 €; colaboraciones en redes 2,5 € por cada
+1.000 seguidores a partir de 10.000. Gastos: licencia 90 €/año, cuota del equipo (0–45 €/semana), pies
+de gato cada 8 semanas de entreno (130 €, gratis con patrocinador), viajes a la roca (40–1.600 €/semana),
+inscripción y viaje a competiciones (gratis con el equipo nacional), y vida (con tu familia hasta los 23,
+piso compartido hasta los 27, o furgoneta).
+
+**Competir:** puntuación = tu nivel en la modalidad + (energía − 60)/8 + (felicidad − 50)/25 + (cabeza − 50)/10
+× presión del evento − piel abierta + suerte (± 4; en velocidad hay un 8 % de resbalón). Tu puesto sale
+de comparar esa puntuación con el nivel medio de los rivales (por ejemplo, 52 ± 9 entre 60 en la Copa
+de España; 72 ± 6 entre 100 en la Copa del Mundo).
+
+**Roca:** avance semanal = (18 + (tu nivel − nivel del grado) × 5) × condiciones (buenas 1,25, regulares
+0,85, malas 0,45) × piel × cabeza. Al llegar al 100 % encadenas.
+
 ## 4. Negocios (importes semanales de juego)
 
 | Negocio | Traspaso | Alquiler + fijos | Sueldo (con S. S.) | Coste de lo vendido | Precio normal | Gana aprox.* | Se amortiza* |
@@ -121,6 +194,10 @@ En vidas simuladas, las pantallas 1–8 se superan entre los 17 y los 25 años, 
 | 🏋️ Gimnasio | 450.000 € | 2.800 + 3.500 € | 420 € (280 socios) | 0,8 €/socio | 9 €/sem | ~2.000 €/sem | ~4,5 años |
 | 🛒 Supermercado | 650.000 € | 2.500 + 2.000 € | 400 € (300 compras) | 80 % de lo vendido | 28 € | ~3.200 €/sem | ~4 años |
 | 🏨 Hotel con encanto | 1.500.000 € | 0 + 3.500 € (edificio propio) | 430 € (35 noches) | 15 €/noche | 80 € | ~3.600 €/sem | ~8 años |
+| 🧗 Escuela de escalada | 22.000 € | 200 + 200 € | 420 € (14 alumnos por guía) | 5 €/alumno | 50 € | ~440 €/sem (depende mucho de tu fama) | ~1 año |
+| 🎒 Tienda de material de escalada | 90.000 € | 700 + 250 € | 400 € (120 ventas) | 66 % de lo vendido | 60 € | ~1.070 €/sem | ~1,5 años |
+| 🧱 Rocódromo de bloque | 400.000 € | 3.500 + 2.600 € | 400 € (250 entradas) | 0,5 €/entrada | 10 € | ~3.200 €/sem | ~2,5 años |
+| 🧩 Marca de presas | 450.000 € | 1.200 + 900 € | 450 € (60 juegos) | 45 % de lo vendido | 90 € | ~2.900 €/sem | ~3 años |
 
 \* Con fama 50, reputación 50, precios normales y la plantilla justa (52 semanas = 1 año real).
 Al comprarlo heredas la plantilla del dueño anterior. Demanda = base × precio × (0,2 + fama/80)
@@ -139,6 +216,11 @@ Al comprarlo heredas la plantilla del dueño anterior. Demanda = base × precio 
 | 🏋️ Gimnasio | Horario (De 6 a 23 / 24 horas); Clases dirigidas (Pocas / Muchas); Cuota (Sin permanencia / Con permanencia) | Piscina (120.000 €); Zona de spa (40.000 €); Renovar las máquinas (30.000 €) | Campaña «Año nuevo, vida nueva»; Clase magistral contigo; Convenio con empresas |
 | 🛒 Supermercado | Productos (Marcas conocidas / Mucha marca blanca); Pedidos a domicilio (No / Sí) | Cajas de autocobro (25.000 €); Sección de frescos (40.000 €); Aparcamiento (50.000 €) | Folleto de ofertas; Renegociar con proveedores; Degustación de productos locales |
 | 🏨 Hotel con encanto | Venta de habitaciones (Solo web propia / Plataformas de reservas); Tarifas (Fijas / Según la demanda) | Ampliar con 6 habitaciones (250.000 €); Restaurante propio (80.000 €); Spa (120.000 €) | Invitar a influencers; Acoger un congreso; Paquete «escapada romántica» |
+
+| 🧗 Escuela de escalada | Tamaño de los grupos (Grupos de 8 / Grupos de 4); Dónde se dan los cursos (En roca / En rocódromo) | Furgoneta de 9 plazas (9000 €); Material nuevo (cuerdas, arneses, cascos) (3000 €); Web con reservas (1500 €); Guías con el título de Técnico Deportivo (4000 €) | Campamento de verano; Curso impartido por ti; Jornada para una empresa |
+| 🎒 Tienda de material de escalada | Alquiler de material (No / Sí (pies de gato, crash pads)); Surtido (Básico / Completo / Técnico y de alta montaña) | Murito para probar pies de gato (4000 €); Taller de resolado (6000 €); Tienda online (10.000 €) | Stand en un festival de escalada; Rebajas de fin de temporada; Charla y firma tuya en la tienda |
+| 🧱 Rocódromo de bloque | Cómo se paga (Entrada suelta / Abonos mensuales); Cambio de bloques (Cada mes / Cada semana / Cada tres meses); Horario (De 10 a 23 / Desde las 7) | Zona de entrenamiento (tablas y paneles) (25.000 €); Muro de velocidad homologado (60.000 €); Cafetería y zona de trabajo (30.000 €); Ampliar la nave (120.000 €) | Liga interna de bloque; Cumpleaños infantiles; Jornada de puertas abiertas |
+| 🧩 Marca de presas | Material (Poliuretano / Madera y volúmenes de fibra); A quién vendes (Rocódromos / También competiciones) | Nueva colección de moldes (30.000 €); Taller de curado más grande (50.000 €); Distribuidor en Europa (40.000 €) | Colección firmada por ti; Feria de la industria; Oferta a rocódromos nuevos |
 
 Demanda final = la de arriba × el efecto de tus opciones, mejoras y acciones activas (en la ficha se
 explica la cuenta en «¿Por qué?»).
@@ -215,7 +297,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-76 de 76 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+105 de 105 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, diario, barra de pantalla, 4 barras, botón «+ Semana», plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
 2. **Una vida jugada con toques**: ojeador, ofertas, partidos, mejora, dos temporadas, imprevistos,
@@ -224,17 +306,25 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    club del barrio con inversión, relaciones y actividades, mapa de pantallas, cuentas separadas,
    patrimonio con hipotecas, guardado y reinicio.
 3. **Reglas**: mundo, calendario, determinismo, ascenso, felicidad, relaciones, actividades,
-   **desbloqueo de negocios por pantallas**, **realismo de los 9 negocios** (todos ganan dinero y se
+   **desbloqueo de negocios por pantallas**, **realismo de los 13 negocios** (todos ganan dinero y se
    amortizan en 1–10 años), pantalla 1 con premio, **hipoteca** (el banco la niega con pocos ingresos,
    entrada + gastos, la cuota baja la deuda, amortizar baja la cuota, fórmula de la cuota), **hijos**
    (embarazo, nacimiento, gastos), **retirada** (desde los 30, sin sueldo, el mundo sigue, cumpleaños;
    declive a los 34; retirada obligatoria a los 40), **los 51 imprevistos con sus 89 opciones**,
    préstamo, representante, lesiones y negociación.
-3b. **Decisiones de negocio**: los 9 negocios tienen decisiones propias y distintas (≥ 2 opciones,
+3b. **Decisiones de negocio**: los 13 negocios tienen decisiones propias y distintas (≥ 2 opciones,
    ≥ 3 mejoras, ≥ 3 acciones); las mejoras se pagan una vez con la caja y cambian demanda o capacidad;
    las opciones cambian los resultados; las acciones tienen espera y sus efectos caducan; todas se
    ejecutan sin errores durante 10 semanas; y con toques en la ficha.
 4. Vidas completas con tres estrategias (todas llegan a 100.000 € y ninguna gana en todo).
+6. **Escalada**: presentación con deporte y punto fuerte (con toques), rocódromo con 14 años, oferta de
+   equipo, licencia pagada por la familia, tabla bloqueada antes de los 16, elegir zona y competiciones
+   con toques, sin desplazamiento horizontal; grados reales; calendario (Mundial impar, Europeo par,
+   Juegos 2028); requisitos (edad, equipo nacional, plaza olímpica); más nivel = mejor puesto; marca
+   de bloque y velocidad; condiciones por meses; encadenar en roca; lesiones por carga; patrocinios;
+   fin de año y equipo nacional; gastos según la edad; retirada desde los 28; pantallas y desbloqueos
+   propios; logros propios; los 17 imprevistos de escalada (33 opciones); sin imprevistos de fútbol;
+   y tres vidas simuladas hasta los 34 años (todas pasan la pantalla 5 antes de los 30).
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
@@ -244,5 +334,9 @@ Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin er
 
 - Sin reformas de vivienda, estudios de los hijos ni muerte del personaje.
 - Las divisiones tienen 10 equipos para que una temporada dure 18 semanas.
+- Escalada: el calendario se repite cada año (sedes reales habituales, simplificado a 3 pruebas de Copa
+  del Mundo por modalidad); el formato olímpico es el de París 2024 (bloque y dificultad combinados, y
+  velocidad); no hay categorías por sexo; la escalada en roca no distingue entre a vista, flash y
+  ensayada.
 - Equilibrio por revisar tras jugarlo: precios de negocios y clubes, frecuencia de imprevistos
   (`club.probSuceso`), efecto de la felicidad.

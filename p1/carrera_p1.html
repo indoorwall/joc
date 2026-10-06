@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#ffffff">
 <title>Del barrio al negocio · P1</title>
 <!--
-  PROTOTIPO P1 (v0.6) — Simulador de vida de un futbolista: 10 pantallas, carrera, retirada, familia, negocios, casas con hipoteca, coches y clubes.
+  PROTOTIPO P1 (v0.7) — Simulador de vida de un deportista (fútbol o escalada): 10 pantallas, carrera, retirada, familia, negocios, casas con hipoteca, coches y clubes.
   Estilo «simulador de vida»: diario semanal, barras de estado, botón grande «+ Semana», menús y ventanas emergentes.
   No hay partidos controlables, física ni gráficos 3D: los partidos se simulan con reglas explicadas.
   Archivo autónomo: no carga nada de Internet. Sin anuncios, compras, cuentas ni servicios de IA.
@@ -19,7 +19,7 @@
     5. REGLAS · 6. PLAN SEMANAL · 7. SEMANA (jornada, economía, prensa, mercado, fin de temporada)
     8. IMPREVISTOS · 9. EVENTOS · 10. BIENES (negocios, inmuebles, coches, clubes)
    11. VIDA (relaciones, actividades, felicidad, logros, diario) · 12. PANTALLAS · 13. HIPOTECAS, HIJOS Y RETIRADA
-   14. INTERFAZ · GANCHOS DE PRUEBA
+   15. ESCALADA (grados, zonas, competiciones, patrocinios) · 14. INTERFAZ · GANCHOS DE PRUEBA
 -->
 <style>
   :root {
@@ -370,6 +370,19 @@ const CFG = {
     hotel: { n: 'Hotel con encanto', ic: '🏨', icEmp: '🛎️', unidad: 'noches', precio: 1500000, cajaOpciones: [50000, 100000, 200000], pantalla: 9,
       alquiler: 0, fijos: 3500, demandaBase: 150, repSens: 0.002, costeCliente: 15, empleadosMax: 6, costeContratar: 400,
       precios: P3(50, 80, 140), sueldos: S2(430, 35, 500, 40) },
+    // Negocios de escalada (también para futbolistas)
+    escuelaEsc: { n: 'Escuela de escalada', ic: '🧗', icEmp: '🧑‍🏫', unidad: 'alumnos', precio: 22000, cajaOpciones: [2000, 4000, 8000], pantalla: 6,
+      alquiler: 200, fijos: 200, demandaBase: 45, repSens: 0.012, costeCliente: 5, empleadosMax: 5, costeContratar: 200,
+      precios: P3(35, 50, 80), sueldos: S2(420, 14, 500, 16) },
+    tiendaEsc: { n: 'Tienda de material de escalada', ic: '🎒', icEmp: '🧑‍💼', unidad: 'ventas', precio: 90000, cajaOpciones: [8000, 15000, 30000], pantalla: 6,
+      alquiler: 700, fijos: 250, demandaBase: 120, repSens: 0.004, costePct: 0.66, empleadosMax: 4, costeContratar: 300,
+      precios: P3(40, 60, 90), sueldos: S2(400, 120, 470, 140) },
+    rocodromo: { n: 'Rocódromo de bloque', ic: '🧱', icEmp: '🧑‍🔧', unidad: 'entradas', precio: 400000, cajaOpciones: [30000, 60000, 100000], pantalla: 7,
+      alquiler: 3500, fijos: 2600, demandaBase: 1200, repSens: 0.004, costeCliente: 0.5, empleadosMax: 8, costeContratar: 300,
+      precios: P3(7, 10, 13), sueldos: S2(400, 250, 470, 280) },
+    marcaPresas: { n: 'Marca de presas', ic: '🧩', icEmp: '🧑‍🏭', unidad: 'juegos de presas', precio: 450000, cajaOpciones: [30000, 60000, 100000], pantalla: 8,
+      alquiler: 1200, fijos: 900, demandaBase: 120, repSens: 0.006, costePct: 0.45, empleadosMax: 8, costeContratar: 300,
+      precios: P3(60, 90, 140), sueldos: S2(450, 60, 520, 70) },
   },
   negocioComun: { famaInicial: 40, colasFama: -2, impagoFama: -5, traspaso: 1000, visitaFama: 4, cursoDemanda: 0.05, cursosMax: 3 },
   // Qué se desbloquea en cada pantalla (además de los negocios)
@@ -394,6 +407,7 @@ const CFG = {
     berlina: { n: 'Berlina', ic: '🚙', precio: 35000, fel: 8, rep: 2 },
     deportivo: { n: 'Deportivo', ic: '🏎️', precio: 90000, fel: 12, rep: 4 },
     superdeportivo: { n: 'Superdeportivo', ic: '🏁', precio: 280000, fel: 18, rep: 8 },
+    furgo: { n: 'Furgoneta camper', ic: '🚐', precio: 30000, fel: 9, rep: 1 },
   },
   cocheDeprecia: 0.003, cocheMantenimiento: 0.0005,
 
@@ -420,6 +434,28 @@ const CFG = {
   colores: [['#e63946', '#ffffff'], ['#1d6fd1', '#ffd23f'], ['#2a9d8f', '#ffffff'], ['#222222', '#ffffff'], ['#ffd23f', '#1b4332'],
     ['#7b2cbf', '#ffffff'], ['#f77f00', '#003049'], ['#ffffff', '#d62828'], ['#0b6e4f', '#f1fa8c'], ['#3a86ff', '#ffffff'],
     ['#8d0801', '#f4d58d'], ['#2b2d42', '#ef233c']],
+
+  // ---- Escalada ----
+  escalada: {
+    inicio: { edad: 14, energia: 75, rep: 3, dinero: 40, attrs: { fuerza: 22, resistencia: 22, tecnica: 26, cabeza: 22, velocidad: 22 } },
+    fuertes: {
+      bloque: { n: 'Bloque', ic: '🪨', attr: 'fuerza', d: 'Dedos fuertes: bloques cortos y explosivos.' },
+      dificultad: { n: 'Dificultad', ic: '🧗', attr: 'resistencia', d: 'Resistencia: vías largas con cuerda.' },
+      velocidad: { n: 'Velocidad', ic: '⏱️', attr: 'velocidad', d: 'Explosividad: la pared de 15 m contra el reloj.' },
+    },
+    bonusFuerte: 6, talentoAttr: 6, potencial: [72, 92], margenTecho: 15,
+    ritmo: 1.5, edadCrec: [[17, 1.4], [21, 1.15], [26, 0.9], [31, 0.6], [99, 0.3]],
+    declive: [[33, 0], [38, 0.06], [99, 0.15]],
+    edadTabla: 16, recuperacion: 15, pielRecupera: 25, cargaBaja: 12, cargaRiesgo: 50, lesionPorCarga: 0.5, desentreno: 0.15,
+    repEquipo: 15, juvenilMenos: 8, resbalon: 0.08,
+    factorPrima: { esp: 0.3, cesp: 0.4, europa: 0.6, mundo: 1, europeo: 1.5, mundial: 2, clasif: 1, jjoo: 4 },
+    licencia: 90, becaBase: 120, becaAlta: 450, pagoMonitor: 150, pagoEquipador: 260,
+    edadPagas: 18,   // hasta esta edad tu familia paga cuota, bono, licencia y competiciones en España
+    segColab: 10000, colabPorMil: 2.5, semanasPies: 8, piesGato: 130, edadRetiro: 28,
+    // En qué pantalla se desbloquea cada cosa si eres escalador/a
+    desbloqueos: { coches: 4, escuelaEsc: 5, peluqueria: 6, cafeteria: 6, tiendaEsc: 6, inmuebles: 7, rocodromo: 7, lavanderia: 7, academia: 7,
+      hijos: 8, tienda: 8, restaurante: 8, marcaPresas: 9, gimnasio: 9, supermercado: 9, hotel: 10, clubes: 99 },
+  },
 };
 
 
@@ -587,6 +623,76 @@ const DECISIONES = {
   },
 };
 
+Object.assign(DECISIONES, {
+  escuelaEsc: {
+    opciones: [
+      { id: 'grupos', n: 'Tamaño de los grupos', valores: [{ n: 'Grupos de 8', ef: {} }, { n: 'Grupos de 4', ef: { capEmp: -6, precioF: 1.3, famaSem: 0.5 }, d: 'Más atención y seguridad: los alumnos lo notan.' }] },
+      { id: 'lugar', n: 'Dónde se dan los cursos', valores: [{ n: 'En roca', ef: {} }, { n: 'En rocódromo', ef: { dem: 1.1, fijos: 150, famaSem: -0.3 }, d: 'Funciona todo el año, pero pagas el alquiler del muro.' }] },
+    ],
+    mejoras: [
+      { id: 'furgo9', ic: '🚐', n: 'Furgoneta de 9 plazas', coste: 9000, ef: { capFija: 10, costeF: 0.8 }, d: 'Llevas tú a los alumnos: menos gasto en transporte.' },
+      { id: 'materialNuevo', ic: '🪢', n: 'Material nuevo (cuerdas, arneses, cascos)', coste: 3000, fama: 6, ef: { dem: 1.05 }, d: 'Seguridad que se ve.' },
+      { id: 'webReservas', ic: '🌐', n: 'Web con reservas', coste: 1500, ef: { dem: 1.12, fijos: 20 }, d: 'Más alumnos de fuera.' },
+      { id: 'td2', ic: '📜', n: 'Guías con el título de Técnico Deportivo', coste: 4000, ef: { precioF: 1.1, sueldo: 40 }, d: 'Cobras más y el seguro es mejor.' },
+    ],
+    acciones: [
+      { id: 'campamento', ic: '🏕️', n: 'Campamento de verano', coste: 600, espera: 12, dur: 3, ef: { dem: 1.4 } },
+      { id: 'cursoTuyo', ic: '⭐', n: 'Curso impartido por ti', coste: 0, espera: 6, fama: 8, desc: 'Tu nombre llena las plazas.' },
+      { id: 'empresas', ic: '🏢', n: 'Jornada para una empresa', coste: 200, espera: 8, desc: 'Un día de actividad para una empresa: ingresa 1.500 € en la caja.', hacer(s, n) { n.caja += 1500; return 'Ingreso de 1.500 € en la caja.'; } },
+    ],
+  },
+  tiendaEsc: {
+    opciones: [
+      { id: 'alquilerMat', n: 'Alquiler de material', valores: [{ n: 'No', ef: {} }, { n: 'Sí (pies de gato, crash pads)', ef: { extra: 3, famaSem: 0.3 } }] },
+      { id: 'surtido', n: 'Surtido', valores: [{ n: 'Básico', ef: { dem: 0.9, costeF: 0.95 } }, { n: 'Completo', ef: {} }, { n: 'Técnico y de alta montaña', ef: { precioF: 1.2, dem: 0.9, fijos: 100 } }], def: 1 },
+    ],
+    mejoras: [
+      { id: 'murito', ic: '🧱', n: 'Murito para probar pies de gato', coste: 4000, ef: { dem: 1.1 }, d: 'Probar antes de comprar vende más.' },
+      { id: 'resolado', ic: '👟', n: 'Taller de resolado', coste: 6000, ef: { extra: 4 }, d: 'Cambiar la suela de los pies de gato deja buen margen.' },
+      { id: 'onlineEsc', ic: '🌐', n: 'Tienda online', coste: 10000, ef: { dem: 1.25, fijos: 180 }, d: 'Vendes en toda España.' },
+    ],
+    acciones: [
+      { id: 'festival', ic: '🎪', n: 'Stand en un festival de escalada', coste: 800, espera: 10, fama: 7 },
+      { id: 'finTemporada', ic: '🏷️', n: 'Rebajas de fin de temporada', coste: 0, espera: 10, dur: 3, ef: { dem: 1.35, precioF: 0.8 } },
+      { id: 'charla', ic: '✍️', n: 'Charla y firma tuya en la tienda', coste: 100, espera: 8, dur: 2, ef: { dem: 1.3 } },
+    ],
+  },
+  rocodromo: {
+    opciones: [
+      { id: 'pago', n: 'Cómo se paga', valores: [{ n: 'Entrada suelta', ef: {} }, { n: 'Abonos mensuales', ef: { dem: 1.15, precioF: 0.85, famaSem: 0.2 }, d: 'Más gente fija, menos por visita.' }] },
+      { id: 'bloques', n: 'Cambio de bloques', valores: [{ n: 'Cada mes', ef: {} }, { n: 'Cada semana', ef: { fijos: 600, famaSem: 0.8, dem: 1.05 }, d: 'Equipadores cada semana: la gente vuelve más.' }, { n: 'Cada tres meses', ef: { fijos: -300, famaSem: -0.8 } }] },
+      { id: 'apertura', n: 'Horario', valores: [{ n: 'De 10 a 23', ef: {} }, { n: 'Desde las 7', ef: { dem: 1.08, sueldo: 40 }, d: 'Para quien entrena antes de trabajar.' }] },
+    ],
+    mejoras: [
+      { id: 'zonaEntreno', ic: '🪵', n: 'Zona de entrenamiento (tablas y paneles)', coste: 25000, fama: 6, ef: { dem: 1.1 }, d: 'Los que entrenan en serio vienen aquí.' },
+      { id: 'muroVel', ic: '⏱️', n: 'Muro de velocidad homologado', coste: 60000, fama: 8, ef: { dem: 1.06, fijos: 80 }, d: '15 metros con las presas oficiales.' },
+      { id: 'cafeRoco', ic: '☕', n: 'Cafetería y zona de trabajo', coste: 30000, ef: { extra: 1.2 }, d: 'La gente se queda más rato y consume.' },
+      { id: 'ampliar', ic: '🏗️', n: 'Ampliar la nave', coste: 120000, ef: { capFija: 300, fijos: 900 }, d: 'Más paredes, más alquiler.' },
+    ],
+    acciones: [
+      { id: 'liga', ic: '🏆', n: 'Liga interna de bloque', coste: 500, espera: 12, dur: 6, ef: { dem: 1.15 } },
+      { id: 'cumples', ic: '🎂', n: 'Cumpleaños infantiles', coste: 0, espera: 6, dur: 4, ef: { dem: 1.12 } },
+      { id: 'puertas', ic: '🚪', n: 'Jornada de puertas abiertas', coste: 300, espera: 8, fama: 6 },
+    ],
+  },
+  marcaPresas: {
+    opciones: [
+      { id: 'materialPresas', n: 'Material', valores: [{ n: 'Poliuretano', ef: {} }, { n: 'Madera y volúmenes de fibra', ef: { precioF: 1.25, costeF: 1.15, famaSem: 0.4 } }] },
+      { id: 'clientes', n: 'A quién vendes', valores: [{ n: 'Rocódromos', ef: {} }, { n: 'También competiciones', ef: { dem: 1.1, fijos: 300, famaSem: 0.4 }, d: 'Homologarse cuesta, pero da prestigio.' }] },
+    ],
+    mejoras: [
+      { id: 'moldes', ic: '🧩', n: 'Nueva colección de moldes', coste: 30000, fama: 6, ef: { dem: 1.15 }, d: 'Formas nuevas que piden los equipadores.' },
+      { id: 'curado', ic: '🔥', n: 'Taller de curado más grande', coste: 50000, ef: { capEmp: 20 }, d: 'Cada operario produce más.' },
+      { id: 'distribuidor', ic: '🌍', n: 'Distribuidor en Europa', coste: 40000, ef: { dem: 1.25, precioF: 0.95 }, d: 'Vendes fuera, con algo menos de margen.' },
+    ],
+    acciones: [
+      { id: 'firmada', ic: '🧗', n: 'Colección firmada por ti', coste: 2000, espera: 12, dur: 6, ef: { precioF: 1.15, dem: 1.1 } },
+      { id: 'feriaIndustria', ic: '🎪', n: 'Feria de la industria', coste: 3000, espera: 12, fama: 8 },
+      { id: 'ofertaNuevos', ic: '🏷️', n: 'Oferta a rocódromos nuevos', coste: 0, espera: 8, dur: 4, ef: { dem: 1.3, precioF: 0.85 } },
+    ],
+  },
+});
+
 /* =====================================================================
    2. UTILIDADES
    ===================================================================== */
@@ -736,7 +842,7 @@ function nuevaPartida(seed) {
     ultimo: null, log: [], semanaAct: { acts: [], lineas: [] }, logros: {}, hoja: null,
     acum: { ingresosPers: 0, gastosPers: 0, impuestos: 0, ingresosNeg: 0, gastosNeg: 0 },
     historial: [],
-    intro: true, nombre: '', avatar: CFG.avatares[0], posicion: 'delantero',
+    intro: true, nombre: '', avatar: CFG.avatares[0], posicion: 'delantero', deporte: 'futbol', fuerte: 'bloque',
   };
   s.potencial = Math.round(CFG.club.potencial[0] + rnd(s) * (CFG.club.potencial[1] - CFG.club.potencial[0]));
   s.mundo = generarMundo(s);
@@ -891,7 +997,7 @@ const ACCIONES = {
     aplicar(s, R) { const b = s.p.rep * CFG.retiro.tvPorRep, imp = Math.round(b * tipoImpuesto(b)); s.p.dinero += b - imp; s.acum.impuestos += imp; s.p.rep += 1; s.p.energia -= 5; R.eco.push(['Programa de televisión (neto)', b - imp]); R.dep.push(['Comentarista de TV', '+1 reputación, −5 energía', `${s.p.rep - 1} × ${CFG.retiro.tvPorRep} € brutos.`]); },
   },
   entrenador: {
-    fases: ['retirado'], ic: '🧑‍🏫', n: 'Entrenar en una cantera', fx: () => [['€', CFG.retiro.entrenadorSueldo], ['😊', 2], ['⚡', -10]],
+    fases: ['retirado'], dep: 'futbol', ic: '🧑‍🏫', n: 'Entrenar en una cantera', fx: () => [['€', CFG.retiro.entrenadorSueldo], ['😊', 2], ['⚡', -10]],
     pro: () => `+${cr(CFG.retiro.entrenadorSueldo)} · +2 felicidad`, con: () => '−10 energía', why: () => 'Un sueldo modesto haciendo lo que te gusta.',
     aplicar(s, R) { s.p.dinero += CFG.retiro.entrenadorSueldo; aplicarFx(s, [['😊', 2]]); s.p.energia -= 10; R.eco.push(['Sueldo de entrenador de cantera', CFG.retiro.entrenadorSueldo]); R.dep.push(['Entrenar en la cantera', '+2 felicidad, −10 energía', 'Valor fijo de esta acción.']); },
   },
@@ -908,17 +1014,18 @@ const ACCIONES = {
 };
 for (const a of Object.values(ACCIONES)) a.t = a.ic + ' ' + a.n;
 function pagoPatrocinio(s) { return red((20 + s.p.rep * 3) * visibilidad(s, s.contrato.clubId), 5); }
+function accionDe(s, a) { return !!a && a.fases.includes(s.fase) && (!a.dep || a.dep === (s.deporte || 'futbol')); }
 function accionesDisponibles(s) {
-  return Object.entries(ACCIONES).filter(([, a]) => a.fases.includes(s.fase));
+  return Object.entries(ACCIONES).filter(([, a]) => accionDe(s, a));
 }
 
 /* =====================================================================
    7. SEMANA
    ===================================================================== */
-function planPorDefecto(s) { return s.fase === 'barrio' ? 'plaza' : s.fase === 'prep' ? 'entrenarSolo' : s.fase === 'retirado' ? (s.negocios.length ? 'gestionar' : 'rentas') : s.lesion > 0 ? 'reposo' : 'normal'; }
+function planPorDefecto(s) { if (s.deporte === 'escalada' && s.fase !== 'retirado') return s.lesion > 0 || (s.fase === 'escalador' && s.p.energia < 30) ? 'descansoEsc' : s.fase === 'rocodromo' ? 'amigos' : 'rocoBloque'; return s.fase === 'barrio' ? 'plaza' : s.fase === 'prep' ? 'entrenarSolo' : s.fase === 'retirado' ? (s.negocios.length ? 'gestionar' : 'rentas') : s.lesion > 0 ? 'reposo' : 'normal'; }
 function elegir(id) {
   const a = ACCIONES[id];
-  if (!a || !a.fases.includes(S.fase) || S.pendiente) return false;
+  if (!accionDe(S, a) || S.pendiente) return false;
   if (a.disponible && a.disponible(S)) return false;
   S.plan = id;
   guardar(); render();
@@ -931,14 +1038,15 @@ function avanzarSemana() {
   if (s.pendiente || s.intro) return false;
   let id = s.plan, a = ACCIONES[id];
   const nota = [];
-  if (!a || !a.fases.includes(s.fase) || (a.disponible && a.disponible(s))) {
+  if (s.deporte === 'escalada') syncEsc(s);
+  if (!accionDe(s, a) || (a.disponible && a.disponible(s))) {
     const alt = planPorDefecto(s);
-    if (a && a.fases.includes(s.fase)) nota.push(['🔁', `No puedo hacer «${a.n.toLowerCase()}» esta semana: ${a.disponible(s)} Hago «${ACCIONES[alt].n.toLowerCase()}».`]);
+    if (accionDe(s, a)) nota.push(['🔁', `No puedo hacer «${a.n.toLowerCase()}» esta semana: ${a.disponible(s)} Hago «${ACCIONES[alt].n.toLowerCase()}».`]);
     id = alt; a = ACCIONES[id];
-    if (a.disponible && a.disponible(s)) { id = s.fase === 'club' ? 'reposo' : s.fase === 'retirado' ? 'rentas' : 'descansar'; a = ACCIONES[id]; }
+    if (a.disponible && a.disponible(s)) { id = s.fase === 'club' ? 'reposo' : s.fase === 'retirado' ? 'rentas' : s.deporte === 'escalada' ? 'descansoEsc' : 'descansar'; a = ACCIONES[id]; }
     if (s.plan !== 'patrocinio') s.plan = id;
   }
-  const R = { semana: s.semana, accion: a.t, accionId: id, fase: s.fase, dep: [], eco: [], neg: [], opo: [], prensa: [], negocios: [], partido: null, antes: foto(s) };
+  const R = { semana: s.semana, accion: a.t, accionId: id, fase: s.fase, dep: [], eco: [], neg: [], opo: [], prensa: [], negocios: [], partido: null, escLineas: [], felExtra: null, antes: foto(s) };
   const mods = modsSeleccion(s, id);
   a.aplicar(s, R);
   s.p.energia = clamp(s.p.energia, 0, CFG.energiaMax);
@@ -965,8 +1073,10 @@ function avanzarSemana() {
     }
   } else if (s.fase === 'club') {
     semanaClub(s, R, mods);
-  } else {
+  } else if (s.fase === 'retirado') {
     semanaRetirado(s, R);
+  } else {
+    semanaEscalada(s, R);
   }
 
   for (const n of s.negocios) semanaNegocio(s, R, n);
@@ -1504,16 +1614,72 @@ const SUCESOS = {
   colgarBotas: { fases: ['club'], ic: '🥾', cond: s => s.edad >= 33, peso: 1.5, t: '¿Es hora de colgar las botas?', d: 'Cada vez cuesta más recuperarse después de los partidos.',
     ops: [{ n: 'Una temporada más', fx: () => [['😊', 2]], txt: 'Todavía te queda fútbol.' },
           { n: 'Anunciar mi retirada', fx: () => [['👋', 'Te retiras del fútbol']], hacer(s) { retirarse(s, false, null); return 'Anuncias tu retirada.'; } }] },
+  // ---- Escalada (dep: 'escalada'; «barrio» = rocódromo, «club» = en activo) ----
+  condiciones: { dep: 'escalada', fases: ['club'], ic: '🌬️', cond: s => !!s.esc.proy, prep: s => ({ z: s.esc.proy.zona }), t: (s, d) => `Condiciones perfectas en ${ZONAS[d.z].n}`, d: 'Frío seco y buena fricción: la roca «pega». Pero este fin de semana tenías otros planes.',
+    ops: [{ n: 'Ir a probar el proyecto', fx: (s, d) => [['⛰️', 'Proyecto +25 %'], ['€', -ZONAS[d.z].coste], ['⚡', -10]], hacer(s, d) { const P = s.esc.proy; aplicarFx(s, [['€', -ZONAS[d.z].coste], ['⚡', -10]]); if (P) P.prog = Math.min(99, P.prog + 25); return 'Avanzas mucho en tu proyecto.'; } },
+          { n: 'Quedarte con los amigos', fx: () => [['🧑‍🤝‍🧑', 5], ['😊', 2]], txt: 'Otra vez será.' }] },
+  nidificacion: { dep: 'escalada', fases: ['club'], ic: '🦅', cond: s => !!s.esc.proy && ZONAS[s.esc.proy.zona].f === '🇪🇸' && !(s.esc.proy.cerrado > s.semana), prep: s => ({ z: s.esc.proy.zona }),
+    t: (s, d) => `Cierran tu sector de ${ZONAS[d.z].n} por nidificación`, d: 'Hay rapaces criando en la pared: la escalada queda prohibida unas semanas.',
+    ops: [{ n: 'Respetarlo y esperar', fx: () => [['⛰️', 'Sector cerrado 5 semanas'], ['⭐', 1]], hacer(s) { s.esc.proy.cerrado = s.semana + 5; s.p.rep += 1; if (s.plan === 'roca') s.plan = 'rocoBloque'; return 'Esperas. Mientras, entrenas en el rocódromo.'; } },
+          { n: 'Buscar otro proyecto', fx: () => [['⛰️', 'Empiezas de cero']], hacer(s) { const P = s.esc.proy; nuevoProyecto(s, P.tipo, P.tipo === 'via' ? (P.zona === 'siurana' ? 'chulilla' : 'siurana') : (P.zona === 'albarracin' ? 'pedriza' : 'albarracin'), P.rel, false); return 'Cambias de zona y de proyecto.'; } }] },
+  presaGirada: { dep: 'escalada', fases: ['barrio', 'club'], ic: '🔩', t: 'Se te gira una presa en el rocódromo', d: 'Caes de espaldas sobre la colchoneta. Te duele el hombro.',
+    ops: [{ n: 'Parar y ver al fisio', fx: () => [['€', -50], ['⚡', 5]], txt: 'Solo es un golpe. Mejor así.' },
+          { n: 'Seguir entrenando', fx: () => [['🤕', '40 %: hombro 3 semanas']], hacer(s) { if (rnd(s) < 0.4) { s.lesion = Math.max(s.lesion, 3); s.esc.lesTipo = 'hombro'; return 'El hombro dice basta: 3 semanas de baja.'; } return 'Aguantas sin problemas.'; } }] },
+  flapper: { dep: 'escalada', fases: ['club'], ic: '🩸', t: 'Se te abre la piel del dedo', d: 'Un «flapper» en el índice: la piel colgando y sangre en la presa.',
+    ops: [{ n: 'Parar unos días', fx: () => [['🖐️', 'Piel +20'], ['⚡', 10]], hacer(s) { s.esc.piel = clamp(s.esc.piel + 20, 0, 100); aplicarFx(s, [['⚡', 10]]); return 'La piel se cierra.'; } },
+          { n: 'Esparadrapo y a seguir', fx: () => [['🖐️', 'Piel −15'], ['😊', -2]], hacer(s) { s.esc.piel = clamp(s.esc.piel - 15, 0, 100); aplicarFx(s, [['😊', -2]]); return 'Duele, pero sigues.'; } }] },
+  dedoRaro: { dep: 'escalada', fases: ['club'], ic: '☝️', peso: 2, cond: s => s.esc.carga >= 55 && !s.lesion, t: 'Notas un pinchazo en el dedo anular', d: 'Al apretar una regleta has notado un «crac» pequeño… o eso crees.',
+    ops: [{ n: 'Parar dos semanas', fx: () => [['🩹', '2 semanas sin escalar'], ['😊', -3]], hacer(s) { s.lesion = 2; s.esc.lesTipo = 'molestias en el dedo (prevención)'; s.esc.carga = clamp(s.esc.carga - 40, 0, 100); aplicarFx(s, [['😊', -3]]); return 'Descanso preventivo: mejor perder dos semanas que dos meses.'; } },
+          { n: 'No es nada: seguir', fx: () => [['🤕', '50 %: polea rota 6 semanas']], hacer(s) { if (rnd(s) < 0.5) { s.lesion = 6; s.esc.lesTipo = 'polea A2 rota'; return 'Era una polea: 6 semanas de baja.'; } return 'Esta vez ha habido suerte.'; } }] },
+  videoMarca: { dep: 'escalada', fases: ['club'], ic: '🎬', cond: s => s.p.rep >= 30, t: 'Una marca quiere grabarte escalando', d: 'Un día de rodaje en roca para su campaña.',
+    ops: [{ n: 'Aceptar', fx: s => [['€', s.p.rep * 15], ['⚡', -15], ['📱', '+seguidores']], hacer(s) { aplicarFx(s, [['€', s.p.rep * 15], ['⚡', -15]]); s.esc.seg += 3000 + s.p.rep * 100; return `Cobras ${cr(s.p.rep * 15)} y ganas seguidores.`; } },
+          { n: 'Rechazar', fx: () => [], txt: 'Prefieres entrenar.' }] },
+  linea: { dep: 'escalada', fases: ['club'], ic: '🆕', peso: 0.6, cond: s => s.p.rep >= 25 && nivelMod(s, 'dificultad') >= 55, t: 'Descubres una línea sin escalar', d: 'Una placa perfecta en un sector poco visitado. Nadie la ha equipado nunca.',
+    ops: [{ n: 'Equiparla (chapas y taladro)', fx: () => [['€', -250], ['⚡', -10], ['⛰️', 'Proyecto: primera ascensión']], hacer(s) { aplicarFx(s, [['€', -250], ['⚡', -10]]); const z = s.esc.proy && s.esc.proy.tipo === 'via' ? s.esc.proy.zona : 'siurana'; nuevoProyecto(s, 'via', z, 2, true); return 'Ya es tu proyecto. Si la encadenas, le pondrás nombre y grado.'; } },
+          { n: 'Dejarla para otros', fx: () => [], txt: 'Alguien la abrirá.' }] },
+  expedicion: { dep: 'escalada', fases: ['club'], ic: '🏔️', peso: 0.5, cond: s => s.p.rep >= 50, t: 'Te invitan a una expedición a la Patagonia', d: 'Granito, viento y vivac durante semanas. El patrocinador paga el viaje.',
+    ops: [{ n: 'Ir', fx: () => [['⭐', 8], ['🧠', '+3 cabeza'], ['⚡', -30], ['😊', 10]], hacer(s) { aplicarFx(s, [['⭐', 8], ['⚡', -30], ['😊', 10]]); s.esc.at.cabeza = Math.min(techoAttr(s, 'cabeza') + 3, s.esc.at.cabeza + 3); s.esc.seg += 8000; return 'Una aventura inolvidable.'; } },
+          { n: 'No es el momento', fx: () => [], txt: 'Te centras en tu temporada.' }] },
+  seleccionador: { dep: 'escalada', fases: ['club'], ic: '🇪🇸', cond: s => s.p.rep >= 30 && s.esc.nacional !== s.esc.año && s.edad >= 15, t: 'El seleccionador te invita a una concentración', d: 'Tres días con el equipo nacional en un centro de alto rendimiento.',
+    ops: [{ n: 'Ir', fx: () => [['🎯', '+1 técnica'], ['⚡', -10], ['⭐', 2], ['🇪🇸', 'Más opciones de entrar']], hacer(s) { s.esc.at.tecnica = Math.min(techoAttr(s, 'tecnica'), s.esc.at.tecnica + 1); aplicarFx(s, [['⚡', -10], ['⭐', 2]]); s.esc.puntosSel += 2; return 'El seleccionador toma nota.'; } },
+          { n: 'No puedo ir', fx: () => [], txt: 'Otra vez será.' }] },
+  polemicaGrado: { dep: 'escalada', fases: ['club'], ic: '💬', cond: s => s.esc.maxVia >= 14, t: '¿Tu último encadenamiento es más fácil?', d: 'En redes dicen que tu vía «no es de ese grado»: una presa se ha roto y ha cambiado.',
+    ops: [{ n: 'Proponer bajarle el grado', fx: () => [['⭐', 2], ['😊', -2]], txt: 'La comunidad valora tu honestidad.' },
+          { n: 'Mantener el grado', fx: () => [['⭐', '+3 ó −4']], hacer(s) { if (rnd(s) < 0.5) { s.p.rep += 3; return 'Otros escaladores te dan la razón.'; } s.p.rep = Math.max(0, s.p.rep - 4); return 'La polémica te persigue.'; } }] },
+  crashpads: { dep: 'escalada', fases: ['barrio', 'club'], ic: '🚗', t: 'Te roban los crash pads del coche', d: 'Dos colchonetas de bloque, casi nuevas.',
+    ops: [{ n: 'Comprar otros', fx: () => [['€', -350]], txt: 'Colchonetas nuevas.' },
+          { n: 'Pedírselos a los amigos', fx: () => [['🧑‍🤝‍🧑', 3], ['😊', -2]], txt: 'Tus amigos te los prestan.' }] },
+  tallerNinos: { dep: 'escalada', fases: ['club', 'retirado'], ic: '🧒', t: 'El rocódromo te pide un taller para niños', d: 'Un sábado por la mañana con veinte peques con arnés.',
+    ops: [{ n: 'Hacerlo', fx: () => [['€', 120], ['😊', 5], ['⭐', 1], ['⚡', -8]], txt: 'Salen todos con ganas de escalar.' },
+          { n: 'No puedo', fx: () => [], txt: 'Otra vez será.' }] },
+  cordada: { dep: 'escalada', fases: ['club'], ic: '🪢', t: s => `${amigo(s)}, tu compañero/a de cordada, se va un mes de viaje`, d: 'Te propone ir con él/ella a escalar a Kalymnos.',
+    ops: [{ n: 'Irte con él/ella', fx: () => [['€', -500], ['🧑‍🤝‍🧑', 10], ['😊', 8], ['🔁', '+1 resistencia']], hacer(s) { aplicarFx(s, [['€', -500], ['🧑‍🤝‍🧑', 10], ['😊', 8]]); s.esc.at.resistencia = Math.min(techoAttr(s, 'resistencia'), s.esc.at.resistencia + 1); s.esc.viajes.kalymnos = (s.esc.viajes.kalymnos || 0) + 1; return 'Un mes de vías largas sobre el mar.'; } },
+          { n: 'Buscar otra cordada', fx: () => [['🧑‍🤝‍🧑', -4], ['⚡', -5]], txt: 'Encuentras a alguien en el club.' }] },
+  documental: { dep: 'escalada', fases: ['club', 'retirado'], ic: '🎥', peso: 0.4, cond: s => s.p.rep >= 70, t: 'Una productora quiere un documental sobre ti', d: 'Seguirán tu vida y tus proyectos durante meses.',
+    ops: [{ n: 'Aceptar', fx: () => [['€', 6000], ['⭐', 6], ['⚡', -10]], hacer(s) { aplicarFx(s, [['€', 6000], ['⭐', 6], ['⚡', -10]]); s.esc.seg += 20000; return 'Tu historia llegará a mucha gente.'; } },
+          { n: 'Prefiero escalar tranquilo/a', fx: () => [['😊', 2]], txt: 'Sin cámaras.' }] },
+  lluvia: { dep: 'escalada', fases: ['club'], ic: '🌧️', cond: s => !!s.esc.proy, t: 'Una semana de lluvias en la zona', d: 'La roca rezuma agua y las presas están mojadas.',
+    ops: [{ n: 'Entrenar en el rocódromo', fx: () => [['🤏', '+0,5 fuerza'], ['⚡', -8]], hacer(s) { s.esc.at.fuerza = Math.min(techoAttr(s, 'fuerza'), s.esc.at.fuerza + 0.5); aplicarFx(s, [['⚡', -8]]); return 'Aprovechas para entrenar dedos.'; } },
+          { n: 'Descansar', fx: () => [['⚡', 10]], txt: 'Descansas.' }] },
+  antidopaje: { dep: 'escalada', fases: ['club'], ic: '🧪', cond: s => s.esc.nacional === s.esc.año, t: 'Control antidopaje por sorpresa', d: 'A las 7 de la mañana en tu casa: los deportistas del equipo nacional deben estar localizables.',
+    ops: [{ n: 'Pasarlo', fx: () => [['😊', -1]], txt: 'Todo en orden.' }] },
+  hijoEscalada: { dep: 'escalada', fases: ['club', 'retirado'], ic: '🧗', cond: s => s.rel.some(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18 && !r.futbol), prep: s => ({ id: azar(s, s.rel.filter(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18 && !r.futbol)).id }),
+    t: (s, d) => `${hijoDe(s, d).nombre} quiere escalar como tú`, d: 'Te pide que le apuntes a la escuela del rocódromo.',
+    ops: [{ n: 'Apuntarle', fx: () => [['€', '−25/sem'], ['🧒', 12], ['😊', 5]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v + 12, 0, 100); aplicarFx(s, [['😊', 5]]); s.mods.push({ tipo: 'ingreso', v: -25, sem: 36, motivo: `Escuela de escalada de ${h.nombre}` }); return '¡Ya tiene sus primeros pies de gato!'; } },
+          { n: 'Mejor otro deporte', fx: () => [['🧒', -6]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v - 6, 0, 100); return 'Se lleva una decepción.'; } }] },
 };
 const SOLO_FUTBOL = ['cena', 'lesionCompanero', 'fichajeRival', 'tarde', 'sub21', 'tienda', 'capitan', 'polemica', 'benefico', 'agente', 'entrenadorNuevo', 'colgarBotas'];
-for (const [id, e] of Object.entries(SUCESOS)) if (e.fases.includes('club') && !SOLO_FUTBOL.includes(id) && !e.fases.includes('retirado')) e.fases.push('retirado');
+// Imprevistos de fútbol que no tienen sentido para quien escala
+const NO_ESCALADA = SOLO_FUTBOL.concat(['botas', 'torneo', 'viral', 'entrevista', 'foto', 'hijoFutbol', 'aficionFichaje', 'inversorClub']);
+for (const [id, e] of Object.entries(SUCESOS)) if (!e.dep && e.fases.includes('club') && !SOLO_FUTBOL.includes(id) && !e.fases.includes('retirado')) e.fases.push('retirado');
 function hijoDe(s, d) { return s.rel.find(r => r.id === d.id) || { nombre: 'Tu hijo/a', v: 0 }; }
 function cambiarInteres(s, delta) {
   s.interesHipoteca = clamp(s.interesHipoteca + delta, 0.01, 0.08);
   for (const i of s.inmuebles) if (i.hipoteca) { i.hipoteca.interes = s.interesHipoteca; i.hipoteca.cuota = cuotaHipoteca(i.hipoteca.deuda, i.hipoteca.restantes, i.hipoteca.interes); }
 }
 function elegirSuceso(s) {
-  const ok = Object.entries(SUCESOS).filter(([, e]) => e.fases.includes(s.fase) && (!e.neg || s.negocios.length) && (!e.cond || e.cond(s)));
+  const esc = s.deporte === 'escalada', fase = esc ? ({ rocodromo: 'barrio', escalador: 'club' }[s.fase] || s.fase) : s.fase;
+  const ok = Object.entries(SUCESOS).filter(([id, e]) => (e.dep ? e.dep === (s.deporte || 'futbol') : !(esc && NO_ESCALADA.includes(id))) && e.fases.includes(fase) && (!e.neg || s.negocios.length) && (!e.cond || e.cond(s)));
   if (!ok.length) return null;
   const tot = ok.reduce((a, [, e]) => a + (e.peso || 1), 0);
   let u = rnd(s) * tot;
@@ -1574,6 +1740,10 @@ function resolver(opcion) {
     msg = `${textoSuceso(s, e, ev.data || {}, 't')} → ${op.n}. ${msg}`;
     ic = e.ic;
     s.p.nivel = clamp(r1(s.p.nivel), 0, CFG.nivelMax); s.p.rep = clamp(Math.round(s.p.rep), 0, 100);
+  } else if (POPUPS_ESC[ev.tipo]) {
+    const r = resolverEsc(s, ev, opcion);
+    if (!r) return false;
+    [ic, msg] = r;
   } else if (ev.tipo === 'fin' || ev.tipo === 'pantalla' || ev.tipo === 'retiro') {
     msg = ''; // ya está en el diario
   } else return false;
@@ -1592,7 +1762,7 @@ function resolver(opcion) {
 function negocioDe(s, tipo) { return s.negocios.find(n => n.tipo === tipo) || null; }
 function bloqueoNegocio(s, tipo) {
   const T = CFG.negocios[tipo];
-  if (!['club', 'retirado'].includes(s.fase)) return 'Necesitas un contrato profesional.';
+  if (!['club', 'retirado', 'escalador'].includes(s.fase)) return s.deporte === 'escalada' ? 'Primero entra en un equipo de competición.' : 'Necesitas un contrato profesional.';
   if (negocioDe(s, tipo)) return 'Ya es tuyo.';
   if (!desbloqueado(s, tipo)) return textoBloqueo(s, tipo);
   return null;
@@ -2020,6 +2190,15 @@ function realizarActividad(id) {
 }
 
 function gastosVida(s) {
+  if (s.deporte === 'escalada' && s.fase !== 'retirado') {
+    const base = CFG.paises.es.vida, v = vivienda(s);
+    if (v) return { v: Math.round(base * (1 - CFG.inmo.viviendaAhorro)), motivo: `vives en tu ${CFG.inmuebles[v.tipo].n.toLowerCase()}` };
+    if (s.edad < CFG.escalada.edadPagas) return { v: 0, motivo: 'vives con tu familia: pagan tus padres' };
+    if (s.edad < 23) return { v: CFG.club.gastosFamilia - 15, motivo: 'vives con tu familia' };
+    if (s.coches.some(k => k.tipo === 'furgo')) return { v: 90, motivo: 'vives en tu furgoneta entre viaje y viaje' };
+    if (s.edad < 27) return { v: 100, motivo: 'piso compartido' };
+    return { v: base, motivo: 'gastos de vida de alquiler' };
+  }
   if (s.fase === 'retirado') {
     const base = CFG.paises.es.vida, v = vivienda(s);
     return v ? { v: Math.round(base * (1 - CFG.inmo.viviendaAhorro)), motivo: `vives en tu ${CFG.inmuebles[v.tipo].n.toLowerCase()}` } : { v: base, motivo: 'gastos de vida de alquiler' };
@@ -2030,7 +2209,7 @@ function gastosVida(s) {
   if (v && miClub(s).pais === 'es') return { v: Math.round(c.vida * (1 - CFG.inmo.viviendaAhorro)), motivo: `vives en tu ${CFG.inmuebles[v.tipo].n.toLowerCase()}` };
   return { v: c.vida, motivo: `gastos de vida en ${CFG.paises[miClub(s).pais].n}` };
 }
-function objetivoFelicidad(s, P) {
+function objetivoFelicidad(s, P, extra) {
   const F = CFG.felicidad, l = [];
   const rels = s.rel.filter(r => r.tipo !== 'agente');
   const media = rels.length ? rels.reduce((a, r) => a + r.v, 0) / rels.length : 50;
@@ -2047,6 +2226,7 @@ function objetivoFelicidad(s, P) {
   if (mal) l.push([-5 * mal, 'mala relación con tus hijos']);
   if (s.p.dinero < 0) l.push([-15, 'números rojos']);
   if (s.lesion > 0) l.push([-8, 'lesión']);
+  for (const x of extra || []) l.push(x);
   if (P) {
     if (P.rol === 'titular') l.push([3, 'jugar de titular']); if (P.rol === 'banquillo') l.push([-4, 'no jugar']);
     if (P.resultado === 'victoria') l.push([4, 'victoria']); if (P.resultado === 'derrota') l.push([-4, 'derrota']);
@@ -2076,36 +2256,50 @@ function semanaVida(s, R) {
   }
   const ag = rel(s, 'agente');
   if (ag && s.fase === 'club') { const com = Math.round(s.contrato.salario * CFG.agente.comision); s.p.dinero -= com; R.eco.push([`Comisión del representante (${Math.round(CFG.agente.comision * 100)} %)`, -com]); }
-  const partes = objetivoFelicidad(s, R.partido), obj = clamp(partes.reduce((a, [v]) => a + v, 0), 0, 100);
+  const partes = objetivoFelicidad(s, R.partido, R.felExtra), obj = clamp(partes.reduce((a, [v]) => a + v, 0), 0, 100);
   const antes = s.p.fel;
   s.p.fel = clamp(Math.round(s.p.fel + (obj - s.p.fel) * CFG.felicidad.inercia), 0, 100);
   R.dep.push([`Felicidad ${antes} → ${s.p.fel}`, '', `Se acerca un ${Math.round(CFG.felicidad.inercia * 100)} % hacia ${obj} = ${partes.map(([v, t]) => `${sg(v)} ${t}`).join(' ')}. Tu felicidad suma o resta hasta 0,5 a la nota.`]);
 }
 
+// [id, icono, texto, condición, deporte (vacío = los dos)]
 const LOGROS = [
-  ['contrato', '📝', 'Primer contrato profesional', s => s.fase === 'club'],
-  ['gol', '⚽', 'Primer gol como profesional', s => s.stats.goles > 0],
-  ['ascenso', '⬆️', 'Primer ascenso', s => s.ascensos > 0],
-  ['extranjero', '✈️', 'Jugar en el extranjero', s => s.fase === 'club' && miClub(s).pais !== 'es'],
-  ['primera', '🏆', 'Jugar en primera división', s => s.fase === 'club' && ligaDe(s, s.contrato.clubId).tier === 1],
+  ['contrato', '📝', 'Primer contrato profesional', s => s.fase === 'club', 'futbol'],
+  ['gol', '⚽', 'Primer gol como profesional', s => s.stats.goles > 0, 'futbol'],
+  ['ascenso', '⬆️', 'Primer ascenso', s => s.ascensos > 0, 'futbol'],
+  ['extranjero', '✈️', 'Jugar en el extranjero', s => s.fase === 'club' && miClub(s).pais !== 'es', 'futbol'],
+  ['primera', '🏆', 'Jugar en primera división', s => s.fase === 'club' && ligaDe(s, s.contrato.clubId).tier === 1, 'futbol'],
+  ['equipoEsc', '🧗', 'Entrar en un equipo de competición', s => s.fase !== 'rocodromo', 'escalada'],
+  ['podioEsc', '🥉', 'Primer podio', s => s.esc.podios > 0, 'escalada'],
+  ['ochoa', '⛰️', 'Encadenar un 8a en roca', s => maxRoca(s) >= 14, 'escalada'],
+  ['viajeEsc', '✈️', 'Escalar en el extranjero', s => Object.keys(s.esc.viajes).length > 0, 'escalada'],
+  ['nacionalEsc', '🇪🇸', 'Equipo nacional', s => !!s.esc.nacional, 'escalada'],
+  ['copaMundo', '🌍', 'Competir en una Copa del Mundo', s => !!s.esc.mejor.mundo, 'escalada'],
+  ['finalMundo', '🔥', 'Final de Copa del Mundo', s => (s.esc.mejor.mundo || 99) <= 8, 'escalada'],
+  ['faEsc', '🆕', 'Primera ascensión', s => s.esc.fa > 0, 'escalada'],
+  ['nuevea', '💎', 'Encadenar un 9a', s => s.esc.maxVia >= 20, 'escalada'],
+  ['olimpico', '🏅', 'Ir a unos Juegos Olímpicos', s => !!s.esc.olimpico, 'escalada'],
+  ['medallaEsc', '🥇', 'Medalla en un Mundial, Europeo o Juegos', s => s.esc.medallas.length > 0, 'escalada'],
   ['pareja', '❤️', 'Encontrar pareja', s => !!rel(s, 'pareja')],
   ['coche', '🚗', 'Primer coche', s => s.coches.length > 0],
   ['negocio', '💈', 'Primer negocio', s => s.negocios.length > 0],
   ['casa', '🏠', 'Primera propiedad', s => s.inmuebles.length > 0],
   ['casero', '🔑', 'Casero: una propiedad alquilada', s => s.inmuebles.some(i => i.inquilino)],
-  ['club', '🏟️', 'Dueño de un club de fútbol', s => s.clubes.length > 0],
-  ['presidente', '👔', 'Presidente y jugador del mismo club', s => s.fase === 'club' && !!clubPropio(s, s.contrato.clubId)],
+  ['club', '🏟️', 'Dueño de un club de fútbol', s => s.clubes.length > 0, 'futbol'],
+  ['presidente', '👔', 'Presidente y jugador del mismo club', s => s.fase === 'club' && !!clubPropio(s, s.contrato.clubId), 'futbol'],
   ['cienmil', '💰', '100.000 € de patrimonio', s => patrimonio(s) >= 100000],
   ['imperio', '🏙️', 'Todos los negocios', s => s.negocios.length === Object.keys(CFG.negocios).length],
   ['millon', '💎', 'Millonario: 1.000.000 € de patrimonio', s => patrimonio(s) >= 1000000],
   ['hijo', '👶', 'Ser padre o madre', s => s.rel.some(r => r.tipo === 'hijo')],
   ['hipoteca', '🏦', 'Pagar una hipoteca entera', s => s.hipotecasPagadas > 0],
-  ['retirada', '👋', 'Retirarse del fútbol', s => s.fase === 'retirado'],
-  ['leyenda', '🎮', 'Superar las 10 pantallas', s => s.pantalla >= PANTALLAS.length],
+  ['retirada', '👋', 'Retirarse del fútbol', s => s.fase === 'retirado', 'futbol'],
+  ['retiradaEsc', '👋', 'Retirarse de la competición', s => s.fase === 'retirado', 'escalada'],
+  ['leyenda', '🎮', 'Superar las 10 pantallas', s => s.pantalla >= pantallas(s).length],
 ];
+function logrosDe(s) { return LOGROS.filter(l => !l[4] || l[4] === (s.deporte || 'futbol')); }
 function comprobarLogros(s, R) {
   comprobarPantalla(s);
-  for (const [id, ic, t, f] of LOGROS) {
+  for (const [id, ic, t, f] of logrosDe(s)) {
     if (s.logros[id] || !f(s)) continue;
     s.logros[id] = s.semana;
     if (R) R.opo.push(['🏅', `Logro: ${t}`]); else anotar(s, '🏅', `Logro: ${t}`);
@@ -2123,6 +2317,7 @@ function entradaDiario(s, R) {
   const a = ACCIONES[R.accionId];
   const efecto = R.dep[0] && R.dep[0][1] ? `: ${R.dep[0][1]}` : '';
   L.push([a.ic, `Plan: ${a.n.toLowerCase()}${efecto}.`]);
+  for (const x of R.escLineas || []) L.push(x);
   const A0 = R.antes, D0 = foto(s), cambios = [['😊', D0.fel - A0.fel], ['⚡', D0.energia - A0.energia], ['💪', r1(D0.nivel - A0.nivel)], ['⭐', D0.rep - A0.rep]].filter(([, v]) => Math.abs(v) >= 0.1);
   if (cambios.length) L.push(['📊', cambios.map(([i, v]) => `${i} ${sg(v)}`).join('   ')]);
   if (R.prueba) L.push(['📋', `Día de las pruebas: saco un ${R.prueba.score}.`]);
@@ -2138,13 +2333,14 @@ function entradaDiario(s, R) {
   const neto = R.eco.reduce((x, [, v]) => x + v, 0);
   if (neto) L.push(['👛', `Mi dinero: ${neto >= 0 ? '+' : ''}${cr(neto)} esta semana.`]);
   const T = s.temporada;
-  const tit = R.fase === 'club' && P ? `${infoLiga(P.liga).L.n} · jornada ${P.jornada}` : R.fase === 'prep' ? 'Preparando las pruebas' : R.fase === 'retirado' ? 'Retirado del fútbol' : `Barrio de ${s.ciudad}`;
+  const tit = s.deporte === 'escalada' && R.fase !== 'retirado' ? (R.fase === 'rocodromo' ? `Rocódromo de ${s.ciudad}` : `${MESES[Math.floor(((s.semanasAño + 17) % 18) * 12 / 18)]} de ${s.semanasAño ? s.esc.año : s.esc.año - 1}`) : R.fase === 'retirado' && s.deporte === 'escalada' ? 'Retirado/a de la competición' : R.fase === 'club' && P ? `${infoLiga(P.liga).L.n} · jornada ${P.jornada}` : R.fase === 'prep' ? 'Preparando las pruebas' : R.fase === 'retirado' ? 'Retirado del fútbol' : `Barrio de ${s.ciudad}`;
   return { semana: R.semana, edad: s.edad, titulo: tit, lineas: L, partido: P ? { gf: P.gf, gc: P.gc, casa: P.casa, rival: P.rivalId, club: R.clubId, resultado: P.resultado, nota: P.nota, rol: P.rol } : null,
     por: { dep: R.dep, eco: R.eco, neg: R.neg }, prensa: R.prensa, año: T ? T.año : null };
 }
 
 function objetivos(s) {
   const out = [];
+  if (s.deporte === 'escalada') return out;
   if (s.fase === 'barrio') {
     out.push({ t: 'Llama la atención de un ojeador', d: `Reputación ${s.p.rep} de ${CFG.barrio.repOjeador}. Juega partidos en la plaza (más reputación con nivel y energía).`, prog: s.p.rep / CFG.barrio.repOjeador });
     out.push({ t: 'Preparar las pruebas' });
@@ -2267,14 +2463,14 @@ const PANTALLAS = [
     obj: [['Juega en 3ª categoría o más arriba (o asciende)', s => s.ascensos > 0 ? 1 : (6 - (s.mejorTier || 6)) / 3],
           ['Consigue una mejora o renovación de contrato', s => s.mejoras > 0 ? 1 : 0],
           ['Ahorra 25.000 €', s => s.p.dinero / 25000]] },
-  { n: 'Primer negocio', ic: '💈', premio: [['€', 5000]], desbloquea: 'Inmobiliaria con hipotecas, lavandería y academia de fútbol',
+  { n: 'Primer negocio', ic: '💈', premio: [['€', 5000]], desbloquea: 'Inmobiliaria con hipotecas, lavandería, academia de fútbol, escuela y tienda de escalada',
     obj: [['Compra tu primer negocio', s => s.negocios.length ? 1 : 0],
           ['Llega a 60.000 € de patrimonio', s => patrimonio(s) / 60000]] },
-  { n: 'Casa propia', ic: '🏠', premio: [['€', 10000]], desbloquea: 'Tienda de deportes, restaurante e hijos',
+  { n: 'Casa propia', ic: '🏠', premio: [['€', 10000]], desbloquea: 'Tienda de deportes, restaurante, rocódromo de bloque e hijos',
     obj: [['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0],
           ['Ten pareja', s => rel(s, 'pareja') ? 1 : 0],
           ['Ten 2 negocios', s => s.negocios.length / 2]] },
-  { n: 'La élite', ic: '🌍', premio: [['€', 25000]], desbloquea: 'Gimnasio y supermercado',
+  { n: 'La élite', ic: '🌍', premio: [['€', 25000]], desbloquea: 'Gimnasio, supermercado y marca de presas',
     obj: [['Juega en 1ª o 2ª categoría (o ten 3 negocios)', s => (s.mejorTier || 9) <= 2 || s.negocios.length >= 3 ? 1 : Math.max(s.negocios.length / 3, (6 - (s.mejorTier || 6)) / 4)],
           ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
   { n: 'Familia y empresa', ic: '👨‍👩‍👧', premio: [['€', 50000]], desbloquea: 'Hotel y compra de clubes de fútbol',
@@ -2289,15 +2485,16 @@ const PANTALLAS = [
           ['Ten 6 negocios', s => s.negocios.length / 6],
           ['Llega a 5.000.000 € de patrimonio', s => patrimonio(s) / 5000000]] },
 ];
-function pantallaActual(s) { return s.pantalla < PANTALLAS.length ? PANTALLAS[s.pantalla] : null; }
+function pantallaActual(s) { const l = pantallas(s); return s.pantalla < l.length ? l[s.pantalla] : null; }
 function progresoObjetivos(s) { const P = pantallaActual(s); return P ? P.obj.map(([t, f]) => [t, clamp(f(s), 0, 1)]) : []; }
-function desbloqueado(s, clave) {
-  const nivel = CFG.desbloqueos[clave] || (CFG.negocios[clave] && CFG.negocios[clave].pantalla) || 1;
-  return s.pantalla + 1 >= nivel;
+function nivelDesbloqueo(s, clave) {
+  if (s.deporte === 'escalada') return CFG.escalada.desbloqueos[clave] || 1;
+  return CFG.desbloqueos[clave] || (CFG.negocios[clave] && CFG.negocios[clave].pantalla) || 1;
 }
+function desbloqueado(s, clave) { return s.pantalla + 1 >= nivelDesbloqueo(s, clave); }
 function textoBloqueo(s, clave) {
-  const nivel = CFG.desbloqueos[clave] || (CFG.negocios[clave] && CFG.negocios[clave].pantalla) || 1;
-  return `Se desbloquea en la pantalla ${nivel}: ${PANTALLAS[nivel - 1].n}`;
+  const nivel = nivelDesbloqueo(s, clave), P = pantallas(s)[nivel - 1];
+  return P ? `Se desbloquea en la pantalla ${nivel}: ${P.n}` : 'No disponible.';
 }
 function comprobarPantalla(s) {
   let P = pantallaActual(s);
@@ -2378,6 +2575,7 @@ function cumpleaños(s, R) {
 }
 function declive(s) { for (const [hasta, v] of CFG.retiro.declive) if (s.edad <= hasta) return v; return 0.35; }
 function retirarse(s, forzado, R) {
+  if (s.deporte === 'escalada') return retirarseEsc(s, forzado, R);
   if (s.fase !== 'club' || (!forzado && s.edad < CFG.retiro.edadMin)) return false;
   const c = miClub(s), RR = CFG.retiro;
   const homenaje = s.p.rep >= RR.homenajeRep ? s.p.rep * RR.homenajePorRep : 0;
@@ -2417,6 +2615,705 @@ function semanaRetirado(s, R) {
 }
 
 /* =====================================================================
+   15. ESCALADA
+   Un año de juego = 18 semanas (de enero a diciembre: cada semana de juego ≈ 3 semanas reales).
+   Grados reales: escala francesa en vías y escala de Fontainebleau en bloque.
+   Las zonas de escalada son reales; marcas, rivales e importes son de juego y provisionales.
+   ===================================================================== */
+const GRADOS_VIA = ['5', '5+', '6a', '6a+', '6b', '6b+', '6c', '6c+', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a', '9a+', '9b', '9b+', '9c'];
+const GRADOS_BLOQUE = ['4', '5', '5+', '6A', '6A+', '6B', '6B+', '6C', '6C+', '7A', '7A+', '7B', '7B+', '7C', '7C+', '8A', '8A+', '8B', '8B+', '8C', '8C+', '9A'];
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const ATTRS = {
+  fuerza: { n: 'Fuerza de dedos', ic: '🤏' }, resistencia: { n: 'Resistencia', ic: '🔁' }, tecnica: { n: 'Técnica', ic: '🎯' },
+  cabeza: { n: 'Cabeza (miedo y presión)', ic: '🧠' }, velocidad: { n: 'Explosividad', ic: '🚀' },
+};
+// Cuánto pesa cada cualidad en cada modalidad
+const MODS = {
+  bloque: { n: 'Bloque', ic: '🪨', pesos: { fuerza: 0.45, tecnica: 0.35, cabeza: 0.1, velocidad: 0.1 }, d: 'Problemas cortos y explosivos de 4 a 5 m sobre colchonetas, sin cuerda.' },
+  dificultad: { n: 'Dificultad', ic: '🧗', pesos: { resistencia: 0.4, tecnica: 0.25, cabeza: 0.2, fuerza: 0.15 }, d: 'Vías largas con cuerda: gana quien llega más alto.' },
+  velocidad: { n: 'Velocidad', ic: '⏱️', pesos: { velocidad: 0.7, fuerza: 0.2, cabeza: 0.1 }, d: 'La misma pared de 15 m en todo el mundo, contra el reloj.' },
+  combinada: { n: 'Bloque y dificultad', ic: '🏅', pesos: null, d: 'Formato olímpico: suma de bloque y dificultad.' },
+};
+// Zonas reales. buenos = meses con buenas condiciones (0 = enero). coste = gasto por semana (viaje, comida, alojamiento).
+const ZONAS = {
+  siurana: { n: 'Siurana', f: '🇪🇸', reg: 'Tarragona', tipo: 'via', roca: 'caliza', buenos: [9, 10, 11, 0, 1, 2, 3], coste: 70, d: 'Caliza vertical y técnica sobre el pantano, en el Priorat.', clasicas: [[21, 'La Rambla']] },
+  margalef: { n: 'Margalef', f: '🇪🇸', reg: 'Lleida', tipo: 'via', roca: 'conglomerado', buenos: [9, 10, 11, 0, 1, 2, 3], coste: 70, d: 'Agujeros y monodedos en conglomerado.', clasicas: [[22, 'First Round First Minute']] },
+  rodellar: { n: 'Rodellar', f: '🇪🇸', reg: 'Huesca', tipo: 'via', roca: 'caliza desplomada', buenos: [4, 5, 6, 7, 8, 9], coste: 80, d: 'Desplomes enormes en un cañón con sombra: la zona de verano.', clasicas: [[22, 'Ali Hulk Sit Extension Total']] },
+  chulilla: { n: 'Chulilla', f: '🇪🇸', reg: 'Valencia', tipo: 'via', roca: 'caliza', buenos: [9, 10, 11, 0, 1, 2, 3], coste: 60, d: 'Paredes de caliza junto al río Turia.', clasicas: [] },
+  chorro: { n: 'El Chorro', f: '🇪🇸', reg: 'Málaga', tipo: 'via', roca: 'caliza', buenos: [10, 11, 0, 1, 2], coste: 80, d: 'Desfiladero junto al Caminito del Rey: invierno suave.', clasicas: [] },
+  montserrat: { n: 'Montserrat', f: '🇪🇸', reg: 'Barcelona', tipo: 'via', roca: 'conglomerado', buenos: [2, 3, 4, 9, 10, 11], coste: 50, d: 'Agujas de conglomerado y vías largas.', clasicas: [] },
+  albarracin: { n: 'Albarracín', f: '🇪🇸', reg: 'Teruel', tipo: 'bloque', roca: 'arenisca', buenos: [2, 3, 4, 9, 10, 11], coste: 70, d: 'Bloques de arenisca roja entre pinos. Cierra zonas en época de cría de aves.', clasicas: [] },
+  pedriza: { n: 'La Pedriza', f: '🇪🇸', reg: 'Madrid', tipo: 'bloque', roca: 'granito', buenos: [9, 10, 11, 0, 1, 2, 3], coste: 40, d: 'Granito de grano grueso: duro para la piel.', clasicas: [] },
+  fontainebleau: { n: 'Fontainebleau', f: '🇫🇷', reg: 'Francia', tipo: 'bloque', roca: 'arenisca', buenos: [2, 3, 9, 10], coste: 450, d: 'El bosque que inventó el bloque y su escala de grados.', clasicas: [] },
+  ceuse: { n: 'Céüse', f: '🇫🇷', reg: 'Francia', tipo: 'via', roca: 'caliza', buenos: [5, 6, 7, 8], coste: 500, d: 'Una cinta de caliza azul a 2.000 m: escalada de verano.', clasicas: [[21, 'Biographie']] },
+  frankenjura: { n: 'Frankenjura', f: '🇩🇪', reg: 'Alemania', tipo: 'via', roca: 'caliza', buenos: [4, 5, 8, 9], coste: 550, d: 'Vías cortas y durísimas en un bosque de Baviera.', clasicas: [[20, 'Action Directe']] },
+  magicwood: { n: 'Magic Wood', f: '🇨🇭', reg: 'Suiza', tipo: 'bloque', roca: 'gneis', buenos: [5, 6, 7, 8], coste: 600, d: 'Bloques de gneis en un bosque alpino: solo en verano.', clasicas: [] },
+  kalymnos: { n: 'Kalymnos', f: '🇬🇷', reg: 'Grecia', tipo: 'via', roca: 'caliza', buenos: [3, 4, 9, 10], coste: 650, d: 'Estalactitas sobre el mar Egeo.', clasicas: [] },
+  flatanger: { n: 'Flatanger', f: '🇳🇴', reg: 'Noruega', tipo: 'via', roca: 'granito', buenos: [5, 6, 7], coste: 900, d: 'Una cueva de granito gigante. Aquí está Silence, la primera vía de 9c.', clasicas: [[23, 'Change'], [24, 'Silence']] },
+  rocklands: { n: 'Rocklands', f: '🇿🇦', reg: 'Sudáfrica', tipo: 'bloque', roca: 'arenisca', buenos: [5, 6, 7], coste: 1400, d: 'Arenisca naranja en el invierno austral (junio a agosto).', clasicas: [] },
+  yosemite: { n: 'Yosemite', f: '🇺🇸', reg: 'EE. UU.', tipo: 'via', roca: 'granito', buenos: [3, 4, 8, 9], coste: 1600, d: 'El Capitán y sus grandes paredes de granito.', clasicas: [[20, 'The Dawn Wall']] },
+};
+// Ámbitos de competición. media y sd = nivel de quienes compiten; N = participantes;
+// semi y final = cuántos pasan; viaje se lo paga la federación si vas con el equipo nacional.
+const AMBITOS = {
+  auto: { n: 'Liga autonómica', media: 38, sd: 10, N: 30, semi: 0, final: 8, ins: 15, viaje: 30, techo: 30, rep: 2, premio: [100, 60, 40], presion: 0.2, energia: 12, juvenil: true },
+  esp: { n: 'Copa de España', media: 52, sd: 9, N: 60, semi: 20, final: 8, ins: 30, viaje: 150, techo: 50, rep: 5, premio: [300, 200, 100], presion: 0.4, energia: 15, juvenil: true },
+  cesp: { n: 'Campeonato de España', media: 54, sd: 8.5, N: 50, semi: 20, final: 8, ins: 35, viaje: 150, techo: 55, rep: 8, premio: [500, 300, 200], presion: 0.5, energia: 15, juvenil: true },
+  europa: { n: 'Copa de Europa', media: 63, sd: 7, N: 70, semi: 20, final: 8, ins: 60, viaje: 400, techo: 62, rep: 8, premio: [800, 500, 300], presion: 0.6, energia: 18, juvenil: true, nacional: true },
+  mundo: { n: 'Copa del Mundo', media: 72, sd: 6, N: 100, semi: 24, final: 8, ins: 100, viaje: 900, techo: 85, rep: 12, premio: [4000, 2500, 1800, 1200, 1000, 900, 800, 700], presion: 0.8, energia: 20, nacional: true },
+  europeo: { n: 'Campeonato de Europa', media: 70, sd: 6, N: 80, semi: 20, final: 8, ins: 100, viaje: 500, techo: 80, rep: 12, premio: [3000, 2000, 1500], presion: 0.9, energia: 20, nacional: true },
+  mundial: { n: 'Campeonato del Mundo', media: 73, sd: 5.5, N: 120, semi: 24, final: 8, ins: 120, viaje: 1200, techo: 95, rep: 18, premio: [6000, 4000, 3000, 1500, 1200, 1000, 900, 800], presion: 1, energia: 20, nacional: true },
+  clasif: { n: 'Clasificatorio olímpico', media: 77, sd: 4, N: 40, semi: 0, final: 8, ins: 0, viaje: 1200, techo: 85, rep: 10, premio: [], presion: 1, energia: 20, nacional: true, plazas: 10 },
+  jjoo: { n: 'Juegos Olímpicos', media: 79, sd: 3.5, N: 20, semi: 0, final: 8, ins: 0, viaje: 0, techo: 100, rep: 30, premio: [94000, 48000, 30000], presion: 1.3, energia: 20, nacional: true },
+};
+const ORDEN_AMB = ['auto', 'esp', 'cesp', 'europa', 'mundo', 'europeo', 'mundial', 'clasif', 'jjoo'];
+// Calendario base de cada año: [semana del año (0-17), ámbito, modalidad, lugar]
+const CAL_ESC = [
+  [2, 'auto', 'bloque', 'tu comunidad'], [3, 'esp', 'bloque', 'Madrid'], [4, 'auto', 'dificultad', 'tu comunidad'], [5, 'esp', 'velocidad', 'Valencia'],
+  [6, 'mundo', 'bloque', 'Keqiao (China)'], [6, 'auto', 'velocidad', 'tu comunidad'], [7, 'esp', 'dificultad', 'Barcelona'], [7, 'mundo', 'velocidad', 'Wujiang (China)'],
+  [8, 'mundo', 'bloque', 'Salt Lake City (EE. UU.)'], [8, 'europa', 'bloque', 'Soure (Portugal)'], [9, 'auto', 'bloque', 'tu comunidad'], [9, 'mundo', 'bloque', 'Innsbruck (Austria)'],
+  [10, 'europa', 'dificultad', 'Arco (Italia)'], [10, 'mundo', 'velocidad', 'Salt Lake City (EE. UU.)'], [11, 'mundo', 'dificultad', 'Chamonix (Francia)'], [11, 'esp', 'dificultad', 'Zaragoza'],
+  [12, 'mundo', 'dificultad', 'Briançon (Francia)'], [12, 'esp', 'bloque', 'Bilbao'], [14, 'cesp', 'bloque', 'Madrid'], [15, 'cesp', 'dificultad', 'Lleida'],
+  [15, 'mundo', 'dificultad', 'Koper (Eslovenia)'], [16, 'cesp', 'velocidad', 'Valencia'],
+];
+const SEDES_JJOO = { 2028: 'Los Ángeles', 2032: 'Brisbane' };
+const EQUIPOS = {
+  club: { n: 'Equipo del club del barrio', ic: '🏠', cuota: 15, calidad: 1.0, d: 'Entrenador del club y amigos cerca de casa.' },
+  centro: { n: 'Centro de tecnificación', ic: '🏛️', cuota: 45, calidad: 1.2, nivelMin: 30, d: 'Entrenadores titulados y muro de velocidad, pero lejos de casa: cuota y desplazamientos.' },
+  libre: { n: 'Por libre', ic: '🎒', cuota: 0, calidad: 0.85, bono: 12, d: 'Sin cuota ni horarios, pero sin entrenador: pagas el bono del rocódromo cada vez que entrenas allí.' },
+};
+const MARCAS = ['Vértigo', 'Andes Gear', 'NordWall', 'Pico Alto', 'Grip & Co', 'Roca Viva', 'Kaliza', 'Bloc Lab', 'Alpina Sur', 'Magnesia'];
+// Patrocinios: a partir de cierta reputación llegan ofertas mejores. sem = €/semana (rango)
+const PATRO_TIERS = [
+  { rep: 12, n: 'Material', sem: [0, 0], d: 'Te dan pies de gato, magnesio y ropa.' },
+  { rep: 25, n: 'Marca pequeña', sem: [50, 90] }, { rep: 40, n: 'Marca nacional', sem: [150, 250] },
+  { rep: 55, n: 'Marca internacional', sem: [400, 700] }, { rep: 70, n: 'Atleta principal de una marca', sem: [1200, 2000] },
+  { rep: 85, n: 'Estrella mundial', sem: [3000, 5000] },
+];
+const POPUPS_ESC = { equipoEsc: 1, patrocinio: 1, nacional: 1, finEsc: 1 };
+
+/* ---- Niveles y grados ---- */
+function nivelMod(s, m) {
+  const at = s.esc.at;
+  if (m === 'combinada') return (nivelMod(s, 'bloque') + nivelMod(s, 'dificultad')) / 2;
+  return Object.entries(MODS[m].pesos).reduce((a, [k, w]) => a + w * at[k], 0);
+}
+function nivelGeneral(s) { return 0.4 * nivelMod(s, 'bloque') + 0.4 * nivelMod(s, 'dificultad') + 0.2 * nivelMod(s, 'velocidad'); }
+const idxVia = L => clamp(Math.floor((L - 19) / 3.3), 0, GRADOS_VIA.length - 1);
+const idxBloque = L => clamp(Math.floor((L - 19) / 3.3 - 1.3), 0, GRADOS_BLOQUE.length - 1);
+const nivelVia = i => 19 + i * 3.3;
+const nivelBloque = i => 19 + (i + 1.3) * 3.3;
+const gV = i => i >= 0 ? GRADOS_VIA[i] : '—';
+const gB = i => i >= 0 ? GRADOS_BLOQUE[i] : '—';
+const bloqueEquiv = iv => clamp(Math.ceil(iv - 1.3), 0, GRADOS_BLOQUE.length - 1); // vía → bloque de dificultad parecida
+function maxRoca(s) { const E = s.esc; return Math.max(E.maxVia, E.maxBloque >= 0 ? E.maxBloque + 1.3 : -1); }
+function textoGrado(iv) { return `${GRADOS_VIA[iv]} (o ${GRADOS_BLOQUE[bloqueEquiv(iv)]} de bloque)`; }
+function techoAttr(s, k) { return Math.min(CFG.nivelMax, s.potencial + s.esc.tal[k]); }
+function edadEsc(s) { for (const [hasta, f] of CFG.escalada.edadCrec) if (s.edad <= hasta) return f; return 0.3; }
+function calidadEsc(s) { const E = s.esc; return r1((E.equipo ? EQUIPOS[E.equipo].calidad : 0.9) * (E.nacional === E.año ? 1.1 : 1)); }
+function ganancia(s, k, base) {
+  const E = s.esc, techo = clamp((techoAttr(s, k) - E.at[k]) / CFG.escalada.margenTecho, 0, 1);
+  return Math.round(base * CFG.escalada.ritmo * calidadEsc(s) * edadEsc(s) * techo * (s.p.energia < 30 ? 0.6 : 1) * 100) / 100;
+}
+function mesEsc(s) { return Math.floor(s.semanasAño * 12 / CFG.hipoteca.semanasAño); }
+function condicionesZona(s, Z) {
+  const m = mesEsc(s);
+  if (Z.buenos.includes(m)) return { f: 1.25, n: 'buenas', ic: '🟢' };
+  if (Z.buenos.includes((m + 1) % 12) || Z.buenos.includes((m + 11) % 12)) return { f: 0.85, n: 'regulares', ic: '🟡' };
+  return { f: 0.45, n: m >= 5 && m <= 8 ? 'malas (calor)' : 'malas (frío, lluvia o nieve)', ic: '🔴' };
+}
+// Si algo externo cambia el nivel (gimnasio, un imprevisto, modo pruebas) se reparte entre las cualidades
+function syncEsc(s) {
+  if (!s || s.deporte !== 'escalada' || !s.esc) return;
+  const E = s.esc, d = s.p.nivel - E.nv;
+  if (Math.abs(d) >= 0.05) for (const k of Object.keys(ATTRS)) E.at[k] = clamp(E.at[k] + d, 0, CFG.nivelMax);
+  s.p.nivel = r1(nivelGeneral(s)); E.nv = s.p.nivel;
+}
+
+/* ---- Inicio ---- */
+function nuevoAnual() { return { comps: 0, podios: 0, mejorEsp: 99, mejorMundo: 99, cm: false, premios: 0 }; }
+function initEscalada(s, fuerte) {
+  const K = CFG.escalada, i = K.inicio, pf = K.fuertes[fuerte] ? fuerte : 'bloque';
+  s.deporte = 'escalada'; s.fuerte = pf; s.fase = 'rocodromo'; s.plan = 'amigos'; s.edad = i.edad; s.semanasAño = 0;
+  Object.assign(s.p, { energia: i.energia, rep: i.rep, dinero: i.dinero });
+  const at = Object.assign({}, i.attrs), tal = {};
+  at[K.fuertes[pf].attr] += K.bonusFuerte;
+  for (const k of Object.keys(ATTRS)) tal[k] = Math.round((rnd(s) * 2 - 1) * K.talentoAttr);
+  tal[K.fuertes[pf].attr] += 3;
+  s.potencial = Math.round(K.potencial[0] + rnd(s) * (K.potencial[1] - K.potencial[0]));
+  s.esc = { at, tal, piel: 90, carga: 10, equipo: null, federado: false, nacional: 0, beca: 0, patro: null, tierOfrecido: -1, seg: 150,
+    año: CFG.temporada.añoInicio, maxVia: -1, maxBloque: -1, proy: null, modoComp: 'todo', ins: {}, comps: 0, podios: 0, finales: 0, palmares: [],
+    mejor: {}, anual: nuevoAnual(), medallas: [], fa: 0, viajes: {}, olimpico: null, mejorMundoMod: {}, lesTipo: '', semPies: 0, nv: 0,
+    equipoOfrecido: false, mejorTiempo: null, puntosSel: 0, envios: [] };
+  s.p.nivel = r1(nivelGeneral(s)); s.esc.nv = s.p.nivel;
+}
+
+/* ---- Entrenamiento ---- */
+// g: [[cualidad, base]] · o: { e: energía, piel, carga, coste, motivo, lesion: tipo de lesión probable }
+function entrenarEsc(s, R, titulo, g, o) {
+  const E = s.esc, txt = [];
+  for (const [k, b] of g) { const v = ganancia(s, k, b); E.at[k] = Math.round(Math.min(techoAttr(s, k), E.at[k] + v) * 100) / 100; if (v > 0) txt.push(`${ATTRS[k].ic} +${nf(v)}`); }
+  s.p.energia -= o.e || 0; E.piel = clamp(E.piel - (o.piel || 0), 0, 100); E.carga = clamp(E.carga + (o.carga || 0), 0, 100);
+  let coste = o.coste || 0;
+  if (o.bono && (!E.equipo || EQUIPOS[E.equipo].bono) && s.edad >= CFG.escalada.edadPagas) coste += EQUIPOS.libre.bono;
+  if (coste && s.edad < CFG.escalada.edadPagas) { R.dep.push([`${o.motivo || titulo}: ${cr(coste)}`, 'lo pagan tus padres', `Hasta los ${CFG.escalada.edadPagas} años tu familia paga tu entrenamiento.`]); coste = 0; }
+  if (coste) { s.p.dinero -= coste; R.eco.push([o.motivo || titulo, -coste]); }
+  if (o.lesion) R.entreno = { carga: o.carga || 0, tipo: o.lesion, tabla: !!o.tabla };
+  E.semPies += o.pies ? 1 : 0;
+  R.dep.push([titulo, `${txt.join(' ') || 'sin mejora'}${o.e ? `, −${o.e} energía` : ''}${o.piel ? `, −${o.piel} piel` : ''}`,
+    `Mejora = base × ${nf(CFG.escalada.ritmo)} × calidad de entrenamiento ${nf(calidadEsc(s))} (${E.equipo ? EQUIPOS[E.equipo].n.toLowerCase() : 'sin equipo'}${E.nacional === E.año ? ', equipo nacional' : ''}) × edad ${nf(edadEsc(s))} × margen hasta tu techo${s.p.energia < 30 ? ' × 0,6 por ir sin energía' : ''}.`]);
+}
+const ACCIONES_ESC = {
+  amigos: { fases: ['rocodromo'], ic: '🤸', n: 'Escalar con los amigos', fx: s => [['🎯', '+técnica'], ['⭐', repAmigos(s)], ['⚡', -10]],
+    pro: s => `+${repAmigos(s)} reputación: el entrenador del rocódromo se fija en ti`, con: () => '−10 energía · −12 piel', why: () => 'Reputación = 2 + nivel/15. Así empiezan casi todos: probando bloques con los amigos.',
+    aplicar(s, R) { const g = repAmigos(s); s.p.rep += g; entrenarEsc(s, R, 'Escalar con los amigos', [['tecnica', 0.8], ['cabeza', 0.3], ['fuerza', 0.3]], { e: 10, piel: 12, carga: 6, bono: true, motivo: 'Bono del rocódromo' }); R.escLineas.push(['⭐', `El entrenador me ve escalar: +${g} reputación.`]); } },
+  rocoBloque: { fases: ['rocodromo', 'escalador'], ic: '🧱', n: 'Bloque en el rocódromo', fx: () => [['🤏', '+fuerza'], ['🎯', '+técnica'], ['⚡', -15], ['🖐️', 'piel −18']],
+    pro: () => 'Mejora fuerza de dedos y técnica', con: () => '−15 energía · −18 piel · carga en los dedos', why: () => 'Base: fuerza 1,0 y técnica 0,5 por semana, multiplicadas por calidad, edad y techo.',
+    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : null,
+    aplicar(s, R) { entrenarEsc(s, R, 'Bloque en el rocódromo', [['fuerza', 1.0], ['tecnica', 0.5], ['velocidad', 0.2]], { e: 15, piel: 18, carga: 14, bono: true, motivo: 'Bono del rocódromo', lesion: 'bloque', pies: true }); } },
+  tabla: { fases: ['escalador'], ic: '🪵', n: 'Tabla multipresa (dedos)', fx: () => [['🤏', '+fuerza ×1,4'], ['⚡', -12], ['🤕', 'riesgo de polea']],
+    pro: () => 'La forma más rápida de ganar fuerza de dedos', con: () => 'Mucha carga en los tendones: es lo que más poleas rompe',
+    why: () => `Base: fuerza 1,4. Con carga alta en los dedos el riesgo de lesión se multiplica por 1,5. Se desaconseja antes de los ${CFG.escalada.edadTabla} años.`,
+    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : s.edad < CFG.escalada.edadTabla ? `Desde los ${CFG.escalada.edadTabla} años: antes los dedos aún están creciendo.` : null,
+    aplicar(s, R) { entrenarEsc(s, R, 'Tabla multipresa', [['fuerza', 1.4]], { e: 12, piel: 6, carga: 26, lesion: 'dedos', tabla: true }); } },
+  resistencia: { fases: ['rocodromo', 'escalador'], ic: '🔁', n: 'Vías largas y circuitos', fx: () => [['🔁', '+resistencia'], ['🧠', '+cabeza'], ['⚡', -15]],
+    pro: () => 'Mejora resistencia y cabeza (dificultad)', con: () => '−15 energía · −12 piel', why: () => 'Base: resistencia 1,2 y cabeza 0,3.',
+    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : null,
+    aplicar(s, R) { entrenarEsc(s, R, 'Vías largas y circuitos', [['resistencia', 1.2], ['cabeza', 0.3]], { e: 15, piel: 12, carga: 8, bono: true, motivo: 'Bono del rocódromo', lesion: 'codo', pies: true }); } },
+  tecnica: { fases: ['rocodromo', 'escalador'], ic: '🎯', n: 'Técnica con entrenador', fx: () => [['🎯', '+técnica'], ['🧠', '+cabeza'], ['€', -35]],
+    pro: () => 'Técnica y lectura de bloques y vías', con: () => '−35 € · −10 energía', why: () => 'Base: técnica 1,1 y cabeza 0,5. Poca carga en los dedos.',
+    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : s.p.dinero < 35 && s.edad >= CFG.escalada.edadPagas ? 'Necesitas 35 €.' : null,
+    aplicar(s, R) { entrenarEsc(s, R, 'Técnica con entrenador', [['tecnica', 1.1], ['cabeza', 0.5]], { e: 10, piel: 10, carga: 5, coste: 35, motivo: 'Sesión con entrenador', pies: true }); } },
+  velocidad: { fases: ['escalador'], ic: '⏱️', n: 'Muro de velocidad', fx: () => [['🚀', '+explosividad'], ['⚡', -12], ['€', -10]],
+    pro: () => 'La vía de velocidad es siempre la misma: se entrena de memoria', con: () => '−12 energía · −10 € de desplazamiento', why: () => 'Base: explosividad 1,3 y fuerza 0,2.',
+    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : null,
+    aplicar(s, R) { entrenarEsc(s, R, 'Muro de velocidad', [['velocidad', 1.3], ['fuerza', 0.2]], { e: 12, piel: 4, carga: 8, coste: 10, motivo: 'Desplazamiento al muro de velocidad', lesion: 'velocidad' }); } },
+  roca: { fases: ['escalador'], ic: '⛰️', n: 'Proyectar en roca', fx: s => [['⛰️', s.esc.proy ? `${s.esc.proy.tipo === 'via' ? gV(s.esc.proy.grado) : gB(s.esc.proy.grado)} en ${ZONAS[s.esc.proy.zona].n}` : 'elige proyecto'], ['⚡', -18], ['€', -(s.esc.proy ? ZONAS[s.esc.proy.zona].coste : 0)]],
+    pro: () => 'Avanzas en tu proyecto; encadenar da fama y patrocinadores', con: () => '−18 energía · −25 piel · viaje', why: () => 'Avance = 18 + (tu nivel − nivel del grado) × 5, por las condiciones del mes, la piel y la cabeza.',
+    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : !s.esc.proy ? 'Elige un proyecto en «Carrera».' : s.esc.proy.cerrado > s.semana ? `Sector cerrado por nidificación ${s.esc.proy.cerrado - s.semana} semanas más.` : s.p.dinero < ZONAS[s.esc.proy.zona].coste && s.edad >= CFG.escalada.edadPagas ? `Necesitas ${cr(ZONAS[s.esc.proy.zona].coste)} para el viaje.` : null,
+    aplicar(s, R) { rocaEsc(s, R); } },
+  descansoEsc: { fases: ['rocodromo', 'escalador'], ic: '😴', n: 'Descanso activo', fx: () => [['⚡', 25], ['🖐️', 'piel +30'], ['🤏', 'carga −30']],
+    pro: () => '+25 energía · la piel y los tendones se recuperan', con: () => 'no mejoras', why: () => 'Antes de competir conviene llegar descansado: la energía suma o resta en la competición.',
+    aplicar(s, R) { const E = s.esc; s.p.energia += 25; E.piel = clamp(E.piel + 30, 0, 100); E.carga = clamp(E.carga - 30, 0, 100); R.dep.push(['Descanso activo', '+25 energía, +30 piel, −30 carga', 'Valor fijo de esta acción.']); } },
+  fisioEsc: { fases: ['escalador'], ic: '🧊', n: 'Fisio y readaptación', fx: s => [['⚡', 15], ['€', -60]].concat(s.lesion > 0 ? [['🩹', '−1 sem']] : []),
+    pro: s => s.lesion > 0 ? 'La lesión dura una semana menos' : 'Baja la carga de los dedos', con: () => '−60 €', why: () => 'Con una lesión, la readaptación la acorta.',
+    disponible: s => s.p.dinero >= 60 ? null : 'Necesitas 60 €.',
+    aplicar(s, R) { const E = s.esc; s.p.energia += 15; E.carga = clamp(E.carga - 25, 0, 100); s.p.dinero -= 60; R.eco.push(['Fisioterapeuta', -60]); if (s.lesion > 0) s.lesion -= 1; R.dep.push(['Fisio y readaptación', `+15 energía, −25 carga${s.lesion >= 0 ? '' : ''}`, 'Valor fijo de esta acción.']); } },
+  ayudar: { fases: ['rocodromo', 'escalador'], ic: '🧽', n: 'Ayudar en el rocódromo', disponible: s => s.edad >= 18 ? 'Con 18 años ya puedes trabajar de monitor.' : null, fx: () => [['€', 25], ['⭐', 1], ['⚡', -10]],
+    pro: () => '+25 € y escalas gratis', con: () => '−10 energía · no mejoras', why: () => 'Limpiar presas y ayudar en recepción: así se pagan el bono muchos chavales.',
+    aplicar(s, R) { s.p.dinero += 25; s.p.rep += 1; s.p.energia -= 10; R.eco.push(['Ayudar en el rocódromo', 25]); R.dep.push(['Ayudar en el rocódromo', '+1 reputación, −10 energía', 'Valor fijo de esta acción.']); } },
+  monitor: { fases: ['escalador'], ic: '🧑‍🏫', n: 'Trabajar de monitor', fx: () => [['€', CFG.escalada.pagoMonitor], ['🎯', '+técnica'], ['⚡', -12]],
+    pro: () => `+${cr(CFG.escalada.pagoMonitor)} por dar clases en un rocódromo (y algo escalas)`, con: () => '−12 energía · mejoras poco', why: () => 'Un trabajo habitual entre escaladores de competición.',
+    disponible: s => s.edad < 17 ? 'Desde los 17 años.' : null,
+    aplicar(s, R) { s.p.dinero += CFG.escalada.pagoMonitor; R.eco.push(['Trabajo de monitor', CFG.escalada.pagoMonitor]); entrenarEsc(s, R, 'Trabajo de monitor', [['tecnica', 0.4], ['resistencia', 0.25], ['fuerza', 0.2]], { e: 12, piel: 8, carga: 4 }); } },
+  equipador: { fases: ['escalador'], ic: '🔧', n: 'Equipar bloques en un rocódromo', fx: () => [['€', CFG.escalada.pagoEquipador], ['🎯', '+técnica'], ['⚡', -15]],
+    pro: () => `+${cr(CFG.escalada.pagoEquipador)} diseñando bloques nuevos`, con: () => '−15 energía', why: () => 'Para equipar hay que escalar bien: desde nivel 50 y 18 años.',
+    disponible: s => s.edad < 18 || s.p.nivel < 50 ? 'Desde los 18 años y nivel 50.' : s.lesion > 0 ? 'Estás lesionado/a.' : null,
+    aplicar(s, R) { s.p.dinero += CFG.escalada.pagoEquipador; R.eco.push(['Equipador de bloques', CFG.escalada.pagoEquipador]); entrenarEsc(s, R, 'Equipar bloques', [['tecnica', 0.35]], { e: 15, piel: 6, carga: 4 }); } },
+  contenido: { fases: ['escalador'], ic: '🎥', n: 'Grabar contenido para redes', fx: s => [['📱', `+${nf(segContenido(s) / 1000)} mil seguidores`], ['⭐', 1], ['⚡', -6]],
+    pro: () => 'Más seguidores: los patrocinadores pagan por audiencia', con: () => '−6 energía · no mejoras', why: () => 'Seguidores = 300 + reputación × 60. Con más de 10.000 cobras colaboraciones cada semana.',
+    aplicar(s, R) { const g = segContenido(s); s.esc.seg += g; s.p.rep += 1; s.p.energia -= 6; s.esc.piel = clamp(s.esc.piel - 6, 0, 100); R.dep.push(['Contenido para redes', `+${nf(g / 1000)} mil seguidores, +1 reputación`, 'Seguidores = 300 + reputación × 60.']); } },
+  // ---- Retirada (escalada) ----
+  equipar: { fases: ['retirado'], dep: 'escalada', ic: '🔩', n: 'Equipar vías nuevas', fx: () => [['⭐', 1], ['😊', 3], ['€', -80]],
+    pro: () => '+1 reputación · +3 felicidad', con: () => '−80 € en chapas y anclajes', why: () => 'Devuelves a la escalada lo que te dio.',
+    aplicar(s, R) { s.p.rep += 1; aplicarFx(s, [['😊', 3]]); s.p.dinero -= 80; R.eco.push(['Chapas y anclajes', -80]); R.dep.push(['Equipar vías', '+1 reputación, +3 felicidad', 'Valor fijo de esta acción.']); } },
+  entrenadorEsc: { fases: ['retirado'], dep: 'escalada', ic: '🧑‍🏫', n: 'Entrenar a jóvenes escaladores', fx: () => [['€', CFG.retiro.entrenadorSueldo], ['😊', 2], ['⚡', -10]],
+    pro: () => `+${cr(CFG.retiro.entrenadorSueldo)} · +2 felicidad`, con: () => '−10 energía', why: () => 'Un sueldo modesto haciendo lo que te gusta.',
+    aplicar(s, R) { s.p.dinero += CFG.retiro.entrenadorSueldo; aplicarFx(s, [['😊', 2]]); s.p.energia -= 10; R.eco.push(['Sueldo de entrenador', CFG.retiro.entrenadorSueldo]); R.dep.push(['Entrenar a jóvenes', '+2 felicidad, −10 energía', 'Valor fijo de esta acción.']); } },
+};
+for (const a of Object.values(ACCIONES_ESC)) if (!a.dep) a.dep = 'escalada';
+function repAmigos(s) { return 2 + Math.floor(s.p.nivel / 15); }
+function segContenido(s) { return 300 + s.p.rep * 60; }
+// Seguidores «normales» para tu reputación: 1.000 × e^(reputación / 14) (≈ 35.000 con 50, ≈ 1,2 millones con 99)
+function segObjetivo(s) { return Math.round(1000 * Math.exp(s.p.rep / 14)); }
+
+/* ---- Roca ---- */
+function refProyecto(s, tipo) {
+  const E = s.esc;
+  return tipo === 'via' ? Math.max(E.maxVia, idxVia(nivelMod(s, 'dificultad')) - 2) : Math.max(E.maxBloque, idxBloque(nivelMod(s, 'bloque')) - 2);
+}
+function nuevoProyecto(s, tipo, zona, rel, fa) {
+  const max = tipo === 'via' ? GRADOS_VIA.length - 1 : GRADOS_BLOQUE.length - 1;
+  s.esc.proy = { tipo, zona, rel, grado: clamp(refProyecto(s, tipo) + rel, 0, max), prog: 0, sem: 0, cerrado: 0, fa: !!fa };
+}
+function cambiarProyecto(campo, v) {
+  const s = S, E = s.esc;
+  if (!E || s.fase !== 'escalador') return false;
+  const P = E.proy || { tipo: 'via', zona: 'siurana', rel: 2 };
+  let tipo = P.tipo, zona = P.zona, rel = P.rel;
+  if (campo === 'tipo' && ['via', 'bloque'].includes(v)) { tipo = v; if (ZONAS[zona].tipo !== v) zona = v === 'via' ? 'siurana' : 'albarracin'; }
+  else if (campo === 'zona' && ZONAS[v]) { zona = v; tipo = ZONAS[v].tipo; }
+  else if (campo === 'rel' && [1, 2, 4].includes(Number(v))) rel = Number(v);
+  else return false;
+  nuevoProyecto(s, tipo, zona, rel, false);
+  s.plan = 'roca';
+  guardar(); render();
+  return true;
+}
+function rocaEsc(s, R) {
+  const E = s.esc, P = E.proy, Z = ZONAS[P.zona], cond = condicionesZona(s, Z);
+  const L = nivelMod(s, P.tipo === 'via' ? 'dificultad' : 'bloque'), nec = P.tipo === 'via' ? nivelVia(P.grado) : nivelBloque(P.grado);
+  const pielF = E.piel < 25 ? 0.6 : 1, cab = 1 + (E.at.cabeza - 50) / 200;
+  const base = clamp(18 + (L - nec) * 5, 2, 55), avance = Math.max(1, Math.round(base * cond.f * pielF * cab));
+  entrenarEsc(s, R, `Roca en ${Z.n}`, [['tecnica', 0.3], ['cabeza', 0.5], [P.tipo === 'via' ? 'resistencia' : 'fuerza', 0.3]], { e: 18, piel: 25, carga: 12, coste: Z.coste, motivo: `Viaje a ${Z.n}`, lesion: P.tipo === 'via' ? 'roca' : 'bloque', pies: true });
+  if (Z.f !== '🇪🇸') E.viajes[P.zona] = (E.viajes[P.zona] || 0) + 1;
+  P.prog += avance; P.sem += 1;
+  const g = P.tipo === 'via' ? gV(P.grado) : gB(P.grado);
+  R.dep.push([`Proyecto ${g} en ${Z.n}: +${avance} %`, `${Math.min(100, P.prog)} %`,
+    `(18 + (tu nivel de ${P.tipo === 'via' ? 'dificultad' : 'bloque'} ${nf(L)} − ${nf(nec)} que pide un ${g}) × 5 = ${Math.round(base)}, × condiciones ${cond.n} ${nf(cond.f)}${pielF < 1 ? ' × 0,6 por la piel' : ''} × cabeza ${nf(cab)}.`]);
+  if (P.prog >= 100) encadenar(s, R);
+  else R.escLineas.push(['⛰️', `${Z.n}: pruebo mi proyecto de ${g} (${P.prog} %). Condiciones ${cond.n}.`]);
+}
+function encadenar(s, R) {
+  const E = s.esc, P = E.proy, Z = ZONAS[P.zona], via = P.tipo === 'via';
+  const g = via ? gV(P.grado) : gB(P.grado), previo = via ? E.maxVia : E.maxBloque;
+  const clasica = via ? (Z.clasicas.find(([i]) => i === P.grado) || [])[1] : null;
+  let rep = 0;
+  if (P.grado > previo) {
+    if (via) E.maxVia = P.grado; else E.maxBloque = P.grado;
+    rep = Math.max(0, Math.round(((via ? P.grado : P.grado + 1.3) - 11) * 1.3));
+  }
+  if (P.fa) { rep = rep * 2 + 3; E.fa += 1; }
+  if (clasica) rep += 3;
+  s.p.rep += rep;
+  E.seg += 500 + rep * 400;
+  if (E.patro && E.patro.primaGrado && (via ? P.grado : P.grado + 1.3) >= 16) { const b = E.patro.primaGrado; s.p.dinero += b; R.eco.push([`Prima de ${E.patro.marca} por encadenar`, b]); }
+  E.envios.unshift({ año: E.año, g, zona: Z.n, fa: P.fa, nombre: clasica || '' }); E.envios = E.envios.slice(0, 20);
+  const nombre = P.fa ? ' (¡primera ascensión!)' : clasica ? ` («${clasica}»)` : '';
+  R.escLineas.push(['🎉', `¡Encadeno ${g} en ${Z.n}${nombre} tras ${P.sem} ${P.sem === 1 ? 'semana' : 'semanas'}!${rep ? ` +${rep} reputación.` : ''}`]);
+  R.opo.push(['🧗', `Encadenado: ${g} en ${Z.n}${nombre}`]);
+  if ((via ? P.grado : P.grado + 1.3) >= 14) celebrar = true;
+  nuevoProyecto(s, P.tipo, P.zona, P.rel, false);
+}
+
+/* ---- Competiciones ---- */
+function añoOlimpico(a) { return a % 4 === 0; }
+function calendarioEsc(s, año) {
+  const l = CAL_ESC.map(([sem, amb, mod, lugar], k) => ({ id: `${año}-${k}`, sem, amb, mod, lugar }));
+  const gran = año % 2 ? 'mundial' : 'europeo', sede = año % 2 ? 'Campeonato del Mundo' : 'Campeonato de Europa';
+  ['bloque', 'dificultad', 'velocidad'].forEach((m, k) => l.push({ id: `${año}-g${k}`, sem: 13, amb: gran, mod: m, lugar: sede }));
+  if (añoOlimpico(año)) {
+    ['combinada', 'velocidad'].forEach((m, k) => l.push({ id: `${año}-q${k}`, sem: 5, amb: 'clasif', mod: m, lugar: 'Budapest (Hungría)' }));
+    ['combinada', 'velocidad'].forEach((m, k) => l.push({ id: `${año}-o${k}`, sem: 10, amb: 'jjoo', mod: m, lugar: SEDES_JJOO[año] || 'sede olímpica' }));
+  }
+  return l.sort((a, b) => a.sem - b.sem || ORDEN_AMB.indexOf(b.amb) - ORDEN_AMB.indexOf(a.amb));
+}
+function nombreComp(c, s) {
+  const A = AMBITOS[c.amb], juv = s && s.edad < 20 && A.juvenil ? ` ${s.edad < 16 ? 'sub-16' : s.edad < 18 ? 'sub-18' : 'sub-20'}` : '';
+  if (c.amb === 'jjoo') return `Juegos Olímpicos · ${MODS[c.mod].n.toLowerCase()}`;
+  return `${A.n}${juv} de ${MODS[c.mod].n.toLowerCase()}`;
+}
+function mejorMundoReciente(s, mod) {
+  const E = s.esc, fam = mod === 'combinada' ? ['bloque', 'dificultad'] : [mod];
+  return Math.min(99, ...fam.map(m => Math.min((E.mejorMundoMod[m] || {})[E.año] || 99, (E.mejorMundoMod[m] || {})[E.año - 1] || 99)));
+}
+function costeComp(s, c) { const A = AMBITOS[c.amb], E = s.esc; if (s.edad < CFG.escalada.edadPagas && !A.nacional) return 0; return A.ins + (A.nacional && E.nacional === E.año ? 0 : A.viaje); }
+function reqComp(s, c) {
+  const E = s.esc, A = AMBITOS[c.amb];
+  if (s.fase !== 'escalador') return 'Primero entra en un equipo y federarte.';
+  if (s.lesion > 0) return 'Estás lesionado/a.';
+  if (c.amb !== 'auto' && c.amb !== 'esp' && c.amb !== 'cesp' && s.edad < 16) return 'Desde los 16 años.';
+  if (A.nacional && E.nacional !== E.año) return 'Solo con el equipo nacional.';
+  if ((c.amb === 'mundial' || c.amb === 'europeo') && !E.anual.cm) return 'La federación solo lleva a quien ha competido este año en la Copa del Mundo.';
+  if (c.amb === 'clasif' && mejorMundoReciente(s, c.mod) > 24) return 'Necesitas un top 24 en una Copa del Mundo de esta modalidad este año o el anterior.';
+  if (c.amb === 'jjoo' && !(E.olimpico && E.olimpico.año === E.año && E.olimpico.mod === c.mod)) return 'Solo si te clasificas en el clasificatorio olímpico.';
+  const coste = costeComp(s, c);
+  if (coste > 0 && s.p.dinero < coste) return `Inscripción${coste > A.ins ? ' y viaje' : ''}: ${cr(coste)}.`;
+  return null;
+}
+function compDeLaSemana(s) {
+  const E = s.esc, cand = calendarioEsc(s, E.año).filter(c => c.sem === s.semanasAño && !reqComp(s, c));
+  const elegida = cand.find(c => E.ins[c.id] === true);
+  if (elegida) return elegida;
+  if (E.modoComp !== 'todo') return null;
+  const l = cand.filter(c => E.ins[c.id] !== false);
+  l.sort((a, b) => ORDEN_AMB.indexOf(b.amb) - ORDEN_AMB.indexOf(a.amb) || nivelMod(s, b.mod) - nivelMod(s, a.mod));
+  return l[0] || null;
+}
+function inscribir(id, v) {
+  const s = S, E = s.esc;
+  if (!E) return false;
+  const c = calendarioEsc(s, E.año).find(x => x.id === id);
+  if (!c) return false;
+  if (v === 'si') { for (const x of calendarioEsc(s, E.año)) if (x.sem === c.sem && x.id !== id) E.ins[x.id] = false; E.ins[id] = true; }
+  else E.ins[id] = false;
+  guardar(); render();
+  return true;
+}
+function modoCompeticion(v) { if (!S.esc || !['todo', 'elijo', 'nada'].includes(v)) return false; S.esc.modoComp = v; guardar(); render(); return true; }
+function gauss(s) { const u = Math.max(1e-9, rnd(s)), v = rnd(s); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function phi(z) { // distribución normal acumulada
+  const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2);
+  return 0.5 * (1 + (z >= 0 ? y : -y));
+}
+function competirEsc(s, R, c) {
+  const E = s.esc, K = CFG.escalada, A = AMBITOS[c.amb], juv = s.edad < 20 && A.juvenil;
+  const media = A.media - (juv ? K.juvenilMenos : 0), L = nivelMod(s, c.mod);
+  const forma = (s.p.energia - 60) / 8, animo = (s.p.fel - 50) / 25, cab = (E.at.cabeza - 50) / 10 * A.presion, piel = E.piel < 30 ? -(30 - E.piel) / 5 : 0;
+  const suerte = gauss(s) * (c.mod === 'velocidad' ? 3 : 4), resbalon = c.mod === 'velocidad' && rnd(s) < K.resbalon;
+  const score = L + forma + animo + cab + piel + suerte - (resbalon ? 40 : 0);
+  const z = (score - media) / A.sd, N = A.N, pos = clamp(1 + Math.round((N - 1) * (1 - phi(z))), 1, N);
+  const ronda = A.final && pos <= A.final ? 'final' : A.semi && pos <= A.semi ? 'semifinal' : 'clasificación';
+  // Marca según la modalidad
+  let marca;
+  if (c.mod === 'bloque') { const nb = ronda === 'clasificación' ? 5 : 4, t = clamp(Math.round(nb / 2 + z * 1.2), 0, nb); marca = `${t}T${clamp(t + (rnd(s) < 0.6 ? 1 : 0), t, nb)}Z (tops y zonas de ${nb} bloques)`; }
+  else if (c.mod === 'dificultad') { const h = clamp(Math.round(10 + 35 * phi(z + 0.3)), 5, 45); marca = h >= 45 ? '¡TOP! (llegas arriba)' : `presa ${h}${rnd(s) < 0.5 ? '+' : ''} de 45`; }
+  else if (c.mod === 'velocidad') { if (resbalon) marca = 'resbalón: sin tiempo'; else { const t = Math.max(4.8, 5 + (96 - L) / 7.5 - suerte * 0.06); marca = `${t.toFixed(2).replace('.', ',')} s`; if (!E.mejorTiempo || t < E.mejorTiempo) E.mejorTiempo = Math.round(t * 100) / 100; } }
+  else marca = `${Math.round(200 * phi(z))} puntos`;
+  // Dinero
+  const coste = costeComp(s, c), premio = A.premio[pos - 1] || 0;
+  if (coste) { s.p.dinero -= coste; R.eco.push([`Inscripción${coste > A.ins ? ' y viaje' : ''}: ${A.n}`, -coste]); }
+  let bruto = premio;
+  if (premio) R.eco.push([c.amb === 'jjoo' ? 'Premio del Consejo Superior de Deportes por la medalla' : `Premio (${pos}º)`, premio]);
+  if (pos <= 3 && E.patro && E.patro.primaPodio && ORDEN_AMB.indexOf(c.amb) >= 1) { const b = Math.round(E.patro.primaPodio * K.factorPrima[c.amb]); bruto += b; R.eco.push([`Prima de ${E.patro.marca} por el podio`, b]); }
+  if (bruto) { const imp = Math.round(bruto * tipoImpuesto(bruto)); s.p.dinero += bruto - imp; if (imp) { R.eco.push([`Impuestos de premios (${Math.round(tipoImpuesto(bruto) * 100)} %)`, -imp]); s.acum.impuestos += imp; } E.anual.premios += premio; }
+  // Reputación y seguidores
+  const f = pos === 1 ? 1.6 : pos <= 3 ? 1.2 : ronda === 'final' ? 0.7 : ronda === 'semifinal' ? 0.35 : 0.1;
+  // Una competición pequeña no te hace famoso/a: cuanto más cerca estás de su techo de fama, menos suma
+  const dRep = Math.round(A.rep * f * clamp((A.techo - s.p.rep) / 25, 0, 1));
+  s.p.rep += dRep; E.seg += dRep * 250 + (pos <= 3 ? 1000 * (ORDEN_AMB.indexOf(c.amb) + 1) : 0);
+  s.p.energia -= A.energia; E.piel = clamp(E.piel - 15, 0, 100); E.carga = clamp(E.carga + 10, 0, 100);
+  // Estadísticas
+  E.comps += 1; E.anual.comps += 1;
+  if (pos <= 3) { E.podios += 1; E.anual.podios += 1; }
+  E.mejor[c.amb] = Math.min(E.mejor[c.amb] || 99, pos);
+  if (c.amb === 'esp' || c.amb === 'cesp') E.anual.mejorEsp = Math.min(E.anual.mejorEsp, pos);
+  if (c.amb === 'mundo') { E.anual.cm = true; E.anual.mejorMundo = Math.min(E.anual.mejorMundo, pos); const m = E.mejorMundoMod[c.mod] = E.mejorMundoMod[c.mod] || {}; m[E.año] = Math.min(m[E.año] || 99, pos); if (ronda === 'final') E.finales += 1; }
+  if (['mundial', 'europeo', 'jjoo'].includes(c.amb) && pos <= 3) E.medallas.push({ año: E.año, amb: c.amb, mod: c.mod, pos });
+  if (c.amb === 'clasif' && pos <= A.plazas) { E.olimpico = { año: E.año, mod: c.mod }; R.opo.push(['🏅', `¡Plaza para los Juegos Olímpicos de ${SEDES_JJOO[E.año] || E.año} (${MODS[c.mod].n.toLowerCase()})!`]); celebrar = true; }
+  const nombre = nombreComp(c, s);
+  E.palmares.unshift({ año: E.año, mes: mesEsc(s), n: nombre, lugar: c.lugar, mod: c.mod, amb: c.amb, pos, N, ronda, marca }); E.palmares = E.palmares.slice(0, 40);
+  const ic = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : MODS[c.mod].ic;
+  R.escLineas.push([ic, `${nombre} (${c.lugar}): ${ronda === 'clasificación' ? 'me quedo en la clasificación' : `llego a la ${ronda}`}, puesto ${pos} de ${N}. ${marca[0].toUpperCase() + marca.slice(1)}.${dRep ? ` +${dRep} reputación.` : ''}`]);
+  R.dep.push([`${nombre}: ${pos}º de ${N}`, marca,
+    `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(forma))} por energía ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
+  R.comp = { pos, N, ronda, amb: c.amb };
+  if ((pos <= 3 && ORDEN_AMB.indexOf(c.amb) >= 1) || (ronda === 'final' && ORDEN_AMB.indexOf(c.amb) >= 4)) celebrar = true;
+}
+
+/* ---- Lesiones ---- */
+const LESIONES_ESC = {
+  dedos: [['polea A2 del dedo anular', 4, 8, 'fuerza']], codo: [['epicondilitis (codo)', 3, 5, 'resistencia'], ['polea A2 del dedo corazón', 4, 7, 'fuerza']],
+  bloque: [['polea A2 del dedo anular', 4, 8, 'fuerza'], ['hombro (labrum)', 6, 10, 'fuerza'], ['esguince de tobillo al caer', 2, 6, 'velocidad']],
+  roca: [['polea A2 del dedo anular', 4, 8, 'fuerza'], ['esguince de tobillo en una caída', 2, 5, 'velocidad']],
+  velocidad: [['hombro', 3, 6, 'velocidad'], ['esguince de tobillo', 2, 4, 'velocidad']],
+};
+function riesgoLesionEsc(s, energiaAntes, en) {
+  const E = s.esc, K = CFG.escalada;
+  return Math.round((Math.max(0, E.carga - K.cargaRiesgo) * K.lesionPorCarga + (energiaAntes < 30 ? (30 - energiaAntes) * 0.5 : 0) + (s.edad > 30 ? (s.edad - 30) * 0.3 : 0)) * (en.tabla ? 1.5 : 1) * 10) / 10;
+}
+function lesionarEsc(s, R, en) {
+  const l = azar(s, LESIONES_ESC[en.tipo] || LESIONES_ESC.bloque), sem = l[1] + Math.floor(rnd(s) * (l[2] - l[1] + 1));
+  s.lesion = sem; s.esc.lesTipo = l[0]; s.esc.carga = clamp(s.esc.carga - 30, 0, 100);
+  R.escLineas.push(['🤕', `Me lesiono: ${l[0]}. ${sem} semanas de baja.`]);
+  return [l[0], sem];
+}
+
+/* ---- Semana de escalada ---- */
+function semanaEscalada(s, R) {
+  const E = s.esc, K = CFG.escalada, energiaAntes = R.antes.energia;
+  // Competición de la semana
+  if (s.fase === 'escalador') { const c = compDeLaSemana(s); if (c) competirEsc(s, R, c); }
+  // Lesión: riesgo si has entrenado con los dedos cargados o sin energía
+  if (s.lesion > 0) {
+    s.lesion -= 1;
+    for (const k of ['fuerza', 'resistencia']) E.at[k] = Math.max(0, E.at[k] - K.desentreno);
+    R.dep.push([`Lesión: ${E.lesTipo}`, s.lesion ? `quedan ${s.lesion} semanas` : 'recuperación completa', `Mientras estás de baja pierdes ${nf(K.desentreno)} de fuerza y resistencia por semana.`]);
+  } else if (R.entreno) {
+    const prob = riesgoLesionEsc(s, energiaAntes, R.entreno);
+    if (prob > 0 && rnd(s) * 100 < prob) { const [t, sem] = lesionarEsc(s, R, R.entreno); R.dep.push(['⚠️ Te lesionas', `${t}: ${sem} semanas`, `Riesgo ${nf(prob)} % = (carga ${E.carga + 30} − ${K.cargaRiesgo}) × ${K.lesionPorCarga} + falta de energía + edad${R.entreno.tabla ? ', × 1,5 por la tabla' : ''}.`]); }
+    else if (prob > 0) R.dep.push(['Sin lesión', '', `Riesgo de lesión ${nf(prob)} %: carga en los dedos ${E.carga} (por encima de ${K.cargaRiesgo} sube el riesgo)${energiaAntes < 30 ? ' y poca energía' : ''}.`]);
+  }
+  // Recuperación
+  s.p.energia = clamp(s.p.energia + K.recuperacion, 0, CFG.energiaMax);
+  E.piel = clamp(E.piel + K.pielRecupera, 0, 100); E.carga = clamp(E.carga - K.cargaBaja, 0, 100);
+  R.dep.push(['Recuperación semanal', `+${K.recuperacion} energía, +${K.pielRecupera} piel, −${K.cargaBaja} carga`, 'Cada semana el cuerpo se recupera un poco.']);
+  // Edad
+  const dec = (K.declive.find(([h]) => s.edad <= h) || [0, 0.18])[1];
+  if (dec) { for (const k of Object.keys(ATTRS)) E.at[k] = Math.max(0, E.at[k] - dec); R.dep.push([`Edad: −${nf(dec)} en cada cualidad`, '', `A partir de los ${K.declive[0][0] + 1} años se pierde un poco cada semana.`]); }
+  // Dinero
+  economiaEsc(s, R);
+  // Equipo de competición (rocódromo)
+  if (s.fase === 'rocodromo' && !E.equipoOfrecido && s.p.rep >= K.repEquipo) {
+    E.equipoOfrecido = true; encolar(s, { tipo: 'equipoEsc' });
+    R.opo.push(['🧗', 'El entrenador del rocódromo me propone entrar en un equipo de competición.']);
+  }
+  // Patrocinadores
+  if (s.fase === 'escalador') {
+    s.p.rep = clamp(s.p.rep, 0, 100);
+    let t = -1; PATRO_TIERS.forEach((T, k) => { if (s.p.rep >= T.rep) t = k; });
+    if (t > E.tierOfrecido) { E.tierOfrecido = t; encolar(s, { tipo: 'patrocinio', tier: t, ofertas: ofertasPatro(s, t) }); R.opo.push(['💼', 'Una marca quiere patrocinarme.']); }
+  }
+  // La fama se apaga sin resultados; los seguidores se acercan a lo que corresponde a tu reputación
+  if (s.fase === 'escalador' && s.semana % 3 === 0 && s.p.rep > 20) { s.p.rep -= 1; R.dep.push(['Reputación −1', '', 'Si no das que hablar, la gente se va olvidando de ti (una vez cada 3 semanas).']); }
+  E.seg = Math.max(0, Math.round(E.seg + (segObjetivo(s) - E.seg) * 0.05));
+  // Fin de año
+  s.semanasAño += 1;
+  if (s.semanasAño >= CFG.hipoteca.semanasAño) nuevoAñoEsc(s, R);
+  s.p.nivel = r1(nivelGeneral(s)); E.nv = s.p.nivel;
+  // Felicidad propia de la escalada
+  R.felExtra = [];
+  if (R.comp) { if (R.comp.pos <= 3) R.felExtra.push([5, 'podio']); else if (R.comp.ronda === 'final') R.felExtra.push([3, 'final']); else if (R.comp.pos > R.comp.N / 2) R.felExtra.push([-2, 'mala competición']); }
+  if (R.escLineas.some(([i]) => i === '🎉')) R.felExtra.push([5, 'encadenamiento']);
+}
+function economiaEsc(s, R) {
+  const E = s.esc, K = CFG.escalada;
+  let bruto = 0;
+  if (E.patro && E.patro.sem) { bruto += E.patro.sem; R.eco.push([`Patrocinio de ${E.patro.marca}`, E.patro.sem]); }
+  if (E.nacional === E.año && E.beca) { bruto += E.beca; R.eco.push(['Beca de la federación', E.beca]); }
+  const colab = E.seg >= K.segColab ? Math.round(E.seg / 1000 * K.colabPorMil) : 0;
+  if (colab) { bruto += colab; R.eco.push([`Colaboraciones en redes (${nf(E.seg / 1000)} mil seguidores)`, colab]); }
+  if (bruto) { const t = tipoImpuesto(bruto), imp = Math.round(bruto * t); s.p.dinero += bruto - imp; if (imp) { R.eco.push([`Impuestos (${Math.round(t * 100)} %)`, -imp]); s.acum.impuestos += imp; } }
+  if (E.equipo && EQUIPOS[E.equipo].cuota && s.edad >= K.edadPagas) { s.p.dinero -= EQUIPOS[E.equipo].cuota; R.eco.push([`Cuota: ${EQUIPOS[E.equipo].n.toLowerCase()}`, -EQUIPOS[E.equipo].cuota]); }
+  if (E.semPies >= K.semanasPies) { E.semPies = 0; if (E.patro) R.escLineas.push(['👟', `Pies de gato nuevos, cortesía de ${E.patro.marca}.`]); else if (s.edad < K.edadPagas) R.escLineas.push(['👟', 'Mis padres me compran unos pies de gato nuevos.']); else { s.p.dinero -= K.piesGato; R.eco.push(['Pies de gato nuevos (los viejos están rotos)', -K.piesGato]); } }
+  const gv = gastosVida(s);
+  s.p.dinero -= gv.v; R.eco.push([`Gastos (${gv.motivo})`, -gv.v]);
+}
+function ofertasPatro(s, t) {
+  const T = PATRO_TIERS[t], m1 = azar(s, MARCAS); let m2 = azar(s, MARCAS); if (m2 === m1) m2 = MARCAS[(MARCAS.indexOf(m1) + 3) % MARCAS.length];
+  if (!T.sem[1]) return [
+    { marca: m1, sem: 0, temporadas: 2, tipo: 'material', d: 'Material gratis (pies de gato, cuerda, ropa).' },
+    { marca: m2, sem: 20, temporadas: 1, tipo: 'tienda', d: 'Material y 20 €/semana a cambio de publicar en redes.' },
+  ];
+  const fijo = red(T.sem[0] + rnd(s) * (T.sem[1] - T.sem[0]), 10), vari = red(T.sem[0] * 0.6, 10);
+  return [
+    { marca: m1, sem: fijo, temporadas: 2, tipo: 'fijo', d: `${T.n}: dinero fijo durante 2 años.` },
+    { marca: m2, sem: vari, temporadas: 1, tipo: 'variable', primaPodio: red(fijo * 6, 50), primaGrado: red(fijo * 8, 50), d: `${T.n}: menos fijo, pero primas por podio y por encadenar 8b o más. 1 año.` },
+  ];
+}
+function nuevoAñoEsc(s, R) {
+  const E = s.esc, K = CFG.escalada, A = E.anual;
+  const resumen = { tipo: 'finEsc', año: E.año, comps: A.comps, podios: A.podios, mejorEsp: A.mejorEsp, mejorMundo: A.mejorMundo, premios: A.premios, maxVia: E.maxVia, maxBloque: E.maxBloque, edad: s.edad + 1 };
+  // Equipo nacional para el año que viene
+  const ofrecer = s.fase === 'escalador' && s.edad >= 15 && (A.mejorEsp <= 3 || A.mejorMundo <= 30 || (E.puntosSel >= 2 && A.mejorEsp <= 8));
+  const altoNivel = A.mejorMundo <= 8 || E.medallas.some(m => m.año === E.año);
+  s.semanasAño = 0; E.año += 1; E.anual = nuevoAnual(); E.ins = {}; E.puntosSel = 0;
+  cumpleaños(s, R);
+  R.opo.push(['🎂', `Cumplo ${s.edad} años. Empieza ${E.año}.`]);
+  if (s.fase === 'escalador') {
+    if (s.edad >= K.edadPagas) { s.p.dinero -= K.licencia; R.eco.push(['Licencia federativa del año', -K.licencia]); }
+    if (E.patro) { E.patro.temporadas -= 1; if (E.patro.temporadas <= 0) { R.opo.push(['💼', `Se acaba mi contrato con ${E.patro.marca}.`]); E.patro = null; E.tierOfrecido = -1; } }
+    encolar(s, resumen);
+    if (ofrecer) encolar(s, { tipo: 'nacional', año: E.año, beca: altoNivel ? K.becaAlta : K.becaBase, alto: altoNivel });
+  }
+}
+
+/* ---- Decisiones en ventana ---- */
+function resolverEsc(s, ev, op) {
+  const E = s.esc;
+  if (ev.tipo === 'equipoEsc') {
+    const Q = EQUIPOS[op];
+    if (!Q || (Q.nivelMin && s.p.nivel < Q.nivelMin)) return null;
+    E.equipo = op; E.federado = true; s.fase = 'escalador'; s.plan = 'rocoBloque';
+    if (op === 'centro') { aplicarFx(s, [['😊', -4]]); cambiarRel(s, 'madre', -3); }
+    if (s.edad >= CFG.escalada.edadPagas) s.p.dinero -= CFG.escalada.licencia;
+    if (!E.proy) nuevoProyecto(s, 'via', 'siurana', 2, false);
+    return ['🧗', `Entro en: ${Q.n.toLowerCase()}. Me federo${s.edad >= CFG.escalada.edadPagas ? ` (−${cr(CFG.escalada.licencia)})` : ' (la licencia la pagan mis padres)'} y ya puedo competir.`];
+  }
+  if (ev.tipo === 'patrocinio') {
+    if (op === 'no') return ['💼', E.patro ? `Sigo con ${E.patro.marca}.` : 'Prefiero no atarme a ninguna marca por ahora.'];
+    const o = ev.ofertas[Number(op)];
+    if (!o) return null;
+    E.patro = Object.assign({}, o);
+    return ['💼', `Firmo con ${o.marca}: ${o.sem ? `${cr(o.sem)}/semana` : 'material gratis'} durante ${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}.`];
+  }
+  if (ev.tipo === 'nacional') {
+    if (op === 'si') { E.nacional = ev.año; E.beca = ev.beca; return ['🇪🇸', `Entro en el equipo nacional para ${ev.año}: beca de ${cr(ev.beca)}/semana y viajes pagados.`]; }
+    if (op === 'no') { E.nacional = 0; return ['🇪🇸', 'Rechazo el equipo nacional: más libertad para la roca.']; }
+    return null;
+  }
+  if (ev.tipo === 'finEsc') return ['📅', ''];
+  return null;
+}
+function retirarseEsc(s, forzado, R) {
+  if (s.fase !== 'escalador' || (!forzado && s.edad < CFG.escalada.edadRetiro)) return false;
+  const E = s.esc;
+  s.fase = 'retirado'; s.lesion = 0; s.semanasAño = 0; E.patro = null; E.nacional = 0; E.beca = 0;
+  s.plan = s.negocios.length ? 'gestionar' : 'rentas';
+  s.cola = s.cola.filter(e => !['patrocinio', 'nacional'].includes(e.tipo));
+  if (s.pendiente && ['patrocinio', 'nacional'].includes(s.pendiente.tipo)) s.pendiente = s.cola.shift() || null;
+  const txt = `Dejo la competición y el alto nivel a los ${s.edad} años: ${E.comps} competiciones, ${E.podios} podios, máximo ${gV(E.maxVia)} en vía y ${gB(E.maxBloque)} en bloque.`;
+  if (R) R.opo.push(['👋', txt]); else anotar(s, '👋', txt);
+  encolar(s, { tipo: 'retiro', deporte: 'escalada', edad: s.edad, comps: E.comps, podios: E.podios, maxVia: E.maxVia, maxBloque: E.maxBloque, medallas: E.medallas.length });
+  comprobarLogros(s, R);
+  return true;
+}
+
+/* ---- Pantallas de la escalada ---- */
+const PANTALLAS_ESC = [
+  { n: 'El rocódromo del barrio', ic: '🧗', premio: [['😊', 5]], desbloquea: 'Las competiciones',
+    obj: [['Escala 6b en el rocódromo', s => idxVia(nivelMod(s, 'dificultad')) / 4],
+          ['Entra en un equipo de competición', s => s.fase !== 'rocodromo' ? 1 : s.p.rep / CFG.escalada.repEquipo * 0.9]] },
+  { n: 'El equipo de competición', ic: '🏅', premio: [['€', 300]], desbloquea: 'Nuevos retos: Copa y Campeonato de España',
+    obj: [['Compite en 3 pruebas', s => s.esc.comps / 3], [`Encadena ${textoGrado(8)} en roca`, s => Math.max(0, maxRoca(s) + 1) / 9]] },
+  { n: 'Campeonato de España', ic: '🇪🇸', premio: [['€', 500]], desbloquea: 'Coches y furgoneta camper',
+    obj: [['Top 10 en una Copa o Campeonato de España', s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 10 ? 1 : 0],
+          [`Encadena ${textoGrado(12)} en roca`, s => Math.max(0, maxRoca(s) + 1) / 13], ['Ahorra 1.500 €', s => s.p.dinero / 1500]] },
+  { n: 'Primer patrocinador', ic: '💼', premio: [['€', 5000]], desbloquea: 'Escuela de escalada (tu primer negocio)',
+    obj: [['Consigue un patrocinador', s => s.esc.patro || s.fase === 'retirado' ? 1 : 0],
+          [`Podio en España o ${textoGrado(14)} en roca`, s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 3 ? 1 : Math.max(0, maxRoca(s) + 1) / 15]] },
+  { n: 'Profesional', ic: '🧗', premio: [['€', 5000]], desbloquea: 'Peluquería, cafetería y tienda de material de escalada',
+    obj: [[`Entra en el equipo nacional o encadena ${textoGrado(16)} en roca`, s => s.esc.nacional || s.esc.mejor.mundo ? 1 : Math.max(0, maxRoca(s) + 1) / 17], ['Compra tu primer negocio', s => s.negocios.length ? 1 : 0]] },
+  { n: 'Copa del Mundo', ic: '🌍', premio: [['€', 10000]], desbloquea: 'Inmobiliaria con hipotecas, rocódromo de bloque, lavandería y academia',
+    obj: [['Compite en una Copa del Mundo', s => s.esc.mejor.mundo ? 1 : 0],
+          [`Semifinal en Copa del Mundo, ${textoGrado(17)} en roca o 2 negocios`, s => (s.esc.mejor.mundo || 99) <= 24 || s.negocios.length >= 2 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 18, s.negocios.length / 2)],
+          ['Llega a 80.000 € de patrimonio', s => patrimonio(s) / 80000]] },
+  { n: 'Élite mundial', ic: '⭐', premio: [['€', 25000]], desbloquea: 'Hijos, tienda de deportes y restaurante',
+    obj: [[`Final de Copa del Mundo, ${textoGrado(18)} en roca o 3 negocios`, s => (s.esc.mejor.mundo || 99) <= 8 || s.negocios.length >= 3 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 19, s.negocios.length / 3)],
+          ['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0], ['Ten pareja', s => rel(s, 'pareja') ? 1 : 0]] },
+  { n: 'Sueño olímpico', ic: '🏅', premio: [['€', 50000]], desbloquea: 'Marca de presas, gimnasio y supermercado',
+    obj: [[`Clasifícate para unos Juegos, ${textoGrado(20)} en roca o 4 negocios`, s => s.esc.olimpico || s.negocios.length >= 4 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 21, s.negocios.length / 4)],
+          ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
+  { n: 'Leyenda de la roca', ic: '🏔️', premio: [['€', 100000]], desbloquea: 'Hotel con encanto',
+    obj: [[`Retírate de la competición (desde los ${CFG.escalada.edadRetiro} años)`, s => s.fase === 'retirado' ? 1 : Math.min(0.9, s.edad / CFG.escalada.edadRetiro)],
+          ['Deja huella: medalla, primera ascensión, 9a+ o 6 negocios', s => s.esc.medallas.length || s.esc.fa || s.esc.maxVia >= 21 || s.negocios.length >= 6 ? 1 : Math.max(s.negocios.length / 6, Math.max(0, s.esc.maxVia + 1) / 22)],
+          ['Llega a 1.000.000 € de patrimonio', s => patrimonio(s) / 1000000]] },
+  { n: 'Vida después', ic: '🏆', premio: [['😊', 20]], desbloquea: '¡Has completado el juego!',
+    obj: [['Ten tu propio rocódromo de bloque', s => negocioDe(s, 'rocodromo') ? 1 : 0], ['Ten 6 negocios', s => s.negocios.length / 6], ['Llega a 3.000.000 € de patrimonio', s => patrimonio(s) / 3000000]] },
+];
+function pantallas(s) { return s && s.deporte === 'escalada' ? PANTALLAS_ESC : PANTALLAS; }
+
+Object.assign(ACCIONES, ACCIONES_ESC);
+for (const a of Object.values(ACCIONES_ESC)) a.t = a.ic + ' ' + a.n;
+function cambiarEquipoEsc(v) {
+  const s = S, E = s.esc, Q = EQUIPOS[v];
+  if (!E || s.fase !== 'escalador' || !Q || E.equipo === v || (Q.nivelMin && s.p.nivel < Q.nivelMin)) return false;
+  E.equipo = v; anotar(s, Q.ic, `Ahora entreno en: ${Q.n.toLowerCase()}.`); s.aviso = `${Q.ic} ${Q.n}`;
+  guardar(); render();
+  return true;
+}
+
+/* ---- Escalada: escenas, hoja de carrera y ventanas ---- */
+function escenaRocodromo() {
+  const presas = Array.from({ length: 34 }, (_, i) => {
+    const x = 18 + (i * 53) % 330, y = 14 + (i * 37) % 120, c = ['#ff5d73', '#ffd23f', '#4fd36a', '#48a9ff', '#b07cff', '#ff8a3d'][i % 6];
+    return `<ellipse cx="${x}" cy="${y}" rx="${5 + i % 4}" ry="${4 + i % 3}" fill="${c}" stroke="#2a2340" stroke-width="2"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="360" height="170" fill="#e9e4f5"/>
+    <path d="M0 0 H130 L160 150 H0 Z" fill="#d6cfee" stroke="#2a2340" stroke-width="3"/>
+    <path d="M130 0 H250 L230 150 H160 Z" fill="#c8bfe6" stroke="#2a2340" stroke-width="3"/>
+    <path d="M250 0 H360 V150 H230 Z" fill="#ddd7f1" stroke="#2a2340" stroke-width="3"/>
+    ${presas}
+    <rect x="0" y="150" width="360" height="20" fill="#3b3160" stroke="#2a2340" stroke-width="3"/>
+    <circle cx="196" cy="70" r="7" fill="#ffd9b0" stroke="#2a2340" stroke-width="2.5"/>
+    <path d="M196 77 L196 100 M196 84 L183 70 M196 84 L210 66 M196 100 L186 116 M196 100 L208 112" stroke="#2a2340" stroke-width="4" stroke-linecap="round"/></svg>`;
+}
+function escenaRoca(Z, cond) {
+  const cielo = cond && cond.f > 1 ? ['#59b8ff', '#c8ecff'] : cond && cond.f < 0.5 ? ['#8a94a6', '#c9cfd8'] : ['#ffb26b', '#ffe3b0'];
+  const color = { caliza: '#e3c79b', 'caliza desplomada': '#d9a86c', conglomerado: '#c98f6a', arenisca: '#e08a5a', granito: '#c9c3b8', gneis: '#a9a59b' }[Z.roca] || '#d8b98c';
+  return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><linearGradient id="skR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${cielo[0]}"/><stop offset="1" stop-color="${cielo[1]}"/></linearGradient></defs>
+    <rect width="360" height="170" fill="url(#skR)"/>
+    <path d="M60 170 L90 30 Q150 6 230 22 L300 60 L330 170 Z" fill="${color}" stroke="#2a2340" stroke-width="3"/>
+    <path d="M120 60 Q140 90 128 130 M200 40 Q215 80 205 150 M250 70 Q262 100 255 140" stroke="#2a2340" stroke-width="2" fill="none" opacity=".35"/>
+    <path d="M0 170 L0 140 Q40 120 70 150 L70 170 Z M300 170 Q330 120 360 130 L360 170 Z" fill="#3e8e41" stroke="#2a2340" stroke-width="3"/>
+    <path d="M168 150 L168 40" stroke="#ff5d73" stroke-width="2" stroke-dasharray="4 4"/>
+    <circle cx="168" cy="78" r="6" fill="#ffd9b0" stroke="#2a2340" stroke-width="2.5"/>
+    <path d="M168 84 L168 104 M168 90 L157 78 M168 90 L180 74 M168 104 L160 118 M168 104 L177 116" stroke="#2a2340" stroke-width="3.5" stroke-linecap="round"/></svg>`;
+}
+function barraAttr(s, k) {
+  const v = s.esc.at[k], t = techoAttr(s, k);
+  return `<div class="obj"><span>${ATTRS[k].ic} ${ATTRS[k].n}</span><b>${nf(v)}</b><div class="pbar"><i style="width:${pct(v, 100)}%;background:${colorBarra(v)}"></i></div></div>`;
+}
+function ocupacionEsc(s) {
+  const E = s.esc;
+  if (s.fase === 'rocodromo') return `Escala en el rocódromo de ${s.ciudad}`;
+  if (s.fase === 'retirado') return `Exescalador/a${s.negocios.length ? ` · ${s.negocios.length} ${s.negocios.length === 1 ? 'negocio' : 'negocios'}` : ''}`;
+  const max = [E.maxVia >= 0 ? gV(E.maxVia) : '', E.maxBloque >= 0 ? gB(E.maxBloque) : ''].filter(Boolean).join(' / ');
+  return `🧗 ${E.nacional === E.año ? '🇪🇸 Equipo nacional' : EQUIPOS[E.equipo].n}${max ? ` · máx. ${max}` : ''}`;
+}
+function hojaCarreraEsc() {
+  const s = S, E = s.esc, P = E.proy, Z = P ? ZONAS[P.zona] : null, cond = Z ? condicionesZona(s, Z) : null;
+  const fondo = s.fase === 'escalador' && P && s.plan === 'roca' ? escenaRoca(Z, cond) : escenaRocodromo();
+  let h = `<div class="scene">${fondo}<div class="chap">${s.fase === 'retirado' ? 'Retirado/a de la competición' : `${MESES[mesEsc(s)][0].toUpperCase() + MESES[mesEsc(s)].slice(1)} de ${E.año}`}${s.fase === 'escalador' && P && s.plan === 'roca' ? ` · ${Z.n}` : ''}</div></div>`;
+  // Resumen
+  h += `<div class="card"><div class="row"><div class="ic">🧗</div><div class="tx"><b>${s.fase === 'rocodromo' ? 'Rocódromo del barrio' : s.fase === 'retirado' ? 'Retirado/a' : EQUIPOS[E.equipo].n}</b>
+      <span>Roca: ${gV(E.maxVia)} en vía · ${gB(E.maxBloque)} en bloque · En el rocódromo: ${gV(idxVia(nivelMod(s, 'dificultad')))} / ${gB(idxBloque(nivelMod(s, 'bloque')))}</span></div></div>
+    <div style="margin-top:8px">
+      ${s.lesion ? `<span class="badge b">🤕 ${esc(E.lesTipo)} (${s.lesion} sem)</span>` : ''}
+      ${E.nacional === E.año ? `<span class="badge g">🇪🇸 Equipo nacional · beca ${cr(E.beca)}/sem</span>` : ''}
+      ${E.patro ? `<span class="badge g">💼 ${esc(E.patro.marca)} · ${E.patro.sem ? `${cr(E.patro.sem)}/sem` : 'material'}</span>` : ''}
+      <span class="badge">🖐️ Piel ${E.piel}</span><span class="badge ${E.carga > CFG.escalada.cargaRiesgo ? 'b' : ''}">🦴 Carga en los dedos ${E.carga}</span>
+      <span class="badge">📱 ${nf(E.seg / 1000)} mil seguidores</span>${E.mejorTiempo ? `<span class="badge">⏱️ 15 m en ${String(E.mejorTiempo).replace('.', ',')} s</span>` : ''}
+      <span class="badge">🏆 ${E.comps} competiciones · ${E.podios} podios</span></div></div>`;
+  // Cualidades
+  h += `<div class="sec">Cualidades · nivel en cada modalidad</div><div class="card">${Object.keys(ATTRS).map(k => barraAttr(s, k)).join('')}
+    <div class="chips" style="margin-top:8px">${['bloque', 'dificultad', 'velocidad'].map(m => chip(MODS[m].ic, `${MODS[m].n} ${nf(nivelMod(s, m))}`)).join('')}</div>
+    <p class="small">Bloque = 45 % dedos + 35 % técnica + 10 % cabeza + 10 % explosividad. Dificultad = 40 % resistencia + 25 % técnica + 20 % cabeza + 15 % dedos. Velocidad = 70 % explosividad + 20 % dedos + 10 % cabeza. Techo estimado: ${s.potencial - 4}–${s.potencial + 4}.${dTxt(s)}</p></div>`;
+  // Plan
+  h += `<div class="sec">Plan semanal (se repite hasta que lo cambies)</div><div class="grid">${accionesDisponibles(s).map(([id, a]) => htmlPlan(id, a)).join('')}</div>`;
+  const a = ACCIONES[s.plan];
+  if (a && a.pro) h += `<div class="card"><b>${a.t}</b><p class="small">👍 ${esc(a.pro(s))}<br>👎 ${esc(a.con(s))}<br>📏 ${esc(a.why(s))}</p></div>`;
+  if (s.fase === 'escalador') {
+    // Proyecto en roca
+    const L = P ? nivelMod(s, P.tipo === 'via' ? 'dificultad' : 'bloque') : 0, nec = P ? (P.tipo === 'via' ? nivelVia(P.grado) : nivelBloque(P.grado)) : 0;
+    h += `<div class="sec">⛰️ Proyecto en roca</div><div class="card">
+      ${P ? `<b>${P.tipo === 'via' ? gV(P.grado) : gB(P.grado)} en ${Z.f} ${esc(Z.n)}${P.fa ? ' · primera ascensión' : ''}</b>
+        <div class="small">${Z.tipo === 'via' ? 'Vía' : 'Bloque'} · ${esc(Z.roca)} · ${esc(Z.reg)} · ${cond.ic} condiciones ${cond.n} en ${MESES[mesEsc(s)]} · ${cr(Z.coste)}/semana</div>
+        <div class="pbar"><i style="width:${Math.min(100, P.prog)}%;background:var(--purple)"></i></div>
+        <p class="small">${P.prog} % · ${P.sem} ${P.sem === 1 ? 'semana' : 'semanas'} probándolo. Tu nivel ${nf(L)} frente a ${nf(nec)} que pide el grado: ${L >= nec ? 'está a tu alcance.' : L >= nec - 4 ? 'es duro pero posible.' : 'te va a costar muchas semanas.'}${P.cerrado > s.semana ? ` 🦅 Sector cerrado ${P.cerrado - s.semana} semanas más.` : ''}</p>` : '<p class="small">Sin proyecto.</p>'}
+      <div class="seg">${[['via', '🧗 Vía'], ['bloque', '🪨 Bloque']].map(([v, t]) => `<button data-act="escProy" data-c="tipo" data-v="${v}" class="${P && P.tipo === v ? 'sel' : ''}">${t}</button>`).join('')}</div>
+      <div class="seg">${[[1, 'Asequible'], [2, 'Proyecto'], [4, 'De tu vida']].map(([v, t]) => `<button data-act="escProy" data-c="rel" data-v="${v}" class="${P && P.rel === v ? 'sel' : ''}">${t}</button>`).join('')}</div>
+      <details id="zonas"${S.verZonas ? ' open' : ''}><summary><b>🗺️ Cambiar de zona (${Object.values(ZONAS).filter(z => !P || z.tipo === P.tipo).length} zonas de ${P && P.tipo === 'bloque' ? 'bloque' : 'vías'})</b></summary><div class="lista">${Object.entries(ZONAS).filter(([, z]) => !P || z.tipo === P.tipo).map(([k, z]) => { const c = condicionesZona(s, z);
+        return `<div class="row"><div class="ic">${z.f}</div><div class="tx"><b>${esc(z.n)}${P && P.zona === k ? ' ✓' : ''}</b><span>${esc(z.reg)} · ${esc(z.roca)} · ${c.ic} ${c.n} · ${cr(z.coste)}/sem</span><div class="small">${esc(z.d)}</div></div>
+          <button class="btn ${P && P.zona === k ? 'w' : ''}" data-act="escProy" data-c="zona" data-v="${k}" ${P && P.zona === k ? 'disabled' : ''}>Ir</button></div>`; }).join('')}</div></details>
+      <p class="small">Cambiar de proyecto empieza de cero. Encadenar un grado nuevo da reputación (más a partir de 7c), seguidores y, con algunos patrocinadores, primas.</p></div>`;
+    // Competiciones
+    const cal = calendarioEsc(s, E.año).filter(c => c.sem >= s.semanasAño), sel = compDeLaSemana(s);
+    h += `<div class="sec">🏆 Competiciones ${E.año}</div><div class="card">
+      <div class="seg">${[['todo', 'Todo lo que pueda'], ['elijo', 'Solo las que elija'], ['nada', 'Ninguna']].map(([v, t]) => `<button data-act="escModo" data-v="${v}" class="${E.modoComp === v ? 'sel' : ''}">${t}</button>`).join('')}</div>
+      <p class="small">Una competición por semana, además de tu plan. Compites con la energía que te quede: descansar antes ayuda. ${E.modoComp === 'todo' ? 'Te apunto a la más importante a la que puedas ir.' : ''}</p>
+      <div class="lista">${cal.map(c => { const r = reqComp(s, c), A = AMBITOS[c.amb], juv = s.edad < 20 && A.juvenil, m = A.media - (juv ? CFG.escalada.juvenilMenos : 0), yo = nivelMod(s, c.mod);
+        const va = sel && sel.id === c.id && c.sem === s.semanasAño, ins = E.ins[c.id] === true || (E.modoComp === 'todo' && E.ins[c.id] !== false && !r);
+        return `<div class="row"><div class="ic">${MODS[c.mod].ic}</div><div class="tx"><b>${esc(nombreComp(c, s))}</b><span>${MESES[Math.floor(c.sem * 12 / 18)]}${c.sem === s.semanasAño ? ' (esta semana)' : ''} · ${esc(c.lugar)} · tu nivel ${nf(yo)} frente a una media de ${nf(m)} · ${cr(costeComp(s, c))}</span>
+          ${r ? `<span class="lock">🔒 ${esc(r)}</span>` : va ? '<span class="lock">▶️ Compites esta semana</span>' : ''}</div>
+          ${r ? '' : `<button class="btn ${ins ? 'g' : 'w'}" data-act="escIns" data-id="${c.id}" data-v="${ins ? 'no' : 'si'}">${ins ? '✓ Voy' : 'Ir'}</button>`}</div>`; }).join('') || '<p class="small">No quedan competiciones este año.</p>'}</div>
+      <p class="small">Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, del Mundo, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} con plaza en el clasificatorio (top 10).</p></div>`;
+    // Equipo
+    h += `<div class="sec">Dónde entrenas</div><div class="card"><div class="seg">${Object.entries(EQUIPOS).map(([k, q]) => `<button data-act="escEquipo" data-v="${k}" class="${E.equipo === k ? 'sel' : ''}" ${q.nivelMin && s.p.nivel < q.nivelMin ? 'disabled' : ''}>${q.ic} ${q.n.split(' ')[0]}<br>${q.cuota ? `${cr(q.cuota)}/sem` : 'gratis'}</button>`).join('')}</div>
+      <p class="small">${esc(EQUIPOS[E.equipo].d)} Calidad de entrenamiento ×${String(EQUIPOS[E.equipo].calidad).replace('.', ',')}${E.nacional === E.año ? ' (×1,1 más con el equipo nacional)' : ''}.</p></div>`;
+  }
+  // Palmarés y encadenamientos
+  if (E.palmares.length) h += `<div class="sec">Palmarés</div><div class="card"><table><tr class="hd"><td>Año</td><td>Competición</td><td class="n">Puesto</td></tr>
+    ${E.palmares.slice(0, 12).map(p => `<tr><td>${p.año}</td><td>${esc(p.n)}<div class="small">${esc(p.lugar)} · ${esc(p.marca)}</div></td><td class="n">${p.pos <= 3 ? ['🥇', '🥈', '🥉'][p.pos - 1] : `${p.pos}º`}<div class="small">de ${p.N}</div></td></tr>`).join('')}</table>
+    ${E.medallas.length ? `<p class="small">🏅 Medallas: ${E.medallas.map(m => `${['oro', 'plata', 'bronce'][m.pos - 1]} en ${AMBITOS[m.amb].n} ${m.año} (${MODS[m.mod].n.toLowerCase()})`).join(' · ')}</p>` : ''}</div>`;
+  if (E.envios.length) h += `<div class="sec">Encadenamientos en roca</div><div class="card lista">${E.envios.slice(0, 10).map(x => `<div class="row"><div class="ic">${x.fa ? '🆕' : '✅'}</div><div class="tx"><b>${esc(x.g)}${x.nombre ? ` · «${esc(x.nombre)}»` : ''}</b><span>${esc(x.zona)} · ${x.año}${x.fa ? ' · primera ascensión' : ''}</span></div></div>`).join('')}</div>`;
+  // Retirada
+  if (s.fase === 'escalador') h += `<div class="sec">Retirada</div><div class="card"><p class="small">Puedes dejar la competición y el alto nivel desde los ${CFG.escalada.edadRetiro} años. A partir de los 34 se pierde un poco de nivel cada semana. Sin patrocinador ni beca, vivirás de tus negocios, tus casas y tu trabajo.</p>
+    <button class="btn r full" data-act="retirarse" ${s.edad >= CFG.escalada.edadRetiro && !s.pendiente ? '' : 'disabled'}>👋 Retirarme${s.edad < CFG.escalada.edadRetiro ? ` (desde los ${CFG.escalada.edadRetiro})` : ''}</button></div>`;
+  h += `<div class="sec">Grados</div><div class="card"><p class="small">Vías (escala francesa): ${GRADOS_VIA.slice(2).join(' · ')}.<br>Bloque (escala de Fontainebleau): ${GRADOS_BLOQUE.slice(3).join(' · ')}.<br>Un 7c de vía es más o menos como un 7B de bloque. El primer 9c del mundo es Silence (Flatanger, 2017).</p></div>`;
+  return hoja('🧗 Carrera', h);
+}
+function dTxt(s) { const dec = (CFG.escalada.declive.find(([h]) => s.edad <= h) || [0, 0.15])[1]; return dec ? ` Con ${s.edad} años pierdes ${nf(dec)} por semana en cada cualidad.` : ''; }
+function popupEsc(s, ev) {
+  if (ev.tipo === 'equipoEsc') return `<div class="pi">🧗</div><h2>¡Te quieren en un equipo de competición!</h2><p class="pd">El entrenador del rocódromo te ha visto escalar. Con la licencia federativa (${cr(CFG.escalada.licencia)} al año) ya puedes competir. ¿Dónde entrenas?</p>
+    ${Object.entries(EQUIPOS).map(([k, q]) => { const b = q.nivelMin && s.p.nivel < q.nivelMin;
+      return `<button class="po" data-act="resolver" data-v="${k}" ${b ? 'disabled' : ''}><b>${q.ic} ${esc(q.n)}</b><span class="small">${esc(q.d)}</span>${chips([['€', q.cuota ? `${cr(q.cuota)}/semana${s.edad < CFG.escalada.edadPagas ? ' (la pagan tus padres)' : ''}` : 'sin cuota'], ['📈', `Entrenamiento ×${String(q.calidad).replace('.', ',')}`]].concat(k === 'centro' ? [['😊', -4]] : []).map(([i, v]) => [i, v]))}${b ? `<span class="lock">🔒 Piden nivel ${q.nivelMin} (tienes ${nf(s.p.nivel)}).</span>` : ''}</button>`; }).join('')}`;
+  if (ev.tipo === 'patrocinio') {
+    const T = PATRO_TIERS[ev.tier];
+    return `<div class="pi">💼</div><h2>Ofertas de patrocinio</h2><p class="pd">${esc(T.n)}. ${s.esc.patro ? `Ahora estás con ${esc(s.esc.patro.marca)} (${s.esc.patro.sem ? `${cr(s.esc.patro.sem)}/sem` : 'material'}).` : 'Es tu oportunidad de vivir un poco mejor de la escalada.'}</p>
+      ${ev.ofertas.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${esc(o.marca)}</b><span class="small">${esc(o.d)}</span>
+        ${chips([['€', o.sem ? `${cr(o.sem)}/semana` : 'material gratis'], ['📄', `${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}`]].concat(o.primaPodio ? [['🥇', `Podio: hasta ${cr(o.primaPodio)}`], ['⛰️', `8b o más: ${cr(o.primaGrado)}`]] : []))}</button>`).join('')}
+      <button class="po" data-act="resolver" data-v="no"><b>${s.esc.patro ? `Seguir con ${esc(s.esc.patro.marca)}` : 'No firmar todavía'}</b></button>`;
+  }
+  if (ev.tipo === 'nacional') return `<div class="pi">🇪🇸</div><h2>Convocatoria del equipo nacional</h2><p class="pd">La federación te quiere en el equipo para ${ev.año}${ev.alto ? ' con beca de alto nivel' : ''}.</p>
+    <button class="po" data-act="resolver" data-v="si"><b>Aceptar</b>${chips([['€', `Beca ${cr(ev.beca)}/semana`], ['✈️', 'Viajes pagados'], ['🌍', 'Copa de Europa y del Mundo'], ['📈', 'Entrenamiento ×1,1']])}</button>
+    <button class="po" data-act="resolver" data-v="no"><b>Rechazar</b>${chips([['⛰️', 'Más tiempo para la roca'], ['🔒', 'Sin competiciones internacionales']])}</button>`;
+  if (ev.tipo === 'finEsc') return `<div class="pi">🏁</div><h2>Resumen de ${ev.año}</h2><p class="pd">Cumples ${ev.edad} años.</p>
+    <div class="chips" style="justify-content:center">${chip('🏆', `${ev.comps} competiciones`)}${chip('🥇', `${ev.podios} podios`)}${ev.mejorEsp < 99 ? chip('🇪🇸', `mejor puesto en España: ${ev.mejorEsp}º`) : ''}${ev.mejorMundo < 99 ? chip('🌍', `Copa del Mundo: ${ev.mejorMundo}º`) : ''}${ev.premios ? chip('€', ev.premios) : ''}</div>
+    <div class="card" style="margin-top:10px">⛰️ Máximo en roca: <b>${gV(ev.maxVia)}</b> en vía y <b>${gB(ev.maxBloque)}</b> en bloque.</div>
+    <button class="btn g full" data-act="resolver" data-v="ok">Empezar ${ev.año + 1}</button>`;
+  return '';
+}
+function popupRetiroEsc(s, ev) {
+  return `<div class="pi">👋</div><h2>Dejas la competición</h2><p class="pd">Te retiras del alto nivel a los ${ev.edad} años. La roca seguirá ahí.</p>
+    <div class="chips" style="justify-content:center">${chip('🏆', `${ev.comps} competiciones`)}${chip('🥇', `${ev.podios} podios`)}${chip('🧗', `máx. ${gV(ev.maxVia)}`)}${chip('🪨', `máx. ${gB(ev.maxBloque)}`)}${ev.medallas ? chip('🏅', `${ev.medallas} medallas`) : ''}</div>
+    <div class="card" style="margin-top:10px">Ahora empieza otra vida: tus negocios, tus casas, tu familia… o entrenar a jóvenes. Cambia tu plan semanal en «Carrera».</div>
+    <button class="btn g full" data-act="resolver" data-v="ok">Empezar mi nueva vida</button>`;
+}
+
+/* =====================================================================
    14. INTERFAZ (estilo «simulador de vida»: diario, barras, botón grande y ventanas)
    ===================================================================== */
 let confirmarReinicio = false;
@@ -2433,6 +3330,7 @@ const pct = (v, max) => Math.round(clamp(v / max, 0, 1) * 100);
 
 /* ---- Cabecera ---- */
 function ocupacion(s) {
+  if (s.deporte === 'escalada') return ocupacionEsc(s);
   if (s.fase === 'barrio') return `Juega en el barrio de ${s.ciudad}`;
   if (s.fase === 'prep') return `Prepara pruebas con el ${club(s, s.pendienteOjeador).nombre}`;
   if (s.fase === 'retirado') return `Exfutbolista${s.negocios.length ? ` · ${s.negocios.length} ${s.negocios.length === 1 ? 'negocio' : 'negocios'}` : ''}`;
@@ -2444,16 +3342,16 @@ function renderTop() {
   if (s.intro) { $('top').innerHTML = ''; return; }
   $('top').innerHTML = `<div class="ava">${s.avatar}</div>
     <div class="who"><b>${esc(s.nombre)}</b><span>${esc(ocupacion(s))}</span><span>${s.edad} años · semana ${s.semana}</span></div>
-    <div class="bank"><b id="dinero" class="${s.p.dinero < 0 ? 'down' : ''}">${cr(s.p.dinero)}</b><button data-act="hoja" data-v="logros">🏅 ${Object.keys(s.logros).length}/${LOGROS.length}</button> <button data-act="hoja" data-v="ajustes" aria-label="Ajustes">⚙️</button></div>`;
+    <div class="bank"><b id="dinero" class="${s.p.dinero < 0 ? 'down' : ''}">${cr(s.p.dinero)}</b><button data-act="hoja" data-v="logros">🏅 ${logrosDe(s).filter(l => s.logros[l[0]]).length}/${logrosDe(s).length}</button> <button data-act="hoja" data-v="ajustes" aria-label="Ajustes">⚙️</button></div>`;
 }
 
 /* ---- Pantalla principal: diario ---- */
 function htmlMision() {
   const s = S, P = pantallaActual(s);
-  if (!P) return `<button class="mision" id="objetivo" data-act="hoja" data-v="pantallas"><b>🏆 ¡Juego completado! Las 10 pantallas superadas</b><p>Sigue construyendo tu imperio.</p></button>`;
+  if (!P) return `<button class="mision" id="objetivo" data-act="hoja" data-v="pantallas"><b>🏆 ¡Juego completado! Las ${pantallas(s).length} pantallas superadas</b><p>Sigue construyendo tu imperio.</p></button>`;
   const ob = progresoObjetivos(s), hechos = ob.filter(([, v]) => v >= 1).length, total = ob.reduce((a, [, v]) => a + v, 0) / ob.length;
   const sig = ob.find(([, v]) => v < 1);
-  return `<button class="mision" id="objetivo" data-act="hoja" data-v="pantallas"><span class="pn">PANTALLA ${s.pantalla + 1}/${PANTALLAS.length}</span>
+  return `<button class="mision" id="objetivo" data-act="hoja" data-v="pantallas"><span class="pn">PANTALLA ${s.pantalla + 1}/${pantallas(s).length}</span>
     <b>${P.ic} ${esc(P.n)} · ${hechos}/${ob.length} ✓</b><div class="pb"><i style="width:${pct(total, 1)}%"></i></div>
     ${sig ? `<p>⬜ ${esc(sig[0])} (${pct(sig[1], 1)} %)</p>` : ''}</button>`;
 }
@@ -2472,7 +3370,11 @@ function htmlEntrada(e, ultima) {
 function pantallaDiario() {
   const s = S;
   let html = htmlMision();
-  if (!s.log.length) html += `<div class="entry"><div class="eh">Semana 1 · ${s.edad} años · Barrio de ${esc(s.ciudad)}</div>
+  if (!s.log.length && s.deporte === 'escalada') html += `<div class="entry"><div class="eh">Semana 1 · ${s.edad} años · Rocódromo de ${esc(s.ciudad)}</div>
+    <div class="el"><span class="i">🧗</span><span>Me llamo ${esc(s.nombre)}, tengo ${s.edad} años y escalo en el rocódromo de ${esc(s.ciudad)}. Mi punto fuerte: ${esc(CFG.escalada.fuertes[s.fuerte].n.toLowerCase())}.</span></div>
+    <div class="el"><span class="i">💭</span><span>Mi sueño: competir por todo el mundo, encadenar vías durísimas en roca… y vivir de lo que me gusta.</span></div>
+    <div class="el"><span class="i">👉</span><span>Supera las 10 pantallas: toca la barra amarilla de arriba para ver los objetivos. Elige tu plan en «Carrera» y pulsa <b>+ Semana</b>.</span></div></div>`;
+  else if (!s.log.length) html += `<div class="entry"><div class="eh">Semana 1 · ${s.edad} años · Barrio de ${esc(s.ciudad)}</div>
     <div class="el"><span class="i">👶</span><span>Me llamo ${esc(s.nombre)}, tengo ${s.edad} años y juego al fútbol en la plaza de ${esc(s.ciudad)}.</span></div>
     <div class="el"><span class="i">💭</span><span>Mi sueño: ser futbolista profesional y montar mis propios negocios.</span></div>
     <div class="el"><span class="i">👉</span><span>Supera las 10 pantallas: toca la barra amarilla de arriba para ver los objetivos. Elige tu plan en «Carrera» y pulsa <b>+ Semana</b>.</span></div></div>`;
@@ -2490,7 +3392,7 @@ function renderDock() {
       ${st('💪', s.p.nivel, 100, 'Nivel')}${st('⭐', s.p.rep, 100, 'Reputación')}</div>
     <button class="plan" data-act="hoja" data-v="carrera">Plan: <b>${a ? a.t : '—'}</b> · actividades ${s.semanaAct.acts.length}/${CFG.maxActividades} ›</button>
     <div class="acts">
-      <button class="ab" data-act="hoja" data-v="carrera"><span>⚽</span>Carrera</button>
+      <button class="ab" data-act="hoja" data-v="carrera"><span>${s.deporte === 'escalada' ? '🧗' : '⚽'}</span>Carrera</button>
       <button class="ab" data-act="hoja" data-v="bienes"><span>🏠</span>Bienes</button>
       <button class="age" id="btnAvanzar" data-act="avanzar" ${s.pendiente ? 'disabled' : ''}><span>+</span>Semana</button>
       <button class="ab" data-act="hoja" data-v="relaciones"><span>❤️</span>Relaciones</button>
@@ -2554,6 +3456,7 @@ function tablaHTML(key, filas, yo) {
 }
 function hojaCarrera() {
   const s = S;
+  if (s.deporte === 'escalada') return hojaCarreraEsc();
   let h = '';
   if (s.fase === 'retirado') {
     const uc = club(s, s.ultimoClub);
@@ -2642,7 +3545,7 @@ function hojaBienes() {
     ${!desbloqueado(s, 'coches') ? `<p>🔒 ${esc(textoBloqueo(s, 'coches'))}</p>` : Object.entries(CFG.coches).map(([k, T]) => `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>${cr(T.precio)} · 😊 +${T.fel} · ⭐ +${T.rep}</span></div><button class="btn g" data-act="comprarCoche" data-v="${k}" ${s.p.dinero >= T.precio ? '' : 'disabled'}>Comprar</button></div>`).join('')}
     <p class="small">Un coche alegra y da imagen, pero pierde valor y tiene mantenimiento.</p></div>`;
   // Clubes
-  h += `<div class="sec">Clubes de fútbol</div><div class="card lista">${s.clubes.map(o => { const c = club(s, o.clubId);
+  if (s.deporte !== 'escalada') h += `<div class="sec">Clubes de fútbol</div><div class="card lista">${s.clubes.map(o => { const c = club(s, o.clubId);
     return `<div class="row"><div class="ic">${escudoClub(c, 30)}</div><div class="tx"><b>${esc(c.nombre)} 👑</b><span>${esc(nombreLiga(s.mundo.de[c.id]))} · vale ${cr(valorClub(s, c.id))} · caja ${cr(o.caja)}</span></div><button class="btn w" data-act="hoja" data-v="club:${c.id}">Gestionar</button></div>`; }).join('')}
     ${!desbloqueado(s, 'clubes') ? `<p>🔒 ${esc(textoBloqueo(s, 'clubes'))}</p>` : clubesEnVenta(s).map(id => { const c = club(s, id), v = valorClub(s, id), cj = cajaInicialClub(s, id);
       return `<div class="row"><div class="ic">${escudoClub(c, 30)}</div><div class="tx"><b>${esc(c.nombre)}${id === s.clubLocal ? ' · tu barrio' : s.contrato && id === s.contrato.clubId ? ' · tu club' : ''}</b><span>${esc(nombreLiga(s.mundo.de[id]))} · ${cr(v)} + ${cr(cj)} de caja</span></div><button class="btn g" data-act="comprarClub" data-id="${id}" ${s.p.dinero >= v + cj ? '' : 'disabled'}>Comprar</button></div>`; }).join('')}
@@ -2731,7 +3634,7 @@ function hojaActividades() {
   return hoja('🎯 Actividades', `<p class="small">Hasta ${CFG.maxActividades} actividades por semana, además de tu plan. Llevas ${s.semanaAct.acts.length}/${CFG.maxActividades}.</p>${h}`);
 }
 function hojaPantallas() {
-  const s = S;
+  const s = S, PANTALLAS = pantallas(s);
   return hoja('🎮 Pantallas', `<p class="small">Supera cada pantalla cumpliendo sus objetivos. Al hacerlo cobras un premio y se desbloquean cosas nuevas.</p>
     ${PANTALLAS.map((P, k) => {
       const hecha = k < s.pantalla, actual = k === s.pantalla, ob = actual ? progresoObjetivos(s) : P.obj.map(([t]) => [t, hecha ? 1 : 0]);
@@ -2743,11 +3646,11 @@ function hojaPantallas() {
 }
 function hojaLogros() {
   const s = S;
-  return hoja('🏅 Logros', `<div class="logros">${LOGROS.map(([id, ic, t]) => `<div class="logro ${s.logros[id] ? '' : 'no'}"><span>${ic}</span>${esc(t)}${s.logros[id] ? `<div class="small">Semana ${s.logros[id]}</div>` : ''}</div>`).join('')}</div>`);
+  return hoja('🏅 Logros', `<div class="logros">${logrosDe(s).map(([id, ic, t]) => `<div class="logro ${s.logros[id] ? '' : 'no'}"><span>${ic}</span>${esc(t)}${s.logros[id] ? `<div class="small">Semana ${s.logros[id]}</div>` : ''}</div>`).join('')}</div>`);
 }
 // Modo pruebas: atajos para probar el juego sin jugar semanas y semanas. Lo que hagas aquí queda anotado en el diario.
 function hojaPruebas() {
-  const s = S, P = PANTALLAS[Math.min(s.pantalla, PANTALLAS.length - 1)];
+  const s = S, PANTALLAS = pantallas(s), P = PANTALLAS[Math.min(s.pantalla, PANTALLAS.length - 1)];
   const b = (v, t, cl) => `<button class="btn ${cl || 'w'}" data-act="prueba" data-v="${v}">${t}</button>`;
   return `<div class="card"><div class="row"><div class="ic">🧪</div><div class="tx"><b>Modo pruebas</b><span>Atajos para probar. Ahora estás en la pantalla ${Math.min(s.pantalla + 1, PANTALLAS.length)}: ${esc(P.n)}.</span></div></div>
     <div class="pruebas">${b('dinero:10000', '+10.000 €')}${b('dinero:100000', '+100.000 €')}${b('dinero:1000000', '+1.000.000 €')}
@@ -2757,7 +3660,7 @@ function hojaPruebas() {
     <p class="small">Avanzar se para si aparece una decisión. Los atajos no cuentan como dinero ganado.</p></div>`;
 }
 function accionPrueba(v) {
-  const s = S, [k, n] = String(v).split(':'), num = Number(n) || 0;
+  const s = S, PANTALLAS = pantallas(s), [k, n] = String(v).split(':'), num = Number(n) || 0;
   let txt = '';
   if (k === 'dinero') { s.p.dinero += num; txt = `+${cr(num)} a tu dinero.`; }
   else if (k === 'caja') { s.negocios.forEach(x => { x.caja += 50000; }); txt = s.negocios.length ? `+${cr(50000)} a la caja de cada negocio.` : 'No tienes negocios.'; }
@@ -2825,8 +3728,10 @@ function popup() {
     return `<div class="pi">${e.ic}</div><h2>${esc(textoSuceso(s, e, d, 't'))}</h2><p class="pd">${esc(textoSuceso(s, e, d, 'd'))}</p>
       ${e.ops.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${esc(o.n)}</b>${chips(o.fx(s, d))}</button>`).join('')}`;
   }
+  if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
+  if (ev.tipo === 'retiro' && ev.deporte === 'escalada') return popupRetiroEsc(s, ev);
   if (ev.tipo === 'pantalla') {
-    const P = PANTALLAS[ev.n], N = PANTALLAS[ev.n + 1];
+    const P = pantallas(s)[ev.n], N = pantallas(s)[ev.n + 1];
     return `<div class="pi">🎮</div><h2>¡Pantalla ${ev.n + 1} superada!</h2><p class="pd"><b>${P.ic} ${esc(P.n)}</b></p>
       <div class="chips" style="justify-content:center">${P.premio.map(([ic, v]) => chip(ic, v)).join('')}</div>
       <div class="card" style="margin-top:12px;background:#f4fbf6">🔓 <b>Desbloqueado:</b> ${esc(P.desbloquea)}</div>
@@ -2856,17 +3761,21 @@ function popup() {
 
 /* ---- Presentación ---- */
 function pantallaIntro() {
-  return `<div class="intro"><div class="logo">⚽💼</div><h1>Del barrio al negocio</h1><div class="sub">Una vida: del fútbol de barrio a futbolista profesional… y dueño de negocios, casas y hasta un club.</div>
+  return `<div class="intro"><div class="logo">${S.deporte === 'escalada' ? '🧗💼' : '⚽💼'}</div><h1>Del barrio al negocio</h1><div class="sub">${S.deporte === 'escalada' ? 'Una vida: del rocódromo del barrio a las Copas del Mundo y las grandes vías… y dueño/a de negocios y casas.' : 'Una vida: del fútbol de barrio a futbolista profesional… y dueño de negocios, casas y hasta un club.'}</div>
     <div class="card"><div class="sec" style="margin-top:0">Nombre</div><input id="nombre" maxlength="16" placeholder="Tu nombre" value="${esc(S.nombre)}" autocomplete="off">
       <div class="sec">Personaje</div><div class="avas">${CFG.avatares.map(a => `<button data-act="avatar" data-v="${a}" class="${S.avatar === a ? 'sel' : ''}">${a}</button>`).join('')}</div>
-      <div class="sec">Posición</div><div class="seg">${Object.entries(CFG.posiciones).map(([k, p]) => `<button data-act="posicion" data-v="${k}" class="${S.posicion === k ? 'sel' : ''}">${p.ic}<br>${p.n}</button>`).join('')}</div>
-      <p class="small">${S.posicion === 'delantero' ? 'Más goles y titulares, pero tu nota depende de marcar.' : S.posicion === 'medio' ? 'Más asistencias y notas regulares.' : 'Pocos goles, pero notas más estables (+0,3).'}</p></div>
+      <div class="sec">Deporte</div><div class="seg">${[['futbol', '⚽<br>Fútbol'], ['escalada', '🧗<br>Escalada']].map(([k, t]) => `<button data-act="deporte" data-v="${k}" class="${S.deporte === k ? 'sel' : ''}">${t}</button>`).join('')}</div>
+      ${S.deporte === 'escalada' ? `<div class="sec">Punto fuerte</div><div class="seg">${Object.entries(CFG.escalada.fuertes).map(([k, p]) => `<button data-act="fuerte" data-v="${k}" class="${S.fuerte === k ? 'sel' : ''}">${p.ic}<br>${p.n}</button>`).join('')}</div>
+      <p class="small">${esc(CFG.escalada.fuertes[S.fuerte].d)} Empiezas con 14 años en el rocódromo del barrio y compites en las tres modalidades.</p></div>`
+      : `<div class="sec">Posición</div><div class="seg">${Object.entries(CFG.posiciones).map(([k, p]) => `<button data-act="posicion" data-v="${k}" class="${S.posicion === k ? 'sel' : ''}">${p.ic}<br>${p.n}</button>`).join('')}</div>
+      <p class="small">${S.posicion === 'delantero' ? 'Más goles y titulares, pero tu nota depende de marcar.' : S.posicion === 'medio' ? 'Más asistencias y notas regulares.' : 'Pocos goles, pero notas más estables (+0,3).'}</p></div>`}
     <button class="btn g full" data-act="empezar" id="btnEmpezar">Empezar una nueva vida</button>
-    <p class="note">Clubes ficticios. Importes de juego.</p></div>`;
+    <p class="note">${S.deporte === 'escalada' ? 'Zonas y grados reales; marcas y rivales ficticios.' : 'Clubes ficticios.'} Importes de juego.</p></div>`;
 }
 
 function render() {
   if (!S || silencio) return;
+  syncEsc(S);
   renderTop();
   renderDock();
   const main = $('main');
@@ -2893,7 +3802,13 @@ document.addEventListener('click', e => {
   switch (act) {
     case 'avatar': S.nombre = $('nombre').value; S.avatar = v; render(); break;
     case 'posicion': S.nombre = $('nombre').value; S.posicion = v; render(); break;
-    case 'empezar': S.nombre = ($('nombre').value || '').trim().slice(0, 16) || 'Crack'; S.intro = false; bajarDiario = true; guardar(); render(); break;
+    case 'deporte': S.nombre = $('nombre').value; S.deporte = v; render(); break;
+    case 'fuerte': S.nombre = $('nombre').value; S.fuerte = v; render(); break;
+    case 'escProy': S.verZonas = false; cambiarProyecto(b.dataset.c, v); break;
+    case 'escIns': inscribir(id, v); break;
+    case 'escModo': modoCompeticion(v); break;
+    case 'escEquipo': cambiarEquipoEsc(v); break;
+    case 'empezar': S.nombre = ($('nombre').value || '').trim().slice(0, 16) || 'Crack'; if (S.deporte === 'escalada' && !S.esc) initEscalada(S, S.fuerte); S.intro = false; bajarDiario = true; guardar(); render(); break;
     case 'avanzar': bajarDiario = true; S.hoja = null; avanzarSemana(); break;
     case 'elegir': elegir(b.dataset.id); break;
     case 'hoja': S.hoja = v; guardar(); render(); break;
@@ -2938,7 +3853,9 @@ render();
 window.__P1 = {
   CFG, ACCIONES, SUCESOS, ACTIVIDADES, LOGROS,
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
-  nueva(seed, pos) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; guardar(); render(); return S; },
+  nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
+  PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
+  nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,
   comprarClub, cambiarClub, traspasarClub, venderClub, interactuar, realizarActividad, bloqueoActividad,
@@ -2949,7 +3866,7 @@ window.__P1 = {
   pruebaBase: () => pruebaBase(S), condicionMejora: () => condicionMejora(S), clasificacion: () => clasificacion(S.temporada),
   club: id => club(S, id), ligaDe: id => ligaDe(S, id), posicion: id => posicion(S, id), umbralTitular: () => umbralTitular(S),
   generarOfertas: n => generarOfertas(S, n), gastosVida: () => gastosVida(S), elegirSuceso: () => elegirSuceso(S),
-  disponible: id => !(ACCIONES[id].disponible && ACCIONES[id].disponible(S)) && ACCIONES[id].fases.includes(S.fase),
+  disponible: id => !(ACCIONES[id].disponible && ACCIONES[id].disponible(S)) && accionDe(S, ACCIONES[id]),
 };
 </script>
 </body>

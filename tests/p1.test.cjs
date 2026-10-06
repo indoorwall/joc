@@ -1,4 +1,4 @@
-// Pruebas automáticas del prototipo P1 (simulador de vida, v0.6).
+// Pruebas automáticas del prototipo P1 (simulador de vida, v0.7).
 // Ejecución: node tests/p1.test.cjs   (necesita Playwright con Chromium instalado; tarda unos minutos)
 // Opcional: SHOT_DIR=/carpeta para guardar capturas de pantalla.
 // Nota: Chromium con emulación de móvil NO sustituye una prueba real en Safari / iPhone.
@@ -303,6 +303,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       // Imprevistos: todos se pueden mostrar y resolver sin errores
       let errores = 0, total = 0;
       for (const [id, e] of Object.entries(G.SUCESOS)) {
+        if (e.dep === 'escalada') continue; // se prueban en la sección de escalada
         for (let k = 0; k < e.ops.length; k++) {
           alClub(20 + total, 1); resolverTodo(); G.S.pantalla = 9; G.S.p.dinero = 9000000; G.comprarNegocio('peluqueria', 6000);
           G.comprarInmueble(G.S.anuncios[0].id, false); G.modoInmueble(G.S.inmuebles[0].id, 'alquiler'); G.S.inmuebles[0].inquilino = true;
@@ -428,6 +429,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
         ids.add([...D.mejoras, ...D.acciones].map(x => x.id).sort().join());
       }
       out.todos = Object.keys(G.CFG.negocios).every(t => G.DECISIONES[t]);
+      out.n = Object.keys(G.CFG.negocios).length;
       out.distintas = ids.size === Object.keys(G.DECISIONES).length;
       for (const tipo of Object.keys(G.DECISIONES)) {
         try {
@@ -460,7 +462,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       }
       return out;
     });
-    const N = 9;
+    const N = r.n;
     check('Cada negocio tiene sus propias decisiones (≥2 opciones, ≥3 mejoras, ≥3 acciones)', r.todos && r.distintas && r.faltan.length === 0, r.faltan.join());
     check('Mejoras: se pagan con la caja, una sola vez, y cambian demanda o capacidad', r.mejoraOk.length === N, r.mejoraOk.join());
     check('Opciones de gestión: se guardan y cambian los resultados', r.opcionOk.length === N, r.opcionOk.join());
@@ -552,6 +554,204 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Ninguna estrategia gana en todo (100.000 € antes / más nivel / más fama del negocio)',
       new Set([best('cien'), best('nivel'), best('fama')]).size > 1, `100k: ${best('cien')}, nivel: ${best('nivel')}, fama: ${best('fama')}`);
     check('Sin errores de JavaScript en las vidas simuladas', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  /* ---------- 6. Escalada ---------- */
+  {
+    const { ctx, page, errors } = await openPage(browser, iphone);
+    // Empezar una vida de escalada con toques
+    await page.evaluate(() => { localStorage.clear(); __P1.reiniciar(11); });
+    await page.locator('#nombre').fill('Ada');
+    await tap(page, '[data-act=deporte][data-v=escalada]');
+    check('Escalada: la presentación deja elegir deporte y punto fuerte', (await page.locator('[data-act=fuerte]').count()) === 3 && (await page.locator('[data-act=posicion]').count()) === 0);
+    await tap(page, '[data-act=fuerte][data-v=dificultad]');
+    await tap(page, '#btnEmpezar');
+    let d = await st(page);
+    check('Escalada: empiezas con 14 años en el rocódromo, con 5 cualidades', d.deporte === 'escalada' && d.fase === 'rocodromo' && d.edad === 14 && Object.keys(d.esc.at).length === 5 && d.esc.at.resistencia > d.esc.at.cabeza);
+    check('Escalada: la cabecera, el diario y la barra lo dicen', (await page.locator('#top').textContent()).includes('rocódromo') && (await page.locator('#main').textContent()).includes('escalo') && (await page.locator('.ab').first().textContent()).includes('🧗'));
+    await tap(page, '[data-act=hoja][data-v=carrera]');
+    await shot(page, '40_escalada_carrera');
+    check('Escalada: la hoja Carrera muestra cualidades y plan del rocódromo', (await page.locator('#hoja [data-act=elegir][data-id=amigos]').count()) === 1 && (await page.locator('#hoja [data-act=elegir][data-id=tabla]').count()) === 0);
+    await tap(page, '#hoja [data-act=elegir][data-id=amigos]');
+    await tap(page, '#hoja [data-act=cerrar]');
+    for (let i = 0; i < 12 && !(await st(page)).pendiente; i++) await tap(page, '#btnAvanzar');
+    // Puede salir antes un imprevisto: se resuelven hasta llegar a la oferta de equipo
+    for (let g = 0; g < 30; g++) {
+      d = await st(page);
+      if (d.pendiente && d.pendiente.tipo === 'equipoEsc') break;
+      if (d.pendiente) await page.locator('#modal [data-act=resolver]:not([disabled])').first().tap();
+      else await tap(page, '#btnAvanzar');
+    }
+    d = await st(page);
+    check('Escalada: con reputación 15 el entrenador te ofrece entrar en un equipo (3 opciones)', d.pendiente && d.pendiente.tipo === 'equipoEsc' && (await page.locator('#modal [data-act=resolver]').count()) === 3);
+    await shot(page, '41_escalada_equipo');
+    await page.locator('#modal [data-act=resolver][data-v=club]').tap();
+    d = await st(page);
+    check('Escalada: al entrar en el equipo te federas (la licencia la pagan tus padres) y tienes un proyecto en roca', d.fase === 'escalador' && d.esc.federado && d.esc.equipo === 'club' && !!d.esc.proy);
+    await tap(page, '[data-act=hoja][data-v=carrera]');
+    check('Escalada: la tabla de dedos está bloqueada antes de los 16', (await page.locator('#hoja [data-act=elegir][data-id=tabla]').isDisabled()));
+    await page.locator('#zonas summary').tap();
+    await page.locator('#hoja [data-act=escProy][data-c=zona][data-v=margalef]').tap();
+    d = await st(page);
+    check('Escalada: se elige zona de escalada con toques', d.esc.proy.zona === 'margalef' && d.plan === 'roca');
+    await shot(page, '42_escalada_roca');
+    const ins = page.locator('#hoja [data-act=escIns]').first(); const insId = await ins.getAttribute('data-id');
+    await ins.tap();
+    d = await st(page);
+    check('Escalada: se puede decir que no a una competición', d.esc.ins[insId] === false);
+    for (const w of [320, 390]) {
+      await page.setViewportSize({ width: w, height: 700 });
+      for (const h of ['carrera', null]) { await page.evaluate(h => { __P1.S.hoja = h; __P1.render(); }, h);
+        if (await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > window.innerWidth)) check(`Escalada sin desplazamiento horizontal a ${w} px`, false); }
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    const r = await page.evaluate(() => {
+      const G = __P1, out = {}, K = G.CFG.escalada;
+      G.CFG.club.probSuceso = 0;
+      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'equipoEsc' ? 'club' : G.S.pendiente.tipo === 'patrocinio' ? '0' : G.S.pendiente.tipo === 'nacional' ? 'si' : G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); };
+      const escalador = (seed, edad) => { G.nueva(seed, null, 'escalada', 'bloque'); G.S.p.rep = 15; G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); if (edad) G.S.edad = edad; G.S.p.dinero = 5000; return G.S; };
+      const semana = a => { limpiar(); if (a) G.elegir(a); G.avanzarSemana(); limpiar(); };
+      // Grados reales
+      out.grados = G.GRADOS_VIA.length === 25 && G.GRADOS_VIA[14] === '8a' && G.GRADOS_VIA[24] === '9c' && G.GRADOS_BLOQUE[15] === '8A' && G.GRADOS_BLOQUE[21] === '9A';
+      // Calendario: Mundial en años impares, Europeo en pares, Juegos en 2028
+      const c27 = G.calendarioEsc(2027), c28 = G.calendarioEsc(2028), c26 = G.calendarioEsc(2026);
+      out.calendario = c27.some(c => c.amb === 'mundial') && !c27.some(c => c.amb === 'europeo') && c26.some(c => c.amb === 'europeo') && c28.some(c => c.amb === 'jjoo' && c.lugar === 'Los Ángeles') && !c27.some(c => c.amb === 'jjoo') && c26.filter(c => c.amb === 'mundo').length === 8;
+      // Requisitos
+      let s = escalador(1, 15);
+      const cm = G.calendarioEsc().find(c => c.amb === 'mundo'), ce = G.calendarioEsc().find(c => c.amb === 'esp'), jo = G.calendarioEsc(2028).find(c => c.amb === 'jjoo');
+      out.req = [G.reqComp(cm), G.reqComp(ce)];
+      out.reqEdad = /16/.test(G.reqComp(cm) || '') && !G.reqComp(ce);
+      s.edad = 20; out.reqNacional = /nacional/.test(G.reqComp(cm) || '');
+      s.esc.nacional = s.esc.año; s.p.dinero = 5000; out.conNacional = !G.reqComp(cm);
+      s.esc.año = 2028; s.esc.nacional = 2028; out.reqJJOO = /clasific/.test(G.reqComp(jo) || '');
+      // Competir: mejor nivel → mejor puesto (de media)
+      const media = nivel => { let suma = 0; for (let i = 0; i < 30; i++) { s = escalador(100 + i, 22); for (const k of Object.keys(s.esc.at)) s.esc.at[k] = nivel; s.p.energia = 80; s.semanasAño = 3; s.esc.modoComp = 'todo'; semana('descansoEsc'); const p = s.esc.palmares[0]; suma += p ? p.pos : 99; } return suma / 30; };
+      out.compite = { alto: media(68), bajo: media(45) };
+      out.comp = out.compite.alto < out.compite.bajo && out.compite.alto < 10;
+      s = escalador(7, 22); s.semanasAño = 3; s.esc.modoComp = 'todo'; semana('descansoEsc');
+      out.palmares = s.esc.palmares.length === 1 && /Copa de España de bloque/.test(s.esc.palmares[0].n) && /T\dZ/.test(s.esc.palmares[0].marca) && s.ultimo.dep.some(([t, , w]) => /media/.test(w));
+      // Velocidad: marca en segundos
+      s = escalador(8, 22); s.semanasAño = 5; s.esc.modoComp = 'todo'; semana('descansoEsc');
+      out.velocidad = /( s|resbalón)/.test((s.esc.palmares[0] || {}).marca || '');
+      // Roca: condiciones por meses y encadenar
+      s = escalador(9, 22);
+      s.semanasAño = 10; const julio = G.ZONAS.siurana.buenos.includes(Math.floor(10 * 12 / 18));
+      out.condiciones = !julio && G.ZONAS.ceuse.buenos.includes(Math.floor(10 * 12 / 18));
+      for (const k of Object.keys(s.esc.at)) s.esc.at[k] = 60;
+      s.semanasAño = 1; G.cambiarProyecto('zona', 'siurana'); G.cambiarProyecto('rel', '1');
+      const g0 = s.esc.proy.grado, rep0 = s.p.rep; let semanas = 0;
+      while (s.esc.maxVia < g0 && semanas < 20) { s.p.energia = 90; s.esc.carga = 0; s.semanasAño = 1; semana('roca'); s = G.S; semanas++; }
+      out.encDbg = [g0, s.esc.maxVia, semanas, s.esc.envios.length, s.esc.proy.grado];
+      out.encadena = s.esc.maxVia === g0 && semanas <= 6 && s.esc.envios.length === 1 && s.esc.proy.grado > g0;
+      out.encadenaRep = s.p.rep >= rep0;
+      // Lesiones: con los dedos muy cargados y tabla aparecen; descansado, no
+      let les = 0;
+      for (let i = 0; i < 40; i++) { s = escalador(300 + i, 20); s.esc.carga = 95; s.p.energia = 20; semana('tabla'); if (G.S.lesion > 0) les++; }
+      let lesB = 0;
+      for (let i = 0; i < 40; i++) { s = escalador(400 + i, 20); s.esc.carga = 0; s.p.energia = 90; semana('tecnica'); if (G.S.lesion > 0) lesB++; }
+      out.lesiones = { alta: les, baja: lesB };
+      s = escalador(12, 20); s.lesion = 3; out.lesionBloquea = !G.disponible('rocoBloque') && G.disponible('descansoEsc');
+      // Patrocinio
+      s = escalador(13, 20); s.p.rep = 41; s.esc.tierOfrecido = 0; semana('descansoEsc');
+      s = G.S; // la oferta ya se ha aceptado (opción 0: dinero fijo)
+      out.patroDbg = [s.p.rep, s.esc.tierOfrecido, s.esc.patro];
+      out.patroOferta = s.esc.tierOfrecido === 2 && !!s.esc.patro && s.esc.patro.tipo === 'fijo' && s.esc.patro.sem >= 150;
+      semana('descansoEsc');
+      out.patroCobra = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Patrocinio') && v > 0);
+      // Fin de año: cumpleaños, resumen y equipo nacional si haces podio en España
+      s = escalador(14, 20); s.esc.anual.mejorEsp = 2; s.semanasAño = 17; const e0 = s.edad, a0 = s.esc.año;
+      G.elegir('descansoEsc'); G.avanzarSemana();
+      s = G.S; const tipos = [s.pendiente && s.pendiente.tipo].concat(s.cola.map(e => e.tipo));
+      out.finAño = s.edad === e0 + 1 && s.esc.año === a0 + 1 && tipos.includes('finEsc') && tipos.includes('nacional');
+      limpiar(); out.nacional = G.S.esc.nacional === a0 + 1 && G.S.esc.beca > 0;
+      // Hasta los 18 la familia paga; después, cuota y gastos de vida
+      s = escalador(15, 16); semana('descansoEsc'); out.menor = !G.S.ultimo.eco.some(([t]) => /Cuota/.test(t)) && G.S.ultimo.eco.filter(([t]) => /Gastos/.test(t)).every(([, v]) => v === 0);
+      s = escalador(16, 25); semana('descansoEsc'); out.adulto = G.S.ultimo.eco.some(([t, v]) => /Cuota/.test(t) && v < 0) && G.S.ultimo.eco.some(([t, v]) => /Gastos/.test(t) && v < 0);
+      // Retirada desde los 28
+      s = escalador(17, 27); out.retiroAntes = !G.retirarseYa();
+      s.edad = 28; out.retiro = G.retirarseYa() && G.S.fase === 'retirado' && G.S.pendiente && G.S.pendiente.tipo === 'retiro';
+      limpiar(); out.retiradoAcciones = G.disponible('entrenadorEsc') && !G.disponible('entrenador') && G.disponible('rentas');
+      semana('entrenadorEsc'); out.retiradoSemana = G.S.fase === 'retirado';
+      // Pantallas y desbloqueos propios
+      s = escalador(18, 22);
+      out.pantallas = G.pantallas().length === 10 && G.pantallas()[0].n === 'El rocódromo del barrio';
+      s.pantalla = 3; out.bloq4 = !!G.bloqueoNegocio('escuelaEsc');
+      s.pantalla = 4; out.desb5 = !G.bloqueoNegocio('escuelaEsc') && !!G.bloqueoNegocio('peluqueria') && !G.desbloqueado('clubes');
+      s.pantalla = 9; out.desb10 = !G.bloqueoNegocio('hotel');
+      // Logros propios
+      out.logros = G.logrosDe().some(l => l[0] === 'ochoa') && !G.logrosDe().some(l => l[0] === 'gol');
+      // Imprevistos de escalada
+      let errores = 0, total = 0;
+      for (const [id, e] of Object.entries(G.SUCESOS)) {
+        if (e.dep !== 'escalada') continue;
+        for (let k = 0; k < e.ops.length; k++) {
+          s = escalador(500 + total, 24); s.p.rep = 75; s.p.dinero = 20000; s.esc.nacional = s.esc.año; s.esc.carga = 70; s.esc.maxVia = 15;
+          for (const kk of Object.keys(s.esc.at)) s.esc.at[kk] = 60;
+          s.rel.push({ id: 'h1', tipo: 'hijo', nombre: 'Leo', v: 70, semana: 0, edad: 8, privado: false });
+          const data = e.prep ? e.prep(s) : {};
+          try { s.pendiente = { tipo: 'suceso', id, data }; G.render(); if (!G.resolver(String(k))) errores++; } catch (err) { errores++; }
+          total++;
+        }
+      }
+      out.sucesos = { errores, total, distintos: Object.values(G.SUCESOS).filter(e => e.dep === 'escalada').length };
+      // En escalada no salen imprevistos de fútbol
+      s = escalador(19, 22); let futbol = 0;
+      for (let i = 0; i < 200; i++) { const e = G.elegirSuceso(); if (e && ['cena', 'tarde', 'botas', 'capitan', 'hijoFutbol'].includes(e.id)) futbol++; }
+      out.sinFutbol = futbol === 0;
+      return out;
+    });
+    check('Escalada: grados reales (francesa en vía, Fontainebleau en bloque)', r.grados);
+    check('Escalada: calendario con Copa del Mundo, Mundial (años impares), Europeo (pares) y Juegos (Los Ángeles 2028)', r.calendario);
+    check('Escalada: requisitos (16 años, equipo nacional, plaza olímpica)', r.reqEdad && r.reqNacional && r.conNacional && r.reqJJOO, JSON.stringify([r.req, r.reqEdad, r.reqNacional, r.conNacional, r.reqJJOO]));
+    check('Escalada: en competición, más nivel da mejor puesto', r.comp, JSON.stringify(r.compite));
+    check('Escalada: el resultado se explica y da marca de bloque (tops y zonas) y de velocidad (segundos)', r.palmares && r.velocidad);
+    check('Escalada: condiciones de la roca según el mes (Siurana mala en verano, Céüse buena)', r.condiciones);
+    check('Escalada: proyectar en roca hasta encadenar sube tu grado máximo y pasa al siguiente proyecto', r.encadena && r.encadenaRep, JSON.stringify([r.encadena, r.encadenaRep, r.encDbg]));
+    check('Escalada: con los dedos cargados la tabla lesiona; descansado, no', r.lesiones.alta > 5 && r.lesiones.baja === 0 && r.lesionBloquea, JSON.stringify(r.lesiones));
+    check('Escalada: patrocinios por reputación (fijo o con primas) que se cobran cada semana', r.patroOferta && r.patroCobra, JSON.stringify([r.patroDbg, r.patroOferta, r.patroCobra]));
+    check('Escalada: fin de año con cumpleaños, resumen y convocatoria del equipo nacional', r.finAño && r.nacional);
+    check('Escalada: hasta los 18 pagan tus padres; después, cuota y gastos de vida', r.menor && r.adulto);
+    check('Escalada: retirada desde los 28 y acciones propias de retirado', r.retiroAntes && r.retiro && r.retiradoAcciones && r.retiradoSemana);
+    check('Escalada: 10 pantallas propias y desbloqueos (escuela en la 5, hotel en la 10, sin clubes de fútbol)', r.pantallas && r.bloq4 && r.desb5 && r.desb10);
+    check('Escalada: logros propios', r.logros);
+    check('Escalada: todos sus imprevistos y opciones funcionan', r.sucesos.errores === 0 && r.sucesos.distintos >= 15, `${r.sucesos.distintos} imprevistos, ${r.sucesos.total} opciones`);
+    check('Escalada: no salen imprevistos de fútbol', r.sinFutbol);
+
+    // Vidas completas de escalada
+    const vidas = await page.evaluate(() => {
+      const G = __P1; G.silencio = true; G.CFG.club.probSuceso = 0.45;
+      function vida(seed, fuerte, roca) {
+        G.nueva(seed, null, 'escalada', fuerte); const S = () => G.S; const L = { p5: null, nac: null };
+        for (let w = 0; w < 3000 && S().edad < 34; w++) {
+          const ev = S().pendiente;
+          if (ev) { if (ev.tipo === 'equipoEsc') G.resolver(S().p.nivel >= 30 ? 'centro' : 'club'); else if (ev.tipo === 'patrocinio' || ev.tipo === 'suceso') G.resolver('0'); else if (ev.tipo === 'nacional') { L.nac = L.nac || S().edad; G.resolver('si'); } else G.resolver('ok'); continue; }
+          const s = S(), E = s.esc;
+          if (s.pantalla >= 5 && !L.p5) L.p5 = s.edad;
+          if (s.fase !== 'rocodromo') for (const [k, T] of Object.entries(G.CFG.negocios)) if (!G.bloqueoNegocio(k) && s.p.dinero > T.precio + T.cajaOpciones[1] + 3000) G.comprarNegocio(k, T.cajaOpciones[1]);
+          for (const n of s.negocios) if (n.caja < 0 && s.p.dinero > 1000) G.traspasar(n.tipo, 'aCaja');
+          if (s.fase === 'escalador' && s.edad >= 31) G.retirarseYa();
+          let a;
+          if (s.fase === 'rocodromo') a = s.p.energia < 35 ? 'descansoEsc' : (s.semana % 3 ? 'amigos' : 'resistencia');
+          else if (s.fase === 'escalador') {
+            if (s.lesion) a = 'fisioEsc'; else if (s.p.energia < 35 || E.carga > 60) a = 'descansoEsc';
+            else a = (roca ? ['roca', 'roca', 'tabla', 'resistencia', 'tecnica'] : ['rocoBloque', 'tabla', 'resistencia', 'velocidad', 'tecnica', 'roca'])[s.semana % (roca ? 5 : 6)];
+            if (s.p.dinero < 100) a = s.edad >= 18 ? 'monitor' : 'ayudar';
+          } else a = s.negocios.length ? 'gestionar' : 'entrenadorEsc';
+          G.elegir(a) || G.elegir('descansoEsc');
+          if (!G.avanzarSemana() && !S().pendiente) break;
+        }
+        const s = S();
+        return { seed, edad: s.edad, pantalla: s.pantalla, p5: L.p5, nac: L.nac, via: s.esc.maxVia, nivel: s.p.nivel, rep: s.p.rep, comps: s.esc.comps, pat: Math.round(G.patrimonio()), fase: s.fase };
+      }
+      return [vida(21, 'bloque', false), vida(22, 'dificultad', true), vida(23, 'velocidad', false)];
+    });
+    console.log('      Vidas de escalada:', JSON.stringify(vidas));
+    check('Escalada: tres vidas simuladas hasta los 34 años sin errores ni atascos', vidas.every(v => v.edad >= 34 && v.fase === 'retirado'));
+    check('Escalada: se progresa por pantallas (todas superan la 5 antes de los 30)', vidas.every(v => v.p5 && v.p5 < 30), vidas.map(v => `pantalla 5 a los ${v.p5}`).join(', '));
+    check('Escalada: nadie llega a la élite sin esfuerzo (nivel máximo < 90) y todos compiten', vidas.every(v => v.nivel < 90 && v.comps > 20));
+    check('Escalada: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 
