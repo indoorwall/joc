@@ -454,6 +454,9 @@ const CFG = {
     // Se cobra cada mes durante ese año y el siguiente, pero solo se puede gastar en escalada:
     // lo que no gastes en entrenar, viajar o competir se pierde al acabar el año.
     becaEstado: { mes: 1400, puesto: 8 },
+    // Oro olímpico: premio de 90.000 € y beca de 60.000 € al año hasta los siguientes Juegos.
+    // Si en esos Juegos no vuelves a ganar (o no vas), la pierdes.
+    becaOlimpica: 60000, semanaJJOO: 10,
     // Patrocinadores: una marca por categoría a la vez. año = € por año de juego según tu fama (de mín. a máx.).
     // Marcas reales usadas como ambientación: los importes son de juego, no contratos reales.
     patrocinadores: [
@@ -2686,7 +2689,7 @@ const AMBITOS = {
   europeo: { n: 'Campeonato de Europa', media: 70, sd: 6, N: 80, semi: 20, final: 8, ins: 100, viaje: 500, techo: 80, rep: 12, premio: [6000, 4000, 3000], presion: 0.9, energia: 20, nacional: true },
   mundial: { n: 'Campeonato del Mundo', media: 73, sd: 5.5, N: 120, semi: 24, final: 8, ins: 120, viaje: 1200, techo: 95, rep: 18, premio: [10000, 8000, 6000, 4000, 3000, 2500, 2000, 1500], presion: 1, energia: 20, nacional: true },
   clasif: { n: 'Clasificatorio olímpico', media: 77, sd: 4, N: 40, semi: 0, final: 8, ins: 0, viaje: 1200, techo: 85, rep: 10, premio: [], presion: 1, energia: 20, nacional: true, plazas: 10 },
-  jjoo: { n: 'Juegos Olímpicos', media: 79, sd: 3.5, N: 20, semi: 0, final: 8, ins: 0, viaje: 0, techo: 100, rep: 30, premio: [94000, 48000, 30000], presion: 1.3, energia: 20, nacional: true },
+  jjoo: { n: 'Juegos Olímpicos', media: 79, sd: 3.5, N: 20, semi: 0, final: 8, ins: 0, viaje: 0, techo: 100, rep: 30, premio: [90000, 48000, 30000], presion: 1.3, energia: 20, nacional: true },
 };
 const ORDEN_AMB = ['auto', 'esp', 'cesp', 'europa', 'master', 'mundo', 'europeo', 'mundial', 'clasif', 'jjoo'];
 // Calendario base de cada año: [semana del año (0-17), ámbito, modalidad, lugar]
@@ -3016,6 +3019,10 @@ function competirEsc(s, R, c) {
   R.dep.push([`${nombre}: ${pos}º de ${N}`, marca,
     `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(forma))} por energía ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
   R.comp = { pos, N, ronda, amb: c.amb };
+  if (c.amb === 'jjoo') {
+    if (pos === 1) { E.becaOlimpica = { hasta: E.año + 4, mod: c.mod }; R.opo.push(['🥇', `¡Campeón/a olímpico/a! Premio de ${cr(A.premio[0])} y beca de ${cr(K.becaOlimpica)} al año hasta los Juegos de ${E.año + 4}.`]); }
+    else if (E.becaOlimpica && E.becaOlimpica.hasta === E.año) { E.becaOlimpica = null; R.opo.push(['🎓', 'No repito el oro: pierdo la beca olímpica.']); }
+  }
   if (['mundo', 'mundial', 'jjoo'].includes(c.amb) && pos <= K.becaEstado.puesto && E.becaHasta < E.año + 1) {
     E.becaHasta = E.año + 1;
     R.opo.push(['🎓', `¡Final en ${A.n}! El Estado me concede una beca de ${cr(K.becaEstado.mes)} al mes hasta final de ${E.año + 1}. Solo puedo gastarla en escalada.`]);
@@ -3046,6 +3053,8 @@ function semanaEscalada(s, R) {
   const E = s.esc, K = CFG.escalada, energiaAntes = R.antes.energia;
   // Competición de la semana
   if (s.fase === 'escalador') { const c = compDeLaSemana(s); if (c) competirEsc(s, R, c); }
+  // La beca olímpica dura hasta los siguientes Juegos: si pasan sin un nuevo oro, se pierde
+  if (E.becaOlimpica && E.becaOlimpica.hasta <= E.año && s.semanasAño >= K.semanaJJOO) { E.becaOlimpica = null; R.opo.push(['🎓', 'Pasan los Juegos sin un nuevo oro: se acaba mi beca olímpica.']); }
   // Lesión: riesgo si has entrenado con los dedos cargados o sin energía
   if (s.lesion > 0) {
     s.lesion -= 1;
@@ -3091,6 +3100,7 @@ function semanaEscalada(s, R) {
 function economiaEsc(s, R) {
   const E = s.esc, K = CFG.escalada;
   let bruto = 0;
+  if (E.becaOlimpica) { const v = Math.round(K.becaOlimpica / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Beca olímpica (${cr(K.becaOlimpica)}/año hasta ${E.becaOlimpica.hasta})`, v]); }
   for (const pt of E.patros) if (pt.año) { const v = Math.round(pt.año / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Patrocinio de ${pt.marca} (${cr(pt.año)}/año)`, v]); }
   if (E.nacional === E.año && E.beca) { bruto += E.beca; R.eco.push(['Ayuda de la federación', E.beca]); }
   const colab = E.seg >= K.segColab ? Math.round(E.seg / 1000 * K.colabPorMil) : 0;
@@ -3217,7 +3227,7 @@ function resolverEsc(s, ev, op) {
 function retirarseEsc(s, forzado, R) {
   if (s.fase !== 'escalador' || (!forzado && s.edad < CFG.escalada.edadRetiro)) return false;
   const E = s.esc;
-  s.fase = 'retirado'; s.lesion = 0; s.semanasAño = 0; E.patros = []; E.nacional = 0; E.beca = 0; E.becaHasta = 0; E.becaSaldo = 0;
+  s.fase = 'retirado'; s.lesion = 0; s.semanasAño = 0; E.patros = []; E.becaOlimpica = null; E.nacional = 0; E.beca = 0; E.becaHasta = 0; E.becaSaldo = 0;
   s.plan = s.negocios.length ? 'gestionar' : 'rentas';
   s.cola = s.cola.filter(e => !['patrocinio', 'nacional', 'invitacion'].includes(e.tipo));
   if (s.pendiente && ['patrocinio', 'nacional', 'invitacion'].includes(s.pendiente.tipo)) s.pendiente = s.cola.shift() || null;
@@ -3322,6 +3332,7 @@ function hojaCarreraEsc() {
     <div style="margin-top:8px">
       ${s.lesion ? `<span class="badge b">🤕 ${esc(E.lesTipo)} (${s.lesion} sem)</span>` : ''}
       ${E.nacional === E.año ? `<span class="badge g">🇪🇸 Equipo nacional · ${cr(E.beca)}/sem</span>` : ''}
+      ${E.becaOlimpica ? `<span class="badge g">🥇 Beca olímpica ${cr(CFG.escalada.becaOlimpica)}/año hasta los Juegos de ${E.becaOlimpica.hasta}</span>` : ''}
       ${E.becaHasta >= E.año ? `<span class="badge g">🎓 Beca del Estado hasta ${E.becaHasta} · saldo ${cr(E.becaSaldo)}</span>` : ''}
       ${E.patros.length ? `<span class="badge g">💼 ${E.patros.length} ${E.patros.length === 1 ? 'patrocinador' : 'patrocinadores'} · ${cr(E.patros.reduce((a, p) => a + p.año, 0))}/año</span>` : ''}
       <span class="badge">🖐️ Piel ${E.piel}</span><span class="badge ${E.carga > CFG.escalada.cargaRiesgo ? 'b' : ''}">🦴 Carga en los dedos ${E.carga}</span>
@@ -3362,6 +3373,7 @@ function hojaCarreraEsc() {
       <p class="small">Premios: Copa y Campeonato de España 500, 300 y 200 €; Copa del Mundo 8.000, 7.000 y 5.000 €; másters por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, del Mundo, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} con plaza en el clasificatorio (top 10).</p></div>`;
     // Patrocinadores y becas
     h += `<div class="sec">💼 Patrocinadores y becas</div><div class="card lista">${E.patros.length ? E.patros.map(p => `<div class="row"><div class="ic">${p.ic}</div><div class="tx"><b>${esc(p.marca)}</b><span>${esc(CAT_PATRO[p.cat])} · ${p.año ? `${cr(p.año)}/año (${cr(Math.round(p.año / CFG.hipoteca.semanasAño))}/semana)` : 'solo material'} · ${p.temporadas} ${p.temporadas === 1 ? 'año' : 'años'} más${p.primaPodio ? ` · prima por podio ${cr(p.primaPodio)} y por 8b ${cr(p.primaGrado)}` : ''}${p.material ? ' · pies de gato gratis' : ''}${p.bono ? ' · entrenas gratis' : ''}</span></div></div>`).join('') : '<p class="small">Aún no tienes patrocinadores: te llamarán cuando subas tu fama.</p>'}
+      <p class="small">🥇 Oro olímpico: ${cr(AMBITOS.jjoo.premio[0])} de premio y una beca de ${cr(CFG.escalada.becaOlimpica)} al año hasta los siguientes Juegos; si allí no repites el oro, la pierdes.${E.becaOlimpica ? ` Ahora la cobras hasta ${E.becaOlimpica.hasta}.` : ''}</p>
       <p class="small">🎓 Beca del Estado: ${E.becaHasta >= E.año ? `cobras ${cr(CFG.escalada.becaEstado.mes)} al mes hasta final de ${E.becaHasta}. Saldo para gastar en escalada: ${cr(E.becaSaldo)} (lo que sobre al acabar el año se pierde).` : `si llegas a una final de Copa del Mundo (las ${CFG.escalada.becaEstado.puesto} mejores), el Estado te da ${cr(CFG.escalada.becaEstado.mes)} al mes durante ese año y el siguiente, para gastar solo en escalada.`}</p>
       <details><summary><b>Marcas que patrocinan escalada (${CFG.escalada.patrocinadores.length})</b></summary>${CFG.escalada.patrocinadores.map(P => { const ok = cumpleReqPatro(s, P), mio = tienePatro(s, P.id);
         return `<div class="row"><div class="ic">${P.ic}</div><div class="tx"><b>${esc(P.marca)}${mio ? ' ✓' : ''}</b><span>${esc(CAT_PATRO[P.cat])} · ${P.año[1] ? `${P.año[0] ? cr(P.año[0]) : 'material'}–${cr(P.año[1])}/año` : 'material'} · ${mio ? 'es tu patrocinador' : ok ? `✅ te puede llamar (unos ${cr(pagoPatro(s, P))}/año)` : `🔒 ${textoReqPatro(P)}`}</span></div></div>`; }).join('')}</details>

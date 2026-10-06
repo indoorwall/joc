@@ -691,6 +691,14 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       out.becaPaga = !G.S.ultimo.eco.some(([t]) => /entrenador/.test(t)) && G.S.ultimo.dep.some(([t]) => /con la beca/.test(t));
       G.S.semanasAño = 17; semana('descansoEsc');
       out.becaPierde = G.S.esc.becaSaldo === 0 && G.S.ultimo.opo.some(([, t]) => /Se pierden/.test(t));
+      // Oro olímpico: 90.000 € y beca de 60.000 €/año hasta los siguientes Juegos; si no repites, se pierde
+      s = escalador(35, 24); for (const k of Object.keys(s.esc.at)) s.esc.at[k] = 99; s.esc.año = 2028; s.esc.nacional = 2028; s.esc.olimpico = { año: 2028, mod: 'combinada' }; s.semanasAño = 10; s.esc.modoComp = 'todo';
+      semana('descansoEsc'); s = G.S; const oro = s.esc.palmares[0] || {};
+      out.oroDbg = [oro.n, oro.pos, s.esc.becaOlimpica];
+      out.oro = oro.amb === 'jjoo' && oro.pos === 1 && s.esc.becaOlimpica && s.esc.becaOlimpica.hasta === 2032 && G.S.ultimo.eco.some(([t, v]) => /Consejo|medalla/.test(t) && v === 90000);
+      semana('descansoEsc'); out.oroCobra = G.S.ultimo.eco.some(([t, v]) => /Beca olímpica/.test(t) && v === Math.round(60000 / 18));
+      s = G.S; s.esc.año = 2032; s.esc.nacional = 2032; s.esc.olimpico = { año: 2032, mod: 'combinada' }; s.semanasAño = 10; for (const k of Object.keys(s.esc.at)) s.esc.at[k] = 40;
+      semana('descansoEsc'); out.oroPierde = !G.S.esc.becaOlimpica && (G.S.esc.palmares[0] || {}).amb === 'jjoo';
       // Fin de año: cumpleaños, resumen y equipo nacional si haces podio en España
       s = escalador(14, 20); s.esc.anual.mejorEsp = 2; s.semanasAño = 17; const e0 = s.edad, a0 = s.esc.año;
       G.elegir('descansoEsc'); G.avanzarSemana();
@@ -746,7 +754,8 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Escalada: Red Bull solo para estrellas, de 30.000 a 50.000 € al año', r.redbull);
     check('Escalada: premios de 500/300/200 € en España, 8.000/7.000/5.000 € en Copa del Mundo y 4.000 € en los másters', r.premios);
     check('Escalada: másters internacionales solo por invitación, con premio', r.masterSinInv && r.masterInv && r.master, JSON.stringify([r.masterDbg, r.masterSinInv, r.masterInv, r.master]));
-    check('Escalada: beca del Estado por llegar a una final de Copa del Mundo, solo para gastos de escalada', r.becaConcedida && r.becaIngreso && r.becaPaga && r.becaPierde, JSON.stringify([r.becaDbg, r.becaConcedida, r.becaIngreso, r.becaPaga, r.becaPierde]));
+check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los siguientes Juegos, que se pierde si no repites', r.oro && r.oroCobra && r.oroPierde, JSON.stringify([r.oroDbg, r.oro, r.oroCobra, r.oroPierde]));
+        check('Escalada: beca del Estado por llegar a una final de Copa del Mundo, solo para gastos de escalada', r.becaConcedida && r.becaIngreso && r.becaPaga && r.becaPierde, JSON.stringify([r.becaDbg, r.becaConcedida, r.becaIngreso, r.becaPaga, r.becaPierde]));
     check('Escalada: fin de año con cumpleaños, resumen y convocatoria del equipo nacional', r.finAño && r.nacional);
     check('Escalada: hasta los 18 pagan tus padres; después, cuota y gastos de vida', r.menor && r.adulto);
     check('Escalada: retirada desde los 28 y acciones propias de retirado', r.retiroAntes && r.retiro && r.retiradoAcciones && r.retiradoSemana);

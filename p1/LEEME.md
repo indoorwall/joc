@@ -180,7 +180,8 @@ Siempre hay un camino de negocios por si tu techo no da para la élite mundial.
 equipador 260 €/semana; premios: autonómico 100/60/40 €, Copa y Campeonato de España 500/300/200 €,
 Copa de Europa 800/500/300 €, máster 4.000/2.500/1.500 €, Copa del Mundo 8.000/7.000/5.000 € (del 4º al
 8º, de 3.000 a 1.000 €), Europeo 6.000/4.000/3.000 €, Mundial 10.000/8.000/6.000 €; medalla olímpica:
-premio del Consejo Superior de Deportes de 94.000, 48.000 o 30.000 €; colaboraciones en redes 2,5 € por cada
+oro 90.000 € más una **beca olímpica de 60.000 € al año hasta los siguientes Juegos** (si allí no
+repites el oro, o no vas, la pierdes); plata 48.000 €; bronce 30.000 €; colaboraciones en redes 2,5 € por cada
 1.000 seguidores a partir de 10.000. Gastos: licencia 90 €/año, cuota del equipo (0–45 €/semana), pies
 de gato cada 8 semanas de entreno (130 €, gratis con patrocinador), viajes a la roca (40–1.600 €/semana),
 inscripción y viaje a competiciones (gratis con el equipo nacional), y vida (con tu familia hasta los 23,
