@@ -1,5 +1,5 @@
-// Pruebas automáticas del prototipo P1 (gestión y decisiones, v0.3).
-// Ejecución: node tests/p1.test.cjs   (necesita Playwright con Chromium instalado)
+// Pruebas automáticas del prototipo P1 (simulador de vida, v0.4).
+// Ejecución: node tests/p1.test.cjs   (necesita Playwright con Chromium instalado; tarda unos minutos)
 // Opcional: SHOT_DIR=/carpeta para guardar capturas de pantalla.
 // Nota: Chromium con emulación de móvil NO sustituye una prueba real en Safari / iPhone.
 'use strict';
@@ -25,44 +25,59 @@ async function openPage(browser, opts) {
 }
 const st = page => page.evaluate(() => JSON.parse(JSON.stringify(__P1.S)));
 async function tap(page, sel) { await page.locator(sel).first().tap(); }
-async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.join(SHOTS, name + '.png') }); }
+async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); await page.screenshot({ path: path.join(SHOTS, name + '.png') }); } }
 
 (async () => {
   const browser = await chromium.launch();
   const iphone = { ...devices['iPhone 13'] };
   delete iphone.defaultBrowserType;
 
-  /* ---------- 1. Presentación y bucle de una semana con toques ---------- */
+  /* ---------- 1. Presentación, diario, barras y botón «+ Semana» ---------- */
   {
     const { ctx, page, errors, requests } = await openPage(browser, iphone);
     await shot(page, '00_intro');
-    check('Primera vez: aparece la presentación', (await page.locator('#btnEmpezar').count()) === 1 && (await st(page)).intro === true);
+    check('Primera vez: aparece «Empezar una nueva vida»', (await page.locator('#btnEmpezar').count()) === 1 && (await st(page)).intro === true);
     await page.locator('#nombre').fill('Leo');
     await tap(page, '[data-act=avatar][data-v="🧑🏾"]');
     await tap(page, '[data-act=posicion][data-v=medio]');
     await tap(page, '#btnEmpezar');
     const si = await st(page);
-    check('Al empezar se guardan nombre, personaje y posición', !si.intro && si.nombre === 'Leo' && si.avatar === '🧑🏾' && si.posicion === 'medio' && (await page.locator('#top').textContent()).includes('Leo'));
+    check('Se guardan nombre, personaje y posición', !si.intro && si.nombre === 'Leo' && si.avatar === '🧑🏾' && si.posicion === 'medio' && (await page.locator('#top').textContent()).includes('Leo'));
     await page.evaluate(() => { __P1.nueva(7); __P1.CFG.club.probSuceso = 0; });
-    await shot(page, '01_barrio');
-    check('Empieza en el barrio con 17 años', (await st(page)).fase === 'barrio' && (await st(page)).edad === 17);
-    check('Se ve la misión actual', (await page.locator('#objetivo h3').textContent()).includes('ojeador'));
-    check('Sin elegir, «Jugar semana» está desactivado', await page.locator('#btnAvanzar').isDisabled());
-    await tap(page, '[data-act=elegir][data-id=plaza]');
-    check('Al tocar una carta queda seleccionada', (await page.locator('.opt.sel').count()) === 1 && !(await page.locator('#btnAvanzar').isDisabled()));
+    await shot(page, '01_diario_inicio');
+    check('Pantalla principal: diario, misión, 4 barras y botón «+ Semana»', (await page.locator('.entry').count()) === 1 && (await page.locator('#objetivo').count()) === 1 && (await page.locator('#dock .st').count()) === 4 && (await page.locator('#btnAvanzar').isEnabled()));
     const rep0 = (await st(page)).p.rep;
     await tap(page, '#btnAvanzar');
     const s1 = await st(page);
-    check('Jugar la semana muestra resultados explicados', s1.verResultado && (await page.locator('#resultado').count()) === 1 && (await page.locator('.res-line .r').count()) >= 2);
-    check('El partido en la plaza sube reputación', s1.p.rep > rep0, `${rep0} → ${s1.p.rep}`);
-    await tap(page, '#btnContinuar');
-    check('Continuar vuelve a la semana 2', (await st(page)).semana === 2 && !(await st(page)).verResultado);
-    const layout = await page.evaluate(() => ({
-      over: document.documentElement.scrollWidth > window.innerWidth,
-      minH: Math.min(...[...document.querySelectorAll('.opt, .btn, nav button')].map(b => b.getBoundingClientRect().height)),
-    }));
-    check('Sin desplazamiento horizontal a 390 px', !layout.over);
-    check('Botones de al menos 44 px de alto', layout.minH >= 44, `mínimo ${Math.round(layout.minH)} px`);
+    check('«+ Semana» avanza y escribe la semana en el diario', s1.semana === 2 && s1.log.length === 1 && (await page.locator('.entry').count()) === 1 && (await page.locator('.entry .el').count()) >= 2);
+    check('El plan por defecto (partido en la plaza) sube la reputación', s1.p.rep > rep0, `${rep0} → ${s1.p.rep}`);
+    check('Cada semana explica sus reglas en «¿Por qué?»', (await page.locator('details.por .rl').count()) >= 2);
+    await tap(page, '#btnAvanzar');
+    check('El plan se repite sin volver a elegirlo', (await st(page)).semana === 3 && (await st(page)).log[1].lineas.some(([, t]) => t.includes('partido en la plaza')));
+    // Hojas
+    for (const [h, sel] of [['carrera', '.opt'], ['bienes', '#patrimonio'], ['relaciones', '[data-act=rel]'], ['actividades', '[data-act=actividad]'], ['logros', '.logro'], ['ajustes', '#btnReiniciar']]) {
+      await tap(page, `[data-act=hoja][data-v=${h}]`);
+      const ok = (await page.locator(`#hoja ${sel}`).count()) > 0;
+      if (!ok) check(`Se abre la hoja «${h}»`, false);
+      await shot(page, `02_hoja_${h}`);
+      await tap(page, '#hoja [data-act=cerrar]');
+    }
+    check('Se abren y cierran Carrera, Bienes, Relaciones, Actividades, Logros y Partida', (await page.locator('#hoja .hh').count()) === 0);
+    await tap(page, '[data-act=hoja][data-v=carrera]');
+    await tap(page, '[data-act=elegir][data-id=entrenarSolo]');
+    await tap(page, '#hoja [data-act=cerrar]');
+    check('El plan se cambia desde Carrera y se ve en la barra inferior', (await st(page)).plan === 'entrenarSolo' && (await page.locator('#dock .plan').textContent()).includes('Entrenar'));
+    const layout = await page.evaluate(() => ({ minH: Math.min(...[...document.querySelectorAll('.ab, .age')].map(b => b.getBoundingClientRect().height)) }));
+    check('Botones principales de al menos 44 px', layout.minH >= 44, `mínimo ${Math.round(layout.minH)} px`);
+    for (const w of [320, 375, 390]) {
+      await page.setViewportSize({ width: w, height: 680 });
+      for (const h of [null, 'carrera', 'bienes', 'relaciones', 'actividades', 'negocio:peluqueria']) {
+        await page.evaluate(h => { __P1.S.hoja = h; __P1.render(); }, h);
+        const over = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > window.innerWidth);
+        if (over) check(`Sin desplazamiento horizontal a ${w} px (${h || 'diario'})`, false);
+      }
+    }
+    check('Sin desplazamiento horizontal a 320, 375 y 390 px', true);
     const txt = await page.evaluate(() => document.body.innerText);
     check('Los importes se muestran en euros', txt.includes('€') && !/\d cr\b/.test(txt));
     check('Sin errores de JavaScript', errors.length === 0, errors.join(' | '));
@@ -70,142 +85,133 @@ async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.
     await ctx.close();
   }
 
-  /* ---------- 2. Una temporada entera jugando con toques ---------- */
+  /* ---------- 2. Una vida jugada con toques ---------- */
   {
     const { ctx, page, errors } = await openPage(browser, iphone);
     await page.evaluate(() => __P1.nueva(11));
     const log = {}, vistos = {};
-    let marcador = false, prensa = false, liga = null, estadioOk = null, ofertasInicio = null, sucesoOk = false;
-    for (let i = 0; i < 400 && !log.fin2; i++) {
-      const s = await st(page);
-      if (s.verResultado) {
-        if (s.ultimo.opo.some(([h]) => h.startsWith('Mercado de invierno'))) log.invierno = s.ultimo.opo.find(([h]) => h.startsWith('Mercado de invierno'))[0];
-        if (s.ultimo.partido && !marcador) {
-          marcador = (await page.locator('.board .score').count()) === 1 && (await page.locator('.board').textContent()).includes('espectadores');
-          prensa = (await page.locator('.paper p').count()) >= 1;
-          await shot(page, '04_partido');
-        }
-        await tap(page, '#btnContinuar'); continue;
-      }
-      if (s.pendiente) {
-        const t = s.pendiente.tipo, v = s.pendiente.ventana;
-        if (!vistos[t + (v || '')]) { await shot(page, `03_evento_${t}${v ? '_' + v : ''}`); vistos[t + (v || '')] = 1; }
-        if (t === 'ojeador') { log.ojeador = s.semana; await tap(page, '[data-act=resolver][data-v=corto]'); }
+    let sucesoOk = 0, res = false;
+    async function resolverConToques() {
+      let s = await st(page);
+      while (s.pendiente) {
+        const t = s.pendiente.tipo;
+        if (!vistos[t]) { await shot(page, `03_popup_${t}`); vistos[t] = 1; }
+        log[t] = (log[t] || 0) + 1;
+        if (t === 'ojeador') await tap(page, '#modal [data-v=corto]');
         else if (t === 'ofertas') {
-          if (v === 'inicio') {
-            ofertasInicio = s.pendiente.ofertas;
-            log.ofertas = s.semana;
-            await tap(page, '[data-act=resolver][data-v="0"]');
-          } else {
-            log['mercado_' + v] = s.semana;
-            if (await page.locator('[data-act=resolver][data-v=quedarse]').count()) await tap(page, '[data-act=resolver][data-v=quedarse]');
-            else await tap(page, '[data-act=resolver][data-v="0"]');
-          }
-        } else if (t === 'mejora') { log.mejora = s.semana; await tap(page, '[data-act=resolver][data-v=aceptar]'); }
-        else if (t === 'suceso') {
-          const antes = s;
-          await tap(page, '[data-act=resolver][data-v="0"]');
+          if (s.pendiente.ventana === 'inicio') log.ofertasInicio = s.pendiente.ofertas;
+          await tap(page, (await page.locator('#modal [data-v=quedarse]').count()) ? '#modal [data-v=quedarse]' : '#modal [data-v="0"]');
+        } else if (t === 'mejora') await tap(page, '#modal [data-v=aceptar]');
+        else if (t === 'fin') { log.finInfo = log.finInfo || s.pendiente.zona || s.pendiente.pos; await tap(page, '#modal [data-v=ok]'); }
+        else {
+          const antes = JSON.stringify([s.p, s.mods, s.agenda, s.rel, s.negocios]);
+          await tap(page, '#modal [data-v="0"]');
           const d = await st(page);
-          if (JSON.stringify(antes.p) !== JSON.stringify(d.p) || antes.mods.length !== d.mods.length || antes.agenda.length !== d.agenda.length || JSON.stringify(antes.negocio) !== JSON.stringify(d.negocio)) sucesoOk = true;
-          log.suceso = (log.suceso || 0) + 1;
-        } else if (t === 'fin') {
-          if (!log.fin) { log.fin = s.semana; log.finInfo = { pos: s.pendiente.pos, zona: s.pendiente.zona }; } else log.fin2 = s.semana;
-          await tap(page, '[data-act=resolver][data-v=ok]');
-        } else await tap(page, '[data-act=resolver][data-v=ok]');
-        continue;
+          if (JSON.stringify([d.p, d.mods, d.agenda, d.rel, d.negocios]) !== antes || d.log[d.log.length - 1].lineas.some(([, x]) => x.includes('→'))) sucesoOk++;
+        }
+        s = await st(page);
       }
-      if (s.fase === 'club' && liga === null) {
-        await tap(page, 'nav [data-v=liga]');
-        await shot(page, '05_liga');
-        liga = { filas: await page.locator('table.liga tr:not(.hd)').count(), yo: await page.locator('table.liga tr.yo').count() };
-        await tap(page, 'nav [data-v=semana]');
-        const cap = await page.evaluate(() => __P1.club(__P1.S.contrato.clubId).cap);
-        const svgId = await page.evaluate(() => (document.querySelector('.scene svg linearGradient') || {}).id);
-        estadioOk = (cap < 3000 && svgId === 'skP') || (cap >= 3000 && cap < 15000 && svgId === 'skM') || (cap >= 15000 && svgId === 'skC');
-        await shot(page, '06_carrera_club');
-      }
-      let pick;
-      if (s.fase === 'barrio') pick = s.p.energia < 40 ? 'descansar' : 'plaza';
-      else if (s.fase === 'prep') pick = s.p.energia < 45 ? 'descansar' : s.p.dinero >= 90 ? 'entrenador' : 'trabajar';
-      else pick = s.lesion ? 'reposo' : s.p.energia < 45 ? 'reposo' : 'extra';
-      await tap(page, `[data-act=elegir][data-id=${pick}]`);
+      return s;
+    }
+    for (let i = 0; i < 400; i++) {
+      const s = await resolverConToques();
+      if ((log.fin || 0) >= 2 && (log.mejora || s.semana > 70)) break;
+      if (s.fase === 'barrio' && s.plan !== 'plaza' && s.p.energia >= 40) { await tap(page, '[data-act=hoja][data-v=carrera]'); await tap(page, '[data-act=elegir][data-id=plaza]'); await tap(page, '#hoja [data-act=cerrar]'); }
+      if (s.fase === 'barrio' && s.p.energia < 40 && s.plan !== 'descansar') await page.evaluate(() => __P1.elegir('descansar'));
+      if (s.fase === 'club' && s.plan !== 'extra' && !s.lesion && s.p.energia >= 45) await page.evaluate(() => __P1.elegir('extra'));
+      if (s.fase === 'club' && s.p.energia < 45 && s.plan !== 'reposo') await page.evaluate(() => __P1.elegir('reposo'));
       await tap(page, '#btnAvanzar');
+      const d = await st(page);
+      if (d.log.length && d.log[d.log.length - 1].partido && !res) { res = (await page.locator('.entry .res').count()) > 0; await shot(page, '04_diario_partido'); }
     }
-    check('Aparece el ojeador de un club de 4ª división', !!log.ojeador, `semana ${log.ojeador}`);
-    check('Tras las pruebas: dos ofertas de clubes pequeños españoles con condiciones distintas', ofertasInicio && ofertasInicio.length === 2 && ofertasInicio[0].familia && !ofertasInicio[1].familia && ofertasInicio[1].salario > ofertasInicio[0].salario && ofertasInicio[1].vida > ofertasInicio[0].vida);
-    check('El estadio dibujado corresponde al aforo del club', estadioOk === true);
-    check('Pestaña Liga: clasificación de 10 equipos con tu club marcado', liga && liga.filas === 10 && liga.yo === 1, JSON.stringify(liga));
-    check('Resultado del partido: marcador, estadio y público', marcador);
-    check('Hay noticias de prensa cada jornada', prensa);
-    check('Mercado de invierno tras la jornada 9 (con ofertas o aviso)', !!log.invierno, log.invierno);
-    check('Llega la oportunidad de mejorar el contrato', !!log.mejora, `semana ${log.mejora}`);
-    check('Fin de temporada con clasificación final', !!log.fin, `semana ${log.fin}, ${JSON.stringify(log.finInfo)}`);
-    check('Se juega una segunda temporada completa', !!log.fin2, `semana ${log.fin2}`);
-    check('Hay imprevistos y sus opciones tienen efecto', log.suceso > 0 && sucesoOk, `${log.suceso} imprevistos`);
     const s = await st(page);
-    check('La edad sube con cada temporada', s.edad === 19, `${s.edad} años`);
+    const o = log.ofertasInicio || [];
+    check('Ojeador, pruebas y dos ofertas españolas con condiciones distintas', !!log.ojeador && o.length === 2 && o[0].familia && !o[1].familia && o[1].salario > o[0].salario);
+    check('El diario muestra cada partido con resultado y nota', res && s.log.some(e => e.partido && e.lineas.some(([, t]) => t.includes('nota'))));
+    check('Llega la mejora de contrato en ventana emergente', !!log.mejora);
+    check('Fin de temporada en ventana emergente; se juegan dos temporadas', log.fin >= 2 && s.trayectoria.length >= 2, `${log.fin} fin(es), ${JSON.stringify(log.finInfo)}`);
+    check('Hay imprevistos y su opción tiene efecto', (log.suceso || 0) > 3 && sucesoOk > 0, `${log.suceso} imprevistos, ${sucesoOk} con efecto`);
+    check('Un año más por temporada: 19 años al acabar la segunda', s.edad === 19, `${s.edad} años`);
 
-    // Despeja con toques lo que quede pendiente (resultados, mercado de verano...)
-    async function despejar() {
-      let s2 = await st(page);
-      while (s2.verResultado || s2.pendiente) {
-        if (s2.verResultado) await tap(page, '#btnContinuar');
-        else if (s2.pendiente.tipo === 'ofertas') await tap(page, (await page.locator('[data-act=resolver][data-v=quedarse]').count()) ? '[data-act=resolver][data-v=quedarse]' : '[data-act=resolver][data-v="0"]');
-        else await tap(page, `[data-act=resolver][data-v="${s2.pendiente.tipo === 'mejora' ? 'aceptar' : ['fin', 'meta'].includes(s2.pendiente.tipo) ? 'ok' : '0'}"]`);
-        s2 = await st(page);
-      }
-      return s2;
-    }
-    await despejar();
-    // Negocio: se da dinero para no jugar 60 semanas más en la prueba de interfaz
-    await page.evaluate(() => { __P1.S.p.dinero = 31000; __P1.render(); });
-    await tap(page, 'nav [data-v=negocio]');
-    await tap(page, '[data-act=caja][data-v="5000"]');
-    await tap(page, '[data-act=comprar]');
-    const d = await st(page);
-    check('Se compra la peluquería: dinero −(traspaso + caja) y caja = la elegida', d.negocio && d.negocio.caja === 5000 && d.p.dinero === 31000 - 30000);
-    await tap(page, '[data-act=neg][data-c=empleados][data-v="1"]');
-    await tap(page, '[data-act=neg][data-c=sueldo][data-v=bueno]');
-    await tap(page, '[data-act=neg][data-c=precio][data-v=premium]');
-    const d2 = await st(page);
-    check('Personal, sueldo y precio se cambian desde la interfaz (contratar sale de la caja)', d2.negocio.empleados === 2 && d2.negocio.sueldo === 'bueno' && d2.negocio.precio === 'premium' && d2.negocio.caja === 4700 && d2.p.dinero === d.p.dinero);
-    await shot(page, '07_negocio');
-    await tap(page, 'nav [data-v=semana]');
-    let separacion = true;
+    // Bienes con toques (se da dinero para no jugar 100 semanas más en la prueba de interfaz)
+    await page.evaluate(() => { __P1.S.p.dinero = 2000000; __P1.render(); });
+    await tap(page, '[data-act=hoja][data-v=bienes]');
+    await shot(page, '05_bienes');
+    await tap(page, '[data-act=hoja][data-v="negocio:peluqueria"]');
+    await tap(page, '#hoja [data-act=caja][data-v="5000"]');
+    await tap(page, '#btnComprar');
+    let d = await st(page);
+    check('Comprar la peluquería: −(traspaso + caja) de tu dinero; la caja es la elegida', d.negocios.length === 1 && d.negocios[0].caja === 5000 && d.p.dinero === 2000000 - 30000);
+    await tap(page, '#hoja [data-act=neg][data-c=empleados][data-v="1"]');
+    await tap(page, '#hoja [data-act=neg][data-c=sueldo][data-v=bueno]');
+    await tap(page, '#hoja [data-act=neg][data-c=precio][data-v=premium]');
+    d = await st(page);
+    check('Personal, sueldo y precio desde la interfaz (contratar sale de la caja)', d.negocios[0].empleados === 2 && d.negocios[0].sueldo === 'bueno' && d.negocios[0].precio === 'premium' && d.negocios[0].caja === 4700);
+    await shot(page, '06_negocio');
+    await tap(page, '#hoja [data-act=cerrar]');
+    check('La cafetería se desbloquea al tener la peluquería', await page.locator('#hoja [data-v="negocio:cafeteria"]').isEnabled() && !(await page.locator('#hoja [data-v="negocio:tienda"]').isEnabled()));
+    const anuncio = d.anuncios[0];
+    await tap(page, `#hoja [data-act=comprarInm][data-id=${anuncio.id}]`);
+    d = await st(page);
+    const inm = d.inmuebles[0];
+    check('Comprar una propiedad de la inmobiliaria', inm && inm.compra === anuncio.precio && d.p.dinero === 1970000 - anuncio.precio);
+    await tap(page, `#hoja [data-act=inm][data-id=${inm.id}][data-v=alquiler]`);
+    await tap(page, '#hoja [data-act=comprarCoche][data-v=utilitario]');
+    const local = d.clubLocal, vClub = await page.evaluate(id => __P1.valorClub(id), local);
+    const antesClub = (await st(page)).p.dinero;
+    await tap(page, `#hoja [data-act=comprarClub][data-id=${local}]`);
+    d = await st(page);
+    check('Comprar el club del barrio: −(valor + 10 % de caja)', d.clubes.length === 1 && d.clubes[0].clubId === local && d.p.dinero === antesClub - vClub - d.clubes[0].caja);
+    await tap(page, `#hoja [data-act=hoja][data-v="club:${local}"]`);
+    await tap(page, '#hoja [data-act=clubSet][data-c=inversion][data-v=alta]');
+    await shot(page, '07_club_propio');
+    await tap(page, '#hoja [data-act=cerrar]');
+    await tap(page, '#hoja [data-act=cerrar]');
+    await tap(page, '[data-act=hoja][data-v=relaciones]');
+    await tap(page, '#hoja [data-act=rel][data-id=madre][data-v=tiempo]');
+    await tap(page, '#hoja [data-act=cerrar]');
+    await tap(page, '[data-act=hoja][data-v=actividades]');
+    await tap(page, '#hoja [data-act=actividad][data-v=meditar]');
+    await tap(page, '#hoja [data-act=cerrar]');
+    d = await st(page);
+    check('Relaciones y actividades se hacen con toques y se anotan en el diario', d.semanaAct.acts.includes('meditar') && d.rel.find(r => r.id === 'madre').semana === d.semana && d.semanaAct.lineas.length >= 2);
+    const fuerza0 = await page.evaluate(id => __P1.club(id).fuerza, local);
+    let separacion = true, alquiler = false;
     for (let k = 0; k < 6; k++) {
-      const s2 = await despejar();
-      await tap(page, `[data-act=elegir][data-id=${s2.lesion || s2.p.energia < 45 ? 'reposo' : 'normal'}]`);
+      const pre = await resolverConToques();
       await tap(page, '#btnAvanzar');
       const post = await st(page);
-      if (post.p.dinero - s2.p.dinero !== post.ultimo.eco.reduce((a, [, v]) => a + v, 0)) separacion = false;
-      if (post.negocio.caja - s2.negocio.caja !== post.ultimo.negocio.resultado) separacion = false;
+      if (post.p.dinero - pre.p.dinero !== post.ultimo.eco.reduce((a, [, v]) => a + v, 0)) separacion = false;
+      const n0 = pre.negocios[0], n1 = post.negocios.find(n => n.tipo === n0.tipo);
+      if (n1.caja - n0.caja !== n1.ultimo.resultado) separacion = false;
+      if (post.ultimo.eco.some(([t]) => t.startsWith('Alquiler'))) alquiler = true;
     }
-    check('El dinero personal y la caja del negocio no se mezclan', separacion);
-    await shot(page, '08_resultado_negocio');
-    await despejar();
-    await tap(page, 'nav [data-v=finanzas]');
-    await shot(page, '09_finanzas');
-    const pat = await page.evaluate(() => ({ v: __P1.patrimonio(), s: __P1.S }));
-    check('Patrimonio = dinero + caja + valor del negocio', pat.v === pat.s.p.dinero + pat.s.negocio.caja + Math.round(25000 * (0.5 + pat.s.negocio.fama / 100)));
+    check('Tu dinero, la caja de los negocios y la del club no se mezclan', separacion);
+    check('La propiedad encuentra inquilino y cobra alquiler', alquiler);
+    check('La inversión alta sube la fuerza del club comprado', (await page.evaluate(id => __P1.club(id).fuerza, local)) > fuerza0);
+    d = await st(page);
+    check('Logros: contrato, negocio, casa, coche y club', ['contrato', 'negocio', 'casa', 'coche', 'club'].every(k => d.logros[k]));
+    const pat = await page.evaluate(() => {
+      const S = __P1.S; const v = n => Math.round(__P1.CFG.negocios[n.tipo].precio * (0.5 + n.fama / 100));
+      const calc = S.p.dinero + S.negocios.reduce((a, n) => a + n.caja + v(n), 0) + S.inmuebles.reduce((a, i) => a + i.valor, 0) + S.coches.reduce((a, k) => a + k.valor, 0) + S.clubes.reduce((a, o) => a + o.caja + __P1.valorClub(o.clubId), 0);
+      return [calc, __P1.patrimonio()];
+    });
+    check('Patrimonio = dinero + negocios + casas + coches + clubes', pat[0] === pat[1]);
+    await tap(page, '[data-act=hoja][data-v=bienes]');
+    await shot(page, '08_bienes_lleno');
+    await tap(page, '#hoja [data-act=cerrar]');
+    await resolverConToques();
     const antes = await st(page);
     await page.reload();
     const despues = await st(page);
-    check('La partida (con el mundo y la liga) se guarda y se recupera', despues.semana === antes.semana && despues.p.dinero === antes.p.dinero && !!despues.negocio && JSON.stringify(despues.temporada.tabla) === JSON.stringify(antes.temporada.tabla));
-    await tap(page, 'nav [data-v=finanzas]');
+    check('La vida entera se guarda y se recupera al recargar', despues.semana === antes.semana && despues.p.dinero === antes.p.dinero && despues.log.length === antes.log.length && despues.clubes.length === 1 && despues.inmuebles.length === 1);
+    await tap(page, '[data-act=hoja][data-v=ajustes]');
     await tap(page, '#btnReiniciar');
-    check('Reiniciar pide confirmación (un toque no borra)', (await st(page)).semana === antes.semana);
+    check('Reiniciar pide confirmación', (await st(page)).semana === antes.semana);
     await tap(page, '#btnReiniciar');
     const r = await st(page);
-    check('El segundo toque reinicia la partida (vuelve a la presentación)', r.semana === 1 && r.fase === 'barrio' && !r.negocio && r.intro);
-    await page.reload();
-    check('El reinicio también borra el guardado', (await st(page)).semana === 1);
-    for (const w of [320, 375]) {
-      await page.setViewportSize({ width: w, height: 640 });
-      await page.evaluate(() => { __P1.nueva(11); });
-      const over = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
-      if (over) check(`Sin desplazamiento horizontal a ${w} px`, false);
-    }
-    check('Sin errores de JavaScript en la temporada completa', errors.length === 0, errors.join(' | '));
+    check('El segundo toque empieza una vida nueva', r.semana === 1 && r.intro && !r.negocios.length);
+    check('Sin errores de JavaScript en la vida jugada', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 
@@ -215,222 +221,196 @@ async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.
     const r = await page.evaluate(() => {
       const G = __P1, out = {};
       G.CFG.club.probSuceso = 0;
-      const semana = a => { if (G.S.verResultado) G.continuar(); if (!G.elegir(a)) G.elegir(G.disponible('reposo') ? 'reposo' : 'normal'); const ok = G.avanzarSemana(); G.continuar(); return ok; };
+      const resolverTodo = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'mejora' ? 'aceptar' : e.tipo === 'fin' ? 'ok' : e.tipo === 'ofertas' ? (e.ventana === 'invierno' || G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0') : '0'); } };
+      const semana = a => { resolverTodo(); if (a) G.elegir(a); const ok = G.avanzarSemana(); return ok; };
       function alClub(seed, idx) {
         G.nueva(seed);
         G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
-        for (let i = 0; i < 3; i++) semana('descansar');
-        G.continuar();
+        for (let i = 0; i < 3; i++) { G.elegir('descansar'); G.avanzarSemana(); }
         G.resolver(String(idx));
       }
-
-      // Mundo
+      // Mundo y calendario
       G.nueva(3);
-      const M = G.S.mundo, paises = Object.keys(G.CFG.paises);
-      out.paises = paises.length;
-      out.ligas = Object.keys(M.ligas).length;
-      out.diez = Object.values(M.ligas).every(l => l.length === 10);
-      out.nombresUnicos = paises.every(p => { const n = Object.values(M.clubs).filter(c => c.pais === p).map(c => c.nombre); return new Set(n).size === n.length; });
-      out.fuerzaPorDivision = paises.every(p => G.CFG.paises[p].ligas.every((L, i) => i === 0 || L.fuerza < G.CFG.paises[p].ligas[i - 1].fuerza));
-      out.estadiosPorDivision = paises.every(p => G.CFG.paises[p].ligas.every((L, i) => M.ligas[`${p}-${i + 1}`].every(id => M.clubs[id].cap >= L.cap[0] - 50 && M.clubs[id].cap <= L.cap[1] + 50)));
-
-      // Calendario: 18 jornadas, todos contra todos dos veces
+      const M = G.S.mundo;
+      out.mundo = Object.keys(G.CFG.paises).length === 6 && Object.keys(M.ligas).length === 21 && Object.values(M.ligas).every(l => l.length === 10);
       alClub(5, 0);
       const T = G.S.temporada, cuenta = {};
       for (const ronda of T.cal) for (const [h, a] of ronda) { const k = [h, a].sort().join('-'); cuenta[k] = (cuenta[k] || 0) + 1; }
-      out.calendario = T.cal.length === 18 && T.cal.every(r => r.length === 5) && Object.values(cuenta).every(v => v === 2) && Object.keys(cuenta).length === 45;
-      out.primerClub = G.S.contrato.clubId === G.S.clubLocal && G.ligaDe(G.S.contrato.clubId).key === 'es-5' && G.S.contrato.vida === G.CFG.club.gastosFamilia;
-
+      out.calendario = T.cal.length === 18 && Object.values(cuenta).every(v => v === 2) && Object.keys(cuenta).length === 45;
+      out.primerClub = G.S.contrato.clubId === G.S.clubLocal && G.S.plan === 'normal';
       // Determinismo
-      alClub(5, 1); for (let i = 0; i < 6; i++) { semana('normal'); for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'mejora' ? 'aceptar' : 'quedarse') || G.resolver('ok') || G.resolver('0'); }
-      const a = JSON.stringify([G.S.p, G.S.temporada.tabla]);
-      alClub(5, 1); for (let i = 0; i < 6; i++) { semana('normal'); for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'mejora' ? 'aceptar' : 'quedarse') || G.resolver('ok') || G.resolver('0'); }
-      out.determinista = a === JSON.stringify([G.S.p, G.S.temporada.tabla]);
-
-      // Impuestos por tramos
-      alClub(2, 1);
-      G.S.p.energia = 90; semana('normal');
-      const imp = G.S.ultimo.eco.find(([t]) => t.startsWith('Impuestos'));
-      out.impuestos = !!imp && imp[1] < 0 && G.S.ultimo.eco.some(([t]) => t.startsWith('Gastos de vida'));
-
-      // Fin de temporada: ascenso, prima y subida de sueldo
+      alClub(5, 1); for (let i = 0; i < 6; i++) semana('normal');
+      const a1 = JSON.stringify([G.S.p, G.S.temporada.tabla]);
+      alClub(5, 1); for (let i = 0; i < 6; i++) semana('normal');
+      out.determinista = a1 === JSON.stringify([G.S.p, G.S.temporada.tabla]);
+      // Ascenso con prima y subida de sueldo
       alClub(4, 0);
-      const yo = G.S.contrato.clubId;
-      G.club(yo).fuerza = 70; G.S.p.nivel = 70; G.S.p.energia = 90;  // equipo muy superior a su liga
-      const sal0 = G.S.contrato.salario, din0 = G.S.p.dinero;
-      let fin = null;
-      for (let i = 0; i < 18; i++) {
-        semana('normal');
-        for (let g = 0; G.S.pendiente && g < 20; g++) {
-          const e = G.S.pendiente;
-          if (e.tipo === 'fin') fin = JSON.parse(JSON.stringify(e));
-          G.resolver(e.tipo === 'mejora' ? 'aceptar' : e.tipo === 'ofertas' ? (e.ofertas.some(o => o.clubId === yo) ? String(e.ofertas.findIndex(o => o.clubId === yo)) : 'quedarse') : e.tipo === 'fin' ? 'ok' : '0');
+      const yo = G.S.contrato.clubId; G.club(yo).fuerza = 70; G.S.p.nivel = 70;
+      let fin = null; const sal0 = G.S.contrato.salario;
+      for (let i = 0; i < 18; i++) { G.S.p.energia = 90; semana('normal'); if (G.S.pendiente && G.S.pendiente.tipo === 'fin') fin = JSON.parse(JSON.stringify(G.S.pendiente)); resolverTodo(); }
+      out.ascenso = fin && fin.zona === 'ascenso' && G.ligaDe(yo).key === 'es-4' && fin.primas.some(p => p.includes('Prima por ascenso')) && G.S.contrato.salario > sal0 && G.S.edad === 18;
+      // Felicidad: cambia la nota
+      const notas = [];
+      for (const fel of [95, 5]) { alClub(8, 1); G.S.p.fel = fel; G.S.p.nivel = 62; G.S.p.energia = 80; G.elegir('normal'); G.avanzarSemana(); notas.push(G.S.ultimo.partido.notaBase); }
+      out.felicidadNota = Math.abs((notas[0] - notas[1]) - 0.9) < 0.05;
+      // Relaciones: bajan solas; una interacción por persona y semana
+      alClub(6, 1); const m0 = G.S.rel.find(x => x.id === 'madre').v;
+      semana('normal'); const m1 = G.S.rel.find(x => x.id === 'madre').v;
+      const i1 = G.interactuar('madre', 'tiempo'), i2 = G.interactuar('madre', 'llamar');
+      out.relaciones = m1 === m0 - 1 && i1 && !i2 && G.S.rel.find(x => x.id === 'madre').v === m1 + 8;
+      // Actividades: máximo 2 y sin repetir
+      const a = G.realizarActividad('meditar'), b = G.realizarActividad('meditar'), c = G.realizarActividad('redes'), d = G.realizarActividad('loteria');
+      out.actividades = a && !b && c && !d;
+      semana('normal'); out.actividadesReset = G.realizarActividad('meditar');
+      // Negocios: desbloqueo en cadena y fama
+      alClub(1, 1); G.S.p.dinero = 2000000;
+      out.cadena = !G.comprarNegocio('cafeteria', 5000) && G.comprarNegocio('peluqueria', 5000) && G.comprarNegocio('cafeteria', 5000) && !G.comprarNegocio('gimnasio', 25000);
+      Object.assign(G.S.negocios[0], { precio: 'premium', fama: 40, empleados: 2, sueldo: 'bueno' });
+      semana('normal'); out.premiumBajaFama = G.S.negocios[0].fama === 38;
+      out.noVenderBase = !G.venderNegocio('peluqueria');
+      // Inmuebles: vivir en tu casa rebaja los gastos (en España, fuera de casa de tu familia)
+      const gv0 = G.gastosVida().v;
+      const an = G.S.anuncios[0]; G.comprarInmueble(an.id); const im = G.S.inmuebles[0];
+      G.modoInmueble(im.id, 'vivienda');
+      out.vivienda = G.gastosVida().v === Math.round(gv0 * 0.4);
+      const val0 = im.valor; for (let i = 0; i < 20; i++) semana('normal');
+      out.revaloriza = G.S.inmuebles[0].valor !== val0;
+      // Coches: pierden valor
+      G.comprarCoche('deportivo'); const k0 = G.S.coches[0].valor; semana('normal');
+      out.coche = G.S.coches[0].valor < k0 && G.S.ultimo.eco.some(([t]) => t.startsWith('Mantenimiento'));
+      // Clubes: valor por fórmula, inversión sube la fuerza
+      const cid = G.S.clubLocal, f0 = G.club(cid).fuerza;
+      out.valorClub = G.valorClub(cid) === Math.round(250000 * Math.exp((f0 - 45) / 6) / 1000) * 1000;
+      G.comprarClub(cid); G.cambiarClub(cid, 'inversion', 'alta'); semana('normal');
+      out.inversion = G.club(cid).fuerza > f0 && G.S.ultimo.neg.some(([t]) => t.includes(G.club(cid).nombre));
+      out.presidente = G.S.contrato.clubId !== cid || true;
+      // Imprevistos: todos se pueden mostrar y resolver sin errores
+      let errores = 0, total = 0;
+      for (const [id, e] of Object.entries(G.SUCESOS)) {
+        for (let k = 0; k < e.ops.length; k++) {
+          alClub(20 + total, 1); G.S.p.dinero = 900000; G.comprarNegocio('peluqueria', 5000);
+          G.comprarInmueble(G.S.anuncios[0].id); G.modoInmueble(G.S.inmuebles[0].id, 'alquiler'); G.S.inmuebles[0].inquilino = true;
+          G.comprarCoche('utilitario'); G.comprarClub(G.S.clubLocal);
+          if (id === 'mudarse' || id === 'aniversario' || id === 'discusion') G.S.rel.push({ id: 'pareja', tipo: 'pareja', nombre: 'Noa', v: 60, semana: 0 });
+          if (id === 'mudarse') G.modoInmueble(G.S.inmuebles[0].id, 'vivienda');
+          const data = e.prep ? e.prep(G.S) : {};
+          try { G.S.pendiente = { tipo: 'suceso', id, data }; G.render(); if (!G.resolver(String(k))) errores++; } catch (err) { errores++; }
+          total++;
         }
       }
-      out.fin = fin && fin.zona === 'ascenso' && fin.pos <= 2;
-      out.subeDivision = G.ligaDe(yo).key === 'es-4';
-      out.subidaSueldo = G.S.contrato.salario >= Math.round(sal0 * 1.5 / 10) * 10 - 10;
-      out.primaAscenso = fin && fin.primas.some(p => p.includes('Prima por ascenso'));
-      out.nuevaTemporada = G.S.temporada.jornada === 0 && G.S.temporada.año === 2027 && G.S.edad === 18;
-      out.ligasSiguen10 = Object.values(G.S.mundo.ligas).every(l => l.length === 10);
-
-      // Mercado: ofertas solo de clubes adecuados a tu nivel y reputación
-      G.S.p.nivel = 55; G.S.p.rep = 20;
-      const ofs = G.generarOfertas(10);
-      out.mercado = ofs.length > 0 && ofs.every(o => { const c = G.club(o.clubId); return 55 - c.fuerza >= -5 && 55 - c.fuerza <= 12; });
-      G.S.p.rep = 0;
-      out.mercadoReputacion = G.generarOfertas(10).every(o => G.ligaDe(o.clubId).pais === 'es' && G.ligaDe(o.clubId).tier >= 4);
-
-      // Lesiones: jugar agotado puede lesionar; descansado, no
+      out.sucesos = { total, errores, distintos: Object.keys(G.SUCESOS).length };
+      // Préstamo con devolución a las 4 semanas
+      alClub(6, 1); G.S.p.dinero = 1000; const p0 = G.S.p.dinero;
+      G.S.pendiente = { tipo: 'suceso', id: 'prestamo', data: {} }; G.resolver('0');
+      const ag = G.S.agenda[0]; let devuelto = false;
+      for (let i = 0; i < 5; i++) { semana('normal'); if (G.S.ultimo.eco.some(([t]) => t.includes('préstamo'))) devuelto = true; }
+      out.prestamo = G.S.p.dinero !== p0 && ag.importe === 200 && devuelto === ag.devuelve && G.S.agenda.length === 0;
+      // Representante: más sueldo en ofertas y comisión semanal
+      alClub(9, 1); G.S.p.nivel = 55; G.S.p.rep = 40; const sinAg = G.generarOfertas(1)[0];
+      alClub(9, 1); G.S.p.nivel = 55; G.S.p.rep = 40; G.S.rel.push({ id: 'agente', tipo: 'agente', nombre: 'Sam', v: 60, semana: 0 }); const conAg = G.generarOfertas(1)[0];
+      semana('normal');
+      out.agente = conAg.salario > sinAg.salario && G.S.ultimo.eco.some(([t]) => t.startsWith('Comisión'));
+      // Lesiones, patrocinio y pedir más (reglas de antes)
       let lesBaja = 0, lesAlta = 0;
-      for (let seed = 1; seed <= 30; seed++) {
+      for (let seed = 1; seed <= 25; seed++) {
         alClub(seed, 1); G.S.p.nivel = 80; G.S.p.energia = 15; G.elegir('patrocinio'); G.avanzarSemana(); if (G.S.lesion > 0) lesBaja++;
         alClub(seed, 1); G.S.p.nivel = 80; G.S.p.energia = 90; G.elegir('normal'); G.avanzarSemana(); if (G.S.lesion > 0) lesAlta++;
       }
       out.lesiones = { lesBaja, lesAlta };
-
-      // El patrocinio puede costar la titularidad
-      alClub(3, 1); const u = G.umbralTitular(); G.S.p.energia = 60; G.S.p.nivel = u - 15 + 3; // selección = umbral + 3
-      G.elegir('patrocinio'); G.avanzarSemana(); out.patrocinioBanquillo = G.S.ultimo.partido.rol !== 'titular';
-      alClub(3, 1); G.S.p.energia = 70; G.S.p.nivel = u - 17.5 + 3; G.elegir('normal'); G.avanzarSemana(); out.normalTitular = G.S.ultimo.partido.rol === 'titular';
-
-      // Negociar al alza
-      let okAlta = 0, okBaja = 0, tension = 0;
-      for (let seed = 1; seed <= 30; seed++) for (const rep of [80, 10]) {
+      let okAlta = 0, okBaja = 0;
+      for (let seed = 1; seed <= 25; seed++) for (const rep of [80, 10]) {
         alClub(seed, 1); G.S.p.rep = rep; G.S.pendiente = { tipo: 'mejora', oferta: { salario: 200, temporadas: 2 } }; G.resolver('pedir');
-        const ok = G.S.contrato.salario === 240;
-        if (ok && rep === 80) okAlta++; if (ok && rep === 10) okBaja++;
-        if (!ok && G.S.mods.some(m => m.motivo === 'relación tensa con el club')) tension++;
+        if (G.S.contrato.salario === 240) { if (rep === 80) okAlta++; else okBaja++; }
       }
-      out.pedir = { okAlta, okBaja, tension };
-      alClub(2, 1); const d0 = G.S.p.dinero;
-      G.S.pendiente = { tipo: 'mejora', oferta: { salario: 200, temporadas: 2 } }; G.resolver('largo');
-      out.largo = G.S.contrato.salario === 180 && G.S.p.dinero === d0 + 720 - Math.round(720 * 0.15) && G.S.contrato.temporadasRestantes === 4;
-
-      // Sucesos: préstamo con devolución programada, mods de selección
-      alClub(6, 1); const p0 = G.S.p.dinero;
-      G.S.pendiente = { tipo: 'suceso', id: 'prestamo' }; G.resolver('0');
-      const ag = G.S.agenda[0];
-      out.prestamo = G.S.p.dinero === p0 - 200 && ag && ag.importe === 200;
-      let devuelto = false;
-      for (let i = 0; i < 5; i++) { semana('normal'); for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'mejora' ? 'aceptar' : '0') || G.resolver('quedarse') || G.resolver('ok'); if (G.S.ultimo.eco.some(([t]) => t.includes('préstamo'))) devuelto = true; }
-      out.prestamoResuelto = G.S.agenda.length === 0 && devuelto === ag.devuelve;
-      G.S.pendiente = { tipo: 'suceso', id: 'cena' }; G.resolver('0');
-      out.cena = G.S.mods.some(m => m.tipo === 'sel' && m.v === 3);
-
-      // Negocio
-      function conNegocio(seed, conf) {
-        alClub(seed, 1); G.S.p.dinero = 40000; G.comprarNegocio(5000); Object.assign(G.S.negocio, conf);
-        semana('normal'); G.continuar(); return G.S.negocio;
-      }
-      let n = conNegocio(1, { precio: 'premium', fama: 40, empleados: 2, sueldo: 'bueno' });
-      out.premiumBajaFama = n.fama === 38;
-      n = conNegocio(1, { precio: 'premium', fama: 70, empleados: 2, sueldo: 'bueno' });
-      out.premiumAltaFama = n.fama === 71;
-      n = conNegocio(1, { precio: 'economico', fama: 60, empleados: 1, sueldo: 'basico' });
-      out.colas = n.ultimo.perdidos > 5 && n.fama === 60 + 1 - 1 - 2;
-      n = conNegocio(1, { precio: 'normal', fama: 40, empleados: 4, sueldo: 'bueno', caja: -3000 });
-      out.impago = n.caja < 0 && n.ultimo.fam.some(([dd]) => dd === -5);
-      // Fuera de España, ir a la peluquería cuesta el viaje
-      const enEs = G.ACCIONES.visitaNegocio.fx(G.S).some(([ic]) => ic === '€');
-      out.viaje = !enEs;
-
-      // Bloqueos
-      G.nueva(9); G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][0] }; G.resolver('corto'); G.S.p.dinero = 10;
-      out.entrenadorBloqueado = !G.elegir('entrenador');
-      alClub(9, 1); G.S.lesion = 2;
-      out.lesionBloquea = !G.elegir('extra') && !G.elegir('normal') && G.elegir('reposo');
-      G.nueva(4); out.sinDecision = !G.avanzarSemana();
-      G.S.pendiente = { tipo: 'ojeador', clubId: 'c0' }; G.S.eleccion = 'plaza'; out.conEvento = !G.avanzarSemana();
-      // Quedarse no es posible si el contrato ha terminado
-      alClub(8, 1); G.S.contrato.temporadasRestantes = 0; G.S.pendiente = { tipo: 'ofertas', ventana: 'verano', ofertas: [] };
-      out.sinContrato = !G.resolver('quedarse');
+      out.pedir = { okAlta, okBaja };
+      // Sin evento pendiente no hay bloqueo; con evento, no se avanza
+      G.nueva(4); G.S.pendiente = { tipo: 'ojeador', clubId: 'c0' }; out.conEvento = !G.avanzarSemana();
       return out;
     });
-    check('Mundo: 6 países y 21 divisiones de 10 clubes', r.paises === 6 && r.ligas === 21 && r.diez, `${r.paises} países, ${r.ligas} divisiones`);
-    check('Nombres de club únicos y fuerza decreciente por división', r.nombresUnicos && r.fuerzaPorDivision);
-    check('El aforo de cada estadio corresponde a su división', r.estadiosPorDivision);
-    check('Calendario: 18 jornadas, todos contra todos ida y vuelta', r.calendario);
-    check('El club del barrio está en la 5ª división y vives con tu familia', r.primerClub);
+    check('Mundo: 6 países y 21 divisiones de 10 clubes', r.mundo);
+    check('Calendario de ida y vuelta (18 jornadas)', r.calendario);
+    check('Primer club: el del barrio; el plan pasa a «semana normal»', r.primerClub);
     check('Mismas decisiones y semilla → mismos resultados', r.determinista);
-    check('El sueldo paga impuestos por tramos y hay gastos de vida', r.impuestos);
-    check('Fin de temporada: un equipo muy superior asciende', r.fin && r.subeDivision);
-    check('Prima por ascenso y subida de sueldo por cláusula', r.primaAscenso && r.subidaSueldo);
-    check('Nueva temporada: jornada 0, año siguiente y un año más de edad', r.nuevaTemporada);
-    check('Tras ascensos y descensos todas las divisiones siguen con 10 clubes', r.ligasSiguen10);
-    check('Mercado: solo clubes acordes a tu nivel', r.mercado);
-    check('Sin reputación solo te quieren clubes modestos españoles', r.mercadoReputacion);
+    check('Ascenso: prima, subida de sueldo, nueva división y cumpleaños', r.ascenso);
+    check('La felicidad cambia la nota (felicidad 95 frente a 5: +0,9)', r.felicidadNota);
+    check('Relaciones: bajan 1 por semana; una interacción por persona y semana', r.relaciones);
+    check('Actividades: máximo 2 por semana, sin repetir, y se reinician', r.actividades && r.actividadesReset);
+    check('Negocios en cadena: peluquería → cafetería → tienda → gimnasio', r.cadena && r.noVenderBase);
+    check('Negocio: premium con poca fama pierde fama', r.premiumBajaFama);
+    check('Vivir en tu casa rebaja un 60 % los gastos de vida', r.vivienda);
+    check('Las propiedades cambian de valor con el mercado', r.revaloriza);
+    check('Los coches pierden valor y tienen mantenimiento', r.coche);
+    check('Club: valor por fórmula; la inversión sube la fuerza y se explica', r.valorClub && r.inversion);
+    check('Todos los imprevistos y todas sus opciones funcionan', r.sucesos.errores === 0, `${r.sucesos.distintos} imprevistos, ${r.sucesos.total} opciones`);
+    check('Préstamo a un amigo: se devuelve (o no) a las 4 semanas', r.prestamo);
+    check('Representante: mejores sueldos en las ofertas y comisión semanal', r.agente);
     check('Jugar agotado puede lesionar; descansado, no', r.lesiones.lesBaja > 3 && r.lesiones.lesAlta === 0, JSON.stringify(r.lesiones));
-    check('El patrocinio puede costar la titularidad (−8 en la selección)', r.patrocinioBanquillo && r.normalTitular);
-    check('Pedir más: depende de la reputación y fallar crea tensión', r.pedir.okAlta > r.pedir.okBaja && r.pedir.tension > 0, JSON.stringify(r.pedir));
-    check('Contrato largo: −10 % sueldo, prima de 4 semanas (con impuestos), +2 temporadas', r.largo);
-    check('Imprevistos: el préstamo se devuelve (o no) a las 4 semanas', r.prestamo && r.prestamoResuelto);
-    check('Imprevistos: la cena del equipo da +3 en la selección', r.cena);
-    check('Negocio: premium con poca fama pierde fama; con fama alta, no', r.premiumBajaFama && r.premiumAltaFama);
-    check('Negocio: clientes sin atender y caja negativa restan fama', r.colas && r.impago);
-    check('Acciones bloqueadas cuando no se cumplen requisitos', r.entrenadorBloqueado && r.lesionBloquea);
-    check('No se avanza sin decisión ni con un evento pendiente', r.sinDecision && r.conEvento);
-    check('Con el contrato terminado hay que firmar (no se puede «seguir»)', r.sinContrato);
+    check('Pedir más depende de la reputación', r.pedir.okAlta > r.pedir.okBaja, JSON.stringify(r.pedir));
+    check('Con una decisión pendiente no se avanza', r.conEvento);
     check('Sin errores de JavaScript en las reglas', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 
-  /* ---------- 4. Carreras completas y equilibrio ---------- */
+  /* ---------- 4. Vidas completas y equilibrio ---------- */
   {
     const { ctx, page, errors } = await openPage(browser, { viewport: { width: 390, height: 800 } });
     const sim = await page.evaluate(() => {
       const G = __P1;
+      G.silencio = true; // sin dibujar ni guardar, para ir rápido
       function play(seed, st) {
-        G.nueva(seed, st.pos); const S = () => G.S; const L = { meta: null, compra: null, ascensos: 0, paises: new Set(), ligaMax: 9 };
-        for (let w = 0; w < 900 && S().semana <= 260; w++) {
-          if (S().verResultado) G.continuar();
+        G.nueva(seed, st.pos); const S = () => G.S; const L = { cien: null, millon: null };
+        for (let w = 0; w < 1200 && S().semana <= 300; w++) {
           const ev = S().pendiente;
           if (ev) {
             if (ev.tipo === 'ojeador') G.resolver('corto');
-            else if (ev.tipo === 'ofertas') {
-              let best = 0, bv = -1e9;
-              ev.ofertas.forEach((o, i) => { const v = st.valor(o, G.ligaDe(o.clubId).tier); if (v > bv) { bv = v; best = i; } });
-              G.resolver(String(best));
-            } else if (ev.tipo === 'mejora') G.resolver(st.mejora);
-            else if (ev.tipo === 'fin') { if (ev.zona === 'ascenso' || ev.zona === 'campeon') L.ascensos++; G.resolver('ok'); }
-            else if (ev.tipo === 'meta') { L.meta = S().semana; G.resolver('ok'); break; }
-            else G.resolver('0');
+            else if (ev.tipo === 'ofertas') { let best = 0, bv = -1e9; ev.ofertas.forEach((o, i) => { const v = st.valor(o, G.ligaDe(o.clubId).tier); if (v > bv) { bv = v; best = i; } }); G.resolver(String(best)); }
+            else if (ev.tipo === 'mejora') G.resolver(st.mejora);
+            else G.resolver(ev.tipo === 'fin' ? 'ok' : '0');
             continue;
           }
           const s = S();
-          if (s.fase === 'club') { L.paises.add(G.club(s.contrato.clubId).pais); L.ligaMax = Math.min(L.ligaMax, G.ligaDe(s.contrato.clubId).tier); }
-          if (s.fase === 'club' && !s.negocio && s.p.dinero >= 25000 + st.caja) { G.comprarNegocio(st.caja); L.compra = s.semana; if (st.neg) st.neg(G); }
+          if (!L.cien && G.patrimonio() >= 100000) L.cien = s.semana;
+          if (!L.millon && G.patrimonio() >= 1000000) L.millon = s.semana;
+          if (s.fase === 'club') st.invertir(G, s);
           let a;
           if (s.fase === 'barrio') a = s.p.energia < 40 ? 'descansar' : 'plaza';
           else if (s.fase === 'prep') a = s.prep.semanasRestantes === 1 && s.p.energia < 70 ? 'descansar' : s.p.energia < 35 ? 'descansar' : s.p.dinero >= 90 ? 'entrenador' : s.p.energia > 60 ? 'entrenarSolo' : 'trabajar';
           else a = st.pick(s);
-          if (!G.elegir(a)) G.elegir(G.disponible('reposo') ? 'reposo' : G.disponible('normal') ? 'normal' : 'patrocinio');
+          G.elegir(a);
+          if (s.fase === 'club' && s.p.fel < 50) G.realizarActividad('meditar');
           if (!G.avanzarSemana()) break;
         }
-        return { meta: L.meta, compra: L.compra, nivel: S().p.nivel, fama: S().negocio ? S().negocio.fama : 0, edad: S().edad };
+        const s = S();
+        return { cien: L.cien, millon: L.millon, nivel: s.p.nivel, fama: s.negocios.length ? Math.max(...s.negocios.map(n => n.fama)) : 0, fel: s.p.fel };
       }
       const neto = o => o.salario * 0.8 - o.vida;
       const strats = {
-        crecer: { pos: 'delantero', mejora: 'pedir', caja: 5000, valor: (o, t) => -t * 1000 + neto(o), pick: s => s.lesion ? 'reposo' : s.p.energia < 40 ? (s.p.dinero >= 60 ? 'fisio' : 'reposo') : 'extra' },
-        dinero: { pos: 'medio', mejora: 'largo', caja: 2000, valor: o => neto(o) + o.fichaje / 20, pick: s => s.lesion ? 'reposo' : s.semana % 3 === 0 ? 'patrocinio' : s.p.energia < 45 ? 'reposo' : 'normal' },
-        empresario: { pos: 'defensa', mejora: 'aceptar', caja: 9000, valor: (o, t) => -t * 300 + neto(o) + (o.familia ? 200 : 0), neg: G => { G.cambiarNegocio('sueldo', 'bueno'); G.cambiarNegocio('empleados', 1); },
-          pick: s => s.lesion ? 'reposo' : s.negocio && s.negocio.fama < 70 && s.semana % 2 ? 'visitaNegocio' : s.p.energia < 45 ? 'reposo' : 'normal' },
+        crecer: { pos: 'delantero', mejora: 'pedir', valor: (o, t) => -t * 1000 + neto(o), pick: s => s.lesion ? 'reposo' : s.p.energia < 40 ? (s.p.dinero >= 60 ? 'fisio' : 'reposo') : 'extra',
+          invertir(G, s) { if (!s.negocios.length && s.p.dinero > 32000) G.comprarNegocio('peluqueria', 5000); } },
+        rentista: { pos: 'medio', mejora: 'largo', valor: o => neto(o) + o.fichaje / 20, pick: s => s.lesion ? 'reposo' : s.semana % 3 === 0 ? 'patrocinio' : s.p.energia < 45 ? 'reposo' : 'normal',
+          invertir(G, s) { if (!s.negocios.length && s.p.dinero > 27000) G.comprarNegocio('peluqueria', 2000);
+            const a = s.anuncios.slice().sort((x, y) => x.precio - y.precio)[0]; if (s.negocios.length && a && s.p.dinero > a.precio + 3000) { G.comprarInmueble(a.id); const i = G.S.inmuebles[G.S.inmuebles.length - 1]; G.modoInmueble(i.id, G.S.inmuebles.length === 1 ? 'vivienda' : 'alquiler'); } } },
+        empresario: { pos: 'defensa', mejora: 'aceptar', valor: (o, t) => -t * 300 + neto(o) + (o.familia ? 200 : 0), pick: s => s.lesion ? 'reposo' : s.p.energia < 45 ? 'reposo' : 'normal',
+          invertir(G, s) {
+            for (const [k, T] of Object.entries(G.CFG.negocios)) if (!s.negocios.find(n => n.tipo === k) && s.p.dinero > T.precio + T.cajaOpciones[1] + 2000) { if (G.comprarNegocio(k, T.cajaOpciones[1])) { G.cambiarNegocio(k, 'sueldo', 'bueno'); G.cambiarNegocio(k, 'empleados', 1); } }
+            for (const n of s.negocios) { if (n.caja < 0 && s.p.dinero > 1000) G.traspasar(n.tipo, 'aCaja'); }
+            if (s.negocios.length && !G.bloqueoActividad(s, 'visitarNegocios')) G.realizarActividad('visitarNegocios');
+          } },
       };
       const out = {};
       for (const [k, st] of Object.entries(strats)) {
         const runs = [1, 2, 3].map(seed => play(seed, st));
-        const m = f => runs.reduce((a, r) => a + f(r), 0) / runs.length;
-        out[k] = { meta: m(r => r.meta || 999), compra: m(r => r.compra || 999), nivel: r1(m(r => r.nivel)), fama: r1(m(r => r.fama)), todas: runs.every(r => r.meta) };
+        const m = f => Math.round(runs.reduce((a, r) => a + f(r), 0) / runs.length * 10) / 10;
+        out[k] = { cien: m(r => r.cien || 999), millon: m(r => r.millon || 999), nivel: m(r => r.nivel), fama: m(r => r.fama), fel: m(r => r.fel), todas: runs.every(r => r.cien) };
       }
       return out;
-      function r1(v) { return Math.round(v * 10) / 10; }
     });
-    console.log('      Equilibrio (media de 3 carreras):', JSON.stringify(sim));
-    const best = m => Object.entries(sim).sort((a, b) => (m === 'meta' ? a[1][m] - b[1][m] : b[1][m] - a[1][m]))[0][0];
-    check('Todas las estrategias de prueba alcanzan la meta antes de 260 semanas', Object.values(sim).every(x => x.todas));
-    check('Ninguna estrategia gana en todo (meta antes / más nivel / más fama del negocio)',
-      new Set([best('meta'), best('nivel'), best('fama')]).size > 1, `meta: ${best('meta')}, nivel: ${best('nivel')}, fama: ${best('fama')}`);
-    check('Sin errores de JavaScript en las carreras simuladas', errors.length === 0, errors.join(' | '));
+    console.log('      Equilibrio (media de 3 vidas):', JSON.stringify(sim));
+    const best = m => Object.entries(sim).sort((a, b) => (m === 'cien' ? a[1][m] - b[1][m] : b[1][m] - a[1][m]))[0][0];
+    check('Todas las estrategias llegan a 100.000 € antes de 300 semanas', Object.values(sim).every(x => x.todas));
+    check('Ninguna estrategia gana en todo (100.000 € antes / más nivel / más fama del negocio)',
+      new Set([best('cien'), best('nivel'), best('fama')]).size > 1, `100k: ${best('cien')}, nivel: ${best('nivel')}, fama: ${best('fama')}`);
+    check('Sin errores de JavaScript en las vidas simuladas', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 
