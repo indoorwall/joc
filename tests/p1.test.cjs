@@ -476,6 +476,17 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await page.locator('[data-act="accionNeg"]:not([disabled])').first().tap();
     const d = await st(page), n = d.negocios[0];
     check('Con toques: comprar mejora, cambiar opción y hacer acción', n.mejoras.length === 1 && n.caja < caja0 && Object.keys(n.opc).length === 1 && Object.keys(n.cd).length === 1, JSON.stringify({ m: n.mejoras, opc: n.opc, cd: n.cd }));
+    // Modo pruebas (en ⚙️ Partida)
+    await page.evaluate(() => { __P1.S.hoja = 'ajustes'; __P1.render(); });
+    const d0 = await st(page);
+    await page.locator('[data-act="prueba"][data-v="dinero:100000"]').tap();
+    await page.locator('[data-act="prueba"][data-v="caja"]').tap();
+    await page.locator('[data-act="prueba"][data-v="todo"]').tap();
+    const d1 = await st(page);
+    await page.evaluate(() => { __P1.S.hoja = 'ajustes'; __P1.render(); });
+    await page.locator('[data-act="prueba"][data-v="semanas:5"]').tap();
+    const d2 = await st(page);
+    check('Modo pruebas: dinero, caja, desbloquear todo y avanzar varias semanas', d1.p.dinero === d0.p.dinero + 100000 && d1.negocios[0].caja === d0.negocios[0].caja + 50000 && d1.pantalla === 9 && (d2.semana > d1.semana || !!d2.pendiente), `semana ${d1.semana}→${d2.semana}`);
     check('Sin errores de JavaScript en las decisiones de negocio', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }

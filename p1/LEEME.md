@@ -75,6 +75,12 @@ No es un simulador de fútbol: los partidos se simulan con reglas que el juego e
 
 La partida se guarda sola en el navegador. Las partidas de versiones anteriores no se cargan.
 
+### Modo pruebas
+En **⚙️ Partida** (botón de la cabecera) hay atajos para probar sin jugar semanas y semanas: añadir
+10.000 / 100.000 / 1.000.000 € a tu dinero, 50.000 € a la caja de cada negocio, energía y felicidad al
+máximo, +10 de nivel y reputación, saltar a la pantalla siguiente o desbloquearlo todo, y avanzar 5
+semanas o una temporada entera (se para si aparece una decisión). Todo queda anotado en el diario con 🧪.
+
 ## 2. Cómo se juega
 
 1. Mira la **misión** (arriba) y tus **barras** (abajo).
@@ -209,7 +215,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-75 de 75 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+76 de 76 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, diario, barra de pantalla, 4 barras, botón «+ Semana», plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
 2. **Una vida jugada con toques**: ojeador, ofertas, partidos, mejora, dos temporadas, imprevistos,

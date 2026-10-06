@@ -27,6 +27,8 @@
     --blue: #2f80ed; --green: #27ae60; --green2: #2ecc71; --amber: #f2a93b; --red: #eb5757; --purple: #7b61ff; --gold: #f5b700;
     --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
+  .pruebas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .pruebas .btn { width: 100%; min-height: 44px; font-size: 14px; padding: 8px; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
   body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -2743,10 +2745,43 @@ function hojaLogros() {
   const s = S;
   return hoja('🏅 Logros', `<div class="logros">${LOGROS.map(([id, ic, t]) => `<div class="logro ${s.logros[id] ? '' : 'no'}"><span>${ic}</span>${esc(t)}${s.logros[id] ? `<div class="small">Semana ${s.logros[id]}</div>` : ''}</div>`).join('')}</div>`);
 }
+// Modo pruebas: atajos para probar el juego sin jugar semanas y semanas. Lo que hagas aquí queda anotado en el diario.
+function hojaPruebas() {
+  const s = S, P = PANTALLAS[Math.min(s.pantalla, PANTALLAS.length - 1)];
+  const b = (v, t, cl) => `<button class="btn ${cl || 'w'}" data-act="prueba" data-v="${v}">${t}</button>`;
+  return `<div class="card"><div class="row"><div class="ic">🧪</div><div class="tx"><b>Modo pruebas</b><span>Atajos para probar. Ahora estás en la pantalla ${Math.min(s.pantalla + 1, PANTALLAS.length)}: ${esc(P.n)}.</span></div></div>
+    <div class="pruebas">${b('dinero:10000', '+10.000 €')}${b('dinero:100000', '+100.000 €')}${b('dinero:1000000', '+1.000.000 €')}
+      ${b('caja', '+50.000 € a cada negocio')}${b('barras', '⚡ Energía y 😊 al máximo')}${b('nivel', '💪 +10 nivel · ⭐ +10 reputación')}
+      ${b('pantalla', '🎮 Saltar a la pantalla siguiente', 'b')}${b('todo', '🔓 Desbloquearlo todo', 'b')}
+      ${b('semanas:5', '⏩ Avanzar 5 semanas', 'g')}${b('semanas:18', '⏩ Avanzar una temporada', 'g')}</div>
+    <p class="small">Avanzar se para si aparece una decisión. Los atajos no cuentan como dinero ganado.</p></div>`;
+}
+function accionPrueba(v) {
+  const s = S, [k, n] = String(v).split(':'), num = Number(n) || 0;
+  let txt = '';
+  if (k === 'dinero') { s.p.dinero += num; txt = `+${cr(num)} a tu dinero.`; }
+  else if (k === 'caja') { s.negocios.forEach(x => { x.caja += 50000; }); txt = s.negocios.length ? `+${cr(50000)} a la caja de cada negocio.` : 'No tienes negocios.'; }
+  else if (k === 'barras') { s.p.energia = 100; s.p.fel = 100; txt = 'Energía y felicidad al máximo.'; }
+  else if (k === 'nivel') { s.p.nivel = clamp(s.p.nivel + 10, 0, 100); s.p.rep = clamp(s.p.rep + 10, 0, 100); txt = 'Nivel y reputación +10.'; }
+  else if (k === 'pantalla' || k === 'todo') {
+    const fin = k === 'todo' ? PANTALLAS.length - 1 : Math.min(s.pantalla + 1, PANTALLAS.length - 1);
+    if (fin <= s.pantalla) txt = 'Ya está todo desbloqueado.';
+    else { s.pantalla = fin; txt = `Saltas a la pantalla ${fin + 1}: ${PANTALLAS[fin].n}.`; }
+  } else if (k === 'semanas') {
+    let h = 0; S.hoja = null;
+    silencio = true;
+    try { for (; h < num && !S.pendiente; h++) if (!avanzarSemana()) break; } finally { silencio = false; }
+    bajarDiario = true; guardar(); render(); return;
+  }
+  anotar(s, '🧪', `Prueba: ${txt}`);
+  s.aviso = `🧪 ${txt}`;
+  guardar(); render();
+}
 function hojaAjustes() {
   return hoja('⚙️ Partida', `<div class="card"><p class="small">La partida se guarda sola en este dispositivo y navegador.</p>
     <button class="btn r full" data-act="reiniciar" id="btnReiniciar">${confirmarReinicio ? '⚠️ Toca otra vez para borrar la partida' : '🔄 Empezar una nueva vida'}</button>
     ${confirmarReinicio ? '<button class="btn w full" data-act="noReiniciar">Cancelar</button>' : ''}</div>
+    ${hojaPruebas()}
     <p class="note">Clubes, ciudades y estadios ficticios. Importes de juego, provisionales: no son precios ni salarios reales.</p>`);
 }
 
@@ -2862,6 +2897,7 @@ document.addEventListener('click', e => {
     case 'avanzar': bajarDiario = true; S.hoja = null; avanzarSemana(); break;
     case 'elegir': elegir(b.dataset.id); break;
     case 'hoja': S.hoja = v; guardar(); render(); break;
+    case 'prueba': accionPrueba(v); break;
     case 'cerrar': S.hoja = S.hoja && (S.hoja.startsWith('negocio:') || S.hoja.startsWith('club:')) ? 'bienes' : null; guardar(); render(); break;
     case 'resolver': celebrar = !!(S.pendiente && S.pendiente.tipo === 'ofertas' && v !== 'quedarse') || (S.pendiente && S.pendiente.tipo === 'pantalla') || (S.pendiente && S.pendiente.tipo === 'fin' && ['ascenso', 'campeon'].includes(S.pendiente.zona)); if (!resolver(v)) celebrar = false; break;
     case 'caja': S.cajaElegida = Number(v); render(); break;
