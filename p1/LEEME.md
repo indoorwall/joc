@@ -1,4 +1,4 @@
-# P1 — Del barrio al negocio (versión 0.5, 6 de octubre de 2026)
+# P1 — Del barrio al negocio (versión 0.6, 6 de octubre de 2026)
 
 **Simulador de vida** de un futbolista, en vertical y pensado para iPhone, al estilo de los juegos
 tipo BitLife: un diario de tu vida, barras de estado, un botón grande para avanzar el tiempo, menús
@@ -10,6 +10,18 @@ No es un simulador de fútbol: los partidos se simulan con reglas que el juego e
 - Sin anuncios, compras, cuentas de usuario ni servicios de IA externos.
 - Clubes, ciudades y estadios son **ficticios**. Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
+
+**Novedades de la versión 0.6**
+- **Cada negocio tiene sus propias decisiones**, en su ficha (Bienes → el negocio):
+  - **⚙️ Cómo funciona**: 2–3 opciones de gestión que puedes cambiar cuando quieras (horario, tipo de
+    clientela, carta, cuotas…). Cada opción muestra qué cambia: clientes, precio, costes, capacidad,
+    gastos fijos o fama por semana.
+  - **🔨 Mejoras**: 3–4 inversiones permanentes pagadas con la caja del negocio (terraza, cocina,
+    piscina, autocobro…). La mitad de lo invertido suma al valor del negocio.
+  - **📣 Acciones**: 3 acciones puntuales con tiempo de espera (campañas, ofertas, eventos, críticos,
+    banquetes…). Algunas duran unas semanas; otras son una apuesta (pueden salir bien o mal).
+- Ninguna es siempre buena: una mejora que solo trae más clientes no sirve si el local ya está lleno
+  (antes hace falta más personal o capacidad), y lo que sube el precio suele bajar la clientela.
 
 **Novedades de la versión 0.5**
 - **10 pantallas**: el juego avanza por niveles. Cada pantalla tiene 1–3 objetivos claros (barra
@@ -108,6 +120,23 @@ En vidas simuladas, las pantallas 1–8 se superan entre los 17 y los 25 años, 
 Al comprarlo heredas la plantilla del dueño anterior. Demanda = base × precio × (0,2 + fama/80)
 × (1 + tu reputación × sensibilidad) × cursos ± 10 %. La academia es la que más depende de tu fama.
 
+### Decisiones de cada negocio
+
+| Negocio | Cómo funciona (opciones) | Mejoras (coste) | Acciones |
+|---|---|---|---|
+| 💈 Peluquería | Reservas (Sin cita / Solo con cita); Horario (Normal / Abrir sábados tarde) | Reformar el local (8000 €); Lavacabezas con masaje (3000 €); Vender champús y ceras (2000 €); Zona de barbería (6000 €) | Campaña en redes; Martes de descuento; Curso de tendencias para el equipo |
+| ☕ Cafetería | Horario (Solo mañanas / Mañana y tarde / Hasta medianoche); Café (Normal / De especialidad) | Terraza (con licencia) (4000 €); Cafetera profesional (5000 €); Cocina para tapas y bocadillos (12.000 €) | Poner el fútbol en la tele; Oferta de desayuno; Noche de música en directo |
+| 🧺 Lavandería autoservicio | Horario (De 8 a 22 / 24 horas); Detergente (Normal / Ecológico) | Más lavadoras industriales (15.000 €); Secadoras de bajo consumo (8000 €); Pago con app y monedero (3000 €); Recogida a domicilio (5000 €) | Buzoneo de folletos; Tarjeta de fidelidad; Convenio con hoteles y gimnasios |
+| 🥅 Academia de fútbol | Enfoque (Diversión / Competición); Grupos (De 20 niños / De 12 niños) | Césped artificial nuevo (25.000 €); Escuela de porteros (6000 €); Análisis de vídeo (4000 €) | Campus de verano; Organizar un torneo; Entrenar tú unas semanas |
+| 👟 Tienda de deportes | Surtido (Básico / Equilibrado / Premium); Camisetas con tu nombre (No / Sí) | Tienda online (15.000 €); Zona para probar zapatillas (6000 €); Acuerdo con una gran marca (20.000 €) | Rebajas; Firma de autógrafos; Escaparate nuevo |
+| 🍽️ Restaurante | Oferta (Menú del día / Carta / Degustación); Jefe de cocina (Cocinero de siempre / Chef reconocido); Comida a domicilio (No / Sí (plataformas)) | Cocina renovada (20.000 €); Terraza (8000 €); Bodega de vinos (10.000 €) | Invitar a un crítico gastronómico; Jornadas gastronómicas; Aceptar un banquete de boda |
+| 🏋️ Gimnasio | Horario (De 6 a 23 / 24 horas); Clases dirigidas (Pocas / Muchas); Cuota (Sin permanencia / Con permanencia) | Piscina (120.000 €); Zona de spa (40.000 €); Renovar las máquinas (30.000 €) | Campaña «Año nuevo, vida nueva»; Clase magistral contigo; Convenio con empresas |
+| 🛒 Supermercado | Productos (Marcas conocidas / Mucha marca blanca); Pedidos a domicilio (No / Sí) | Cajas de autocobro (25.000 €); Sección de frescos (40.000 €); Aparcamiento (50.000 €) | Folleto de ofertas; Renegociar con proveedores; Degustación de productos locales |
+| 🏨 Hotel con encanto | Venta de habitaciones (Solo web propia / Plataformas de reservas); Tarifas (Fijas / Según la demanda) | Ampliar con 6 habitaciones (250.000 €); Restaurante propio (80.000 €); Spa (120.000 €) | Invitar a influencers; Acoger un congreso; Paquete «escapada romántica» |
+
+Demanda final = la de arriba × el efecto de tus opciones, mejoras y acciones activas (en la ficha se
+explica la cuenta en «¿Por qué?»).
+
 ## 5. Hipotecas, hijos y retirada
 
 Un «año de juego» es una temporada: 18 semanas (edades, plazos e intereses van en años de juego).
@@ -180,7 +209,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-68 de 68 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+75 de 75 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, diario, barra de pantalla, 4 barras, botón «+ Semana», plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
 2. **Una vida jugada con toques**: ojeador, ofertas, partidos, mejora, dos temporadas, imprevistos,
@@ -195,6 +224,10 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    (embarazo, nacimiento, gastos), **retirada** (desde los 30, sin sueldo, el mundo sigue, cumpleaños;
    declive a los 34; retirada obligatoria a los 40), **los 51 imprevistos con sus 89 opciones**,
    préstamo, representante, lesiones y negociación.
+3b. **Decisiones de negocio**: los 9 negocios tienen decisiones propias y distintas (≥ 2 opciones,
+   ≥ 3 mejoras, ≥ 3 acciones); las mejoras se pagan una vez con la caja y cambian demanda o capacidad;
+   las opciones cambian los resultados; las acciones tienen espera y sus efectos caducan; todas se
+   ejecutan sin errores durante 10 semanas; y con toques en la ficha.
 4. Vidas completas con tres estrategias (todas llegan a 100.000 € y ninguna gana en todo).
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.

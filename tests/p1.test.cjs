@@ -1,4 +1,4 @@
-// Pruebas automáticas del prototipo P1 (simulador de vida, v0.5).
+// Pruebas automáticas del prototipo P1 (simulador de vida, v0.6).
 // Ejecución: node tests/p1.test.cjs   (necesita Playwright con Chromium instalado; tarda unos minutos)
 // Opcional: SHOT_DIR=/carpeta para guardar capturas de pantalla.
 // Nota: Chromium con emulación de móvil NO sustituye una prueba real en Safari / iPhone.
@@ -413,6 +413,70 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Pedir más depende de la reputación', r.pedir.okAlta > r.pedir.okBaja, JSON.stringify(r.pedir));
     check('Con una decisión pendiente no se avanza', r.conEvento);
     check('Sin errores de JavaScript en las reglas', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  /* ---------- 3b. Decisiones propias de cada negocio ---------- */
+  {
+    const { ctx, page, errors } = await openPage(browser, iphone);
+    const r = await page.evaluate(() => {
+      const G = __P1, out = { faltan: [], mejoraOk: [], opcionOk: [], accionOk: [], errores: [] };
+      G.CFG.club.probSuceso = 0;
+      const ids = new Set();
+      for (const [tipo, D] of Object.entries(G.DECISIONES)) {
+        if (D.opciones.length < 2 || D.mejoras.length < 3 || D.acciones.length < 3) out.faltan.push(tipo);
+        ids.add([...D.mejoras, ...D.acciones].map(x => x.id).sort().join());
+      }
+      out.todos = Object.keys(G.CFG.negocios).every(t => G.DECISIONES[t]);
+      out.distintas = ids.size === Object.keys(G.DECISIONES).length;
+      for (const tipo of Object.keys(G.DECISIONES)) {
+        try {
+          const D = G.DECISIONES[tipo];
+          G.nueva(3); G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal; G.S.pantalla = 9; G.S.pendiente = null; G.S.cola = [];
+          G.S.p.dinero = 5e6; G.comprarNegocio(tipo, G.CFG.negocios[tipo].cajaOpciones[2]);
+          const n = () => G.S.negocios.find(x => x.tipo === tipo);
+          n().caja = 2e6;
+          // Mejora: cuesta caja, se aplica una sola vez y cambia demanda o capacidad
+          const m = D.mejoras[0], caja0 = n().caja, ef0 = JSON.stringify(G.efectosNegocio(tipo)), cap0 = G.capacidadNegocio(tipo);
+          const ok1 = G.comprarMejora(tipo, m.id), ok2 = G.comprarMejora(tipo, m.id);
+          if (ok1 && !ok2 && n().caja === caja0 - m.coste && n().mejoras.includes(m.id) && (JSON.stringify(G.efectosNegocio(tipo)) !== ef0 || G.capacidadNegocio(tipo) !== cap0)) out.mejoraOk.push(tipo);
+          // Opción: se guarda y cambia los efectos
+          const o = D.opciones[0], otro = (o.def || 0) === 0 ? 1 : 0, efA = JSON.stringify(G.efectosNegocio(tipo));
+          G.elegirOpcion(tipo, o.id, otro);
+          if (n().opc[o.id] === otro && JSON.stringify(G.efectosNegocio(tipo)) !== efA) out.opcionOk.push(tipo);
+          // Acción: se hace, queda en espera y, si dura, caduca
+          const a = D.acciones.find(x => x.dur) || D.acciones[0];
+          const hecha = G.accionNegocio(tipo, a.id), repetida = G.accionNegocio(tipo, a.id);
+          let caduca = true;
+          if (a.dur) { for (let i = 0; i < a.dur; i++) { G.elegir('rentas'); G.avanzarSemana(); while (G.S.pendiente) G.resolver(G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); } caduca = !(n().temp || []).some(t => t.id === a.id); }
+          if (hecha && !repetida && caduca) out.accionOk.push(tipo);
+          // Todo lo demás se puede elegir y se juegan 10 semanas sin errores
+          D.mejoras.forEach(x => G.comprarMejora(tipo, x.id));
+          D.opciones.forEach(x => x.valores.forEach((_, i) => G.elegirOpcion(tipo, x.id, i)));
+          G.S.semana += 60; D.acciones.forEach(x => G.accionNegocio(tipo, x.id));
+          for (let i = 0; i < 10; i++) { G.elegir('rentas'); G.avanzarSemana(); while (G.S.pendiente) G.resolver(G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); }
+          if (!isFinite(n().caja) || !isFinite(n().fama)) out.errores.push(tipo + ': NaN');
+        } catch (e) { out.errores.push(tipo + ': ' + e.message); }
+      }
+      return out;
+    });
+    const N = 9;
+    check('Cada negocio tiene sus propias decisiones (≥2 opciones, ≥3 mejoras, ≥3 acciones)', r.todos && r.distintas && r.faltan.length === 0, r.faltan.join());
+    check('Mejoras: se pagan con la caja, una sola vez, y cambian demanda o capacidad', r.mejoraOk.length === N, r.mejoraOk.join());
+    check('Opciones de gestión: se guardan y cambian los resultados', r.opcionOk.length === N, r.opcionOk.join());
+    check('Acciones: tienen espera y sus efectos temporales caducan', r.accionOk.length === N, r.accionOk.join());
+    check('Todas las mejoras, opciones y acciones funcionan sin errores', r.errores.length === 0, r.errores.join(' | '));
+    // Con toques en la ficha del negocio
+    await page.evaluate(() => { const G = __P1; G.nueva(5); G.S.intro = false; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal; G.S.pantalla = 9; G.S.pendiente = null; G.S.cola = [];
+      G.S.p.dinero = 100000; G.comprarNegocio('peluqueria', 10000); G.S.hoja = 'negocio:peluqueria'; G.render(); });
+    await shot(page, '30_decisiones');
+    const caja0 = (await st(page)).negocios[0].caja;
+    await page.locator('[data-act="mejora"]:not([disabled])').first().tap();
+    await page.locator('[data-act="opcion"]').last().tap();
+    await page.locator('[data-act="accionNeg"]:not([disabled])').first().tap();
+    const d = await st(page), n = d.negocios[0];
+    check('Con toques: comprar mejora, cambiar opción y hacer acción', n.mejoras.length === 1 && n.caja < caja0 && Object.keys(n.opc).length === 1 && Object.keys(n.cd).length === 1, JSON.stringify({ m: n.mejoras, opc: n.opc, cd: n.cd }));
+    check('Sin errores de JavaScript en las decisiones de negocio', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 

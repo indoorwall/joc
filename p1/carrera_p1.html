@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#ffffff">
 <title>Del barrio al negocio · P1</title>
 <!--
-  PROTOTIPO P1 (v0.5) — Simulador de vida de un futbolista: 10 pantallas, carrera, retirada, familia, negocios, casas con hipoteca, coches y clubes.
+  PROTOTIPO P1 (v0.6) — Simulador de vida de un futbolista: 10 pantallas, carrera, retirada, familia, negocios, casas con hipoteca, coches y clubes.
   Estilo «simulador de vida»: diario semanal, barras de estado, botón grande «+ Semana», menús y ventanas emergentes.
   No hay partidos controlables, física ni gráficos 3D: los partidos se simulan con reglas explicadas.
   Archivo autónomo: no carga nada de Internet. Sin anuncios, compras, cuentas ni servicios de IA.
@@ -418,6 +418,171 @@ const CFG = {
   colores: [['#e63946', '#ffffff'], ['#1d6fd1', '#ffd23f'], ['#2a9d8f', '#ffffff'], ['#222222', '#ffffff'], ['#ffd23f', '#1b4332'],
     ['#7b2cbf', '#ffffff'], ['#f77f00', '#003049'], ['#ffffff', '#d62828'], ['#0b6e4f', '#f1fa8c'], ['#3a86ff', '#ffffff'],
     ['#8d0801', '#f4d58d'], ['#2b2d42', '#ef233c']],
+};
+
+
+/* =====================================================================
+   1b. DECISIONES DE CADA NEGOCIO
+   ef (efecto): dem = × clientes · precioF = × precio · costeF = × coste de lo vendido ·
+   capFija = + capacidad · capEmp = + capacidad por persona · extra = + € de margen por cliente ·
+   fijos = + € de gastos por semana · sueldo = + € por persona y semana · famaSem = + fama por semana
+   Mejoras: se pagan una vez con la caja y son permanentes (la mitad de lo invertido suma al valor).
+   Opciones: se cambian cuando quieras. Acciones: se pagan con la caja y tienen tiempo de espera.
+   ===================================================================== */
+const DECISIONES = {
+  peluqueria: {
+    opciones: [
+      { id: 'cita', n: 'Reservas', valores: [{ n: 'Sin cita', ef: { dem: 1.05 } }, { n: 'Solo con cita', ef: { dem: 0.95, capEmp: 6 }, d: 'Se pierde menos tiempo entre clientes.' }] },
+      { id: 'horario', n: 'Horario', valores: [{ n: 'Normal', ef: {} }, { n: 'Abrir sábados tarde', ef: { dem: 1.08, sueldo: 40 } }] },
+    ],
+    mejoras: [
+      { id: 'reforma', ic: '🛠️', n: 'Reformar el local', coste: 8000, fama: 8, ef: { dem: 1.10 }, d: 'Un local moderno atrae más clientela.' },
+      { id: 'lavacabezas', ic: '💆', n: 'Lavacabezas con masaje', coste: 3000, ef: { precioF: 1.08 }, d: 'Un servicio extra que se cobra.' },
+      { id: 'productos', ic: '🧴', n: 'Vender champús y ceras', coste: 2000, ef: { extra: 2.5 }, d: 'Margen extra con cada cliente.' },
+      { id: 'barberia', ic: '🪒', n: 'Zona de barbería', coste: 6000, ef: { capFija: 15, dem: 1.08 }, d: 'Más sillones y clientela nueva.' },
+    ],
+    acciones: [
+      { id: 'redes', ic: '📱', n: 'Campaña en redes', coste: 400, espera: 4, fama: 5 },
+      { id: 'martes', ic: '🏷️', n: 'Martes de descuento', coste: 0, espera: 8, dur: 4, ef: { dem: 1.2, precioF: 0.85 } },
+      { id: 'formacion', ic: '🎓', n: 'Curso de tendencias para el equipo', coste: 1200, espera: 12, dur: 12, fama: 3, ef: { capEmp: 3 } },
+    ],
+  },
+  cafeteria: {
+    opciones: [
+      { id: 'horario', n: 'Horario', valores: [{ n: 'Solo mañanas', ef: { dem: 0.75, sueldo: -80 } }, { n: 'Mañana y tarde', ef: {} }, { n: 'Hasta medianoche', ef: { dem: 1.25, sueldo: 100, fijos: 80 } }], def: 1 },
+      { id: 'cafe', n: 'Café', valores: [{ n: 'Normal', ef: {} }, { n: 'De especialidad', ef: { costeF: 1.3, precioF: 1.12, famaSem: 0.5 } }] },
+    ],
+    mejoras: [
+      { id: 'terraza', ic: '⛱️', n: 'Terraza (con licencia)', coste: 4000, ef: { capFija: 250, dem: 1.15, fijos: 60 }, d: 'Más mesas, pero pagas la licencia cada semana.' },
+      { id: 'cafetera', ic: '☕', n: 'Cafetera profesional', coste: 5000, fama: 4, ef: { precioF: 1.08 }, d: 'Mejor café, se puede cobrar algo más.' },
+      { id: 'cocina', ic: '🥪', n: 'Cocina para tapas y bocadillos', coste: 12000, ef: { extra: 1.2 }, d: 'Margen extra en cada consumición.' },
+    ],
+    acciones: [
+      { id: 'futbol', ic: '📺', n: 'Poner el fútbol en la tele', coste: 300, espera: 6, dur: 4, ef: { dem: 1.25 } },
+      { id: 'desayuno', ic: '🥐', n: 'Oferta de desayuno', coste: 0, espera: 8, dur: 4, ef: { dem: 1.3, precioF: 0.85 } },
+      { id: 'musica', ic: '🎸', n: 'Noche de música en directo', coste: 600, espera: 4, fama: 6 },
+    ],
+  },
+  lavanderia: {
+    opciones: [
+      { id: 'horario', n: 'Horario', valores: [{ n: 'De 8 a 22', ef: {} }, { n: '24 horas', ef: { dem: 1.2, fijos: 150 } }] },
+      { id: 'jabon', n: 'Detergente', valores: [{ n: 'Normal', ef: {} }, { n: 'Ecológico', ef: { costeF: 1.2, precioF: 1.05, famaSem: 0.5 } }] },
+    ],
+    mejoras: [
+      { id: 'maquinas', ic: '🫧', n: 'Más lavadoras industriales', coste: 15000, ef: { capFija: 150 }, d: 'Más lavados a la vez.' },
+      { id: 'secadoras', ic: '♨️', n: 'Secadoras de bajo consumo', coste: 8000, ef: { costeF: 0.7 }, d: 'Menos luz y agua por lavado.' },
+      { id: 'app', ic: '📲', n: 'Pago con app y monedero', coste: 3000, ef: { dem: 1.08 }, d: 'Más cómodo para los clientes.' },
+      { id: 'recogida', ic: '🚐', n: 'Recogida a domicilio', coste: 5000, ef: { extra: 3, dem: 1.1, fijos: 200 }, d: 'Furgoneta: más clientes y margen, pero gastos fijos.' },
+    ],
+    acciones: [
+      { id: 'buzoneo', ic: '📬', n: 'Buzoneo de folletos', coste: 250, espera: 4, fama: 4 },
+      { id: 'fidelidad', ic: '💳', n: 'Tarjeta de fidelidad', coste: 500, espera: 10, dur: 8, ef: { dem: 1.15, precioF: 0.95 } },
+      { id: 'convenio', ic: '🤝', n: 'Convenio con hoteles y gimnasios', coste: 0, espera: 14, dur: 12, ef: { dem: 1.3, precioF: 0.8 } },
+    ],
+  },
+  academia: {
+    opciones: [
+      { id: 'enfoque', n: 'Enfoque', valores: [{ n: 'Diversión', ef: { dem: 1.15, precioF: 0.9 } }, { n: 'Competición', ef: { dem: 0.9, precioF: 1.15, famaSem: 0.5 } }] },
+      { id: 'grupos', n: 'Grupos', valores: [{ n: 'De 20 niños', ef: {} }, { n: 'De 12 niños', ef: { capEmp: -8, precioF: 1.2, famaSem: 0.5 } }] },
+    ],
+    mejoras: [
+      { id: 'cesped', ic: '🟩', n: 'Césped artificial nuevo', coste: 25000, fama: 10, ef: { dem: 1.12 }, d: 'Los padres lo notan.' },
+      { id: 'porteros', ic: '🧤', n: 'Escuela de porteros', coste: 6000, ef: { capFija: 25 }, d: 'Un grupo más.' },
+      { id: 'video', ic: '🎥', n: 'Análisis de vídeo', coste: 4000, ef: { precioF: 1.1 }, d: 'Entrenamiento más profesional.' },
+    ],
+    acciones: [
+      { id: 'campus', ic: '☀️', n: 'Campus de verano', coste: 1000, espera: 18, desc: 'Ingreso extra: 60 € por alumno de la última semana.',
+        hacer(s, n) { const v = Math.round((n.ultimo ? n.ultimo.clientes : 50) * 60); n.caja += v; s.acum.ingresosNeg += v; return `Campus lleno: +${cr(v)} a la caja.`; } },
+      { id: 'torneo', ic: '🏆', n: 'Organizar un torneo', coste: 800, espera: 6, fama: 8 },
+      { id: 'tu', ic: '🌟', n: 'Entrenar tú unas semanas', coste: 0, espera: 8, dur: 4, ef: { dem: 1.25 }, desc: 'Te cuesta 10 de energía.',
+        hacer(s) { s.p.energia = clamp(s.p.energia - 10, 0, CFG.energiaMax); return 'Los niños alucinan entrenando contigo.'; } },
+    ],
+  },
+  tienda: {
+    opciones: [
+      { id: 'surtido', n: 'Surtido', valores: [{ n: 'Básico', ef: { dem: 1.1, precioF: 0.9 } }, { n: 'Equilibrado', ef: {} }, { n: 'Premium', ef: { dem: 0.8, precioF: 1.25, costeF: 1.05 } }], def: 1 },
+      { id: 'camisetas', n: 'Camisetas con tu nombre', valores: [{ n: 'No', ef: {} }, { n: 'Sí', ef: { extra: 4 } }] },
+    ],
+    mejoras: [
+      { id: 'online', ic: '🌐', n: 'Tienda online', coste: 15000, ef: { dem: 1.25, fijos: 200 }, d: 'Vendes en todo el país, con gastos de envío y web.' },
+      { id: 'probador', ic: '👟', n: 'Zona para probar zapatillas', coste: 6000, fama: 4, ef: { precioF: 1.05 }, d: 'Se venden modelos más caros.' },
+      { id: 'marca', ic: '🤝', n: 'Acuerdo con una gran marca', coste: 20000, ef: { costeF: 0.94 }, d: 'Compras más barato.' },
+    ],
+    acciones: [
+      { id: 'rebajas', ic: '🏷️', n: 'Rebajas', coste: 0, espera: 12, dur: 3, ef: { dem: 1.5, precioF: 0.75 } },
+      { id: 'firma', ic: '✍️', n: 'Firma de autógrafos', coste: 0, espera: 6, fama: 10, desc: 'Te cuesta 10 de energía.', hacer(s) { s.p.energia = clamp(s.p.energia - 10, 0, CFG.energiaMax); return 'Colas en la puerta.'; } },
+      { id: 'escaparate', ic: '🪟', n: 'Escaparate nuevo', coste: 1500, espera: 8, fama: 5 },
+    ],
+  },
+  restaurante: {
+    opciones: [
+      { id: 'carta', n: 'Oferta', valores: [{ n: 'Menú del día', ef: { dem: 1.3, precioF: 0.7 } }, { n: 'Carta', ef: {} }, { n: 'Degustación', ef: { dem: 0.6, precioF: 1.8, costeF: 1.1, famaSem: 0.5 } }], def: 1 },
+      { id: 'chef', n: 'Jefe de cocina', valores: [{ n: 'Cocinero de siempre', ef: {} }, { n: 'Chef reconocido', ef: { fijos: 900, dem: 1.1, famaSem: 1 } }] },
+      { id: 'domicilio', n: 'Comida a domicilio', valores: [{ n: 'No', ef: {} }, { n: 'Sí (plataformas)', ef: { dem: 1.2, costeF: 1.08 } }] },
+    ],
+    mejoras: [
+      { id: 'cocina', ic: '🔥', n: 'Cocina renovada', coste: 20000, ef: { costeF: 0.9, capFija: 20 }, d: 'Menos mermas y más platos.' },
+      { id: 'terraza', ic: '⛱️', n: 'Terraza', coste: 8000, ef: { capFija: 60, dem: 1.1, fijos: 100 }, d: 'Más mesas con licencia semanal.' },
+      { id: 'bodega', ic: '🍷', n: 'Bodega de vinos', coste: 10000, ef: { extra: 4 }, d: 'Margen extra por comensal.' },
+    ],
+    acciones: [
+      { id: 'critico', ic: '🧐', n: 'Invitar a un crítico gastronómico', coste: 500, espera: 10, desc: '60 %: fama +10 · 40 %: fama −6.',
+        hacer(s, n) { if (rnd(s) < 0.6) { n.fama = clamp(n.fama + 10, 0, 100); return 'Reseña excelente: fama +10.'; } n.fama = clamp(n.fama - 6, 0, 100); return 'No le gustó nada: fama −6.'; } },
+      { id: 'jornadas', ic: '🦐', n: 'Jornadas gastronómicas', coste: 1000, espera: 8, dur: 3, ef: { dem: 1.3 } },
+      { id: 'banquete', ic: '💒', n: 'Aceptar un banquete de boda', coste: 0, espera: 6, desc: 'Ingreso de 6.000 € (ya descontados los gastos), pero cierras al público: fama −2.',
+        hacer(s, n) { n.caja += 6000; s.acum.ingresosNeg += 6000; n.fama = clamp(n.fama - 2, 0, 100); return 'Boda de 120 invitados: +6.000 € a la caja.'; } },
+    ],
+  },
+  gimnasio: {
+    opciones: [
+      { id: 'horario', n: 'Horario', valores: [{ n: 'De 6 a 23', ef: {} }, { n: '24 horas', ef: { dem: 1.15, fijos: 400 } }] },
+      { id: 'clases', n: 'Clases dirigidas', valores: [{ n: 'Pocas', ef: {} }, { n: 'Muchas', ef: { sueldo: 60, dem: 1.12, famaSem: 0.5 } }] },
+      { id: 'permanencia', n: 'Cuota', valores: [{ n: 'Sin permanencia', ef: {} }, { n: 'Con permanencia', ef: { dem: 0.9, precioF: 1.1 } }] },
+    ],
+    mejoras: [
+      { id: 'piscina', ic: '🏊', n: 'Piscina', coste: 120000, ef: { dem: 1.25, precioF: 1.15, fijos: 800 }, d: 'Mucha más clientela, pero cara de mantener.' },
+      { id: 'spa', ic: '🧖', n: 'Zona de spa', coste: 40000, fama: 5, ef: { precioF: 1.1, fijos: 300 }, d: 'Cuotas más altas.' },
+      { id: 'maquinas', ic: '🏋️', n: 'Renovar las máquinas', coste: 30000, fama: 6, ef: { dem: 1.1 }, d: 'Máquinas nuevas, socios contentos.' },
+    ],
+    acciones: [
+      { id: 'añoNuevo', ic: '🎆', n: 'Campaña «Año nuevo, vida nueva»', coste: 2000, espera: 18, dur: 4, ef: { dem: 1.4 } },
+      { id: 'magistral', ic: '💪', n: 'Clase magistral contigo', coste: 0, espera: 6, fama: 8, desc: 'Te cuesta 10 de energía.', hacer(s) { s.p.energia = clamp(s.p.energia - 10, 0, CFG.energiaMax); return 'Sala llena.'; } },
+      { id: 'empresas', ic: '🏢', n: 'Convenio con empresas', coste: 0, espera: 14, dur: 12, ef: { dem: 1.25, precioF: 0.85 } },
+    ],
+  },
+  supermercado: {
+    opciones: [
+      { id: 'marca', n: 'Productos', valores: [{ n: 'Marcas conocidas', ef: {} }, { n: 'Mucha marca blanca', ef: { costeF: 0.94, precioF: 0.95, famaSem: -0.2 } }] },
+      { id: 'domicilio', n: 'Pedidos a domicilio', valores: [{ n: 'No', ef: {} }, { n: 'Sí', ef: { dem: 1.15, fijos: 500 } }] },
+    ],
+    mejoras: [
+      { id: 'autocobro', ic: '🧾', n: 'Cajas de autocobro', coste: 25000, ef: { capFija: 400 }, d: 'Menos colas sin contratar.' },
+      { id: 'fresco', ic: '🥩', n: 'Sección de frescos', coste: 40000, fama: 5, ef: { dem: 1.15 }, d: 'Fruta, carne y pescado del día.' },
+      { id: 'parking', ic: '🅿️', n: 'Aparcamiento', coste: 50000, ef: { dem: 1.2, fijos: 300 }, d: 'Compras más grandes.' },
+    ],
+    acciones: [
+      { id: 'folleto', ic: '📰', n: 'Folleto de ofertas', coste: 1500, espera: 4, dur: 2, ef: { dem: 1.25, precioF: 0.95 } },
+      { id: 'proveedores', ic: '📉', n: 'Renegociar con proveedores', coste: 0, espera: 18, dur: 18, ef: { costeF: 0.97 } },
+      { id: 'degustacion', ic: '🧀', n: 'Degustación de productos locales', coste: 600, espera: 6, fama: 5 },
+    ],
+  },
+  hotel: {
+    opciones: [
+      { id: 'venta', n: 'Venta de habitaciones', valores: [{ n: 'Solo web propia', ef: { dem: 0.85 } }, { n: 'Plataformas de reservas', ef: { dem: 1.2, costeF: 1.8 }, d: 'Cobran comisión por noche.' }], def: 1 },
+      { id: 'tarifa', n: 'Tarifas', valores: [{ n: 'Fijas', ef: {} }, { n: 'Según la demanda', ef: { precioF: 1.08, dem: 0.97 } }] },
+    ],
+    mejoras: [
+      { id: 'ampliar', ic: '🛏️', n: 'Ampliar con 6 habitaciones', coste: 250000, ef: { capFija: 40 }, d: 'Más noches a la venta.' },
+      { id: 'restaurante', ic: '🍳', n: 'Restaurante propio', coste: 80000, ef: { extra: 18, fijos: 600 }, d: 'Margen extra por noche.' },
+      { id: 'spa', ic: '🧖', n: 'Spa', coste: 120000, fama: 8, ef: { precioF: 1.2, fijos: 500 }, d: 'Habitaciones más caras.' },
+    ],
+    acciones: [
+      { id: 'influencers', ic: '🤳', n: 'Invitar a influencers', coste: 1500, espera: 6, fama: 7 },
+      { id: 'congreso', ic: '🎤', n: 'Acoger un congreso', coste: 0, espera: 8, desc: 'Ingreso de 12.000 € (ya descontados los gastos).',
+        hacer(s, n) { n.caja += 12000; s.acum.ingresosNeg += 12000; return 'Hotel lleno de congresistas: +12.000 € a la caja.'; } },
+      { id: 'escapada', ic: '💑', n: 'Paquete «escapada romántica»', coste: 800, espera: 8, dur: 6, ef: { dem: 1.2, extra: 10 } },
+    ],
+  },
 };
 
 /* =====================================================================
@@ -1430,20 +1595,67 @@ function bloqueoNegocio(s, tipo) {
   if (!desbloqueado(s, tipo)) return textoBloqueo(s, tipo);
   return null;
 }
-function valorNegocio(n) { return Math.round(CFG.negocios[n.tipo].precio * (0.5 + n.fama / 100)); }
-function capacidadNegocio(n) { return n.empleados * CFG.negocios[n.tipo].sueldos[n.sueldo].capacidad; }
+function valorNegocio(n) { return Math.round(CFG.negocios[n.tipo].precio * (0.5 + n.fama / 100) + (n.invertido || 0) * 0.5); }
+// Suma los efectos de mejoras, opciones y acciones en curso de un negocio
+function efectosNegocio(n) {
+  const D = DECISIONES[n.tipo], ef = { dem: 1, precioF: 1, costeF: 1, capFija: 0, capEmp: 0, extra: 0, fijos: 0, sueldo: 0, famaSem: 0 };
+  const sumar = e => { for (const [k, v] of Object.entries(e || {})) { if (['dem', 'precioF', 'costeF'].includes(k)) ef[k] *= v; else ef[k] += v; } };
+  for (const id of n.mejoras || []) sumar((D.mejoras.find(m => m.id === id) || {}).ef);
+  for (const o of D.opciones) sumar(o.valores[opcionDe(n, o)].ef);
+  for (const t of n.temp || []) sumar(t.ef);
+  return ef;
+}
+function opcionDe(n, o) { const v = (n.opc || {})[o.id]; return v == null ? (o.def || 0) : v; }
+function capacidadNegocio(n) { const ef = efectosNegocio(n); return Math.max(1, Math.round(n.empleados * (CFG.negocios[n.tipo].sueldos[n.sueldo].capacidad + ef.capEmp) + ef.capFija)); }
+function comprarMejora(tipo, id) {
+  const s = S, n = negocioDe(s, tipo), m = n && DECISIONES[tipo].mejoras.find(x => x.id === id);
+  if (!m || (n.mejoras || []).includes(id) || n.caja < m.coste) return false;
+  n.caja -= m.coste; s.acum.gastosNeg += m.coste;
+  n.mejoras = (n.mejoras || []).concat(id); n.invertido = (n.invertido || 0) + m.coste;
+  if (m.fama) n.fama = clamp(n.fama + m.fama, 0, 100);
+  anotar(s, m.ic, `${CFG.negocios[tipo].n}: ${m.n.toLowerCase()} (−${cr(m.coste)} de la caja).`);
+  s.aviso = `${m.ic} ${m.n}: hecho.`;
+  guardar(); render();
+  return true;
+}
+function elegirOpcion(tipo, opId, idx) {
+  const s = S, n = negocioDe(s, tipo), o = n && DECISIONES[tipo].opciones.find(x => x.id === opId);
+  if (!o || !o.valores[idx]) return false;
+  n.opc = Object.assign({}, n.opc, { [opId]: idx });
+  guardar(); render();
+  return true;
+}
+function bloqueoAccionNeg(s, n, a) {
+  const falta = ((n.cd || {})[a.id] || 0) - s.semana;
+  if (falta > 0) return `Disponible en ${falta} ${falta === 1 ? 'semana' : 'semanas'}.`;
+  if (n.caja < a.coste) return `La caja necesita ${cr(a.coste)}.`;
+  return null;
+}
+function accionNegocio(tipo, id) {
+  const s = S, n = negocioDe(s, tipo), a = n && DECISIONES[tipo].acciones.find(x => x.id === id);
+  if (!a || bloqueoAccionNeg(s, n, a)) return false;
+  n.caja -= a.coste; if (a.coste) s.acum.gastosNeg += a.coste;
+  n.cd = Object.assign({}, n.cd, { [id]: s.semana + a.espera });
+  if (a.fama) n.fama = clamp(n.fama + a.fama, 0, 100);
+  if (a.dur) n.temp = (n.temp || []).concat({ id, n: a.n, ef: a.ef, sem: a.dur });
+  const txt = a.hacer ? a.hacer(s, n) : a.dur ? `Durante ${a.dur} semanas.` : `Fama +${a.fama}.`;
+  anotar(s, a.ic, `${CFG.negocios[tipo].n}: ${a.n.toLowerCase()}. ${txt}`);
+  s.aviso = `${a.ic} ${a.n}: ${txt}`;
+  guardar(); render();
+  return true;
+}
 function factorModsNegocio(s, n) { return s.mods.filter(m => m.tipo === 'demanda' && (!m.neg || m.neg === n.tipo)).reduce((a, m) => a * m.v, 1); }
 function factorCursos(s) { return 1 + s.cursos * CFG.negocioComun.cursoDemanda; }
 function demandaNegocio(s, n) {
   const T = CFG.negocios[n.tipo], pr = T.precios[n.precio];
-  return T.demandaBase * pr.factor * (0.2 + n.fama / 80) * (1 + s.p.rep * T.repSens) * factorCursos(s) * factorModsNegocio(s, n);
+  return T.demandaBase * pr.factor * (0.2 + n.fama / 80) * (1 + s.p.rep * T.repSens) * factorCursos(s) * factorModsNegocio(s, n) * efectosNegocio(n).dem;
 }
 function comprarNegocio(tipo, caja) {
   const s = S, T = CFG.negocios[tipo];
   if (!T || bloqueoNegocio(s, tipo) || !T.cajaOpciones.includes(caja) || s.p.dinero < T.precio + caja) return false;
   s.p.dinero -= T.precio + caja;
   s.acum.gastosPers += T.precio + caja;
-  const n = { tipo, fama: CFG.negocioComun.famaInicial, precio: 'normal', empleados: 1, sueldo: 'basico', caja, semanas: 0, ultimo: null };
+  const n = { tipo, fama: CFG.negocioComun.famaInicial, precio: 'normal', empleados: 1, sueldo: 'basico', caja, semanas: 0, ultimo: null, mejoras: [], opc: {}, temp: [], cd: {}, invertido: 0 };
   n.empleados = clamp(Math.round(demandaNegocio(s, n) / T.sueldos.basico.capacidad), 1, T.empleadosMax); // plantilla heredada del dueño anterior
   s.negocios.push(n);
   anotar(s, T.ic, `Compro una ${T.n.toLowerCase()} por ${cr(T.precio)} y pongo ${cr(caja)} en su caja.`);
@@ -1493,9 +1705,11 @@ function semanaNegocio(s, R, n) {
   const famaAntes = n.fama, fm = factorModsNegocio(s, n);
   const demanda = Math.round(demandaNegocio(s, n) * (0.9 + rnd(s) * 0.2));
   const cap = capacidadNegocio(n), clientes = Math.min(demanda, cap), perdidos = demanda - clientes;
-  const ingresos = Math.round(clientes * pr.precio), sueldos = n.empleados * su.coste;
-  const productos = Math.round(T.costePct ? ingresos * T.costePct : clientes * T.costeCliente);
-  const gastos = T.alquiler + T.fijos + sueldos + productos, resultado = ingresos - gastos;
+  const ef = efectosNegocio(n), precio = pr.precio * ef.precioF, venta = clientes * precio;
+  const ingresos = Math.round(venta + clientes * ef.extra), sueldos = Math.round(n.empleados * (su.coste + ef.sueldo));
+  const productos = Math.round((T.costePct ? venta * T.costePct : clientes * T.costeCliente) * ef.costeF);
+  const fijos = T.fijos + ef.fijos;
+  const gastos = T.alquiler + fijos + sueldos + productos, resultado = ingresos - gastos;
   n.caja += resultado; n.semanas += 1;
   s.acum.ingresosNeg += ingresos; s.acum.gastosNeg += gastos;
   const fam = [];
@@ -1505,12 +1719,14 @@ function semanaNegocio(s, R, n) {
   fam.push([su.fama, su.fama > 0 ? 'personal bien pagado' : 'rotación por sueldo básico']);
   if (perdidos > Math.max(5, cap * 0.08)) fam.push([C.colasFama, `${perdidos} ${T.unidad} perdidas por falta de personal`]);
   if (n.caja < 0) fam.push([C.impagoFama, 'caja en negativo: pagos con retraso']);
+  if (ef.famaSem) fam.push([ef.famaSem, 'tus decisiones en el negocio']);
   for (const [d] of fam) n.fama += d;
-  n.fama = clamp(n.fama, 0, 100);
-  n.ultimo = { demanda, cap, clientes, perdidos, ingresos, sueldos, productos, alquiler: T.alquiler, fijos: T.fijos, gastos, resultado, famaAntes, fama: n.fama, fam };
+  n.fama = r1(clamp(n.fama, 0, 100));
+  n.temp = (n.temp || []).map(t => ({ ...t, sem: t.sem - 1 })).filter(t => t.sem > 0);
+  n.ultimo = { demanda, cap, clientes, perdidos, ingresos, sueldos, productos, alquiler: T.alquiler, fijos, gastos, resultado, famaAntes, fama: n.fama, fam };
   R.negocios.push([n.tipo, resultado]);
   R.neg.push([`${T.ic} ${T.n}: ${resultado >= 0 ? '+' : ''}${cr(resultado)}`, `${clientes} de ${demanda} ${T.unidad}`,
-    `Demanda = ${T.demandaBase} × precio ${pr.nombre.toLowerCase()} ${nf(pr.factor)} × (0,2 + fama ${famaAntes}/80) × (1 + reputación ${s.p.rep} × ${nf3(T.repSens)})${factorCursos(s) !== 1 ? ` × ${nf(factorCursos(s))} (cursos)` : ''}${fm !== 1 ? ` × ${nf(fm)} (competencia)` : ''} ± 10 %. Capacidad ${n.empleados} × ${su.capacidad}. Ingresos ${cr(ingresos)} − alquiler ${cr(T.alquiler)} − suministros y seguros ${cr(T.fijos)} − sueldos ${cr(sueldos)} − ${T.costePct ? `compras (${Math.round(T.costePct * 100)} % de lo vendido)` : 'género'} ${cr(productos)}. Fama ${famaAntes} → ${n.fama} (${fam.map(([d, t]) => `${sg(d)} ${t}`).join(', ')}).`]);
+    `Demanda = ${T.demandaBase} × precio ${pr.nombre.toLowerCase()} ${nf(pr.factor)} × (0,2 + fama ${famaAntes}/80) × (1 + reputación ${s.p.rep} × ${nf3(T.repSens)})${factorCursos(s) !== 1 ? ` × ${nf(factorCursos(s))} (cursos)` : ''}${fm !== 1 ? ` × ${nf(fm)} (competencia)` : ''}${ef.dem !== 1 ? ` × ${nf(ef.dem)} (tus decisiones)` : ''} ± 10 %. Capacidad ${cap}. Precio ${nf(precio)} €${ef.extra ? ` + ${nf(ef.extra)} € de margen extra` : ''}. Ingresos ${cr(ingresos)} − alquiler ${cr(T.alquiler)} − suministros y seguros ${cr(fijos)} − sueldos ${cr(sueldos)} − ${T.costePct ? `compras (${Math.round(T.costePct * 100)} % de lo vendido)` : 'género'} ${cr(productos)}. Fama ${nf(famaAntes)} → ${nf(n.fama)} (${fam.map(([d, t]) => `${sg(d)} ${t}`).join(', ')}).`]);
   if (n.caja < 0) R.opo.push(['⚠️', `La caja de tu ${T.n.toLowerCase()} está en negativo: pasa dinero o cambia precios/personal.`]);
 }
 
@@ -2280,6 +2496,38 @@ function renderDock() {
     </div>`;
 }
 
+function chipsEf(ef, extra) {
+  const l = [], pc = v => `${v > 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)} %`;
+  const e = ef || {}, x = extra || {};
+  if (e.dem && e.dem !== 1) l.push([e.dem > 1, `👥 ${pc(e.dem)} clientes`]);
+  if (e.precioF && e.precioF !== 1) l.push([e.precioF > 1, `🏷️ ${pc(e.precioF)} precio`]);
+  if (e.costeF && e.costeF !== 1) l.push([e.costeF < 1, `📦 ${pc(e.costeF)} costes`]);
+  if (e.capFija) l.push([e.capFija > 0, `🪑 ${e.capFija > 0 ? '+' : '−'}${Math.abs(e.capFija)} capacidad`]);
+  if (e.capEmp) l.push([e.capEmp > 0, `🪑 ${e.capEmp > 0 ? '+' : '−'}${Math.abs(e.capEmp)} por persona`]);
+  if (e.extra) l.push([true, `💰 +${nf(e.extra)} € por cliente`]);
+  if (e.fijos) l.push([e.fijos < 0, `🧾 ${e.fijos > 0 ? '+' : '−'}${cr(Math.abs(e.fijos))}/sem`]);
+  if (e.sueldo) l.push([e.sueldo < 0, `💶 ${e.sueldo > 0 ? '+' : '−'}${cr(Math.abs(e.sueldo))} por persona`]);
+  if (e.famaSem) l.push([e.famaSem > 0, `✨ ${sg(e.famaSem)} fama/sem`]);
+  if (x.fama) l.push([x.fama > 0, `✨ +${x.fama} fama`]);
+  if (x.dur) l.push([null, `⏱️ ${x.dur} semanas`]);
+  if (!l.length && !x.sinVacio) l.push([null, 'sin cambios']);
+  return `<div class="chips">${l.map(([g, t]) => `<span class="chip ${g === true ? 'g' : g === false ? 'b' : ''}">${esc(t)}</span>`).join('')}</div>`;
+}
+function htmlDecisiones(s, n, tipo) {
+  const D = DECISIONES[tipo];
+  const op = D.opciones.map(o => { const k = opcionDe(n, o), v = o.valores[k];
+    return `<div class="obj"><b>${esc(o.n)}</b><div class="seg">${o.valores.map((x, i) => `<button data-act="opcion" data-t="${tipo}" data-c="${o.id}" data-v="${i}" class="${k === i ? 'sel' : ''}">${esc(x.n)}</button>`).join('')}</div>${chipsEf(v.ef)}${v.d ? `<div class="small">${esc(v.d)}</div>` : ''}</div>`; }).join('');
+  const me = D.mejoras.map(m => { const hecha = (n.mejoras || []).includes(m.id);
+    return `<div class="row" style="flex-wrap:wrap"><div class="ic">${m.ic}</div><div class="tx"><b>${esc(m.n)}</b><span>${esc(m.d || '')}</span>${chipsEf(m.ef, { fama: m.fama })}</div>
+      <button class="btn ${hecha ? 'w' : 'g'}" data-act="mejora" data-t="${tipo}" data-id="${m.id}" ${hecha || n.caja < m.coste ? 'disabled' : ''}>${hecha ? '✓ Hecha' : cr(m.coste)}</button></div>`; }).join('');
+  const ac = D.acciones.map(a => { const b = bloqueoAccionNeg(s, n, a), activa = (n.temp || []).find(t => t.id === a.id);
+    return `<div class="row" style="flex-wrap:wrap"><div class="ic">${a.ic}</div><div class="tx"><b>${esc(a.n)}</b>${a.desc ? `<span>${esc(a.desc)}</span>` : ''}${chipsEf(a.ef, { fama: a.fama, dur: a.dur, sinVacio: !!a.desc })}
+      ${activa ? `<div class="lock">▶️ En marcha: quedan ${activa.sem} ${activa.sem === 1 ? 'semana' : 'semanas'}</div>` : b ? `<div class="lock">⏳ ${esc(b)}</div>` : ''}</div>
+      <button class="btn" data-act="accionNeg" data-t="${tipo}" data-id="${a.id}" ${b ? 'disabled' : ''}>${a.coste ? cr(a.coste) : 'Hacer'}</button></div>`; }).join('');
+  return `<div class="sec">⚙️ Cómo funciona</div><div class="card">${op}</div>
+    <div class="sec">🔨 Mejoras (se pagan con la caja)</div><div class="card lista">${me}<p class="small">Son permanentes; la mitad de lo invertido suma al valor del negocio.</p></div>
+    <div class="sec">📣 Acciones</div><div class="card lista">${ac}<p class="small">Se pagan con la caja y, después, hay que esperar unas semanas para repetirlas.</p></div>`;
+}
 function beneficioTipico(s, tipo) {
   const T = CFG.negocios[tipo], n = { tipo, fama: 50, precio: 'normal', sueldo: 'basico', empleados: 1 };
   const d = demandaNegocio(s, n) / factorModsNegocio(s, n), cap = T.sueldos.basico.capacidad;
@@ -2358,7 +2606,7 @@ function hojaBienes() {
   // Negocios
   h += `<div class="sec">Negocios</div><div class="card lista">${Object.entries(CFG.negocios).map(([k, T]) => {
     const n = negocioDe(s, k);
-    if (n) return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Caja ${cr(n.caja)} · fama ${n.fama}${n.ultimo ? ` · última semana ${n.ultimo.resultado >= 0 ? '+' : ''}${cr(n.ultimo.resultado)}` : ''}</span></div><button class="btn w" data-act="hoja" data-v="negocio:${k}">Gestionar</button></div>`;
+    if (n) return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Caja ${cr(n.caja)} · fama ${Math.round(n.fama)} · 🔨 ${(n.mejoras || []).length}/${DECISIONES[k].mejoras.length}${n.ultimo ? ` · última semana ${n.ultimo.resultado >= 0 ? '+' : ''}${cr(n.ultimo.resultado)}` : ''}</span></div><button class="btn w" data-act="hoja" data-v="negocio:${k}">Gestionar</button></div>`;
     const b = bloqueoNegocio(s, k);
     return `<div class="row"><div class="ic" style="${b ? 'filter:grayscale(1);opacity:.5' : ''}">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Traspaso ${cr(T.precio)}${b ? ` · 🔒 ${esc(b)}` : ` · gana ~${cr(beneficioTipico(s, k))}/sem`}</span></div><button class="btn" data-act="hoja" data-v="negocio:${k}" ${b ? 'disabled' : ''}>Ver</button></div>`;
   }).join('')}</div>`;
@@ -2421,7 +2669,7 @@ function hojaNegocio(tipo) {
       <button class="btn g full" id="btnComprar" data-act="comprarNeg" data-v="${tipo}" ${s.p.dinero >= total ? '' : 'disabled'}>${s.p.dinero >= total ? `Comprar por ${cr(total)}` : `Te faltan ${cr(total - s.p.dinero)}`}</button>`}`);
   }
   const u = n.ultimo, dem = Math.round(demandaNegocio(s, n)), cap = capacidadNegocio(n), mx = Math.max(dem, cap, 1), pr = T.precios[n.precio];
-  return hoja(`${T.ic} ${T.n}`, `<div class="card"><div class="row"><div class="ic">${T.ic}</div><div class="tx"><b id="caja" class="${n.caja < 0 ? 'down' : ''}">Caja ${cr(n.caja)}</b><span>Fama ${n.fama}/100 · vale ${cr(valorNegocio(n))}</span></div></div>
+  return hoja(`${T.ic} ${T.n}`, `<div class="card"><div class="row"><div class="ic">${T.ic}</div><div class="tx"><b id="caja" class="${n.caja < 0 ? 'down' : ''}">Caja ${cr(n.caja)}</b><span>Fama ${Math.round(n.fama)}/100 · vale ${cr(valorNegocio(n))}</span></div></div>
       <div class="small" style="margin-top:8px">👥 ${T.unidad[0].toUpperCase() + T.unidad.slice(1)} previstas: ~${dem}</div><div class="pbar"><i style="width:${dem / mx * 100}%;background:var(--purple)"></i></div>
       <div class="small" style="margin-top:6px">${T.icEmp} Capacidad: ${cap}</div><div class="pbar"><i style="width:${cap / mx * 100}%;background:var(--blue)"></i></div>
       <p class="small">${dem > cap ? '⚠️ Más demanda que capacidad: perderás clientes y fama.' : dem < cap * 0.6 ? '💸 Sobra personal: pagas sueldos de más.' : '👍 Demanda y capacidad equilibradas.'}</p></div>
@@ -2433,6 +2681,7 @@ function hojaNegocio(tipo) {
       <p class="small">Contratar: −${cr(T.costeContratar)} de la caja. Despedir: una semana de sueldo.</p>
       <div class="seg">${Object.entries(T.sueldos).map(([k, x]) => `<button data-act="neg" data-t="${tipo}" data-c="sueldo" data-v="${k}" class="${n.sueldo === k ? 'sel' : ''}">Sueldo ${x.nombre.toLowerCase()}<br>${cr(x.coste)}</button>`).join('')}</div>
       <p class="small">Básico: ${T.sueldos.basico.capacidad} por persona y −1 fama/semana. Bueno: ${T.sueldos.bueno.capacidad} por persona y +1 fama/semana.</p></div>
+    ${htmlDecisiones(s, n, tipo)}
     <div class="sec">Caja ↔ tu dinero</div><div class="card"><div class="seg">
       <button data-act="traspaso" data-t="${tipo}" data-v="aCaja" ${s.p.dinero >= C.traspaso ? '' : 'disabled'}>👛 → 🏪 ${cr(C.traspaso)}</button>
       <button data-act="traspaso" data-t="${tipo}" data-v="aPersonal" ${n.caja >= C.traspaso ? '' : 'disabled'}>🏪 → 👛 ${cr(C.traspaso)}</button></div></div>
@@ -2617,6 +2866,9 @@ document.addEventListener('click', e => {
     case 'resolver': celebrar = !!(S.pendiente && S.pendiente.tipo === 'ofertas' && v !== 'quedarse') || (S.pendiente && S.pendiente.tipo === 'pantalla') || (S.pendiente && S.pendiente.tipo === 'fin' && ['ascenso', 'campeon'].includes(S.pendiente.zona)); if (!resolver(v)) celebrar = false; break;
     case 'caja': S.cajaElegida = Number(v); render(); break;
     case 'comprarNeg': comprarNegocio(v, S.cajaElegida); break;
+    case 'mejora': comprarMejora(b.dataset.t, id); break;
+    case 'opcion': elegirOpcion(b.dataset.t, b.dataset.c, Number(v)); break;
+    case 'accionNeg': accionNegocio(b.dataset.t, id); break;
     case 'neg': cambiarNegocio(b.dataset.t, b.dataset.c, b.dataset.c === 'empleados' ? Number(v) : v); break;
     case 'traspaso': traspasar(b.dataset.t, v); break;
     case 'venderNeg': venderNegocio(v); S.hoja = 'bienes'; render(); break;
@@ -2656,7 +2908,7 @@ window.__P1 = {
   comprarClub, cambiarClub, traspasarClub, venderClub, interactuar, realizarActividad, bloqueoActividad,
   PANTALLAS, progresoObjetivos: () => progresoObjetivos(S), desbloqueado: k => desbloqueado(S, k), comprobarPantalla: () => comprobarPantalla(S),
   cambiarPlazo, amortizarHipoteca, capacidadHipoteca: () => capacidadHipoteca(S), condicionesHipoteca: a => condicionesHipoteca(S, a), bloqueoInmueble: (a, h) => bloqueoInmueble(S, a, h),
-  bloqueoHijo: () => bloqueoHijo(S), retirarseYa, beneficioTipico: t => beneficioTipico(S, t), bloqueoNegocio: t => bloqueoNegocio(S, t),
+  bloqueoHijo: () => bloqueoHijo(S), DECISIONES, comprarMejora, elegirOpcion, accionNegocio, efectosNegocio: tipo => efectosNegocio(negocioDe(S, tipo)), capacidadNegocio: tipo => capacidadNegocio(negocioDe(S, tipo)), retirarseYa, beneficioTipico: t => beneficioTipico(S, t), bloqueoNegocio: t => bloqueoNegocio(S, t),
   objetivos: () => objetivos(S), patrimonio: () => patrimonio(S), valorClub: id => valorClub(S, id), clubesEnVenta: () => clubesEnVenta(S),
   pruebaBase: () => pruebaBase(S), condicionMejora: () => condicionMejora(S), clasificacion: () => clasificacion(S.temporada),
   club: id => club(S, id), ligaDe: id => ligaDe(S, id), posicion: id => posicion(S, id), umbralTitular: () => umbralTitular(S),
