@@ -610,7 +610,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     const r = await page.evaluate(() => {
       const G = __P1, out = {}, K = G.CFG.escalada;
       G.CFG.club.probSuceso = 0;
-      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'equipoEsc' ? 'club' : G.S.pendiente.tipo === 'patrocinio' ? '0' : G.S.pendiente.tipo === 'nacional' ? 'si' : G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); };
+      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'equipoEsc' ? 'club' : G.S.pendiente.tipo === 'patrocinio' ? '0' : G.S.pendiente.tipo === 'nacional' || G.S.pendiente.tipo === 'invitacion' ? 'si' : G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); };
       const escalador = (seed, edad) => { G.nueva(seed, null, 'escalada', 'bloque'); G.S.p.rep = 15; G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); if (edad) G.S.edad = edad; G.S.p.dinero = 5000; return G.S; };
       const semana = a => { limpiar(); if (a) G.elegir(a); G.avanzarSemana(); limpiar(); };
       // Grados reales
@@ -653,13 +653,44 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       for (let i = 0; i < 40; i++) { s = escalador(400 + i, 20); s.esc.carga = 0; s.p.energia = 90; semana('tecnica'); if (G.S.lesion > 0) lesB++; }
       out.lesiones = { alta: les, baja: lesB };
       s = escalador(12, 20); s.lesion = 3; out.lesionBloquea = !G.disponible('rocoBloque') && G.disponible('descansoEsc');
-      // Patrocinio
-      s = escalador(13, 20); s.p.rep = 41; s.esc.tierOfrecido = 0; semana('descansoEsc');
-      s = G.S; // la oferta ya se ha aceptado (opción 0: dinero fijo)
-      out.patroDbg = [s.p.rep, s.esc.tierOfrecido, s.esc.patro];
-      out.patroOferta = s.esc.tierOfrecido === 2 && !!s.esc.patro && s.esc.patro.tipo === 'fijo' && s.esc.patro.sem >= 150;
+      // Patrocinadores: varias marcas a la vez (una por categoría) y cobro semanal
+      s = escalador(13, 20); s.p.rep = 41; semana('descansoEsc');
+      s = G.S; out.patroDbg = s.esc.patros.map(p => p.marca + ' ' + p.año);
+      out.patroOferta = s.esc.patros.length === 1 && s.esc.patros[0].año > 0;
       semana('descansoEsc');
       out.patroCobra = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Patrocinio') && v > 0);
+      s = escalador(31, 22); s.p.rep = 65; for (let i = 0; i < 16; i++) { s.p.rep = 65; s.semanasAño = 3; semana('descansoEsc'); }
+      out.variasMarcas = new Set(G.S.esc.patros.map(p => p.cat)).size >= 3;
+      out.marcas = G.CFG.escalada.patrocinadores.length >= 12;
+      // Red Bull: solo estrellas, 30.000-50.000 €/año
+      s = escalador(32, 25); s.p.rep = 95; const rbSin = G.reqPatro('redbull'); s.esc.mejor.mundo = 5; const rbCon = G.reqPatro('redbull'), rbPago = G.pagoPatro('redbull');
+      out.redbull = !rbSin && rbCon && rbPago >= 30000 && rbPago <= 50000;
+      // Premios reales: nacionales 500/300/200, Copa del Mundo 8.000/7.000/5.000, máster 4.000
+      const A = G.AMBITOS;
+      out.premios = A.esp.premio.slice(0, 3).join() === '500,300,200' && A.cesp.premio.slice(0, 3).join() === '500,300,200' && A.mundo.premio.slice(0, 3).join() === '8000,7000,5000' && A.master.premio[0] === 4000;
+      // Máster por invitación
+      s = escalador(33, 24); const ma = G.calendarioEsc().find(c => c.amb === 'master');
+      out.masterSinInv = /invitación/.test(G.reqComp(ma) || '');
+      for (const k of Object.keys(s.esc.at)) s.esc.at[k] = 95;
+      s.p.rep = 70; s.semanasAño = ma.sem - 2; G.elegir('descansoEsc'); G.avanzarSemana();
+      out.masterInv = [G.S.pendiente].concat(G.S.cola).some(e => e && e.tipo === 'invitacion');
+      limpiar();
+      for (let i = 0; i < 3; i++) { G.S.p.rep = 70; semana('descansoEsc'); }
+      const pm = G.S.esc.palmares.find(x => x.amb === 'master') || {};
+      out.masterDbg = [pm.n, pm.pos, G.S.semanasAño];
+      out.master = /Máster/.test(pm.n || '') && pm.pos <= 3 && G.S.esc.anual.premios >= 1500;
+      // Beca del Estado: final de Copa del Mundo → 1.400 €/mes solo para escalada; lo que sobra se pierde
+      s = escalador(34, 24); for (const k of Object.keys(s.esc.at)) s.esc.at[k] = 95; s.esc.nacional = s.esc.año; s.p.rep = 60; s.semanasAño = 6; s.esc.modoComp = 'todo';
+      const a0b = s.esc.año; semana('descansoEsc');
+      s = G.S; const pc = s.esc.palmares[0] || {};
+      out.becaDbg = [pc.n, pc.pos, s.esc.becaHasta];
+      out.becaConcedida = /Copa del Mundo/.test(pc.n || '') && pc.pos <= 8 && s.esc.becaHasta === a0b + 1;
+      semana('descansoEsc'); const saldo1 = G.S.esc.becaSaldo;
+      out.becaIngreso = saldo1 >= 900;
+      const din = G.S.p.dinero; G.S.semanasAño = 2; semana('tecnica');
+      out.becaPaga = !G.S.ultimo.eco.some(([t]) => /entrenador/.test(t)) && G.S.ultimo.dep.some(([t]) => /con la beca/.test(t));
+      G.S.semanasAño = 17; semana('descansoEsc');
+      out.becaPierde = G.S.esc.becaSaldo === 0 && G.S.ultimo.opo.some(([, t]) => /Se pierden/.test(t));
       // Fin de año: cumpleaños, resumen y equipo nacional si haces podio en España
       s = escalador(14, 20); s.esc.anual.mejorEsp = 2; s.semanasAño = 17; const e0 = s.edad, a0 = s.esc.año;
       G.elegir('descansoEsc'); G.avanzarSemana();
@@ -710,7 +741,12 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Escalada: condiciones de la roca según el mes (Siurana mala en verano, Céüse buena)', r.condiciones);
     check('Escalada: proyectar en roca hasta encadenar sube tu grado máximo y pasa al siguiente proyecto', r.encadena && r.encadenaRep, JSON.stringify([r.encadena, r.encadenaRep, r.encDbg]));
     check('Escalada: con los dedos cargados la tabla lesiona; descansado, no', r.lesiones.alta > 5 && r.lesiones.baja === 0 && r.lesionBloquea, JSON.stringify(r.lesiones));
-    check('Escalada: patrocinios por reputación (fijo o con primas) que se cobran cada semana', r.patroOferta && r.patroCobra, JSON.stringify([r.patroDbg, r.patroOferta, r.patroCobra]));
+    check('Escalada: patrocinadores según tu fama, que se cobran cada semana', r.patroOferta && r.patroCobra, JSON.stringify([r.patroDbg, r.patroOferta, r.patroCobra]));
+    check('Escalada: muchas marcas y varias a la vez (una por categoría)', r.marcas && r.variasMarcas);
+    check('Escalada: Red Bull solo para estrellas, de 30.000 a 50.000 € al año', r.redbull);
+    check('Escalada: premios de 500/300/200 € en España, 8.000/7.000/5.000 € en Copa del Mundo y 4.000 € en los másters', r.premios);
+    check('Escalada: másters internacionales solo por invitación, con premio', r.masterSinInv && r.masterInv && r.master, JSON.stringify([r.masterDbg, r.masterSinInv, r.masterInv, r.master]));
+    check('Escalada: beca del Estado por llegar a una final de Copa del Mundo, solo para gastos de escalada', r.becaConcedida && r.becaIngreso && r.becaPaga && r.becaPierde, JSON.stringify([r.becaDbg, r.becaConcedida, r.becaIngreso, r.becaPaga, r.becaPierde]));
     check('Escalada: fin de año con cumpleaños, resumen y convocatoria del equipo nacional', r.finAño && r.nacional);
     check('Escalada: hasta los 18 pagan tus padres; después, cuota y gastos de vida', r.menor && r.adulto);
     check('Escalada: retirada desde los 28 y acciones propias de retirado', r.retiroAntes && r.retiro && r.retiradoAcciones && r.retiradoSemana);
@@ -726,7 +762,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
         G.nueva(seed, null, 'escalada', fuerte); const S = () => G.S; const L = { p5: null, nac: null };
         for (let w = 0; w < 3000 && S().edad < 34; w++) {
           const ev = S().pendiente;
-          if (ev) { if (ev.tipo === 'equipoEsc') G.resolver(S().p.nivel >= 30 ? 'centro' : 'club'); else if (ev.tipo === 'patrocinio' || ev.tipo === 'suceso') G.resolver('0'); else if (ev.tipo === 'nacional') { L.nac = L.nac || S().edad; G.resolver('si'); } else G.resolver('ok'); continue; }
+          if (ev) { if (ev.tipo === 'equipoEsc') G.resolver(S().p.nivel >= 30 ? 'centro' : 'club'); else if (ev.tipo === 'patrocinio' || ev.tipo === 'suceso') G.resolver('0'); else if (ev.tipo === 'nacional') { L.nac = L.nac || S().edad; G.resolver('si'); } else if (ev.tipo === 'invitacion') G.resolver('si'); else G.resolver('ok'); continue; }
           const s = S(), E = s.esc;
           if (s.pantalla >= 5 && !L.p5) L.p5 = s.edad;
           if (s.fase !== 'rocodromo') for (const [k, T] of Object.entries(G.CFG.negocios)) if (!G.bloqueoNegocio(k) && s.p.dinero > T.precio + T.cajaOpciones[1] + 3000) G.comprarNegocio(k, T.cajaOpciones[1]);

@@ -40,9 +40,19 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   con tu nivel, energía, felicidad, cabeza y presión frente al nivel de los rivales.
 - **Equipo nacional**: si haces podio en España o un buen puesto en Copa del Mundo, la federación te
   convoca para el año siguiente (beca, viajes pagados, competiciones internacionales).
-- **Patrocinadores** según tu fama: primero material; después ofertas de dos marcas (dinero fijo
-  durante 2 años, o menos fijo con primas por podio y por encadenar 8b o más). **Seguidores** y
-  colaboraciones en redes. La fama se apaga si no das que hablar.
+- **Patrocinadores**: 13 marcas en 5 categorías (local, bebida, pies de gato, material y ropa), una
+  por categoría a la vez. Te llaman cuando tu fama sube: de la tienda de montaña del barrio (material)
+  a La Sportiva, The North Face o **Red Bull** (de 30.000 a 50.000 € al año, solo para estrellas con una
+  final de Copa del Mundo, un 9a o una medalla). Puedes elegir dinero fijo o menos fijo con primas por
+  podio y por encadenar 8b o más. Se renuevan solos si sigues cumpliendo lo que pide la marca.
+  Marcas reales usadas como ambientación: los importes son de juego, no contratos reales.
+- **Premios**: competiciones nacionales 500, 300 y 200 €; Copa del Mundo 8.000, 7.000 y 5.000 €.
+- **Másters internacionales** en rocódromos (Stuttgart, Arco, Ginebra): solo por invitación (fama 65,
+  un top 16 en Copa del Mundo o nivel muy alto), con viaje pagado y 4.000 € para quien gana.
+- **Beca del Estado**: si llegas a una final de Copa del Mundo, Mundial o Juegos (las 8 mejores),
+  1.400 € al mes durante ese año y el siguiente, pero solo para gastos de escalada (entrenamiento,
+  cuotas, material, viajes y competiciones); lo que no gastes al acabar el año se pierde.
+- **Seguidores** y colaboraciones en redes. La fama se apaga si no das que hablar.
 - **Retirada** desde los 28 años; desde los 34 se pierde nivel cada semana.
 - **4 negocios de escalada** (también para futbolistas): escuela de escalada, tienda de material,
   rocódromo de bloque y marca de presas, cada uno con sus propias decisiones. **Furgoneta camper**.
@@ -164,10 +174,13 @@ En vidas simuladas, las pantallas 1–8 se superan entre los 17 y los 25 años, 
 
 Siempre hay un camino de negocios por si tu techo no da para la élite mundial.
 
-**Dinero en la escalada (importes de juego):** patrocinio de 0 (material) a 5.000 €/semana; beca de la
-federación 120 €/semana (450 € de alto nivel); monitor 150 €/semana; equipador 260 €/semana;
-premios de 100 € (autonómico) a 4.000 € (Copa del Mundo) y 6.000 € (Mundial); medalla olímpica: premio
-del Consejo Superior de Deportes de 94.000, 48.000 o 30.000 €; colaboraciones en redes 2,5 € por cada
+**Dinero en la escalada (importes de juego; un año de juego son 18 semanas):** patrocinadores de 0
+(material) a 50.000 €/año cada uno (Red Bull), que se cobran repartidos por semanas; beca del Estado
+1.400 €/mes (solo para escalada); ayuda del equipo nacional 120 €/semana; monitor 150 €/semana;
+equipador 260 €/semana; premios: autonómico 100/60/40 €, Copa y Campeonato de España 500/300/200 €,
+Copa de Europa 800/500/300 €, máster 4.000/2.500/1.500 €, Copa del Mundo 8.000/7.000/5.000 € (del 4º al
+8º, de 3.000 a 1.000 €), Europeo 6.000/4.000/3.000 €, Mundial 10.000/8.000/6.000 €; medalla olímpica:
+premio del Consejo Superior de Deportes de 94.000, 48.000 o 30.000 €; colaboraciones en redes 2,5 € por cada
 1.000 seguidores a partir de 10.000. Gastos: licencia 90 €/año, cuota del equipo (0–45 €/semana), pies
 de gato cada 8 semanas de entreno (130 €, gratis con patrocinador), viajes a la roca (40–1.600 €/semana),
 inscripción y viaje a competiciones (gratis con el equipo nacional), y vida (con tu familia hasta los 23,
