@@ -123,7 +123,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    tu dinero y las cajas no se mezclan; patrimonio, logros, guardado y reinicio.
 3. **Reglas**: mundo, calendario, determinismo, ascenso con prima, felicidad en la nota (+0,9 entre
    felicidad 95 y 5), relaciones, actividades, cadena de negocios, vivienda (−60 % de gastos),
-   revalorización, coches, clubes, **los 44 imprevistos con todas sus opciones (89)**, préstamo,
+   revalorización, coches, clubes, **los 44 imprevistos con sus 77 opciones**, préstamo,
    representante, lesiones y negociación.
 4. **Vidas completas** (3 estrategias × 3 vidas, hasta 300 semanas; todas llegan a 100.000 €):
    - «Crecer» (entrenamiento extra, buscar categoría): 100.000 € en la semana ~80, millón ~123, nivel ~92.
