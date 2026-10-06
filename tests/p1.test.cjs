@@ -35,6 +35,14 @@ async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.
   /* ---------- 1. Interfaz táctil: bucle de una semana ---------- */
   {
     const { ctx, page, errors, requests } = await openPage(browser, iphone);
+    // Presentación: nombre y personaje
+    await shot(page, '00_intro');
+    check('Primera vez: aparece la presentación', (await page.locator('#btnEmpezar').count()) === 1 && (await st(page)).intro === true);
+    await page.locator('#nombre').fill('Leo');
+    await tap(page, '[data-act=avatar][data-v="🧑🏾"]');
+    await tap(page, '#btnEmpezar');
+    const si = await st(page);
+    check('Al empezar se guarda el nombre y el personaje', !si.intro && si.nombre === 'Leo' && si.avatar === '🧑🏾' && (await page.locator('#top').textContent()).includes('Leo'));
     await page.evaluate(() => __P1.nueva(7));
     await shot(page, '01_barrio');
     check('Empieza en el barrio, semana 1', (await st(page)).fase === 'barrio' && (await st(page)).semana === 1);
@@ -67,6 +75,8 @@ async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.
       }
     }
     check('Sin desplazamiento horizontal a 320 y 375 px en las tres pestañas', true);
+    const txt = await page.evaluate(() => document.body.innerText);
+    check('Los importes se muestran en euros', txt.includes('€') && !/\d cr\b/.test(txt));
     check('Sin errores de JavaScript', errors.length === 0, errors.join(' | '));
     check('Sin peticiones externas', requests.every(u => u.startsWith('file:')), requests.filter(u => !u.startsWith('file:')).join(', '));
     await ctx.close();
@@ -151,7 +161,7 @@ async function shot(page, name) { if (SHOTS) await page.screenshot({ path: path.
     check('Reiniciar pide confirmación (un toque no borra)', (await st(page)).semana === antes.semana);
     await tap(page, '#btnReiniciar');
     const r = await st(page);
-    check('El segundo toque reinicia la partida', r.semana === 1 && r.fase === 'barrio' && !r.negocio);
+    check('El segundo toque reinicia la partida (vuelve a la presentación)', r.semana === 1 && r.fase === 'barrio' && !r.negocio && r.intro && (await page.locator('#btnEmpezar').count()) === 1);
     await page.reload();
     check('El reinicio también borra el guardado', (await st(page)).semana === 1);
     check('Sin errores de JavaScript en la partida completa', errors.length === 0, errors.join(' | '));

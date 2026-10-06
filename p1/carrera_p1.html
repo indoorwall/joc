@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0f1f17">
+<meta name="theme-color" content="#3a2d7a">
 <title>Del barrio al negocio · P1</title>
 <!--
   PROTOTIPO P1 — Juego de gestión y decisiones: carrera de futbolista + inversión en un negocio.
@@ -27,128 +27,238 @@
 -->
 <style>
   :root {
-    --bg: #0f1f17;
-    --bg-2: #0a1610;
-    --card: #17302a;
-    --card-2: #1e3b33;
-    --line: #2c4d43;
-    --ink: #f2f6f3;
-    --dim: #a7bdb3;
-    --accent: #ffd23f;
-    --ok: #5fdc8f;
-    --bad: #ff7a6b;
-    --info: #74c7ff;
+    --ink: #2a2340;
+    --paper: #fff8e7;
+    --paper-2: #ffeec4;
+    --sky1: #3a2d7a;
+    --sky2: #6a3fb0;
+    --yellow: #ffc93c;
+    --green: #4fd36a;
+    --red: #ff6b5e;
+    --blue: #48a9ff;
+    --pink: #ff7eb6;
+    --dim: #6d6488;
+    --chip-g: #c4f5cf;
+    --chip-b: #ffd0ca;
+    --chip-n: #ffe7a3;
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; padding: 0; background: var(--bg-2); color: var(--ink); }
+  html, body { margin: 0; padding: 0; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 16px; line-height: 1.4;
+    background: linear-gradient(170deg, var(--sky1), var(--sky2) 60%, #8b4fc0) fixed;
+    background-color: var(--sky1);
+    color: var(--ink);
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 16px; line-height: 1.35;
     -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
+    -webkit-user-select: none; user-select: none;
   }
-  #app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--bg); position: relative; }
+  #app { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
+  button { font-family: inherit; color: inherit; }
 
-  /* ---------- Barra superior ---------- */
+  /* ---------- HUD ---------- */
   #top {
     position: sticky; top: 0; z-index: 5;
-    background: var(--bg);
-    padding: calc(var(--safe-top) + 10px) 16px 10px;
-    border-bottom: 1px solid var(--line);
+    padding: calc(var(--safe-top) + 8px) 12px 8px;
+    background: rgba(32, 24, 70, .92);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border-bottom: 3px solid var(--ink);
   }
-  .toprow { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .week { font-weight: 800; font-size: 18px; }
-  .phase { color: var(--dim); font-size: 13px; }
-  .money { font-weight: 800; font-size: 18px; color: var(--accent); white-space: nowrap; }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-  .stat { font-size: 12px; color: var(--dim); }
-  .stat b { color: var(--ink); font-size: 14px; }
-  .bar { height: 6px; background: #0b1a14; border-radius: 3px; overflow: hidden; margin-top: 3px; }
-  .bar i { display: block; height: 100%; background: var(--info); }
-  .bar.e i { background: var(--ok); }
-  .bar.e.low i { background: var(--bad); }
-  .bar.r i { background: var(--accent); }
+  #top:empty { display: none; }
+  .hudrow { display: flex; align-items: center; gap: 8px; }
+  .ava { width: 44px; height: 44px; border-radius: 50%; background: var(--yellow); border: 3px solid var(--ink);
+         display: grid; place-items: center; font-size: 26px; box-shadow: 0 3px 0 var(--ink); flex: none; }
+  .who { flex: 1; min-width: 0; color: #fff; }
+  .who b { display: block; font-size: 17px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .who span { font-size: 12px; opacity: .8; font-weight: 700; }
+  .coin { background: #fff; border: 3px solid var(--ink); border-radius: 999px; padding: 4px 12px 4px 6px; font-weight: 900;
+          font-size: 17px; box-shadow: 0 3px 0 var(--ink); white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+  .coin i { font-style: normal; width: 26px; height: 26px; border-radius: 50%; background: var(--yellow); border: 2px solid var(--ink);
+            display: grid; place-items: center; font-size: 14px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+  .sp { background: rgba(255,255,255,.12); border-radius: 12px; padding: 4px 8px; color: #fff; font-size: 12px; font-weight: 800; }
+  .sp b { font-size: 16px; }
+  .sp small { display: block; font-size: 10px; opacity: .75; margin-top: 2px; text-transform: uppercase; letter-spacing: .06em; }
+  .bar { height: 7px; background: rgba(0,0,0,.35); border-radius: 4px; overflow: hidden; margin-top: 3px; }
+  .bar i { display: block; height: 100%; border-radius: 4px; transition: width .6s ease; }
 
   /* ---------- Contenido ---------- */
-  main { padding: 12px 16px calc(var(--safe-bottom) + 160px); }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
-    padding: 14px 16px; margin-bottom: 12px;
-  }
-  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 6px; }
-  .card h3 { font-size: 20px; margin: 0 0 6px; }
+  main { padding: 12px 14px calc(var(--safe-bottom) + 170px); }
+  .card { background: var(--paper); border: 3px solid var(--ink); border-radius: 22px; padding: 14px; margin-bottom: 14px;
+          box-shadow: 0 5px 0 var(--ink); position: relative; }
+  .card h2 { margin: 0 0 6px; font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+  .card h3 { margin: 0 0 6px; font-size: 21px; font-weight: 900; line-height: 1.15; }
   .card p { margin: 6px 0; }
-  .goal { border-color: var(--accent); background: linear-gradient(180deg, #2a3a1c, var(--card)); }
-  .goal .prog { height: 10px; background: #0b1a14; border-radius: 5px; overflow: hidden; margin: 8px 0 4px; }
-  .goal .prog i { display: block; height: 100%; background: var(--accent); }
-  .next { color: var(--dim); font-size: 14px; }
   .small { font-size: 13px; color: var(--dim); }
-  .tag { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 10px; background: var(--card-2); color: var(--dim); margin: 2px 4px 2px 0; }
-  .tag.warn { background: #4a2620; color: #ffc2b8; }
-  .tag.good { background: #1d4a31; color: #b9f3cf; }
+  .sec-t { color: #fff; font-weight: 900; font-size: 18px; margin: 18px 4px 10px; text-shadow: 0 2px 0 var(--ink); }
 
-  /* Opciones de decisión */
-  .opt {
-    display: block; width: 100%; text-align: left;
-    background: var(--card); color: var(--ink);
-    border: 2px solid var(--line); border-radius: 16px;
-    padding: 14px 16px; margin-bottom: 10px;
-    font: inherit; cursor: pointer; min-height: 64px;
-  }
-  .opt .t { font-size: 18px; font-weight: 700; display: block; margin-bottom: 4px; }
-  .opt .pro { color: var(--ok); display: block; font-size: 14px; }
-  .opt .con { color: var(--bad); display: block; font-size: 14px; }
-  .opt .why { color: var(--dim); display: block; font-size: 13px; margin-top: 4px; }
-  .opt.sel { border-color: var(--accent); background: var(--card-2); box-shadow: 0 0 0 2px rgba(255,210,63,.25) inset; }
-  .opt:disabled { opacity: .45; cursor: not-allowed; }
-  .opt .lock { color: var(--dim); display: block; font-size: 13px; margin-top: 4px; }
+  /* Escena */
+  .scene { height: 178px; border: 3px solid var(--ink); border-radius: 22px; overflow: hidden; position: relative;
+           box-shadow: 0 5px 0 var(--ink); margin-bottom: 14px; background: #333; }
+  .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .chap { position: absolute; top: 10px; left: 10px; background: var(--ink); color: #fff; font-weight: 900; font-size: 11px;
+          letter-spacing: .08em; padding: 5px 10px; border-radius: 999px; max-width: calc(100% - 20px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hero { position: absolute; bottom: 10px; left: 18%; font-size: 58px; line-height: 1; animation: bob 2.4s ease-in-out infinite;
+          filter: drop-shadow(0 4px 0 rgba(0,0,0,.25)); }
+  .bubble { position: absolute; right: 10px; bottom: 14px; width: 56%; background: #fff; border: 3px solid var(--ink); border-radius: 16px;
+            padding: 7px 10px; font-size: 13px; font-weight: 800; line-height: 1.25; }
+  .bubble::before { content: ''; position: absolute; left: -12px; bottom: 14px; border: 6px solid transparent; border-right: 8px solid var(--ink); }
+  .badge { display: inline-block; font-size: 12px; font-weight: 900; padding: 3px 9px; border-radius: 999px; border: 2px solid var(--ink); background: #fff; margin: 2px 3px 2px 0; }
+  .badge.g { background: var(--chip-g); } .badge.b { background: var(--chip-b); } .badge.n { background: var(--chip-n); }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-  .btn {
-    display: block; width: 100%; min-height: 56px; border: 0; border-radius: 16px;
-    background: var(--accent); color: #1b1b0e; font: inherit; font-size: 18px; font-weight: 800;
-    padding: 14px 16px; cursor: pointer; margin-bottom: 10px;
-  }
-  .btn:disabled { background: #3b4a42; color: #8aa096; cursor: not-allowed; }
-  .btn.sec { background: var(--card-2); color: var(--ink); border: 1px solid var(--line); }
-  .btn.danger { background: #5a2018; color: #ffd7d0; }
-  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin: 6px 0 10px; }
-  .seg button {
-    min-height: 48px; border-radius: 12px; border: 2px solid var(--line); background: var(--card-2);
-    color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; padding: 6px 4px; cursor: pointer;
-  }
-  .seg button.sel { border-color: var(--accent); color: var(--accent); }
-  .seg button:disabled { opacity: .4; }
+  /* Misión */
+  .mission { background: linear-gradient(180deg, #fff3c4, var(--paper)); }
+  .mission .h { display: flex; align-items: center; gap: 8px; }
+  .mission .h .ic { font-size: 30px; }
+  .xp { height: 18px; background: #e9dfc6; border: 3px solid var(--ink); border-radius: 999px; overflow: hidden; margin: 10px 0 4px; position: relative; }
+  .xp i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--yellow) 0 10px, #ffb52e 10px 20px); transition: width .8s ease; }
+  .xp span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 11px; font-weight: 900; }
+  .road { display: flex; justify-content: space-between; align-items: flex-start; margin: 12px 0 2px; position: relative; }
+  .road::before { content: ''; position: absolute; left: 18px; right: 18px; top: 17px; height: 4px; background: var(--ink); opacity: .2; border-radius: 2px; }
+  .node { position: relative; z-index: 1; width: 20%; text-align: center; font-size: 10px; font-weight: 900; color: var(--dim); }
+  .node i { font-style: normal; width: 38px; height: 38px; margin: 0 auto 3px; border-radius: 50%; border: 3px solid var(--ink); background: #ddd;
+            display: grid; place-items: center; font-size: 17px; filter: grayscale(1); opacity: .6; }
+  .node.done i { background: var(--green); filter: none; opacity: 1; }
+  .node.now i { background: var(--yellow); filter: none; opacity: 1; animation: pulse 1.6s infinite; }
+  .node.now { color: var(--ink); }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,201,60,.9); } 50% { box-shadow: 0 0 0 7px rgba(255,201,60,0); } }
 
-  /* Barra de acción fija */
-  #dock {
-    position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; z-index: 6;
-    width: 100%; max-width: 480px;
-    background: linear-gradient(180deg, rgba(15,31,23,0), var(--bg) 18%);
-    padding: 18px 16px 0;
-  }
-  #dock .btn { margin-bottom: 8px; }
-  nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding-bottom: calc(var(--safe-bottom) + 8px); background: var(--bg); }
-  nav button {
-    min-height: 48px; border-radius: 12px; border: 1px solid var(--line); background: var(--card);
-    color: var(--dim); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
-  }
-  nav button.on { color: var(--ink); border-color: var(--ink); }
+  /* Cartas de decisión */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opt { position: relative; background: var(--paper); border: 3px solid var(--ink); border-radius: 20px; padding: 12px 8px 10px;
+         box-shadow: 0 5px 0 var(--ink); text-align: center; cursor: pointer; min-height: 138px; font: inherit;
+         display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform .12s ease; }
+  .opt:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--ink); }
+  .opt .ic { font-size: 38px; line-height: 1.1; }
+  .opt .t { font-weight: 900; font-size: 15px; line-height: 1.15; }
+  .opt.sel { background: #fff1b8; transform: translateY(-4px) rotate(-1deg); box-shadow: 0 9px 0 var(--ink); outline: 4px solid var(--yellow); outline-offset: 2px; }
+  .opt.sel::after { content: '✔'; position: absolute; top: -12px; right: -8px; width: 30px; height: 30px; border-radius: 50%;
+                    background: var(--green); border: 3px solid var(--ink); display: grid; place-items: center; font-weight: 900; color: #fff; }
+  .opt:disabled { filter: grayscale(1); opacity: .55; cursor: not-allowed; }
+  .opt .lock { font-size: 12px; font-weight: 800; color: var(--dim); }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 2px; }
+  .chip { font-size: 12px; font-weight: 900; padding: 2px 7px; border-radius: 999px; border: 2px solid var(--ink); background: var(--chip-n); white-space: nowrap; }
+  .chip.g { background: var(--chip-g); } .chip.b { background: var(--chip-b); }
+  .plan { background: #fff; border-style: dashed; margin-top: 14px; }
+  .plan .pro { color: #15803d; font-weight: 800; } .plan .con { color: #c2410c; font-weight: 800; }
 
-  /* Resultados y tablas */
-  .res-line { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  /* Botones */
+  .btn { display: block; width: 100%; min-height: 58px; border: 3px solid var(--ink); border-radius: 18px; background: var(--yellow);
+         font-size: 19px; font-weight: 900; letter-spacing: .02em; padding: 12px 16px; cursor: pointer; margin-bottom: 10px;
+         box-shadow: 0 6px 0 var(--ink); text-transform: uppercase; transition: transform .08s ease; }
+  .btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 var(--ink); }
+  .btn.go { background: var(--green); color: #fff; text-shadow: 0 2px 0 var(--ink); }
+  .btn.sec { background: #fff; font-size: 16px; min-height: 50px; text-transform: none; }
+  .btn.danger { background: var(--red); color: #fff; font-size: 16px; text-transform: none; }
+  .btn:disabled { background: #b9b3c9; color: #6d6488; text-shadow: none; cursor: not-allowed; box-shadow: 0 6px 0 #6d6488; border-color: #6d6488; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; margin: 8px 0 10px; }
+  .seg button { min-height: 52px; border-radius: 14px; border: 3px solid var(--ink); background: #fff; font-size: 15px; font-weight: 900;
+                padding: 6px 4px; cursor: pointer; box-shadow: 0 4px 0 var(--ink); }
+  .seg button.sel { background: var(--yellow); transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+  .seg button:disabled { opacity: .45; }
+
+  /* Dock y pestañas */
+  #dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; z-index: 6; width: 100%; max-width: 480px; padding: 16px 14px 0;
+          background: linear-gradient(180deg, rgba(58,45,122,0), rgba(58,45,122,.95) 30%); }
+  #dock:empty { display: none; }
+  nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding-bottom: calc(var(--safe-bottom) + 8px); }
+  nav button { min-height: 54px; border-radius: 16px; border: 3px solid var(--ink); background: #5b4a9a; color: #fff;
+               font-size: 13px; font-weight: 900; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+  nav button span { font-size: 20px; line-height: 1; }
+  nav button.on { background: #fff; color: var(--ink); box-shadow: 0 4px 0 var(--ink); transform: translateY(-3px); }
+
+  /* Resultados */
+  .board { background: #1b1638; color: #fff; text-align: center; padding: 16px 12px; }
+  .board h2 { color: #b9b0e0; }
+  .teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; font-weight: 900; font-size: 14px; }
+  .score { font-family: ui-monospace, Menlo, monospace; font-size: 44px; font-weight: 900; color: var(--yellow); letter-spacing: .05em;
+           background: #000; border-radius: 12px; padding: 2px 14px; border: 3px solid #444; }
+  .ribbon { display: inline-block; margin-top: 12px; padding: 6px 18px; border-radius: 999px; font-weight: 900; font-size: 18px;
+            letter-spacing: .1em; border: 3px solid #fff; animation: pop .5s ease both .3s; }
+  .ribbon.victoria { background: var(--green); } .ribbon.empate { background: #8a84a6; } .ribbon.derrota { background: var(--red); }
+  .me { display: flex; align-items: center; gap: 12px; text-align: left; }
+  .nota { flex: none; width: 74px; height: 74px; border-radius: 50%; border: 4px solid var(--ink); display: grid; place-items: center;
+          font-size: 28px; font-weight: 900; animation: pop .5s ease both .5s; }
+  .nota.hi { background: var(--green); color: #fff; } .nota.mid { background: var(--yellow); } .nota.lo { background: var(--red); color: #fff; } .nota.no { background: #ddd; font-size: 30px; }
+  .rewards { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .rw { font-size: 17px; font-weight: 900; padding: 6px 12px; border-radius: 14px; border: 3px solid var(--ink); background: #fff; box-shadow: 0 3px 0 var(--ink);
+        animation: pop .45s ease both; }
+  .rw.g { background: var(--chip-g); } .rw.b { background: var(--chip-b); }
+  .big { font-size: 64px; font-weight: 900; text-align: center; line-height: 1; margin: 8px 0; animation: pop .6s ease both .2s; }
+  .news { background: linear-gradient(180deg, #fff3c4, #ffe08a); }
+  .news .it { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; }
+  .news .it .ic { font-size: 26px; }
+  details.why { background: #fff; }
+  details.why summary { font-weight: 900; cursor: pointer; list-style: none; padding: 4px 0; font-size: 16px; }
+  details.why summary::-webkit-details-marker { display: none; }
+  details.why h4 { margin: 12px 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); }
+  .res-line { padding: 7px 0; border-bottom: 2px dashed #e6dcc4; }
   .res-line:last-child { border-bottom: 0; }
-  .res-line .h { font-weight: 700; }
+  .res-line .h { font-weight: 900; }
   .res-line .r { color: var(--dim); font-size: 13px; display: block; margin-top: 2px; }
-  .up { color: var(--ok); } .down { color: var(--bad); }
+  @keyframes pop { 0% { transform: scale(.3); opacity: 0; } 70% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+
   table { width: 100%; border-collapse: collapse; font-size: 15px; }
-  td { padding: 6px 0; border-bottom: 1px solid var(--line); }
-  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  tr.tot td { font-weight: 800; border-bottom: 0; }
-  .club { border: 2px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; background: var(--card); }
-  .club h3 { margin: 0 0 2px; font-size: 20px; }
-  .note { font-size: 12px; color: var(--dim); text-align: center; margin: 14px 0 0; }
+  td { padding: 6px 0; border-bottom: 2px dashed #e6dcc4; }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 800; }
+  tr.tot td { font-weight: 900; border-bottom: 0; font-size: 17px; }
+  .up { color: #15803d; } .down { color: #c2410c; }
+
+  /* Clubes */
+  .club .top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .club .top h3 { margin: 0; }
+  .cmp { display: grid; grid-template-columns: 112px 1fr auto; gap: 6px 8px; align-items: center; font-size: 14px; font-weight: 800; margin: 8px 0; }
+  .cmp .b { height: 12px; background: #e9dfc6; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; }
+  .cmp .b i { display: block; height: 100%; }
+  .cmp .v { font-size: 13px; white-space: nowrap; }
+  details.more summary { font-weight: 900; font-size: 14px; cursor: pointer; color: var(--dim); padding: 6px 0; }
+
+  /* Negocio y finanzas */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+  .tile { background: var(--paper); border: 3px solid var(--ink); border-radius: 16px; padding: 8px 6px; text-align: center; box-shadow: 0 4px 0 var(--ink); }
+  .tile .ic { font-size: 22px; }
+  .tile b { display: block; font-size: 16px; font-weight: 900; white-space: nowrap; }
+  .tile span { font-size: 11px; font-weight: 800; color: var(--dim); }
+  .stars { color: #f5a300; letter-spacing: 1px; font-size: 15px; }
+  .staff { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0; }
+  .staff .rb { width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--ink); background: #fff; font-size: 26px; font-weight: 900;
+               box-shadow: 0 4px 0 var(--ink); cursor: pointer; flex: none; }
+  .staff .rb:disabled { opacity: .4; }
+  .staff .people { font-size: 34px; text-align: center; flex: 1; }
+  .meter { margin: 6px 0; font-size: 13px; font-weight: 800; }
+  .meter .b { height: 14px; background: #e9dfc6; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; margin-top: 2px; }
+  .meter .b i { display: block; height: 100%; }
+  .bigmoney { font-size: 40px; font-weight: 900; text-align: center; margin: 4px 0; }
+  .chart { display: flex; align-items: flex-end; gap: 4px; height: 90px; padding-top: 6px; }
+  .chart div { flex: 1; background: var(--blue); border: 2px solid var(--ink); border-radius: 6px 6px 2px 2px; min-height: 4px; }
+  .chart div.last { background: var(--yellow); }
+  .note { font-size: 12px; color: rgba(255,255,255,.8); text-align: center; margin: 14px 8px 0; font-weight: 700; }
+
+  /* Intro */
+  .intro { padding: calc(var(--safe-top) + 30px) 18px 40px; text-align: center; color: #fff; }
+  .logo { font-size: 64px; animation: bob 2.4s ease-in-out infinite; }
+  .intro h1 { font-size: 34px; font-weight: 900; line-height: 1.05; margin: 8px 0 6px; text-shadow: 0 3px 0 var(--ink); letter-spacing: .02em; }
+  .intro .sub { font-weight: 800; opacity: .9; margin-bottom: 22px; }
+  .intro .card { text-align: left; color: var(--ink); }
+  .intro input { width: 100%; font: inherit; font-size: 18px; font-weight: 800; padding: 12px 14px; border-radius: 14px; border: 3px solid var(--ink); background: #fff;
+                 -webkit-user-select: text; user-select: text; }
+  .avas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+  .avas button { font-size: 32px; min-height: 58px; border-radius: 16px; border: 3px solid var(--ink); background: #fff; box-shadow: 0 4px 0 var(--ink); cursor: pointer; }
+  .avas button.sel { background: var(--yellow); transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+
+  /* Aviso flotante y confeti */
+  #toast { position: fixed; left: 50%; top: calc(var(--safe-top) + 110px); transform: translateX(-50%); z-index: 9; width: calc(100% - 28px); max-width: 452px; pointer-events: none; }
+  #toast div { background: #fff; border: 3px solid var(--ink); border-radius: 16px; padding: 10px 14px; font-weight: 800; font-size: 14px;
+               box-shadow: 0 5px 0 var(--ink); animation: toast 4.5s ease both; }
+  @keyframes toast { 0% { opacity: 0; transform: translateY(-20px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-10px); } }
+  .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 8; }
+  .confetti i { position: absolute; top: -20px; width: 10px; height: 16px; border: 2px solid var(--ink); border-radius: 3px; animation: fall 2.8s linear both; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
@@ -157,16 +267,17 @@
   <main id="main"></main>
   <div id="dock"></div>
 </div>
+<div id="toast" aria-live="polite"></div>
 <script>
 'use strict';
 
 /* =====================================================================
    1. CONFIGURACIÓN
-   Todos los importes son PROVISIONALES y están en "cr" (créditos ficticios).
+   Todos los importes están en euros pero son PROVISIONALES, de juego.
    No representan precios ni salarios reales. Cámbialos aquí para equilibrar.
    ===================================================================== */
 const CFG = {
-  moneda: 'cr',
+  moneda: '€',
   guardado: 'del_barrio_al_negocio_p1_v1',
   inicio: { nivel: 30, energia: 70, rep: 5, dinero: 40 },
   energiaMax: 100,
@@ -198,7 +309,7 @@ const CFG = {
   },
   clubs: {
     ciudad: {
-      nombre: 'Atlético Ciudad', equipo: 'Equipo filial', tipo: 'Club grande',
+      nombre: 'Atlético Ciudad', equipo: 'Equipo filial', tipo: 'Club grande', siglas: 'AC', color1: '#e63946', color2: '#ffffff',
       umbralContratoBueno: 60, salarioBueno: 110, salarioFormacion: 70,
       fichaje: 0, primaVictoria: 15, semanas: 26,
       calidad: 1.5, umbral: 62, rivalNivel: 52, visibilidad: 1.5, probVictoria: 0.45, notaMejora: 6.3,
@@ -206,7 +317,7 @@ const CFG = {
                 umbral: 72, rivalNivel: 60, visibilidad: 2, probVictoria: 0.5, semanas: 40 },
     },
     puerto: {
-      nombre: 'UD Puerto', equipo: 'Primer equipo', tipo: 'Club modesto',
+      nombre: 'UD Puerto', equipo: 'Primer equipo', tipo: 'Club modesto', siglas: 'UDP', color1: '#1d6fd1', color2: '#ffd23f',
       salarioBase: 160, salarioPorPunto: 3, puntosDesde: 55,
       fichaje: 150, primaVictoria: 30, semanas: 26,
       calidad: 1.0, umbral: 52, rivalNivel: 45, visibilidad: 1.0, probVictoria: 0.4, notaMejora: 6.0,
@@ -245,6 +356,8 @@ const CFG = {
     traspaso: 100,              // importe de cada traspaso entre dinero personal y caja
   },
   metaPatrimonio: 5000,
+  rivales: ['CD Ribera', 'Racing Norte', 'SD Molinos', 'CF Llano', 'Real Ventisca', 'UD Arenal', 'Atlético Faro', 'CD Torreta', 'Sporting Lago', 'CF Montaña'],
+  avatares: ['🧑🏻', '🧑🏽', '🧑🏾', '🧑🏿', '👩🏻', '👩🏽', '👨🏻', '👨🏾'],
 };
 
 /* =====================================================================
@@ -259,7 +372,7 @@ function rnd(s) { // mulberry32, estado guardado en la partida (resultados repro
 }
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const r1 = v => Math.round(v * 10) / 10;
-const cr = n => `${Math.round(n).toLocaleString('es-ES')} ${CFG.moneda}`;
+const cr = n => (n < 0 ? '−' : '') + String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' ' + CFG.moneda;
 const nf = v => String(r1(v)).replace('.', ',');
 const sg = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + nf(Math.abs(n));
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -292,6 +405,7 @@ function nuevaPartida(seed) {
     historial: [],
     metaVista: false,
     cajaElegida: CFG.negocio.cajaOpciones[0],
+    intro: true, nombre: '', avatar: CFG.avatares[0],
   };
 }
 
@@ -303,7 +417,9 @@ function cargar() {
     const t = localStorage.getItem(CFG.guardado);
     if (!t) return null;
     const s = JSON.parse(t);
-    return s && s.v === 1 ? s : null;
+    if (!s || s.v !== 1) return null;
+    if (s.intro === undefined) { s.intro = false; s.nombre = 'Crack'; s.avatar = CFG.avatares[0]; }
+    return s;
   } catch (_) { return null; }
 }
 function reiniciar(seed) {
@@ -375,52 +491,52 @@ function demandaNegocio(s, n) { // sin la variación aleatoria (±10 %)
    ===================================================================== */
 const ACCIONES = {
   plaza: {
-    fases: ['barrio', 'prep'], t: '⚽ Partido en la plaza',
+    fases: ['barrio', 'prep'], ic: '⚽', n: 'Partido en la plaza', fx: s => [['⭐', repPlaza(s)], ['⚡', -15]],
     pro: s => `+${repPlaza(s)} reputación`, con: () => '−15 energía',
     why: () => `Reputación = ${CFG.barrio.plazaRepBase} + nivel/10 + ${CFG.barrio.plazaBonusEnergia} si tienes energía ≥ 50.`,
     aplicar(s, R) { const g = repPlaza(s); s.p.rep += g; s.p.energia -= 15; R.dep.push(['Partido en la plaza', `${sg(g)} reputación, −15 energía`, `${CFG.barrio.plazaRepBase} base + ${Math.floor((s.p.nivel) / 10)} por nivel${(s.p.energia + 15) >= 50 ? ` + ${CFG.barrio.plazaBonusEnergia} por llegar con energía` : ' (sin bonus: llegabas con menos de 50 de energía)'}.`]); },
   },
   entrenarSolo: {
-    fases: ['barrio', 'prep'], t: '🏃 Entrenar por tu cuenta',
+    fases: ['barrio', 'prep'], ic: '🏃', n: 'Entrenar por tu cuenta', fx: () => [['💪', 3], ['⚡', -20]],
     pro: () => '+3 nivel', con: () => '−20 energía', why: () => 'Mejora lenta pero gratuita.',
     aplicar(s, R) { s.p.nivel += 3; s.p.energia -= 20; R.dep.push(['Entrenamiento por tu cuenta', '+3 nivel, −20 energía', 'Valor fijo de esta acción.']); },
   },
   entrenador: {
-    fases: ['prep'], t: '🎯 Entrenador personal',
+    fases: ['prep'], ic: '🎯', n: 'Entrenador personal', fx: () => [['💪', 6], ['⚡', -25], ['€', -CFG.barrio.entrenadorCoste]],
     pro: () => '+6 nivel', con: () => `−25 energía · −${cr(CFG.barrio.entrenadorCoste)}`,
     why: () => 'El doble de mejora que entrenando solo, pero cuesta dinero y cansa más.',
     disponible: s => s.p.dinero >= CFG.barrio.entrenadorCoste ? null : `Necesitas ${cr(CFG.barrio.entrenadorCoste)}.`,
     aplicar(s, R) { s.p.nivel += 6; s.p.energia -= 25; s.p.dinero -= CFG.barrio.entrenadorCoste; R.eco.push(['Entrenador personal', -CFG.barrio.entrenadorCoste]); R.dep.push(['Entrenador personal', '+6 nivel, −25 energía', 'Valor fijo de esta acción.']); },
   },
   trabajar: {
-    fases: ['barrio', 'prep'], t: '📦 Trabajar repartiendo',
+    fases: ['barrio', 'prep'], ic: '📦', n: 'Trabajar repartiendo', fx: () => [['€', CFG.barrio.trabajoPago], ['⚡', -15]],
     pro: () => `+${cr(CFG.barrio.trabajoPago)}`, con: () => '−15 energía · no progresas en el fútbol',
     why: () => 'Te da dinero para pagar un entrenador o ahorrar.',
     aplicar(s, R) { s.p.dinero += CFG.barrio.trabajoPago; s.p.energia -= 15; R.eco.push(['Trabajo de repartidor', CFG.barrio.trabajoPago]); R.dep.push(['Semana de trabajo', '−15 energía', 'Trabajar cansa y no mejora tu nivel.']); },
   },
   descansar: {
-    fases: ['barrio', 'prep'], t: '😴 Descansar',
+    fases: ['barrio', 'prep'], ic: '😴', n: 'Descansar', fx: () => [['⚡', 25]],
     pro: () => '+25 energía', con: () => 'no mejoras ni ganas reputación',
     why: () => 'Llegar con energía a la prueba suma puntos (energía/5).',
     aplicar(s, R) { s.p.energia += 25; R.dep.push(['Descanso', '+25 energía', 'Valor fijo de esta acción.']); },
   },
   // ---- Profesional ----
   extra: {
-    fases: ['club'], t: '🏋️ Entrenamiento extra',
+    fases: ['club'], ic: '🏋️', n: 'Entrenamiento extra', fx: s => [['💪', 2 * s.contrato.calidad], ['⚡', -20], ['🤕', 'Riesgo']],
     pro: s => `+${nf(2 * s.contrato.calidad)} nivel`, con: () => '−20 energía · más riesgo de lesión',
     why: s => `Tu club multiplica la mejora por ${s.contrato.calidad}. Con poca energía juegas peor esta semana.`,
-    disponible: s => s.lesion > 0 ? 'Estás lesionado.' : null,
+    disponible: s => s.lesion > 0 ? 'Tienes una lesión.' : null,
     aplicar(s, R) { const g = 2 * s.contrato.calidad; s.p.nivel += g; s.p.energia -= 20; R.dep.push(['Entrenamiento extra', `+${nf(g)} nivel, −20 energía`, `2 × calidad de entrenamiento del club (${s.contrato.calidad}).`]); },
   },
   normal: {
-    fases: ['club'], t: '📋 Semana normal',
+    fases: ['club'], ic: '📋', n: 'Semana normal', fx: s => [['💪', s.contrato.calidad], ['⚡', -10]],
     pro: s => `+${nf(1 * s.contrato.calidad)} nivel`, con: () => '−10 energía',
     why: () => 'Equilibrio entre mejorar y llegar fresco al partido.',
-    disponible: s => s.lesion > 0 ? 'Estás lesionado.' : null,
+    disponible: s => s.lesion > 0 ? 'Tienes una lesión.' : null,
     aplicar(s, R) { const g = s.contrato.calidad; s.p.nivel += g; s.p.energia -= 10; R.dep.push(['Semana normal', `+${nf(g)} nivel, −10 energía`, `1 × calidad de entrenamiento del club (${s.contrato.calidad}).`]); },
   },
   fisio: {
-    fases: ['club'], t: '🧊 Fisio y recuperación',
+    fases: ['club'], ic: '🧊', n: 'Fisio y recuperación', fx: s => [['⚡', 25], ['€', -CFG.club.fisioCoste]].concat(s.lesion > 0 ? [['🩹', '−1 sem']] : []),
     pro: s => s.lesion > 0 ? '+25 energía · lesión 1 semana más corta' : '+25 energía', con: () => `−${cr(CFG.club.fisioCoste)} · no mejoras nivel`,
     why: () => 'Útil antes de partidos importantes o si tu energía está baja.',
     disponible: s => s.p.dinero >= CFG.club.fisioCoste ? null : `Necesitas ${cr(CFG.club.fisioCoste)}.`,
@@ -432,26 +548,28 @@ const ACCIONES = {
     },
   },
   reposo: {
-    fases: ['club'], t: '🛌 Reposo',
+    fases: ['club'], ic: '🛌', n: 'Reposo', fx: () => [['⚡', 15]],
     pro: () => '+15 energía · gratis', con: () => 'no mejoras nivel',
     why: () => 'La opción barata para recuperarse.',
-    disponible: s => s.lesion > 0 || s.p.energia < 60 ? null : 'Solo con energía < 60 o lesionado.',
+    disponible: s => s.lesion > 0 || s.p.energia < 60 ? null : 'Solo con energía < 60 o con una lesión.',
     aplicar(s, R) { s.p.energia += 15; R.dep.push(['Reposo', '+15 energía', 'Valor fijo de esta acción.']); },
   },
   patrocinio: {
-    fases: ['club'], t: '📸 Acto de patrocinador',
+    fases: ['club'], ic: '📸', n: 'Acto de patrocinador', fx: s => [['€', 30 + s.p.rep], ['⭐', 2], ['⚡', -5], ['📋', 'Selección −8']],
     pro: s => `+${cr(30 + s.p.rep)} · +2 reputación`, con: () => '−5 energía · −8 en la selección esta semana',
     why: () => `Pago = 30 + reputación. Faltas a una sesión y el entrenador lo tiene en cuenta.`,
     aplicar(s, R) { const pago = 30 + s.p.rep; s.p.dinero += pago; s.p.rep += 2; s.p.energia -= 5; R.eco.push(['Acto de patrocinador', pago]); R.dep.push(['Patrocinador', '+2 reputación, −5 energía', `Pago: 30 + reputación (${s.p.rep - 2}).`]); },
   },
   visitaNegocio: {
-    fases: ['club'], t: '✂️ Pasar la semana en la peluquería',
+    fases: ['club'], ic: '✂️', n: 'Semana en la peluquería', fx: () => [['✨', `Fama +${CFG.negocio.visitaFama}`], ['⚡', -5], ['📋', 'Selección −4']],
     pro: () => `+${CFG.negocio.visitaFama} fama del negocio`, con: () => '−5 energía · −4 en la selección esta semana',
     why: () => 'Tu presencia atrae clientes; tu entrenador prefiere que estés centrado.',
     disponible: s => s.negocio ? null : 'Aún no tienes un negocio.',
     aplicar(s, R) { s.negocio.fama += CFG.negocio.visitaFama; s.p.energia -= 5; R.neg.push(['Visita al negocio', `+${CFG.negocio.visitaFama} fama`, 'Los clientes vienen a verte.']); },
   },
 };
+
+for (const a of Object.values(ACCIONES)) a.t = a.ic + ' ' + a.n;
 
 function accionesDisponibles(s) {
   return Object.entries(ACCIONES).filter(([id, a]) => a.fases.includes(s.fase) && !(id === 'visitaNegocio' && !s.negocio));
@@ -470,13 +588,17 @@ function elegir(id) {
   return true;
 }
 
+function foto(s) {
+  return { nivel: s.p.nivel, energia: s.p.energia, rep: s.p.rep, dinero: s.p.dinero, caja: s.negocio ? s.negocio.caja : null, fama: s.negocio ? s.negocio.fama : null };
+}
+
 function avanzarSemana() {
   const s = S;
   if (s.pendiente || s.verResultado || !s.eleccion) return false;
   const id = s.eleccion, a = ACCIONES[id];
   if (!a || !a.fases.includes(s.fase) || (a.disponible && a.disponible(s))) { s.eleccion = null; render(); return false; }
 
-  const R = { semana: s.semana, accion: a.t, dep: [], eco: [], neg: [], opo: [], negocio: null, partido: null };
+  const R = { semana: s.semana, accion: a.t, accionId: id, fase: s.fase, dep: [], eco: [], neg: [], opo: [], negocio: null, partido: null, antes: foto(s) };
   const dineroAntes = s.p.dinero;
   const malus = seleccionMalus(s, id);
   a.aplicar(s, R);
@@ -528,6 +650,7 @@ function avanzarSemana() {
 
   s.p.nivel = clamp(r1(s.p.nivel), 0, 100);
   s.p.rep = clamp(s.p.rep, 0, 100);
+  R.despues = foto(s);
   s.ultimo = R;
   s.eleccion = null;
   s.semana += 1;
@@ -548,7 +671,7 @@ function semanaClub(s, R, malus) {
   if (s.lesion > 0) {
     P.rol = 'lesionado';
     s.lesion -= 1;
-    R.dep.push(['No juegas: estás lesionado', s.lesion > 0 ? `Quedan ${s.lesion} semanas` : 'Ya estás recuperado para la próxima semana', 'Las lesiones duran ' + K.lesionSemanas + ' semanas (el fisio las acorta).']);
+    R.dep.push(['No juegas: tienes una lesión', s.lesion > 0 ? `Quedan ${s.lesion} semanas` : 'Recuperación completa para la próxima semana', 'Las lesiones duran ' + K.lesionSemanas + ' semanas (el fisio las acorta).']);
   } else {
     const sel = puntSeleccion(s, malus);
     P.seleccion = r1(sel);
@@ -576,6 +699,12 @@ function semanaClub(s, R, malus) {
   const x = rnd(s);
   P.resultado = x < pv ? 'victoria' : x < pv + K.probEmpate ? 'empate' : 'derrota';
   P.pv = Math.round(pv * 100);
+  { // marcador solo visual (no usa el azar de la partida)
+    const h = Math.imul(s.semana + 7, 2654435761) >>> 0, base = h % 3, dif = 1 + ((h >>> 5) % 2);
+    P.rival = CFG.rivales[s.semana % CFG.rivales.length];
+    P.gf = P.resultado === 'derrota' ? base : P.resultado === 'empate' ? base : base + dif;
+    P.gc = P.resultado === 'victoria' ? base : P.resultado === 'empate' ? base : base + dif;
+  }
   if (P.resultado === 'victoria') s.stats.victorias += 1;
   R.dep.push([`Resultado del equipo: ${P.resultado}`, '',
     `Probabilidad de victoria ${P.pv} % (base del club ${Math.round(c.probVictoria * 100)} %${juega ? ` ${influencia >= 0 ? '+' : '−'} ${Math.abs(Math.round(influencia * 100))} % por tu nota` : ''}), empate ${Math.round(K.probEmpate * 100)} %.`]);
@@ -813,229 +942,389 @@ function objetivos(s) {
    10. INTERFAZ
    ===================================================================== */
 let confirmarReinicio = false;
+let celebrar = false;
 const $ = id => document.getElementById(id);
-const nombreFase = { barrio: 'En el barrio', prep: 'Preparando pruebas', club: 'Futbolista profesional' };
+const ICON = { '⭐': 'reputación', '⚡': 'energía', '💪': 'nivel', '€': 'dinero' };
 
+function chip(ic, v) {
+  if (typeof v === 'string') return `<span class="chip">${ic} ${esc(v)}</span>`;
+  const txt = ic === '€' ? `${v >= 0 ? '+' : '−'}${cr(Math.abs(v))}` : `${ic} ${sg(v)}`;
+  return `<span class="chip ${v >= 0 ? 'g' : 'b'}">${txt}</span>`;
+}
+
+/* ---- Escenas dibujadas (SVG, sin archivos externos) ---- */
+function edificios(colores) {
+  const xs = [0, 52, 98, 150, 214, 262, 310], hs = [70, 96, 58, 84, 104, 66, 90];
+  return xs.map((x, i) => {
+    const w = (xs[i + 1] || 362) - x - 4, h = hs[i], y = 122 - h;
+    let win = '';
+    for (let yy = y + 10; yy < 112; yy += 18) for (let xx = x + 7; xx < x + w - 10; xx += 14)
+      win += `<rect x="${xx}" y="${yy}" width="7" height="9" rx="1" fill="${(xx + yy) % 3 ? '#ffe9a6' : '#3b3160'}"/>`;
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${colores[i % colores.length]}" stroke="#2a2340" stroke-width="3"/>${win}`;
+  }).join('');
+}
+function escena(tipo) {
+  if (tipo === 'barrio' || tipo === 'prep') {
+    const dia = tipo === 'prep';
+    const conos = dia ? [70, 120, 280].map(x => `<path d="M${x} 150 l7 -16 l7 16 z" fill="#ff8a3d" stroke="#2a2340" stroke-width="2.5"/>`).join('') : '';
+    return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs><linearGradient id="skB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${dia ? '#59b8ff' : '#ff8f6b'}"/><stop offset="1" stop-color="${dia ? '#c8ecff' : '#ffd99a'}"/></linearGradient></defs>
+      <rect width="360" height="170" fill="url(#skB)"/>
+      <circle cx="300" cy="${dia ? 34 : 56}" r="22" fill="${dia ? '#fff6b0' : '#fff0a0'}" stroke="#2a2340" stroke-width="3"/>
+      ${edificios(['#8a6cc9', '#5b8bd6', '#e06c75', '#4fb3a9', '#f2a65a'])}
+      <rect x="0" y="120" width="360" height="50" fill="#9a97ab" stroke="#2a2340" stroke-width="3"/>
+      <path d="M0 146 H360" stroke="#fff" stroke-width="3" stroke-dasharray="16 12" opacity=".7"/>
+      <rect x="182" y="124" width="12" height="16" rx="3" fill="#e63946" stroke="#2a2340" stroke-width="2.5"/>
+      <rect x="236" y="124" width="12" height="16" rx="3" fill="#1d6fd1" stroke="#2a2340" stroke-width="2.5"/>
+      <circle cx="214" cy="156" r="7" fill="#fff" stroke="#2a2340" stroke-width="2.5"/>${conos}</svg>`;
+  }
+  if (tipo === 'club') {
+    let gente = '';
+    for (let i = 0; i < 46; i++) gente += `<circle cx="${8 + i * 7.7}" cy="${86 + (i % 3) * 7}" r="4" fill="${['#ffd23f', '#ff7eb6', '#48a9ff', '#ffffff', '#4fd36a'][i % 5]}"/>`;
+    const foco = x => `<line x1="${x}" y1="20" x2="${x}" y2="80" stroke="#2a2340" stroke-width="4"/><rect x="${x - 14}" y="8" width="28" height="14" rx="3" fill="#fffbe0" stroke="#2a2340" stroke-width="3"/><circle cx="${x}" cy="15" r="30" fill="#fffbe0" opacity=".18"/>`;
+    let franjas = '';
+    for (let i = 0; i < 9; i++) franjas += `<rect x="${i * 40}" y="110" width="40" height="60" fill="${i % 2 ? '#3fae4a' : '#4cc157'}"/>`;
+    return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs><linearGradient id="skC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1b4a"/><stop offset="1" stop-color="#2c4a8a"/></linearGradient></defs>
+      <rect width="360" height="170" fill="url(#skC)"/>
+      <path d="M0 110 L0 74 Q180 50 360 74 L360 110 Z" fill="#2b2556" stroke="#2a2340" stroke-width="3"/>${gente}
+      ${foco(40)}${foco(320)}${franjas}
+      <rect x="0" y="110" width="360" height="60" fill="none" stroke="#2a2340" stroke-width="3"/>
+      <path d="M180 110 V170 M120 170 Q180 120 240 170" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/></svg>`;
+  }
+  // negocio
+  const n = S.negocio, aw = n ? (n.fama >= 60 ? '#4fd36a' : n.fama >= 30 ? '#e63946' : '#8a84a6') : '#8a84a6';
+  let toldo = '';
+  for (let i = 0; i < 9; i++) toldo += `<path d="M${40 + i * 31} 62 h31 v18 q-15.5 10 -31 0 z" fill="${i % 2 ? '#fff' : aw}" stroke="#2a2340" stroke-width="2.5"/>`;
+  const sillas = n ? Array.from({ length: n.empleados }, (_, i) => `<text x="${140 + i * 44}" y="132" font-size="30">💇</text>`).join('') : '';
+  return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="360" height="170" fill="#ffd9a8"/>
+    <rect x="30" y="20" width="300" height="130" fill="#f4e1c4" stroke="#2a2340" stroke-width="3"/>
+    <rect x="80" y="26" width="200" height="30" rx="6" fill="#2a2340"/>
+    <text x="180" y="47" text-anchor="middle" font-size="17" font-weight="900" fill="#fff" font-family="system-ui, sans-serif" letter-spacing="2">PELUQUERÍA</text>
+    ${toldo}
+    <rect x="120" y="90" width="170" height="56" fill="#bfe6ff" stroke="#2a2340" stroke-width="3"/>${sillas}
+    <rect x="58" y="90" width="44" height="60" fill="#8a5a3c" stroke="#2a2340" stroke-width="3"/>
+    <rect x="304" y="86" width="14" height="50" rx="7" fill="#fff" stroke="#2a2340" stroke-width="3"/>
+    <path d="M305 96 l12 -6 M305 108 l12 -6 M305 120 l12 -6 M305 132 l12 -6" stroke="#e63946" stroke-width="4"/>
+    <rect x="0" y="150" width="360" height="20" fill="#9a97ab" stroke="#2a2340" stroke-width="3"/>
+    ${n ? '' : `<g transform="rotate(-8 180 115)"><rect x="118" y="96" width="124" height="40" rx="6" fill="#ffc93c" stroke="#2a2340" stroke-width="3"/><text x="180" y="123" text-anchor="middle" font-size="20" font-weight="900" fill="#2a2340" font-family="system-ui, sans-serif">SE VENDE</text></g>`}</svg>`;
+}
+
+function escudo(id, size) {
+  const c = CFG.clubs[id];
+  return `<svg width="${size}" height="${Math.round(size * 1.15)}" viewBox="0 0 60 70" aria-hidden="true" style="flex:none">
+    <path d="M30 3 L56 11 L54 40 Q50 59 30 67 Q10 59 6 40 L4 11 Z" fill="${c.color1}" stroke="#2a2340" stroke-width="4"/>
+    <path d="M30 6 L30 64" stroke="${c.color2}" stroke-width="6" opacity=".35"/>
+    <text x="30" y="43" text-anchor="middle" font-size="${c.siglas.length > 2 ? 15 : 19}" font-weight="900" fill="${c.color2}" stroke="#2a2340" stroke-width="1" font-family="system-ui, sans-serif">${c.siglas}</text></svg>`;
+}
+
+function confeti() {
+  const col = ['#ffc93c', '#4fd36a', '#ff6b5e', '#48a9ff', '#ff7eb6'];
+  return `<div class="confetti">${Array.from({ length: 36 }, (_, i) =>
+    `<i style="left:${Math.random() * 100}%;background:${col[i % 5]};animation-delay:${(Math.random() * 0.8).toFixed(2)}s"></i>`).join('')}</div>`;
+}
+
+/* ---- HUD ---- */
 function renderTop() {
-  const s = S, low = s.p.energia < CFG.club.lesionUmbral;
+  const s = S;
+  if (s.intro) { $('top').innerHTML = ''; return; }
+  const bar = (v, c) => `<div class="bar"><i style="width:${clamp(v, 0, 100)}%;background:${c}"></i></div>`;
+  const sub = s.fase === 'club' ? s.contrato.nombre : s.fase === 'prep' ? 'Preparando pruebas' : 'Jugando en el barrio';
   $('top').innerHTML = `
-    <div class="toprow">
-      <div><div class="week">Semana ${s.semana}</div><div class="phase">${s.fase === 'club' ? esc(s.contrato.nombre + ' · ' + s.contrato.equipo) : nombreFase[s.fase]}</div></div>
-      <div style="text-align:right"><div class="money" id="dinero">${cr(s.p.dinero)}</div><div class="phase">dinero personal</div></div>
+    <div class="hudrow">
+      <div class="ava">${s.avatar}</div>
+      <div class="who"><b>${esc(s.nombre)}</b><span>Semana ${s.semana} · ${esc(sub)}</span></div>
+      <div class="coin" id="dinero"><i>€</i>${cr(s.p.dinero)}</div>
     </div>
     <div class="stats">
-      <div class="stat">Nivel <b>${Math.round(s.p.nivel)}</b><div class="bar"><i style="width:${clamp(s.p.nivel, 0, 100)}%"></i></div></div>
-      <div class="stat">Energía <b>${s.p.energia}</b><div class="bar e${low ? ' low' : ''}"><i style="width:${s.p.energia}%"></i></div></div>
-      <div class="stat">Reputación <b>${s.p.rep}</b><div class="bar r"><i style="width:${clamp(s.p.rep, 0, 100)}%"></i></div></div>
+      <div class="sp">💪 <b>${Math.round(s.p.nivel)}</b>${bar(s.p.nivel, 'var(--blue)')}<small>nivel</small></div>
+      <div class="sp">⚡ <b>${s.p.energia}</b>${bar(s.p.energia, s.p.energia < CFG.club.lesionUmbral ? 'var(--red)' : 'var(--green)')}<small>energía</small></div>
+      <div class="sp">⭐ <b>${s.p.rep}</b>${bar(s.p.rep, 'var(--yellow)')}<small>reputación</small></div>
     </div>`;
 }
 
-function cardObjetivo() {
-  const ob = objetivos(S), [a, ...rest] = ob;
-  return `<section class="card goal" id="objetivo"><h2>Objetivo actual</h2><h3>${esc(a.t)}</h3>
-    ${a.d ? `<p>${esc(a.d)}</p>` : ''}
-    ${a.prog != null ? `<div class="prog"><i style="width:${Math.round(clamp(a.prog, 0, 1) * 100)}%"></i></div>` : ''}
-    ${rest.map(o => `<p class="next">▸ ${esc(o.t)}${o.d ? ': ' + esc(o.d) : ''}</p>`).join('')}</section>`;
+/* ---- Pantalla principal: carrera ---- */
+function cardMision() {
+  const s = S, ob = objetivos(s), [a, ...rest] = ob;
+  const hechos = [s.fase !== 'barrio', s.fase === 'club', s.mejora === 'hecha', !!s.negocio, s.metaVista];
+  const nombres = [['🏘️', 'Barrio'], ['📋', 'Pruebas'], ['📝', 'Contrato'], ['✂️', 'Negocio'], ['🏆', 'Meta']];
+  const actual = hechos.indexOf(false);
+  const pct = a.prog != null ? Math.round(clamp(a.prog, 0, 1) * 100) : null;
+  return `<section class="card mission" id="objetivo">
+    <div class="h"><span class="ic">🎯</span><div><h2 style="margin:0">Misión</h2><h3 style="margin:0">${esc(a.t)}</h3></div></div>
+    ${pct != null ? `<div class="xp"><i style="width:${pct}%"></i><span>${pct} %</span></div>` : ''}
+    ${a.d ? `<p class="small">${esc(a.d)}</p>` : ''}
+    ${rest.map(o => `<p class="small">🔓 <b>Después:</b> ${esc(o.t.replace(/^Después: /, ''))}</p>`).join('')}
+    <div class="road">${nombres.map(([ic, t], i) => `<div class="node ${hechos[i] ? 'done' : i === actual ? 'now' : ''}"><i>${hechos[i] ? '✔' : ic}</i>${t}</div>`).join('')}</div>
+  </section>`;
 }
 
-function cardSituacion() {
-  const s = S, tags = [];
-  if (s.fase === 'club') {
-    const c = s.contrato;
-    tags.push(`Salario ${cr(c.salario)}/sem`, `Prima victoria ${cr(c.primaVictoria)}`, `Contrato: ${c.semanasRestantes} sem`, `Titular con selección ≥ ${c.umbral}`);
-    const sel = r1(puntSeleccion(s, seleccionMalus(s, null)));
-    const extra = [];
-    if (s.lesion > 0) extra.push(`<span class="tag warn">Lesionado: ${s.lesion} sem</span>`);
-    if (s.tension > 0) extra.push(`<span class="tag warn">Relación tensa: ${s.tension} sem</span>`);
-    if (s.p.energia < CFG.club.lesionUmbral) extra.push(`<span class="tag warn">Energía baja: riesgo de lesión</span>`);
-    return `<section class="card"><h2>Situación</h2>
-      <p>Tu selección ahora: <b>${nf(sel)}</b> (nivel + energía/4) frente a umbral <b>${c.umbral}</b> → ${sel >= c.umbral ? '<span class="up">serías titular</span>' : '<span class="down">serías suplente</span>'}.</p>
-      <p class="small">Partidos: ${s.stats.jugados} jugados de ${s.stats.partidos} · victorias ${s.stats.victorias} · nota media reciente ${notaMedia(s) ? notaMedia(s).toFixed(1).replace('.', ',') : '—'}</p>
-      ${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}${extra.join('')}
-      ${s.negocio ? `<p class="small">Peluquería: caja ${cr(s.negocio.caja)} · fama ${s.negocio.fama}${s.negocio.ultimo ? ` · última semana ${s.negocio.ultimo.resultado >= 0 ? '+' : '−'}${cr(Math.abs(s.negocio.ultimo.resultado))}` : ''}</p>` : ''}
-    </section>`;
+function cardEscena() {
+  const s = S;
+  let chap, texto, badges = '';
+  if (s.fase === 'barrio') { chap = 'Capítulo 1 · El barrio'; texto = 'Juego en la plaza con mis amigos. ¡Algún día me verá un ojeador!'; }
+  else if (s.fase === 'prep') {
+    const k = s.prep.semanasRestantes;
+    chap = 'Capítulo 2 · Las pruebas'; texto = k === 1 ? '¡Las pruebas son esta semana! Mejor llegar con energía.' : `Quedan ${k} semanas para las pruebas.`;
+  } else {
+    const c = s.contrato, sel = puntSeleccion(s, seleccionMalus(s, null));
+    chap = `Capítulo ${s.negocio ? 4 : 3} · ${c.nombre}`;
+    texto = s.lesion > 0 ? `Lesión: ${s.lesion} ${s.lesion === 1 ? 'semana' : 'semanas'} sin jugar.` : sel >= c.umbral ? '¡El míster cuenta conmigo como titular!' : 'Ahora mismo empezaría en el banquillo…';
+    badges = `<span class="badge ${s.lesion ? 'b' : sel >= c.umbral ? 'g' : 'n'}">${s.lesion ? '🤕 Lesión' : sel >= c.umbral ? '✅ Titular' : '🪑 Suplente'} · selección ${nf(sel)} / ${c.umbral}</span>`
+      + (s.tension > 0 ? `<span class="badge b">😠 Relación tensa ${s.tension} sem</span>` : '')
+      + (s.p.energia < CFG.club.lesionUmbral && !s.lesion ? `<span class="badge b">⚠️ Energía baja: riesgo de lesión</span>` : '');
   }
-  const txt = s.fase === 'barrio'
-    ? 'Juegas al fútbol con tus amigos en la plaza del barrio y vives con tu familia (sin gastos). Nadie te conoce todavía.'
-    : 'Un ojeador te ha invitado a unas pruebas. Lo que hagas estas semanas decide qué ofertas recibirás.';
-  return `<section class="card"><h2>Situación</h2><p>${txt}</p>
-    <p class="small">La energía se recupera ${CFG.barrio.recuperacion} puntos cada semana.</p></section>`;
+  return `<div class="scene">${escena(s.fase)}<div class="chap">${esc(chap)}</div>
+    <div class="hero">${s.avatar}</div><div class="bubble">${esc(texto)}</div></div>
+    ${badges ? `<div style="margin:-6px 0 12px">${badges}</div>` : ''}
+    ${s.fase === 'club' ? `<div style="margin:-6px 0 12px">
+      <span class="badge">💶 ${cr(s.contrato.salario)}/sem</span><span class="badge">🏆 Prima ${cr(s.contrato.primaVictoria)}</span>
+      <span class="badge">📄 ${s.contrato.semanasRestantes} sem de contrato</span>
+      <span class="badge">⚽ ${s.stats.jugados}/${s.stats.partidos} jugados · nota ${notaMedia(s) ? nf(notaMedia(s)) : '—'}</span>
+      ${s.negocio ? `<span class="badge">🏪 Caja ${cr(s.negocio.caja)}</span>` : ''}</div>` : ''}`;
 }
 
-function htmlOpcion(id, a, sel) {
+function htmlCarta(id, a) {
   const bloq = a.disponible ? a.disponible(S) : null;
-  return `<button class="opt${sel === id ? ' sel' : ''}" data-act="elegir" data-id="${id}" ${bloq ? 'disabled' : ''}>
-    <span class="t">${esc(a.t)}</span>
-    <span class="pro">+ ${esc(a.pro(S))}</span>
-    <span class="con">− ${esc(a.con(S))}</span>
-    <span class="why">${esc(a.why(S))}</span>
-    ${bloq ? `<span class="lock">🔒 ${esc(bloq)}</span>` : ''}
-  </button>`;
+  return `<button class="opt${S.eleccion === id ? ' sel' : ''}" data-act="elegir" data-id="${id}" ${bloq ? 'disabled' : ''}>
+    <span class="ic">${a.ic}</span><span class="t">${esc(a.n)}</span>
+    <span class="chips">${a.fx(S).map(([ic, v]) => chip(ic, v)).join('')}</span>
+    ${bloq ? `<span class="lock">🔒 ${esc(bloq)}</span>` : ''}</button>`;
 }
 
 function pantallaSemana() {
-  const opts = accionesDisponibles(S).map(([id, a]) => htmlOpcion(id, a, S.eleccion)).join('');
-  return cardObjetivo() + cardSituacion() + (S.aviso ? `<section class="card"><p>${esc(S.aviso)}</p></section>` : '') +
-    `<h2 class="small" style="margin:16px 4px 8px;text-transform:uppercase;letter-spacing:.08em">Decide tu semana</h2>${opts}`;
+  const lista = accionesDisponibles(S);
+  const a = S.eleccion && ACCIONES[S.eleccion];
+  return cardEscena() + cardMision() +
+    `<div class="sec-t">🃏 Elige tu plan de la semana</div><div class="grid">${lista.map(([id, x]) => htmlCarta(id, x)).join('')}</div>` +
+    (a ? `<section class="card plan"><h2>Tu plan</h2><h3>${a.t}</h3>
+      <p class="pro">👍 ${esc(a.pro(S))}</p><p class="con">👎 ${esc(a.con(S))}</p><p class="small">📏 ${esc(a.why(S))}</p></section>` : '');
 }
+
+/* ---- Negocio ---- */
+function estrellas(f) { const k = Math.round(f / 20); return '★'.repeat(k) + '☆'.repeat(5 - k); }
 
 function pantallaNegocio() {
   const s = S, N = CFG.negocio;
   if (!s.negocio) {
-    const puede = s.fase === 'club';
-    const total = N.precio + s.cajaElegida;
-    return cardObjetivo() + `<section class="card"><h2>Oportunidad</h2><h3>${N.nombre}</h3>
-      <p>El dueño se jubila y vende el local con clientela. Precio: <b>${cr(N.precio)}</b>.</p>
-      <p class="small">Además debes dejar dinero en la <b>caja del negocio</b> para pagar alquiler y sueldos. La caja es independiente de tu dinero personal.</p>
-      <p class="small">Costes semanales: alquiler ${cr(N.alquiler)} + sueldos (${cr(N.sueldos.basico.coste)}–${cr(N.sueldos.bueno.coste)} por persona) + ${N.productoPorCliente} ${CFG.moneda} de producto por cliente.</p>
-      ${puede ? `<p><b>Caja inicial</b></p><div class="seg">${N.cajaOpciones.map(c => `<button data-act="caja" data-v="${c}" class="${s.cajaElegida === c ? 'sel' : ''}">${cr(c)}</button>`).join('')}</div>
-      <p class="small">Más caja = más margen ante semanas malas, pero tardas más en poder comprar.</p>
-      <button class="btn" data-act="comprar" ${s.p.dinero >= total ? '' : 'disabled'}>Comprar por ${cr(total)}</button>
-      ${s.p.dinero < total ? `<p class="small">Te faltan ${cr(total - s.p.dinero)}.</p>` : ''}`
-      : '<p class="small">🔒 Disponible cuando tengas un contrato profesional.</p>'}
+    const puede = s.fase === 'club', total = N.precio + s.cajaElegida;
+    const pct = Math.round(clamp(s.p.dinero / total, 0, 1) * 100);
+    return `<div class="scene">${escena('negocio')}<div class="chap">Oportunidad de negocio</div></div>
+      <section class="card"><h2>${N.nombre}</h2><h3>El dueño se jubila y la vende</h3>
+      <p>Precio: <b>${cr(N.precio)}</b> + dinero para la <b>caja</b> del negocio.</p>
+      <p class="small">La caja paga alquiler (${cr(N.alquiler)}/sem), sueldos (${cr(N.sueldos.basico.coste)}–${cr(N.sueldos.bueno.coste)} por persona) y productos (${cr(N.productoPorCliente)} por cliente). Es independiente de tu dinero.</p>
+      ${puede ? `<h2 style="margin-top:12px">Caja inicial</h2><div class="seg">${N.cajaOpciones.map(c => `<button data-act="caja" data-v="${c}" class="${s.cajaElegida === c ? 'sel' : ''}">${cr(c)}</button>`).join('')}</div>
+      <p class="small">Más caja = más colchón para semanas malas, pero tardas más en poder comprar.</p>
+      <div class="xp"><i style="width:${pct}%"></i><span>${cr(s.p.dinero)} / ${cr(total)}</span></div>
+      <button class="btn go" data-act="comprar" ${s.p.dinero >= total ? '' : 'disabled'} style="margin-top:12px">${s.p.dinero >= total ? `🔑 Comprar por ${cr(total)}` : `Te faltan ${cr(total - s.p.dinero)}`}</button>`
+      : '<p><b>🔒 Necesitas un contrato profesional para comprarla.</b></p>'}
       </section>`;
   }
-  const n = s.negocio, u = n.ultimo, su = N.sueldos[n.sueldo];
-  const dem = Math.round(demandaNegocio(s, n)), cap = capacidadNegocio(n);
-  return `<section class="card"><h2>${N.nombre}</h2>
-      <table>
-        <tr><td>Caja del negocio</td><td class="n" id="caja"><b class="${n.caja < 0 ? 'down' : ''}">${cr(n.caja)}</b></td></tr>
-        <tr><td>Fama</td><td class="n">${n.fama} / 100</td></tr>
-        <tr><td>Valor estimado</td><td class="n">${cr(valorNegocio(s))}</td></tr>
-        <tr><td>Demanda prevista</td><td class="n">~${dem} clientes</td></tr>
-        <tr><td>Capacidad</td><td class="n">${cap} clientes</td></tr>
-      </table>
-      <p class="small">${dem > cap ? '⚠️ Más demanda que capacidad: perderás clientes y fama (colas).' : dem < cap * 0.6 ? 'Mucha capacidad sin usar: pagas sueldos de más.' : 'Demanda y capacidad equilibradas.'}</p>
+  const n = s.negocio, u = n.ultimo, dem = Math.round(demandaNegocio(s, n)), cap = capacidadNegocio(n);
+  const mx = Math.max(dem, cap, 1);
+  const pr = N.precios[n.precio];
+  return `<div class="scene">${escena('negocio')}<div class="chap">Tu peluquería · <span class="stars">${estrellas(n.fama)}</span></div></div>
+    <div class="tiles">
+      <div class="tile"><div class="ic">🏪</div><b id="caja" class="${n.caja < 0 ? 'down' : ''}">${cr(n.caja)}</b><span>Caja</span></div>
+      <div class="tile"><div class="ic">✨</div><b>${n.fama}</b><span>Fama /100</span></div>
+      <div class="tile"><div class="ic">🏠</div><b>${cr(valorNegocio(s))}</b><span>Valor</span></div>
+    </div>
+    <section class="card"><h2>Previsión semanal</h2>
+      <div class="meter">👥 Clientes interesados: ~${dem}<div class="b"><i style="width:${dem / mx * 100}%;background:var(--pink)"></i></div></div>
+      <div class="meter">💇 Capacidad del equipo: ${cap}<div class="b"><i style="width:${cap / mx * 100}%;background:var(--blue)"></i></div></div>
+      <p class="small">${dem > cap ? '⚠️ Vendrá más gente de la que puedes atender: se irán clientes y bajará la fama.' : dem < cap * 0.6 ? '💸 Sobra mucho personal: pagas sueldos de más.' : '👍 Demanda y capacidad equilibradas.'}</p>
     </section>
-    <section class="card"><h2>Precios</h2>
-      <div class="seg">${Object.entries(N.precios).map(([k, p]) => `<button data-act="neg" data-c="precio" data-v="${k}" class="${n.precio === k ? 'sel' : ''}">${p.nombre}<br>${p.precio} ${CFG.moneda}</button>`).join('')}</div>
-      <p class="small">Económico: más clientes y +1 fama/semana, poco margen. Normal: sin efectos. Premium: pocos clientes y mucho margen; −3 fama/semana mientras la fama sea &lt; ${N.precios.premium.famaSinPenal}.</p>
+    <section class="card"><h2>🏷️ Precio del corte</h2>
+      <div class="seg">${Object.entries(N.precios).map(([k, p]) => `<button data-act="neg" data-c="precio" data-v="${k}" class="${n.precio === k ? 'sel' : ''}">${p.nombre}<br>${cr(p.precio)}</button>`).join('')}</div>
+      <p class="small">${n.precio === 'economico' ? 'Muchos clientes y +1 fama/semana, pero poco margen.' : n.precio === 'normal' ? 'Equilibrado: sin efectos en la fama.' : `Pocos clientes y mucho margen; −3 fama/semana mientras la fama sea menor de ${pr.famaSinPenal}.`}</p>
     </section>
-    <section class="card"><h2>Personal</h2>
-      <div class="seg">
-        <button data-act="neg" data-c="empleados" data-v="-1" ${n.empleados <= N.empleadosMin ? 'disabled' : ''}>− Despedir</button>
-        <button disabled style="opacity:1">${n.empleados} ${n.empleados === 1 ? 'persona' : 'personas'}</button>
-        <button data-act="neg" data-c="empleados" data-v="1" ${n.empleados >= N.empleadosMax || n.caja < N.costeContratar ? 'disabled' : ''}>+ Contratar</button>
+    <section class="card"><h2>💇 Tu equipo</h2>
+      <div class="staff">
+        <button class="rb" data-act="neg" data-c="empleados" data-v="-1" ${n.empleados <= N.empleadosMin ? 'disabled' : ''} aria-label="Despedir">−</button>
+        <div class="people">${'💇'.repeat(n.empleados)}<div class="small"><b>${n.empleados} ${n.empleados === 1 ? 'persona' : 'personas'}</b></div></div>
+        <button class="rb" data-act="neg" data-c="empleados" data-v="1" ${n.empleados >= N.empleadosMax || n.caja < N.costeContratar ? 'disabled' : ''} aria-label="Contratar">+</button>
       </div>
-      <p class="small">Contratar: −${cr(N.costeContratar)} de la caja (formación). Despedir: −1 semana de sueldo (indemnización).</p>
-      <p><b>Sueldo</b></p>
-      <div class="seg">${Object.entries(N.sueldos).map(([k, x]) => `<button data-act="neg" data-c="sueldo" data-v="${k}" class="${n.sueldo === k ? 'sel' : ''}">${x.nombre}<br>${x.coste} ${CFG.moneda}</button>`).join('')}</div>
-      <p class="small">Básico: ${N.sueldos.basico.capacidad} clientes por persona y −1 fama/semana (rotación). Bueno: ${N.sueldos.bueno.capacidad} clientes por persona y +1 fama/semana.</p>
+      <p class="small">Contratar: −${cr(N.costeContratar)} de la caja (formación). Despedir: −1 semana de sueldo.</p>
+      <h2 style="margin-top:10px">Sueldo</h2>
+      <div class="seg">${Object.entries(N.sueldos).map(([k, x]) => `<button data-act="neg" data-c="sueldo" data-v="${k}" class="${n.sueldo === k ? 'sel' : ''}">${x.nombre}<br>${cr(x.coste)}</button>`).join('')}</div>
+      <p class="small">${n.sueldo === 'basico' ? `Básico: ${N.sueldos.basico.capacidad} clientes por persona y −1 fama/semana (la gente se va).` : `Bueno: ${N.sueldos.bueno.capacidad} clientes por persona y +1 fama/semana.`}</p>
     </section>
-    <section class="card"><h2>Dinero personal ↔ caja</h2>
-      <p class="small">Son cuentas separadas. Tu salario va a tu dinero personal; los clientes pagan a la caja.</p>
-      <button class="btn sec" data-act="traspaso" data-v="aCaja" ${s.p.dinero >= N.traspaso ? '' : 'disabled'}>Poner ${cr(N.traspaso)} en la caja</button>
-      <button class="btn sec" data-act="traspaso" data-v="aPersonal" ${n.caja >= N.traspaso ? '' : 'disabled'}>Retirar ${cr(N.traspaso)} a tu dinero</button>
+    <section class="card"><h2>👛 Tu dinero ↔ 🏪 Caja</h2>
+      <p class="small">Son cuentas separadas. Tu sueldo va a tu bolsillo; los clientes pagan a la caja.</p>
+      <div class="seg">
+        <button data-act="traspaso" data-v="aCaja" ${s.p.dinero >= N.traspaso ? '' : 'disabled'}>👛 → 🏪<br>${cr(N.traspaso)}</button>
+        <button data-act="traspaso" data-v="aPersonal" ${n.caja >= N.traspaso ? '' : 'disabled'}>🏪 → 👛<br>${cr(N.traspaso)}</button>
+      </div>
     </section>
-    ${u ? `<section class="card"><h2>Última semana del negocio</h2><table>
-      <tr><td>Ingresos (${u.clientes} clientes)</td><td class="n up">+${cr(u.ingresos)}</td></tr>
-      <tr><td>Alquiler</td><td class="n down">−${cr(u.alquiler)}</td></tr>
-      <tr><td>Sueldos</td><td class="n down">−${cr(u.sueldos)}</td></tr>
-      <tr><td>Productos</td><td class="n down">−${cr(u.productos)}</td></tr>
-      <tr class="tot"><td>Resultado</td><td class="n ${u.resultado >= 0 ? 'up' : 'down'}">${u.resultado >= 0 ? '+' : '−'}${cr(Math.abs(u.resultado))}</td></tr></table></section>` : ''}
-    <p class="note">Los cambios de precios y personal no gastan tu decisión semanal: se aplican al avanzar la semana.</p>`;
+    ${u ? `<section class="card"><h2>Última semana</h2><table>
+      <tr><td>💰 Cortes (${u.clientes} clientes)</td><td class="n up">+${cr(u.ingresos)}</td></tr>
+      <tr><td>🏠 Alquiler</td><td class="n down">−${cr(u.alquiler)}</td></tr>
+      <tr><td>💇 Sueldos</td><td class="n down">−${cr(u.sueldos)}</td></tr>
+      <tr><td>🧴 Productos</td><td class="n down">−${cr(u.productos)}</td></tr>
+      <tr class="tot"><td>Resultado</td><td class="n ${u.resultado >= 0 ? 'up' : 'down'}">${u.resultado >= 0 ? '+' : ''}${cr(u.resultado)}</td></tr></table></section>` : ''}
+    <p class="note">Cambiar precio o equipo no gasta tu plan semanal: se aplica al jugar la semana.</p>`;
 }
 
+/* ---- Finanzas ---- */
 function pantallaFinanzas() {
-  const s = S, a = s.acum, n = s.negocio, u = s.ultimo;
-  const pers = u ? u.eco : [];
-  const tot = pers.reduce((x, [, v]) => x + v, 0);
-  return `<section class="card" id="resumen"><h2>Patrimonio</h2><table>
-      <tr><td>Dinero personal</td><td class="n">${cr(s.p.dinero)}</td></tr>
-      <tr><td>Caja del negocio</td><td class="n">${n ? cr(n.caja) : '—'}</td></tr>
-      <tr><td>Valor del negocio</td><td class="n">${n ? cr(valorNegocio(s)) : '—'}</td></tr>
-      <tr class="tot"><td>Total</td><td class="n" id="patrimonio">${cr(patrimonio(s))}</td></tr></table>
-      <p class="small">Valor del negocio = precio de compra ${cr(CFG.negocio.precio)} × (0,5 + fama/100). Meta de esta versión: ${cr(CFG.metaPatrimonio)}.</p></section>
-    <section class="card"><h2>Tu dinero · última semana</h2>${pers.length ? `<table>
-      ${pers.map(([t, v]) => `<tr><td>${esc(t)}</td><td class="n ${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '+' : '−'}${cr(Math.abs(v))}</td></tr>`).join('')}
-      <tr class="tot"><td>Neto</td><td class="n">${tot >= 0 ? '+' : '−'}${cr(Math.abs(tot))}</td></tr></table>` : '<p class="small">Sin movimientos todavía.</p>'}</section>
-    <section class="card"><h2>Acumulado</h2><table>
+  const s = S, a = s.acum, n = s.negocio, u = s.ultimo, pat = patrimonio(s);
+  const pers = u ? u.eco : [], tot = pers.reduce((x, [, v]) => x + v, 0);
+  const h = s.historial.slice(-12), mx = Math.max(1, ...h.map(x => x.patrimonio));
+  const pct = Math.round(clamp(pat / CFG.metaPatrimonio, 0, 1) * 100);
+  return `<section class="card" id="resumen"><h2>💎 Patrimonio</h2>
+      <div class="bigmoney" id="patrimonio">${cr(pat)}</div>
+      <div class="xp"><i style="width:${pct}%"></i><span>Meta ${cr(CFG.metaPatrimonio)} · ${pct} %</span></div>
+      <p class="small">Patrimonio = dinero personal + caja del negocio + valor del negocio.</p></section>
+    <div class="tiles">
+      <div class="tile"><div class="ic">👛</div><b>${cr(s.p.dinero)}</b><span>Tu dinero</span></div>
+      <div class="tile"><div class="ic">🏪</div><b>${n ? cr(n.caja) : '—'}</b><span>Caja negocio</span></div>
+      <div class="tile"><div class="ic">🏠</div><b>${n ? cr(valorNegocio(s)) : '—'}</b><span>Valor negocio</span></div>
+    </div>
+    ${h.length > 1 ? `<section class="card"><h2>📈 Evolución</h2><div class="chart">${h.map((x, i) =>
+      `<div class="${i === h.length - 1 ? 'last' : ''}" style="height:${Math.max(4, x.patrimonio / mx * 100)}%" title="Semana ${x.semana}: ${cr(x.patrimonio)}"></div>`).join('')}</div>
+      <p class="small">Semanas ${h[0].semana}–${h[h.length - 1].semana}</p></section>` : ''}
+    <section class="card"><h2>👛 Tu dinero · última semana</h2>${pers.length ? `<table>
+      ${pers.map(([t, v]) => `<tr><td>${esc(t)}</td><td class="n ${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '+' : ''}${cr(v)}</td></tr>`).join('')}
+      <tr class="tot"><td>Neto</td><td class="n">${tot >= 0 ? '+' : ''}${cr(tot)}</td></tr></table>` : '<p class="small">Sin movimientos todavía.</p>'}
+      <p class="small">Valor del negocio = ${cr(CFG.negocio.precio)} × (0,5 + fama/100).</p></section>
+    <section class="card"><h2>🧾 Desde el principio</h2><table>
       <tr><td>Tus ingresos</td><td class="n up">+${cr(a.ingresosPers)}</td></tr>
-      <tr><td>Tus gastos (incl. compras)</td><td class="n down">−${cr(a.gastosPers)}</td></tr>
+      <tr><td>Tus gastos (con compras)</td><td class="n down">−${cr(a.gastosPers)}</td></tr>
       <tr><td>Ingresos del negocio</td><td class="n up">+${cr(a.ingresosNeg)}</td></tr>
       <tr><td>Gastos del negocio</td><td class="n down">−${cr(a.gastosNeg)}</td></tr></table></section>
-    ${s.historial.length ? `<section class="card"><h2>Evolución</h2><table>
-      <tr><td class="small">Semana</td><td class="n small">Dinero</td><td class="n small">Caja</td><td class="n small">Patrimonio</td></tr>
-      ${s.historial.slice(-8).reverse().map(h => `<tr><td>${h.semana}</td><td class="n">${cr(h.dinero)}</td><td class="n">${h.caja == null ? '—' : cr(h.caja)}</td><td class="n">${cr(h.patrimonio)}</td></tr>`).join('')}
-      </table></section>` : ''}
-    <section class="card"><h2>Partida</h2>
-      <p class="small">La partida se guarda automáticamente en este dispositivo y navegador.</p>
-      <button class="btn danger" data-act="reiniciar" id="btnReiniciar">${confirmarReinicio ? 'Toca otra vez para borrar la partida' : 'Reiniciar partida'}</button>
+    <section class="card"><h2>⚙️ Partida</h2>
+      <p class="small">Se guarda sola en este dispositivo y navegador.</p>
+      <button class="btn danger" data-act="reiniciar" id="btnReiniciar">${confirmarReinicio ? '⚠️ Toca otra vez para borrar la partida' : '🔄 Reiniciar partida'}</button>
       ${confirmarReinicio ? '<button class="btn sec" data-act="noReiniciar">Cancelar</button>' : ''}
     </section>
-    <p class="note">Todos los importes son provisionales y ficticios (${CFG.moneda}). No representan precios ni salarios reales.</p>`;
+    <p class="note">Importes de juego, provisionales: no son precios ni salarios reales.</p>`;
 }
 
+/* ---- Resultado de la semana ---- */
 function pantallaResultado() {
-  const R = S.ultimo;
-  const sec = (titulo, items) => items.length ? `<section class="card"><h2>${titulo}</h2>${items.map(([h, v, r]) =>
-    `<div class="res-line"><span class="h">${esc(h)}</span>${v ? ` <span>${esc(v)}</span>` : ''}${r ? `<span class="r">${esc(r)}</span>` : ''}</div>`).join('')}</section>` : '';
-  const eco = R.eco.length ? `<section class="card"><h2>Tu dinero</h2><table>${R.eco.map(([t, v]) =>
-    `<tr><td>${esc(t)}</td><td class="n ${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '+' : '−'}${cr(Math.abs(v))}</td></tr>`).join('')}
-    <tr class="tot"><td>Dinero personal ahora</td><td class="n">${cr(R.dineroFinal)}</td></tr></table></section>` : '';
-  const opo = R.opo.length ? `<section class="card goal"><h2>Novedades</h2>${R.opo.map(([h, r]) => `<div class="res-line"><span class="h">${esc(h)}</span><span class="r">${esc(r)}</span></div>`).join('')}</section>` : '';
-  return `<section class="card" id="resultado"><h2>Resultados</h2><h3>Semana ${R.semana}</h3><p class="small">Decisión: ${esc(R.accion)}</p></section>` +
-    opo + sec('Deporte', R.dep) + eco + sec('Negocio', R.neg);
+  const R = S.ultimo, A = R.antes, D = R.despues;
+  const lineas = items => items.map(([h, v, r]) => `<div class="res-line"><span class="h">${esc(h)}</span>${v ? ` <span>${esc(v)}</span>` : ''}${r ? `<span class="r">${esc(r)}</span>` : ''}</div>`).join('');
+  let html = `<section class="card" id="resultado" style="text-align:center"><h2>Semana ${R.semana} · resumen</h2><h3>${esc(R.accion)}</h3></section>`;
+
+  const P = R.partido;
+  if (P) {
+    const c = S.contrato;
+    const notaCls = P.nota == null ? 'no' : P.nota >= 7 ? 'hi' : P.nota >= 6 ? 'mid' : 'lo';
+    const rol = { titular: '✅ Titular', suplente: '🔁 Suplente', banquillo: '🪑 Sin jugar', lesionado: '🤕 Lesión' }[P.rol];
+    const motivo = P.rol === 'lesionado' ? 'No puedes jugar hasta recuperarte.' : `Selección ${nf(P.seleccion)} frente al umbral ${c.umbral}.`;
+    html += `<section class="card board"><h2>Jornada ${S.stats.partidos}</h2>
+      <div class="teams"><div>${escudo(c.id, 40)}<br>${esc(c.nombre)}</div><div class="score">${P.gf}-${P.gc}</div><div>🛡️<br>${esc(P.rival)}</div></div>
+      <div class="ribbon ${P.resultado}">${P.resultado.toUpperCase()}</div></section>
+      <section class="card"><div class="me"><div class="nota ${notaCls}">${P.nota == null ? '—' : nf(P.nota)}</div>
+      <div><h3 style="margin:0">${rol}</h3><p class="small" style="margin:2px 0">${esc(motivo)}</p>
+      ${P.nota != null ? `<p class="small" style="margin:2px 0">Nota: tu nivel frente al rival (${c.rivalNivel}), tu energía y algo de suerte.</p>` : ''}</div></div></section>`;
+  }
+  if (R.prueba) {
+    html += `<section class="card board"><h2>Día de las pruebas</h2><div class="big">${R.prueba.score}</div>
+      <p>💪 ${nf(R.prueba.nivel)} + ⚡ ${R.prueba.energia}/5 + ⭐ ${R.prueba.rep}/5${R.prueba.ajuste ? ` ${sg(R.prueba.ajuste)}` : ''} + 🍀 ${sg(R.prueba.suerte)}</p></section>`;
+  }
+
+  const rw = [];
+  const add = (ic, d, txt) => { if (d && Math.abs(d) >= 0.05) rw.push(`<span class="rw ${d > 0 ? 'g' : 'b'}" style="animation-delay:${0.15 + rw.length * 0.12}s">${txt || `${ic} ${sg(d)}`}</span>`); };
+  add('€', D.dinero - A.dinero, `👛 ${D.dinero - A.dinero > 0 ? '+' : ''}${cr(D.dinero - A.dinero)}`);
+  add('💪', D.nivel - A.nivel); add('⚡', D.energia - A.energia); add('⭐', D.rep - A.rep);
+  if (A.caja != null && D.caja != null) add('🏪', D.caja - A.caja, `🏪 ${D.caja - A.caja > 0 ? '+' : ''}${cr(D.caja - A.caja)}`);
+  if (A.fama != null && D.fama != null) add('✨', D.fama - A.fama);
+  if (rw.length) html += `<section class="card"><h2 style="text-align:center">Botín de la semana</h2><div class="rewards">${rw.join('')}</div></section>`;
+
+  if (R.opo.length) html += `<section class="card news"><h2>📣 Novedades</h2>${R.opo.map(([h, r]) =>
+    `<div class="it"><span class="ic">${h.startsWith('⚠️') ? '⚠️' : '🔔'}</span><div><b>${esc(h.replace(/^⚠️ /, ''))}</b><div class="small">${esc(r)}</div></div></div>`).join('')}</section>`;
+
+  html += `<details class="card why"><summary>🔍 ¿Por qué ha pasado esto? (reglas)</summary>
+    ${R.dep.length ? `<h4>⚽ Deporte</h4>${lineas(R.dep)}` : ''}
+    ${R.eco.length ? `<h4>👛 Tu dinero</h4><table>${R.eco.map(([t, v]) => `<tr><td>${esc(t)}</td><td class="n ${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '+' : ''}${cr(v)}</td></tr>`).join('')}
+      <tr class="tot"><td>Ahora tienes</td><td class="n">${cr(R.dineroFinal)}</td></tr></table>` : ''}
+    ${R.neg.length ? `<h4>🏪 Negocio</h4>${lineas(R.neg)}` : ''}</details>`;
+  return html;
 }
 
+/* ---- Eventos ---- */
 function pantallaEvento() {
   const ev = S.pendiente, P = CFG.prueba;
   if (ev.tipo === 'ojeador') {
-    return `<section class="card goal" id="evento"><h2>Oportunidad</h2><h3>Un ojeador quiere verte</h3>
-      <p>«Te he visto en la plaza. Te invito a unas pruebas. ¿Cuándo estarás listo?»</p>
-      <p class="small">En la prueba cuenta: nivel + energía/5 + reputación/5 ± ${P.suerte} de suerte.</p></section>
-      <button class="opt" data-act="resolver" data-v="corto"><span class="t">Pruebas en ${P.semanasCorto} semanas</span>
-        <span class="pro">+ Sin penalización</span><span class="con">− Menos tiempo para entrenar y ahorrar</span></button>
-      <button class="opt" data-act="resolver" data-v="largo"><span class="t">Pedir ${P.semanasLargo} semanas</span>
-        <span class="pro">+ ${P.semanasLargo - P.semanasCorto} semanas más para mejorar</span><span class="con">− ${P.penalLargo} puntos en la prueba: el ojeador espera más de ti</span></button>`;
+    return `<div class="scene">${escena('barrio')}<div class="chap">¡Evento!</div><div class="hero">🕵️</div>
+      <div class="bubble">«Te he visto en la plaza. Te invito a unas pruebas. ¿Cuándo puedes hacerlas?»</div></div>
+      <section class="card mission" id="evento"><h2>Un ojeador quiere verte</h2><h3>Elige cuándo hacer las pruebas</h3>
+      <p class="small">En la prueba cuenta: 💪 nivel + ⚡ energía/5 + ⭐ reputación/5 ± ${P.suerte} de suerte.</p></section>
+      <div class="grid">
+        <button class="opt" data-act="resolver" data-v="corto"><span class="ic">⏩</span><span class="t">En ${P.semanasCorto} semanas</span>
+          <span class="chips"><span class="chip g">Sin penalización</span><span class="chip b">Menos tiempo</span></span></button>
+        <button class="opt" data-act="resolver" data-v="largo"><span class="ic">⏳</span><span class="t">Pedir ${P.semanasLargo} semanas</span>
+          <span class="chips"><span class="chip g">+${P.semanasLargo - P.semanasCorto} semanas</span><span class="chip b">−${P.penalLargo} en la prueba</span></span></button>
+      </div>`;
   }
   if (ev.tipo === 'ofertas') {
     const ofs = Object.values(ev.ofertas);
-    const fila = (t, v) => `<tr><td>${t}</td><td class="n">${v}</td></tr>`;
-    return `<section class="card goal" id="evento"><h2>Ofertas</h2><h3>Tu puntuación en la prueba: ${ev.score}</h3>
-      <p class="small">Dos clubes quieren ficharte. Ninguna oferta es mejor en todo: compara.</p></section>` +
+    const maxSal = Math.max(...ofs.map(o => o.salario));
+    const fila = (t, v, pctV, col) => `<span>${t}</span><div class="b"><i style="width:${clamp(pctV, 0.05, 1) * 100}%;background:${col}"></i></div><span class="v">${v}</span>`;
+    return `<section class="card mission" id="evento" style="text-align:center"><h2>Resultado de las pruebas</h2><div class="big">${ev.score}</div>
+      <h3>¡Dos clubes quieren ficharte!</h3><p class="small">Ninguna oferta es mejor en todo. Compara y firma.</p></section>` +
       ofs.map(o => {
         const m = CFG.clubs[o.id].mejora;
-        const mejoraTxt = m.salario != null ? `${m.texto}: ${cr(m.salario)}/sem, pero titular con selección ≥ ${m.umbral}` : `${m.texto}: salario × ${String(m.salarioFactor).replace('.', ',')}`;
-        return `<div class="club"><h3>${esc(o.nombre)}</h3><p class="small">${esc(o.tipo)} · ${esc(o.equipo)}</p><table>
-        ${fila('Salario semanal', cr(o.salario))}
-        ${fila('Prima de fichaje', cr(o.fichaje))}
-        ${fila('Prima por victoria', cr(o.primaVictoria))}
-        ${fila('Duración', o.semanas + ' semanas')}
-        ${fila('Calidad de entrenamiento', '× ' + String(o.calidad).replace('.', ','))}
-        ${fila('Titular con selección ≥', o.umbral)}
-        ${fila('Nivel de los rivales', o.rivalNivel)}
-        ${fila('Visibilidad (reputación)', '× ' + String(o.visibilidad).replace('.', ','))}
-        ${fila('Mejora si nota media ≥', String(o.notaMejora).replace('.', ','))}</table>
-        <p class="small">${esc(o.detalleSalario)}. Posible mejora: ${esc(mejoraTxt)}.</p>
-        <button class="btn" data-act="resolver" data-v="${o.id}">Firmar con ${esc(o.nombre)}</button></div>`;
-      }).join('') + `<p class="note">Tu selección actual sería ${nf(puntSeleccion(S, 0))} (nivel + energía/4).</p>`;
+        const mejoraTxt = m.salario != null ? `${m.texto}: ${cr(m.salario)}/sem, pero titular con selección ≥ ${m.umbral}` : `${m.texto}: sueldo × ${nf(m.salarioFactor)}`;
+        return `<section class="card club"><div class="top">${escudo(o.id, 52)}<div><h3>${esc(o.nombre)}</h3><span class="small">${esc(o.tipo)} · ${esc(o.equipo)}</span></div></div>
+        <div class="cmp">
+          ${fila('💶 Sueldo', cr(o.salario) + '/sem', o.salario / maxSal, 'var(--yellow)')}
+          ${fila('💪 Entreno', '× ' + nf(o.calidad), o.calidad / 1.5, 'var(--blue)')}
+          ${fila('⏱️ Minutos', o.umbral <= 55 ? 'Fácil' : 'Difícil', (80 - o.umbral) / 30, 'var(--green)')}
+          ${fila('📣 Visibilidad', '× ' + nf(o.visibilidad), o.visibilidad / 2, 'var(--pink)')}
+        </div>
+        <span class="badge">🎁 Fichaje ${cr(o.fichaje)}</span><span class="badge">🏆 Victoria ${cr(o.primaVictoria)}</span><span class="badge">📄 ${o.semanas} sem</span>
+        <details class="more"><summary>📄 Ver letra pequeña</summary><table>
+          <tr><td>Sueldo</td><td class="n">${esc(o.detalleSalario)}</td></tr>
+          <tr><td>Titular con selección ≥</td><td class="n">${o.umbral}</td></tr>
+          <tr><td>Nivel de los rivales</td><td class="n">${o.rivalNivel}</td></tr>
+          <tr><td>Mejora si nota media ≥</td><td class="n">${nf(o.notaMejora)}</td></tr></table>
+          <p class="small">Posible mejora: ${esc(mejoraTxt)}.</p></details>
+        <button class="btn go" data-act="resolver" data-v="${o.id}" style="margin-top:10px">✍️ Firmar con ${esc(o.nombre)}</button></section>`;
+      }).join('') + `<p class="note">Tu selección hoy sería ${nf(puntSeleccion(S, 0))} (nivel + energía/4).</p>`;
   }
   if (ev.tipo === 'mejora') {
     const o = ev.oferta, N = CFG.negociacion, c = S.contrato;
-    const prob = clamp(S.p.rep, N.probMin, N.probMax);
-    const salL = Math.round(o.salario * N.largoFactor);
-    return `<section class="card goal" id="evento"><h2>Oportunidad</h2><h3>${esc(o.texto)}</h3>
-      <p>Ahora cobras ${cr(c.salario)}. El club ofrece <b>${cr(o.salario)}</b> por semana durante ${o.semanas} semanas, prima por victoria ${cr(o.primaVictoria)}.</p>
-      <p class="small">${o.umbral !== c.umbral ? `Ojo: en ${esc(o.equipo.toLowerCase())} la competencia es mayor (titular con ≥ ${o.umbral}, rivales de nivel ${o.rivalNivel}).` : `Mismo puesto en el equipo (titular con ≥ ${o.umbral}).`}</p></section>
-      <button class="opt" data-act="resolver" data-v="aceptar"><span class="t">Aceptar la oferta</span>
-        <span class="pro">+ ${cr(o.salario)}/sem seguro</span><span class="con">− Te quedas sin saber si podías sacar más</span></button>
-      <button class="opt" data-act="resolver" data-v="pedir"><span class="t">Pedir un ${Math.round((N.pedirMasFactor - 1) * 100)} % más</span>
-        <span class="pro">+ ${prob} % de probabilidad: ${cr(Math.round(o.salario * N.pedirMasFactor))}/sem</span>
-        <span class="con">− Si sale mal: oferta inicial y relación tensa (−${N.tensionSeleccion} selección, ${N.tensionSemanas} semanas)</span>
-        <span class="why">Probabilidad = tu reputación (entre ${N.probMin} % y ${N.probMax} %).</span></button>
-      <button class="opt" data-act="resolver" data-v="largo"><span class="t">Contrato largo con prima</span>
-        <span class="pro">+ ${cr(salL * N.largoPrimaSemanas)} ahora · ${N.largoSemanas} semanas de seguridad</span>
-        <span class="con">− Salario ${cr(salL)}/sem (un ${Math.round((1 - N.largoFactor) * 100)} % menos)</span>
-        <span class="why">Útil si quieres comprar el negocio pronto.</span></button>`;
+    const prob = clamp(S.p.rep, N.probMin, N.probMax), salL = Math.round(o.salario * N.largoFactor);
+    return `<section class="card mission" id="evento" style="text-align:center"><h2>📝 ${esc(c.nombre)}</h2><div style="font-size:52px">${escudo(c.id, 56)}</div>
+      <h3>${esc(o.texto)}</h3>
+      <p>Ahora cobras <b>${cr(c.salario)}</b>. Te ofrecen <b>${cr(o.salario)}</b>/semana durante ${o.semanas} semanas.</p>
+      <p class="small">${o.umbral !== c.umbral ? `Ojo: en el ${esc(o.equipo.toLowerCase())} hay más competencia (titular con ≥ ${o.umbral}, rivales de nivel ${o.rivalNivel}).` : `Mismo puesto en el equipo (titular con ≥ ${o.umbral}).`}</p></section>
+      <div class="sec-t">¿Qué haces?</div>
+      <div class="grid">
+        <button class="opt" data-act="resolver" data-v="aceptar"><span class="ic">🤝</span><span class="t">Aceptar</span>
+          <span class="chips"><span class="chip g">${cr(o.salario)}/sem</span><span class="chip g">Seguro</span></span></button>
+        <button class="opt" data-act="resolver" data-v="pedir"><span class="ic">🎲</span><span class="t">Pedir un ${Math.round((N.pedirMasFactor - 1) * 100)} % más</span>
+          <span class="chips"><span class="chip g">${prob} %: ${cr(Math.round(o.salario * N.pedirMasFactor))}</span><span class="chip b">Si falla: tensión</span></span></button>
+      </div>
+      <div style="height:12px"></div>
+      <button class="opt" data-act="resolver" data-v="largo" style="width:100%;min-height:0"><span class="ic">🔒</span><span class="t">Contrato largo con prima</span>
+        <span class="chips"><span class="chip g">+${cr(salL * N.largoPrimaSemanas)} ahora</span><span class="chip g">${N.largoSemanas} semanas</span><span class="chip b">${cr(salL)}/sem</span></span></button>
+      <p class="note">Pedir más: probabilidad = tu reputación (entre ${N.probMin} % y ${N.probMax} %). Si falla, firmas la oferta inicial y el club te lo tiene en cuenta (−${N.tensionSeleccion} en la selección durante ${N.tensionSemanas} semanas).</p>`;
   }
   if (ev.tipo === 'meta') {
-    return `<section class="card goal" id="evento"><h2>Fin de la versión</h2><h3>¡Del barrio al negocio!</h3>
-      <p>Tu patrimonio es de <b>${cr(patrimonio(S))}</b>. Has pasado del barrio a un club profesional y tienes tu propio negocio.</p>
-      <p class="small">Semanas jugadas: ${S.semana - 1}. Puedes seguir jugando o reiniciar desde «Finanzas».</p></section>
-      <button class="btn" data-act="resolver" data-v="ok">Seguir jugando</button>`;
+    return confeti() + `<section class="card mission" id="evento" style="text-align:center"><h2>Fin de esta versión</h2>
+      <div style="font-size:80px" class="logo">🏆</div><h3>¡Del barrio al negocio!</h3>
+      <p>Tu patrimonio: <b>${cr(patrimonio(S))}</b>.</p>
+      <p class="small">Del barrio a un club profesional y con tu propio negocio en ${S.semana - 1} semanas.</p>
+      <button class="btn go" data-act="resolver" data-v="ok">Seguir jugando</button></section>`;
   }
   return '';
+}
+
+/* ---- Presentación ---- */
+function pantallaIntro() {
+  return `<div class="intro"><div class="logo">⚽💼</div><h1>DEL BARRIO<br>AL NEGOCIO</h1>
+    <div class="sub">De la plaza del barrio a futbolista profesional… y a tener tu propio negocio.</div>
+    <section class="card"><h2>¿Cómo te llamas?</h2>
+      <input id="nombre" maxlength="16" placeholder="Tu nombre" value="${esc(S.nombre)}" autocomplete="off">
+      <h2 style="margin-top:14px">Elige tu personaje</h2>
+      <div class="avas">${CFG.avatares.map(a => `<button data-act="avatar" data-v="${a}" class="${S.avatar === a ? 'sel' : ''}">${a}</button>`).join('')}</div>
+    </section>
+    <button class="btn go" data-act="empezar" id="btnEmpezar">▶ ¡A jugar!</button>
+    <p class="note">Cada semana eliges un plan, juegas la semana y ves qué pasa. Los importes son de juego: no son precios ni salarios reales.</p></div>`;
 }
 
 function render() {
@@ -1043,23 +1332,26 @@ function render() {
   renderTop();
   const main = $('main'), dock = $('dock');
   let html, d = '';
-  if (S.verResultado) {
+  if (S.intro) {
+    html = pantallaIntro();
+  } else if (S.verResultado) {
     html = pantallaResultado();
-    d = `<button class="btn" data-act="continuar" id="btnContinuar">${S.pendiente ? 'Ver la oportunidad ▸' : 'Continuar ▸'}</button><div style="height:calc(var(--safe-bottom) + 8px)"></div>`;
+    d = `<button class="btn ${S.pendiente ? '' : 'go'}" data-act="continuar" id="btnContinuar">${S.pendiente ? '🔔 ¡Ver la oportunidad!' : 'Continuar ▶'}</button><div style="height:calc(var(--safe-bottom) + 8px)"></div>`;
   } else if (S.pendiente) {
     html = pantallaEvento();
-    d = '<div style="height:calc(var(--safe-bottom) + 8px)"></div>';
   } else {
     html = S.tab === 'negocio' ? pantallaNegocio() : S.tab === 'finanzas' ? pantallaFinanzas() : pantallaSemana();
     const a = S.eleccion && ACCIONES[S.eleccion];
     d = (S.tab === 'semana'
-      ? `<button class="btn" data-act="avanzar" id="btnAvanzar" ${a ? '' : 'disabled'}>${a ? 'Avanzar semana ▸' : 'Elige una decisión'}</button>`
-      : `<button class="btn sec" data-act="tab" data-v="semana">Volver a la semana</button>`) +
-      `<nav>${[['semana', 'Semana'], ['negocio', 'Negocio'], ['finanzas', 'Finanzas']].map(([k, t]) =>
-        `<button data-act="tab" data-v="${k}" class="${S.tab === k ? 'on' : ''}">${t}</button>`).join('')}</nav>`;
+      ? `<button class="btn go" data-act="avanzar" id="btnAvanzar" ${a ? '' : 'disabled'}>${a ? `▶ Jugar semana ${S.semana}` : 'Elige un plan'}</button>`
+      : '') +
+      `<nav>${[['semana', '⚽', 'Carrera'], ['negocio', '✂️', 'Negocio'], ['finanzas', '💰', 'Finanzas']].map(([k, ic, t]) =>
+        `<button data-act="tab" data-v="${k}" class="${S.tab === k ? 'on' : ''}"><span>${ic}</span>${t}</button>`).join('')}</nav>`;
   }
+  if (celebrar) { html = confeti() + html; celebrar = false; }
   main.innerHTML = html;
   dock.innerHTML = d;
+  if (S.aviso) { $('toast').innerHTML = `<div>${esc(S.aviso)}</div>`; S.aviso = null; }
 }
 
 document.addEventListener('click', e => {
@@ -1069,19 +1361,21 @@ document.addEventListener('click', e => {
   const prevTab = S.tab;
   if (act !== 'reiniciar' && act !== 'noReiniciar') confirmarReinicio = false;
   switch (act) {
+    case 'avatar': S.nombre = $('nombre').value; S.avatar = v; render(); break;
+    case 'empezar': S.nombre = ($('nombre').value || '').trim().slice(0, 16) || 'Crack'; S.intro = false; guardar(); render(); break;
     case 'elegir': elegir(b.dataset.id); break;
-    case 'avanzar': S.aviso = null; avanzarSemana(); break;
+    case 'avanzar': avanzarSemana(); break;
     case 'continuar': S.verResultado = false; S.tab = 'semana'; guardar(); render(); break;
-    case 'resolver': resolver(v); break;
-    case 'tab': S.tab = v; S.aviso = null; guardar(); render(); break;
+    case 'resolver': celebrar = !!(S.pendiente && S.pendiente.tipo === 'ofertas'); if (!resolver(v)) celebrar = false; break;
+    case 'tab': S.tab = v; guardar(); render(); break;
     case 'caja': S.cajaElegida = Number(v); render(); break;
-    case 'comprar': comprarNegocio(S.cajaElegida); break;
+    case 'comprar': celebrar = true; if (!comprarNegocio(S.cajaElegida)) celebrar = false; break;
     case 'neg': cambiarNegocio(b.dataset.c, b.dataset.c === 'empleados' ? Number(v) : v); break;
     case 'traspaso': traspasar(v); break;
     case 'reiniciar': if (confirmarReinicio) reiniciar(); else { confirmarReinicio = true; render(); } break;
     case 'noReiniciar': confirmarReinicio = false; render(); break;
   }
-  if (S.tab !== prevTab || act === 'continuar' || act === 'resolver' || act === 'avanzar') window.scrollTo(0, 0);
+  if (S.tab !== prevTab || ['continuar', 'resolver', 'avanzar', 'empezar', 'comprar'].includes(act)) window.scrollTo(0, 0);
 });
 
 S = cargar() || nuevaPartida();
@@ -1094,7 +1388,7 @@ render();
 window.__P1 = {
   CFG, ACCIONES,
   get S() { return S; }, set S(v) { S = v; },
-  nueva(seed) { S = nuevaPartida(seed); guardar(); render(); return S; },
+  nueva(seed) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; guardar(); render(); return S; },
   elegir, avanzarSemana, resolver, comprarNegocio, cambiarNegocio, traspasar, reiniciar,
   continuar() { S.verResultado = false; S.tab = 'semana'; guardar(); render(); },
   objetivos: () => objetivos(S), patrimonio: () => patrimonio(S), valorNegocio: () => valorNegocio(S),
