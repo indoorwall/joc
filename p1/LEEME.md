@@ -1,9 +1,9 @@
-# P1 — Del barrio al negocio (versión 0.8, 6 de octubre de 2026)
+# P1 — Del barrio al negocio (versión 0.9, 6 de octubre de 2026)
 
 **Simulador de vida** de un deportista (**fútbol** o **escalada**), en vertical y pensado para iPhone,
-con aspecto de **cuaderno de entrenamiento**: cada semana organizas tu **agenda** (mañana, tarde y
-noche), ves **lo que viene** (partidos, competiciones, fin de temporada…), la cierras y lees el **parte
-semanal**. Pestañas Semana, Carrera, Empresa y Vida, y cartas con decisiones e imprevistos.
+con formato de juego: cada semana eliges qué haces por la mañana, la tarde y la noche, pulsas
+**Jugar semana** y ves el resultado. Pestañas Inicio, Carrera, Empresa y Vida, y ventanas con
+decisiones e imprevistos.
 No es un simulador deportivo: partidos y competiciones se simulan con reglas que el juego explica.
 
 - Juego: `p1/carrera_p1.html` (un único archivo, sin conexión a Internet)
@@ -13,17 +13,17 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   marcas y rivales ficticios. Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
-**Novedades de la versión 0.8: interfaz propia (agenda semanal)**
-- La pantalla principal es **tu semana**: la etiqueta amarilla de la pantalla que tienes que superar,
-  la **agenda** (☀️ mañana = tu plan principal; 🌇 tarde y 🌙 noche = una actividad o tiempo con alguien,
-  o libres para descansar; 🏁 fin de semana = el partido o la competición, automático), los
-  **indicadores** de tu deporte (en escalada también piel y carga en los dedos), **lo que viene** en
-  las próximas semanas y el **parte semanal** con su «¿Por qué?». Los partes anteriores están en Vida.
-- Botón **Cerrar la semana** en lugar de «+ Semana», y una barra de pestañas plana: **Semana**,
-  **Carrera**, **Empresa** (negocios, casas, coches y clubes) y **Vida** (relaciones, actividades,
-  partes, pantallas y logros).
-- Estilo propio: papel cuadriculado, tinta azul marino, notas con borde de tinta, marcador amarillo y
-  color de acento según el deporte (verde fútbol, naranja magnesio en escalada).
+**Novedades de la versión 0.9: interfaz de juego**
+- Pantalla de inicio limpia, como un juego de móvil: **HUD** arriba (avatar con el número de pantalla,
+  nombre, monedas y logros), la **pantalla** que tienes que superar con su barra, una **escena** del
+  lugar donde estás (barrio, estadio, rocódromo o la zona de roca de tu proyecto), los **indicadores**
+  (en escalada también piel y dedos) y **tu semana** con tres fichas grandes: ☀️ mañana (tu plan
+  principal), 🌇 tarde y 🌙 noche (una actividad, tiempo con alguien o libres para descansar). Debajo, el
+  partido o la competición del fin de semana y lo próximo.
+- Botón grande **JUGAR SEMANA** siempre visible y, debajo, un resumen corto de la semana anterior
+  (el parte completo está en Vida → Partes).
+- Pestañas **Inicio, Carrera, Empresa y Vida**. Fondo oscuro con el color del deporte (verde fútbol,
+  morado y naranja en escalada), paneles redondeados y botones con relieve.
 - **Oro olímpico** en escalada: 90.000 € y beca de 60.000 € al año hasta los siguientes Juegos (si
   allí no repites el oro, la pierdes).
 
@@ -147,12 +147,12 @@ semanas o una temporada entera (se para si aparece una decisión). Todo queda an
 
 ## 2. Cómo se juega
 
-1. Mira la **pantalla** que tienes que superar (etiqueta amarilla) y **lo que viene**.
-2. Rellena tu **agenda**: la mañana (tu plan principal) y, si quieres, la tarde y la noche con una
+1. Mira la **pantalla** que tienes que superar (arriba) y lo próximo (debajo de tus fichas).
+2. Elige tus tres **fichas**: la mañana (tu plan principal) y, si quieres, la tarde y la noche con una
    actividad o tiempo con alguien. Todo se repite hasta que lo cambies. En **Vida** puedes además
    llamar, regalar o pasar tiempo con cada persona; en **Empresa** compras y gestionas negocios,
    casas, coches y clubes.
-3. Pulsa **Cerrar la semana**.
+3. Pulsa **Jugar semana**.
 4. Lee el **parte semanal** y decide en las cartas que aparezcan.
 
 ## 3. Las 10 pantallas
@@ -328,7 +328,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
 112 de 112 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
-1. Presentación, agenda (mañana, tarde, noche), lo que viene, indicadores, parte semanal, «Cerrar la semana»,
+1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
 2. **Una vida jugada con toques**: ojeador, ofertas, partidos, mejora, dos temporadas, imprevistos,
