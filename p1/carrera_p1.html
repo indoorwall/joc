@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#ffffff">
 <title>Del barrio al negocio · P1</title>
 <!--
-  PROTOTIPO P1 (v0.4) — Simulador de vida de un futbolista: carrera + negocios, casas, coches y clubes.
+  PROTOTIPO P1 (v0.5) — Simulador de vida de un futbolista: 10 pantallas, carrera, retirada, familia, negocios, casas con hipoteca, coches y clubes.
   Estilo «simulador de vida»: diario semanal, barras de estado, botón grande «+ Semana», menús y ventanas emergentes.
   No hay partidos controlables, física ni gráficos 3D: los partidos se simulan con reglas explicadas.
   Archivo autónomo: no carga nada de Internet. Sin anuncios, compras, cuentas ni servicios de IA.
@@ -18,7 +18,8 @@
     1. CONFIGURACIÓN · 2. UTILIDADES · 3. MUNDO (clubes, calendario, clasificación) · 4. ESTADO
     5. REGLAS · 6. PLAN SEMANAL · 7. SEMANA (jornada, economía, prensa, mercado, fin de temporada)
     8. IMPREVISTOS · 9. EVENTOS · 10. BIENES (negocios, inmuebles, coches, clubes)
-   11. VIDA (relaciones, actividades, felicidad, logros, diario, misiones) · 12. INTERFAZ · 13. GANCHOS DE PRUEBA
+   11. VIDA (relaciones, actividades, felicidad, logros, diario) · 12. PANTALLAS · 13. HIPOTECAS, HIJOS Y RETIRADA
+   14. INTERFAZ · GANCHOS DE PRUEBA
 -->
 <style>
   :root {
@@ -187,6 +188,12 @@
   .confetti i { position: absolute; top: -20px; width: 8px; height: 14px; border-radius: 2px; animation: fall 2.6s linear both; }
   @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+  .mision { display: block; width: calc(100% - 20px); text-align: left; font: inherit; cursor: pointer; }
+  .mision .pn { display: inline-block; font-size: 11px; font-weight: 900; letter-spacing: .08em; color: #92400e; background: #fde68a; border-radius: 6px; padding: 1px 6px; margin-bottom: 3px; }
+  .nivel.hecha { background: #f0faf3; } .nivel.actual { border: 2px solid var(--gold); background: #fffbea; } .nivel.bloq { opacity: .6; }
+  .nivel .tx span { font-size: 11px; font-weight: 900; letter-spacing: .08em; color: var(--dim); }
+  .obj { font-size: 14px; padding: 4px 0; }
 </style>
 </head>
 <body>
@@ -208,9 +215,11 @@
    Países y nombres de división son de ambientación; todos los clubes, ciudades y
    estadios se generan al azar y son ficticios.
    ===================================================================== */
+const P3 = (e, n, p) => ({ economico: { nombre: 'Económico', precio: e, factor: 1.4, fama: +1 }, normal: { nombre: 'Normal', precio: n, factor: 1.0, fama: 0 }, premium: { nombre: 'Premium', precio: p, factor: 0.45, fama: -3, famaSinPenal: 60 } });
+const S2 = (cb, kb, cg, kg) => ({ basico: { nombre: 'Básico', coste: cb, capacidad: kb, fama: -1 }, bueno: { nombre: 'Bueno', coste: cg, capacidad: kg, fama: +1 } });
 const CFG = {
   moneda: '€',
-  guardado: 'del_barrio_al_negocio_p1_v4',
+  guardado: 'del_barrio_al_negocio_p1_v5',
   inicio: { edad: 17, nivel: 30, energia: 70, rep: 5, dinero: 60 },
   energiaMax: 100, nivelMax: 99,
 
@@ -327,34 +336,42 @@ const CFG = {
   },
   negociacion: { pedirMasFactor: 1.2, probMin: 10, probMax: 80, tensionSemanas: 4, tensionSeleccion: 6, largoFactor: 0.9, largoPrimaSemanas: 4, largoTemporadas: 2 },
 
-  // ---- Negocios (se desbloquean en cadena: primero la peluquería) ----
+  // ---- Negocios (importes semanales de juego, aproximados a negocios reales pequeños en España) ----
+  // precio = traspaso del negocio · alquiler y fijos (luz, agua, seguros, gestoría) por semana ·
+  // sueldos con Seguridad Social incluida · costeCliente (€ por cliente) o costePct (parte de lo vendido)
+  // pantalla = en qué pantalla se desbloquea
   negocios: {
-    peluqueria: {
-      n: 'Peluquería', ic: '💈', icEmp: '💇', unidad: 'clientes', precio: 25000, cajaOpciones: [2000, 5000, 9000],
-      alquiler: 300, demandaBase: 150, costeCliente: 1.5, empleadosMax: 4, costeContratar: 300,
-      precios: { economico: { nombre: 'Económico', precio: 10, factor: 1.4, fama: +1 }, normal: { nombre: 'Normal', precio: 15, factor: 1.0, fama: 0 }, premium: { nombre: 'Premium', precio: 25, factor: 0.45, fama: -3, famaSinPenal: 60 } },
-      sueldos: { basico: { nombre: 'Básico', coste: 320, capacidad: 60, fama: -1 }, bueno: { nombre: 'Bueno', coste: 420, capacidad: 70, fama: +1 } },
-    },
-    cafeteria: {
-      n: 'Cafetería', ic: '☕', icEmp: '🧑‍🍳', unidad: 'consumiciones', precio: 70000, cajaOpciones: [5000, 10000, 20000], requiere: 'peluqueria',
-      alquiler: 700, demandaBase: 900, costeCliente: 1.2, empleadosMax: 5, costeContratar: 300,
-      precios: { economico: { nombre: 'Económico', precio: 3, factor: 1.4, fama: +1 }, normal: { nombre: 'Normal', precio: 4.5, factor: 1.0, fama: 0 }, premium: { nombre: 'Premium', precio: 7, factor: 0.45, fama: -3, famaSinPenal: 60 } },
-      sueldos: { basico: { nombre: 'Básico', coste: 340, capacidad: 350, fama: -1 }, bueno: { nombre: 'Bueno', coste: 440, capacidad: 400, fama: +1 } },
-    },
-    tienda: {
-      n: 'Tienda de deportes', ic: '👟', icEmp: '🧑‍💼', unidad: 'ventas', precio: 180000, cajaOpciones: [10000, 25000, 50000], requiere: 'cafeteria',
-      alquiler: 1500, demandaBase: 400, costeCliente: 25, empleadosMax: 5, costeContratar: 400,
-      precios: { economico: { nombre: 'Económico', precio: 30, factor: 1.4, fama: +1 }, normal: { nombre: 'Normal', precio: 40, factor: 1.0, fama: 0 }, premium: { nombre: 'Premium', precio: 60, factor: 0.45, fama: -3, famaSinPenal: 60 } },
-      sueldos: { basico: { nombre: 'Básico', coste: 380, capacidad: 150, fama: -1 }, bueno: { nombre: 'Bueno', coste: 480, capacidad: 180, fama: +1 } },
-    },
-    gimnasio: {
-      n: 'Gimnasio', ic: '🏋️', icEmp: '🧑‍🏫', unidad: 'socios', precio: 450000, cajaOpciones: [25000, 50000, 100000], requiere: 'tienda',
-      alquiler: 3000, demandaBase: 1500, costeCliente: 1, empleadosMax: 6, costeContratar: 400,
-      precios: { economico: { nombre: 'Económico', precio: 6, factor: 1.4, fama: +1 }, normal: { nombre: 'Normal', precio: 9, factor: 1.0, fama: 0 }, premium: { nombre: 'Premium', precio: 15, factor: 0.45, fama: -3, famaSinPenal: 60 } },
-      sueldos: { basico: { nombre: 'Básico', coste: 400, capacidad: 400, fama: -1 }, bueno: { nombre: 'Bueno', coste: 500, capacidad: 450, fama: +1 } },
-    },
+    peluqueria: { n: 'Peluquería', ic: '💈', icEmp: '💇', unidad: 'clientes', precio: 30000, cajaOpciones: [3000, 6000, 10000], pantalla: 5,
+      alquiler: 250, fijos: 150, demandaBase: 120, repSens: 0.002, costeCliente: 1.5, empleadosMax: 4, costeContratar: 300,
+      precios: P3(12, 16, 24), sueldos: S2(370, 50, 440, 55) },
+    cafeteria: { n: 'Cafetería', ic: '☕', icEmp: '🧑‍🍳', unidad: 'consumiciones', precio: 60000, cajaOpciones: [5000, 10000, 20000], pantalla: 5,
+      alquiler: 450, fijos: 350, demandaBase: 1300, repSens: 0.002, costeCliente: 1.0, empleadosMax: 6, costeContratar: 300,
+      precios: P3(2.5, 3.5, 5.5), sueldos: S2(400, 300, 470, 340) },
+    lavanderia: { n: 'Lavandería autoservicio', ic: '🧺', icEmp: '🧑‍🔧', unidad: 'lavados', precio: 90000, cajaOpciones: [5000, 10000, 20000], pantalla: 6,
+      alquiler: 350, fijos: 300, demandaBase: 420, repSens: 0.0005, costeCliente: 1.2, empleadosMax: 2, costeContratar: 300,
+      precios: P3(4, 6, 9), sueldos: S2(380, 400, 450, 450) },
+    academia: { n: 'Academia de fútbol', ic: '🥅', icEmp: '🧑‍🏫', unidad: 'alumnos', precio: 120000, cajaOpciones: [10000, 20000, 35000], pantalla: 6,
+      alquiler: 700, fijos: 300, demandaBase: 160, repSens: 0.012, costeCliente: 1.5, empleadosMax: 8, costeContratar: 200,
+      precios: P3(12, 20, 32), sueldos: S2(300, 40, 360, 45) },
+    tienda: { n: 'Tienda de deportes', ic: '👟', icEmp: '🧑‍💼', unidad: 'ventas', precio: 180000, cajaOpciones: [15000, 30000, 50000], pantalla: 7,
+      alquiler: 1200, fijos: 400, demandaBase: 450, repSens: 0.003, costePct: 0.8, empleadosMax: 5, costeContratar: 400,
+      precios: P3(30, 45, 70), sueldos: S2(400, 140, 470, 160) },
+    restaurante: { n: 'Restaurante', ic: '🍽️', icEmp: '👨‍🍳', unidad: 'comensales', precio: 300000, cajaOpciones: [20000, 40000, 70000], pantalla: 7,
+      alquiler: 900, fijos: 2400, demandaBase: 520, repSens: 0.004, costePct: 0.32, empleadosMax: 10, costeContratar: 400,
+      precios: P3(15, 24, 45), sueldos: S2(450, 65, 530, 75) },
+    gimnasio: { n: 'Gimnasio', ic: '🏋️', icEmp: '🧑‍🏫', unidad: 'socios', precio: 450000, cajaOpciones: [30000, 60000, 100000], pantalla: 8,
+      alquiler: 2800, fijos: 3500, demandaBase: 1400, repSens: 0.002, costeCliente: 0.8, empleadosMax: 7, costeContratar: 400,
+      precios: P3(6, 9, 14), sueldos: S2(420, 280, 490, 320) },
+    supermercado: { n: 'Supermercado', ic: '🛒', icEmp: '🧑‍💼', unidad: 'compras', precio: 650000, cajaOpciones: [50000, 100000, 150000], pantalla: 8,
+      alquiler: 2500, fijos: 2000, demandaBase: 2200, repSens: 0.0005, costePct: 0.8, empleadosMax: 10, costeContratar: 300,
+      precios: P3(22, 28, 38), sueldos: S2(400, 300, 470, 340) },
+    hotel: { n: 'Hotel con encanto', ic: '🏨', icEmp: '🛎️', unidad: 'noches', precio: 1500000, cajaOpciones: [50000, 100000, 200000], pantalla: 9,
+      alquiler: 0, fijos: 3500, demandaBase: 150, repSens: 0.002, costeCliente: 15, empleadosMax: 6, costeContratar: 400,
+      precios: P3(50, 80, 140), sueldos: S2(430, 35, 500, 40) },
   },
   negocioComun: { famaInicial: 40, colasFama: -2, impagoFama: -5, traspaso: 1000, visitaFama: 4, cursoDemanda: 0.05, cursosMax: 3 },
+  // Qué se desbloquea en cada pantalla (además de los negocios)
+  desbloqueos: { coches: 4, inmuebles: 6, hijos: 7, clubes: 9 },
 
   // ---- Inmuebles: se compran al contado, se revalorizan, se alquilan o se vive en ellos ----
   inmuebles: {
@@ -365,7 +382,10 @@ const CFG = {
     chalet: { n: 'Chalet con piscina', ic: '🏖️', precio: 650000, alquiler: 600 },
     villa: { n: 'Villa de lujo', ic: '🏰', precio: 2500000, alquiler: 2000 },
   },
-  inmo: { gastosPct: 0.00015, tendencia: 0.0008, volatilidad: 0.004, comisionVenta: 0.05, impuestoAlquiler: 0.2,
+  hipoteca: { interesAnual: 0.035, entrada: 0.2, plazos: [10, 20, 30], semanasAño: 18, esfuerzoMax: 0.4, amortizar: 10000, cambioEuribor: 0.005 },
+  hijos: { max: 4, embarazo: 14, edadMin: 20, relMin: 60, costes: [[5, 150], [17, 220]], privado: 150, fel: 5 },
+  retiro: { edadMin: 30, edadForzosa: 40, edadSinRenovacion: 36, edadSinOfertas: 37, declive: [[30, 0], [33, 0.15], [99, 0.35]], homenajeRep: 50, homenajePorRep: 100, tvRepMin: 40, tvPorRep: 30, entrenadorSueldo: 350 },
+  inmo: { gastosCompra: 0.10, gastosPct: 0.00015, tendencia: 0.0008, volatilidad: 0.004, comisionVenta: 0.05, impuestoAlquiler: 0.2,
     probInquilino: 0.5, anuncios: 5, renovarCada: 8, viviendaAhorro: 0.6, viviendaFel: 8 },
   coches: {
     utilitario: { n: 'Utilitario', ic: '🚗', precio: 14000, fel: 5, rep: 1 },
@@ -388,6 +408,7 @@ const CFG = {
     madre: { n: 'Madre', ic: '👩', decae: 1 }, padre: { n: 'Padre', ic: '👨', decae: 1 },
     amigo: { n: 'Mejor amigo/a', ic: '🧑‍🤝‍🧑', decae: 1 }, pareja: { n: 'Pareja', ic: '❤️', decae: 2 },
     agente: { n: 'Representante', ic: '🕴️', decae: 0 },
+    hijo: { n: 'Hijo/a', ic: '🧒', decae: 1 },
   },
   nombres: ['Álex', 'Dani', 'Sam', 'Noa', 'Iker', 'Lucía', 'Marc', 'Sara', 'Hugo', 'Carla', 'Leo', 'Nora', 'Pau', 'Vera', 'Íñigo', 'Alba'],
   agente: { comision: 0.10, sueldoExtra: 0.15, repMin: 30 },
@@ -533,7 +554,7 @@ let S = null;
 function nuevaPartida(seed) {
   const i = CFG.inicio;
   const s = {
-    v: 4,
+    v: 5,
     rng: (seed == null ? (Date.now() & 0x7fffffff) : seed) | 0,
     semana: 1, edad: i.edad, idSeq: 1,
     fase: 'barrio', plan: 'plaza',
@@ -542,7 +563,8 @@ function nuevaPartida(seed) {
     lesion: 0, mods: [], agenda: [],
     trayectoria: [], stats: { partidos: 0, jugados: 0, goles: 0, asist: 0, notas: [] }, ascensos: 0,
     negocios: [], inmuebles: [], coches: [], clubes: [], cursos: 0, indiceInmo: 1, anuncios: [], anunciosSemana: 0,
-    rel: [], mascota: false, convivencia: false,
+    rel: [], mascota: false, convivencia: false, embarazo: 0, pantalla: 0, mejoras: 0, mejorTier: 9, semanasAño: 0,
+    plazoHipoteca: 20, interesHipoteca: CFG.hipoteca.interesAnual, ingresosHist: [], hipotecasPagadas: 0,
     pendiente: null, cola: [],
     ultimo: null, log: [], semanaAct: { acts: [], lineas: [] }, logros: {}, hoja: null,
     acum: { ingresosPers: 0, gastosPers: 0, impuestos: 0, ingresosNeg: 0, gastosNeg: 0 },
@@ -575,7 +597,7 @@ function cargar() {
     const t = localStorage.getItem(CFG.guardado);
     if (!t) return null;
     const s = JSON.parse(t);
-    return s && s.v === 4 ? s : null;
+    return s && s.v === 5 ? s : null;
   } catch (_) { return null; }
 }
 function reiniciar(seed) {
@@ -688,6 +710,34 @@ const ACCIONES = {
     why: s => `Pago = (20 + reputación × 3) × visibilidad de tu liga (${nf(visibilidad(s, s.contrato.clubId))}), ya con impuestos.`,
     aplicar(s, R) { const pago = pagoPatrocinio(s); s.p.dinero += pago; s.p.rep += 2; s.p.energia -= 5; R.eco.push(['Acto de patrocinador', pago]); R.dep.push(['Patrocinador', '+2 reputación, −5 energía', 'Valor fijo de esta acción.']); },
   },
+  // ---- Retirado ----
+  gestionar: {
+    fases: ['retirado'], ic: '🏪', n: 'Dedicarte a tus negocios', fx: () => [['✨', 'Fama +3 en todos'], ['⚡', -5]],
+    pro: () => '+3 fama en todos tus negocios', con: () => '−5 energía', why: () => 'Estar encima de tus negocios los hace más conocidos.',
+    disponible: s => s.negocios.length ? null : 'No tienes negocios.',
+    aplicar(s, R) { for (const n of s.negocios) n.fama = clamp(n.fama + 3, 0, 100); s.p.energia -= 5; R.dep.push(['Semana en tus negocios', '+3 fama en todos', 'Valor fijo de esta acción.']); },
+  },
+  tele: {
+    fases: ['retirado'], ic: '📺', n: 'Comentarista de TV', fx: s => [['€', s.p.rep * CFG.retiro.tvPorRep], ['⭐', 1], ['⚡', -5]],
+    pro: s => `+${cr(s.p.rep * CFG.retiro.tvPorRep)} brutos · +1 reputación`, con: () => '−5 energía', why: () => `Pago = reputación × ${CFG.retiro.tvPorRep} € (paga impuestos). Mantiene tu fama.`,
+    disponible: s => s.p.rep >= CFG.retiro.tvRepMin ? null : `Necesitas reputación ${CFG.retiro.tvRepMin}.`,
+    aplicar(s, R) { const b = s.p.rep * CFG.retiro.tvPorRep, imp = Math.round(b * tipoImpuesto(b)); s.p.dinero += b - imp; s.acum.impuestos += imp; s.p.rep += 1; s.p.energia -= 5; R.eco.push(['Programa de televisión (neto)', b - imp]); R.dep.push(['Comentarista de TV', '+1 reputación, −5 energía', `${s.p.rep - 1} × ${CFG.retiro.tvPorRep} € brutos.`]); },
+  },
+  entrenador: {
+    fases: ['retirado'], ic: '🧑‍🏫', n: 'Entrenar en una cantera', fx: () => [['€', CFG.retiro.entrenadorSueldo], ['😊', 2], ['⚡', -10]],
+    pro: () => `+${cr(CFG.retiro.entrenadorSueldo)} · +2 felicidad`, con: () => '−10 energía', why: () => 'Un sueldo modesto haciendo lo que te gusta.',
+    aplicar(s, R) { s.p.dinero += CFG.retiro.entrenadorSueldo; aplicarFx(s, [['😊', 2]]); s.p.energia -= 10; R.eco.push(['Sueldo de entrenador de cantera', CFG.retiro.entrenadorSueldo]); R.dep.push(['Entrenar en la cantera', '+2 felicidad, −10 energía', 'Valor fijo de esta acción.']); },
+  },
+  familia: {
+    fases: ['retirado'], ic: '👨‍👩‍👧', n: 'Tiempo en familia', fx: () => [['❤️', 'Relaciones +3'], ['😊', 4]],
+    pro: () => '+3 en todas tus relaciones · +4 felicidad', con: () => 'no ganas dinero', why: () => 'Por fin tienes tiempo para los tuyos.',
+    aplicar(s, R) { for (const r of s.rel) if (r.tipo !== 'agente') r.v = clamp(r.v + 3, 0, 100); aplicarFx(s, [['😊', 4]]); R.dep.push(['Tiempo en familia', '+3 relaciones, +4 felicidad', 'Valor fijo de esta acción.']); },
+  },
+  rentas: {
+    fases: ['retirado'], ic: '🏖️', n: 'Vivir de las rentas', fx: () => [['😊', 3], ['⚡', 20]],
+    pro: () => '+3 felicidad · +20 energía', con: () => 'no ganas dinero ni fama', why: () => 'Descansar también es una opción.',
+    aplicar(s, R) { aplicarFx(s, [['😊', 3]]); s.p.energia += 20; R.dep.push(['Vivir de las rentas', '+3 felicidad, +20 energía', 'Valor fijo de esta acción.']); },
+  },
 };
 for (const a of Object.values(ACCIONES)) a.t = a.ic + ' ' + a.n;
 function pagoPatrocinio(s) { return red((20 + s.p.rep * 3) * visibilidad(s, s.contrato.clubId), 5); }
@@ -698,7 +748,7 @@ function accionesDisponibles(s) {
 /* =====================================================================
    7. SEMANA
    ===================================================================== */
-function planPorDefecto(s) { return s.fase === 'barrio' ? 'plaza' : s.fase === 'prep' ? 'entrenarSolo' : s.lesion > 0 ? 'reposo' : 'normal'; }
+function planPorDefecto(s) { return s.fase === 'barrio' ? 'plaza' : s.fase === 'prep' ? 'entrenarSolo' : s.fase === 'retirado' ? (s.negocios.length ? 'gestionar' : 'rentas') : s.lesion > 0 ? 'reposo' : 'normal'; }
 function elegir(id) {
   const a = ACCIONES[id];
   if (!a || !a.fases.includes(S.fase) || S.pendiente) return false;
@@ -718,7 +768,7 @@ function avanzarSemana() {
     const alt = planPorDefecto(s);
     if (a && a.fases.includes(s.fase)) nota.push(['🔁', `No puedo hacer «${a.n.toLowerCase()}» esta semana: ${a.disponible(s)} Hago «${ACCIONES[alt].n.toLowerCase()}».`]);
     id = alt; a = ACCIONES[id];
-    if (a.disponible && a.disponible(s)) { id = s.fase === 'club' ? 'reposo' : 'descansar'; a = ACCIONES[id]; }
+    if (a.disponible && a.disponible(s)) { id = s.fase === 'club' ? 'reposo' : s.fase === 'retirado' ? 'rentas' : 'descansar'; a = ACCIONES[id]; }
     if (s.plan !== 'patrocinio') s.plan = id;
   }
   const R = { semana: s.semana, accion: a.t, accionId: id, fase: s.fase, dep: [], eco: [], neg: [], opo: [], prensa: [], negocios: [], partido: null, antes: foto(s) };
@@ -746,8 +796,10 @@ function avanzarSemana() {
         `Nivel ${nf(s.p.nivel)} + energía ${s.p.energia}/5 + reputación ${s.p.rep}/5${s.prep.ajuste ? ` ${sg(s.prep.ajuste)} por pedir más tiempo` : ''} + suerte ${sg(suerte)}.`]);
       R.opo.push(['📝 Dos clubes me hacen una oferta', 'Toca comparar y firmar.']);
     }
-  } else {
+  } else if (s.fase === 'club') {
     semanaClub(s, R, mods);
+  } else {
+    semanaRetirado(s, R);
   }
 
   for (const n of s.negocios) semanaNegocio(s, R, n);
@@ -758,6 +810,8 @@ function avanzarSemana() {
   procesarAgenda(s, R);
   tickMods(s, R);
   comprobarLogros(s, R);
+  const ing = R.eco.filter(([, v]) => v > 0).reduce((x, [, v]) => x + v, 0) + R.eco.filter(([t]) => t.startsWith('Impuestos')).reduce((x, [, v]) => x + v, 0);
+  s.ingresosHist.push(Math.max(0, ing)); if (s.ingresosHist.length > 6) s.ingresosHist.shift();
 
   // Imprevistos: uno de vez en cuando (si no hay otra decisión pendiente)
   if (!s.pendiente && rnd(s) < CFG.club.probSuceso) {
@@ -809,6 +863,9 @@ function semanaClub(s, R, mods) {
   const pos = CFG.posiciones[s.posicion];
   c.semanas += 1;
   const tramo = tramoActual(s);
+  s.mejorTier = Math.min(s.mejorTier || 9, ligaDe(s, yo).tier);
+  const dec = declive(s);
+  if (dec) { s.p.nivel = Math.max(0, s.p.nivel - dec); R.dep.push([`Edad: −${nf(dec)} nivel`, '', `Con ${s.edad} años el cuerpo ya no responde igual (a partir de los 31 se pierde nivel cada semana).`]); }
   const P = { jornada: T.jornada + 1, liga: T.liga };
   R.clubId = yo;
   const energiaAntes = s.p.energia;
@@ -982,6 +1039,8 @@ function terminosOferta(s, id) {
   };
 }
 function generarOfertas(s, max) {
+  if (s.edad >= CFG.retiro.edadSinOfertas) return [];
+  if (s.edad >= 34) max = Math.min(max, 1);
   const cands = [];
   for (const c of Object.values(s.mundo.clubs)) {
     if (s.contrato && c.id === s.contrato.clubId) continue;
@@ -1003,12 +1062,13 @@ function generarOfertas(s, max) {
 function abrirMercado(s, R, ventana) {
   const ofertas = generarOfertas(s, (ventana === 'invierno' ? 2 : 3) + (rel(s, 'agente') ? 1 : 0));
   const c = s.contrato;
-  if (ventana === 'verano' && c.temporadasRestantes <= 0) {
+  if (ventana === 'verano' && c.temporadasRestantes <= 0 && s.edad < CFG.retiro.edadSinRenovacion) {
     const m = notaMedia(s), sube = m >= CFG.club.notaMejora;
     ofertas.unshift({ ...c, renovacion: true, salario: red(c.salario * (sube ? 1.1 : 0.9), 10), temporadas: 2, fichaje: 0,
       motivo: `Renovación con tu club: sueldo ${sube ? '+10 %' : '−10 %'} porque tu nota media (${nf(m)}) ${sube ? 'llega' : 'no llega'} a ${nf(CFG.club.notaMejora)}.` });
   }
   if (!ofertas.length) {
+    if (ventana === 'verano' && c.temporadasRestantes <= 0) { retirarse(s, true, R); return; }
     R.opo.push([`Mercado de ${ventana}`, 'Ningún club ha preguntado por ti. Mejora tu nivel o tu reputación.']);
     if (ventana === 'verano') arrancarNuevaTemporada(s);
     return;
@@ -1020,7 +1080,7 @@ function abrirMercado(s, R, ventana) {
 function finTemporada(s, R) {
   const T = s.temporada, c = s.contrato, yo = c.clubId, orden = clasificacion(T);
   const pos = orden.indexOf(yo) + 1, z = zona(T.liga, pos), tramo = tramoActual(s);
-  const info = { tipo: 'fin', año: T.año, liga: T.liga, pos, zona: z, tabla: orden.map(id => [id, { ...T.tabla[id] }]), primas: [], tramo: { ...tramo } };
+  const info = { tipo: 'fin', clubId: yo, año: T.año, liga: T.liga, pos, zona: z, tabla: orden.map(id => [id, { ...T.tabla[id] }]), primas: [], tramo: { ...tramo } };
   if (z === 'ascenso' || z === 'campeon') {
     s.ascensos += 1;
     if (c.primaAscenso) {
@@ -1036,12 +1096,13 @@ function finTemporada(s, R) {
   if (z === 'descenso' && c.bajadaDescenso) { const antes = c.salario; c.salario = red(c.salario * (1 - c.bajadaDescenso / 100), 10); info.primas.push(`Cláusula de descenso: sueldo ${cr(antes)} → ${cr(c.salario)} (−${c.bajadaDescenso} %)`); }
 
   actualizarMundo(s, T.liga, orden);
-  s.edad += 1;
+  cumpleaños(s, R);
   c.temporadasRestantes -= 1;
   info.ligaNueva = s.mundo.de[yo];
   encolar(s, info);
   R.opo.push([z === 'campeon' ? '🏆 ¡Campeones de liga!' : z === 'ascenso' ? '🎉 ¡Ascenso!' : z === 'descenso' ? '😢 Descenso' : 'Fin de temporada',
     `${miClub(s).nombre} termina ${pos}º en la ${infoLiga(T.liga).L.n}. Cumples ${s.edad} años.`]);
+  if (s.edad >= CFG.retiro.edadForzosa) { retirarse(s, true, R); return; }
   abrirMercado(s, R, 'verano');
 }
 function actualizarMundo(s, ligaJugador, ordenJugador) {
@@ -1251,7 +1312,39 @@ const SUCESOS = {
   inversorClub: { fases: ['club'], ic: '🤝', cond: s => s.clubes.length > 0, peso: 0.4, prep: s => ({ club: azar(s, s.clubes).clubId }), t: (s, d) => `Un inversor quiere comprar el ${club(s, d.club).nombre}`, d: 'Ofrece un 20 % más de lo que vale.',
     ops: [{ n: 'Vender', fx: (s, d) => [['€', red(valorClub(s, d.club) * 1.2, 1000)]], hacer(s, d) { const o = s.clubes.find(x => x.clubId === d.club), v = red(valorClub(s, d.club) * 1.2, 1000); s.p.dinero += v + o.caja; s.clubes = s.clubes.filter(x => x !== o); return `Vendes el club por ${cr(v)} (más su caja).`; } },
           { n: 'No vender', fx: () => [], txt: 'El club no está en venta.' }] },
+  // ---- Hijos ----
+  nacimiento: { fases: ['barrio', 'prep', 'club', 'retirado'], cond: () => false, ic: '👶', t: (s, d) => `¡Ha nacido ${hijoDe(s, d).nombre}!`, d: 'Es el día más feliz de tu vida. ¿Cómo organizas las próximas semanas?',
+    ops: [{ n: 'Pedir la baja por nacimiento', fx: s => [['🧒', 10], ['😊', 5]].concat(s.fase === 'club' ? [['📋', 'Selección −6 (2 sem)']] : []), hacer(s, d) { hijoDe(s, d).v = clamp(hijoDe(s, d).v + 10, 0, 100); aplicarFx(s, [['😊', 5]]); if (s.fase === 'club') s.mods.push({ tipo: 'sel', v: -6, sem: 2, motivo: 'baja por nacimiento' }); return 'Dos semanas en casa con el bebé.'; } },
+          { n: 'Volver enseguida al trabajo', fx: () => [['🧒', -5], ['😊', -3]], hacer(s, d) { hijoDe(s, d).v = clamp(hijoDe(s, d).v - 5, 0, 100); aplicarFx(s, [['😊', -3]]); return 'Sigues con tu rutina.'; } }] },
+  hijoNotas: { fases: ['club', 'retirado'], ic: '📚', cond: s => s.rel.some(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18), prep: s => ({ id: azar(s, s.rel.filter(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18)).id }),
+    t: (s, d) => `${hijoDe(s, d).nombre} saca muy buenas notas`, d: 'Te enseña el boletín muy orgulloso.',
+    ops: [{ n: 'Celebrarlo con un regalo', fx: () => [['€', -50], ['🧒', 8], ['😊', 4]], hacer(s, d) { s.p.dinero -= 50; hijoDe(s, d).v = clamp(hijoDe(s, d).v + 8, 0, 100); aplicarFx(s, [['😊', 4]]); return 'Está feliz.'; } },
+          { n: '«Es su obligación»', fx: () => [['🧒', -5]], hacer(s, d) { hijoDe(s, d).v = clamp(hijoDe(s, d).v - 5, 0, 100); return 'Se va a su cuarto sin decir nada.'; } }] },
+  hijoEnfermo: { fases: ['club', 'retirado'], ic: '🤒', cond: s => s.rel.some(r => r.tipo === 'hijo' && r.edad < 18), prep: s => ({ id: azar(s, s.rel.filter(r => r.tipo === 'hijo' && r.edad < 18)).id }),
+    t: (s, d) => `${hijoDe(s, d).nombre} está con fiebre`, d: 'Tiene que quedarse en casa unos días.',
+    ops: [{ n: 'Quedarte a cuidarle', fx: s => [['⚡', -10], ['🧒', 10]].concat(s.fase === 'club' ? [['📋', 'Selección −3']] : []), hacer(s, d) { aplicarFx(s, [['⚡', -10]]); hijoDe(s, d).v = clamp(hijoDe(s, d).v + 10, 0, 100); if (s.fase === 'club') s.mods.push({ tipo: 'sel', v: -3, sem: 1, motivo: 'cuidando a tu hijo/a' }); return 'Se recupera contigo al lado.'; } },
+          { n: 'Contratar a alguien', fx: () => [['€', -150], ['🧒', -3]], hacer(s, d) { s.p.dinero -= 150; hijoDe(s, d).v = clamp(hijoDe(s, d).v - 3, 0, 100); return 'Está bien cuidado, aunque te echa de menos.'; } }] },
+  hijoFutbol: { fases: ['club', 'retirado'], ic: '⚽', cond: s => s.rel.some(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18 && !r.futbol), prep: s => ({ id: azar(s, s.rel.filter(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18 && !r.futbol)).id }),
+    t: (s, d) => `${hijoDe(s, d).nombre} quiere ser futbolista como tú`, d: 'Te pide que le apuntes a una escuela de fútbol.',
+    ops: [{ n: 'Apuntarle', fx: () => [['€', '−30/sem'], ['🧒', 12], ['😊', 5]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v + 12, 0, 100); aplicarFx(s, [['😊', 5]]); s.mods.push({ tipo: 'ingreso', v: -30, sem: 36, motivo: `Escuela de fútbol de ${h.nombre}` }); return '¡Ya tiene sus primeras botas!'; } },
+          { n: 'Mejor que estudie', fx: () => [['🧒', -8]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v - 8, 0, 100); return 'Se lleva una decepción.'; } }] },
+  // ---- Hipotecas ----
+  euriborSube: { fases: ['club', 'retirado'], ic: '📈', cond: s => s.inmuebles.some(i => i.hipoteca), t: 'Sube el euríbor', d: 'Tu banco revisa el tipo de interés de tus hipotecas.',
+    ops: [{ n: 'Qué remedio', fx: () => [['🏦', `Interés +${CFG.hipoteca.cambioEuribor * 100} puntos`]], hacer(s) { cambiarInteres(s, CFG.hipoteca.cambioEuribor); return 'Tus cuotas suben un poco.'; } }] },
+  euriborBaja: { fases: ['club', 'retirado'], ic: '📉', cond: s => s.inmuebles.some(i => i.hipoteca) && s.interesHipoteca > 0.015, t: 'Baja el euríbor', d: 'Buenas noticias del banco.',
+    ops: [{ n: '¡Bien!', fx: () => [['🏦', `Interés −${CFG.hipoteca.cambioEuribor * 100} puntos`]], hacer(s) { cambiarInteres(s, -CFG.hipoteca.cambioEuribor); return 'Tus cuotas bajan un poco.'; } }] },
+  // ---- Retirada ----
+  colgarBotas: { fases: ['club'], ic: '🥾', cond: s => s.edad >= 33, peso: 1.5, t: '¿Es hora de colgar las botas?', d: 'Cada vez cuesta más recuperarse después de los partidos.',
+    ops: [{ n: 'Una temporada más', fx: () => [['😊', 2]], txt: 'Todavía te queda fútbol.' },
+          { n: 'Anunciar mi retirada', fx: () => [['👋', 'Te retiras del fútbol']], hacer(s) { retirarse(s, false, null); return 'Anuncias tu retirada.'; } }] },
 };
+const SOLO_FUTBOL = ['cena', 'lesionCompanero', 'fichajeRival', 'tarde', 'sub21', 'tienda', 'capitan', 'polemica', 'benefico', 'agente', 'entrenadorNuevo', 'colgarBotas'];
+for (const [id, e] of Object.entries(SUCESOS)) if (e.fases.includes('club') && !SOLO_FUTBOL.includes(id) && !e.fases.includes('retirado')) e.fases.push('retirado');
+function hijoDe(s, d) { return s.rel.find(r => r.id === d.id) || { nombre: 'Tu hijo/a', v: 0 }; }
+function cambiarInteres(s, delta) {
+  s.interesHipoteca = clamp(s.interesHipoteca + delta, 0.01, 0.08);
+  for (const i of s.inmuebles) if (i.hipoteca) { i.hipoteca.interes = s.interesHipoteca; i.hipoteca.cuota = cuotaHipoteca(i.hipoteca.deuda, i.hipoteca.restantes, i.hipoteca.interes); }
+}
 function elegirSuceso(s) {
   const ok = Object.entries(SUCESOS).filter(([, e]) => e.fases.includes(s.fase) && (!e.neg || s.negocios.length) && (!e.cond || e.cond(s)));
   if (!ok.length) return null;
@@ -1286,6 +1379,7 @@ function resolver(opcion) {
     } else {
       const o = ev.ofertas[Number(opcion)];
       if (!o) return false;
+      if (o.renovacion) s.mejoras += 1;
       const msgs = firmar(s, o, ev.ventana);
       if (!ACCIONES[s.plan] || !ACCIONES[s.plan].fases.includes('club')) s.plan = 'normal';
       msg = `${o.renovacion ? 'Renuevo con' : 'Firmo por'} el ${club(s, o.clubId).nombre}: ${cr(o.salario)}/semana. ${msgs.join(' ')}`; ic = '✍️';
@@ -1293,6 +1387,7 @@ function resolver(opcion) {
   } else if (ev.tipo === 'mejora') {
     const o = ev.oferta, N = CFG.negociacion, c = s.contrato;
     ic = '📝';
+    s.mejoras += 1;
     if (opcion === 'aceptar') { c.salario = o.salario; c.temporadasRestantes = o.temporadas; msg = `Firmo la mejora: ${cr(o.salario)} por semana.`; }
     else if (opcion === 'pedir') {
       const prob = clamp(s.p.rep, N.probMin, N.probMax);
@@ -1312,7 +1407,7 @@ function resolver(opcion) {
     msg = `${textoSuceso(s, e, ev.data || {}, 't')} → ${op.n}. ${msg}`;
     ic = e.ic;
     s.p.nivel = clamp(r1(s.p.nivel), 0, CFG.nivelMax); s.p.rep = clamp(Math.round(s.p.rep), 0, 100);
-  } else if (ev.tipo === 'fin') {
+  } else if (ev.tipo === 'fin' || ev.tipo === 'pantalla' || ev.tipo === 'retiro') {
     msg = ''; // ya está en el diario
   } else return false;
   s.pendiente = s.cola.shift() || null;
@@ -1330,9 +1425,9 @@ function resolver(opcion) {
 function negocioDe(s, tipo) { return s.negocios.find(n => n.tipo === tipo) || null; }
 function bloqueoNegocio(s, tipo) {
   const T = CFG.negocios[tipo];
-  if (s.fase !== 'club') return 'Necesitas un contrato profesional.';
+  if (!['club', 'retirado'].includes(s.fase)) return 'Necesitas un contrato profesional.';
   if (negocioDe(s, tipo)) return 'Ya es tuyo.';
-  if (T.requiere && !negocioDe(s, T.requiere)) return `Antes necesitas una ${CFG.negocios[T.requiere].n.toLowerCase()}.`;
+  if (!desbloqueado(s, tipo)) return textoBloqueo(s, tipo);
   return null;
 }
 function valorNegocio(n) { return Math.round(CFG.negocios[n.tipo].precio * (0.5 + n.fama / 100)); }
@@ -1341,14 +1436,16 @@ function factorModsNegocio(s, n) { return s.mods.filter(m => m.tipo === 'demanda
 function factorCursos(s) { return 1 + s.cursos * CFG.negocioComun.cursoDemanda; }
 function demandaNegocio(s, n) {
   const T = CFG.negocios[n.tipo], pr = T.precios[n.precio];
-  return T.demandaBase * pr.factor * (0.2 + n.fama / 80) * (1 + s.p.rep / 200) * factorCursos(s) * factorModsNegocio(s, n);
+  return T.demandaBase * pr.factor * (0.2 + n.fama / 80) * (1 + s.p.rep * T.repSens) * factorCursos(s) * factorModsNegocio(s, n);
 }
 function comprarNegocio(tipo, caja) {
   const s = S, T = CFG.negocios[tipo];
   if (!T || bloqueoNegocio(s, tipo) || !T.cajaOpciones.includes(caja) || s.p.dinero < T.precio + caja) return false;
   s.p.dinero -= T.precio + caja;
   s.acum.gastosPers += T.precio + caja;
-  s.negocios.push({ tipo, fama: CFG.negocioComun.famaInicial, precio: 'normal', empleados: 1, sueldo: 'basico', caja, semanas: 0, ultimo: null });
+  const n = { tipo, fama: CFG.negocioComun.famaInicial, precio: 'normal', empleados: 1, sueldo: 'basico', caja, semanas: 0, ultimo: null };
+  n.empleados = clamp(Math.round(demandaNegocio(s, n) / T.sueldos.basico.capacidad), 1, T.empleadosMax); // plantilla heredada del dueño anterior
+  s.negocios.push(n);
   anotar(s, T.ic, `Compro una ${T.n.toLowerCase()} por ${cr(T.precio)} y pongo ${cr(caja)} en su caja.`);
   s.aviso = `¡${T.n} comprada! Su caja va aparte de tu dinero.`;
   celebrar = true;
@@ -1382,7 +1479,7 @@ function traspasar(tipo, dir) {
 }
 function venderNegocio(tipo) {
   const s = S, n = negocioDe(s, tipo);
-  if (!n || s.negocios.some(x => CFG.negocios[x.tipo].requiere === tipo)) return false;
+  if (!n) return false;
   const v = valorNegocio(n);
   s.p.dinero += v + n.caja;
   s.negocios = s.negocios.filter(x => x !== n);
@@ -1396,8 +1493,9 @@ function semanaNegocio(s, R, n) {
   const famaAntes = n.fama, fm = factorModsNegocio(s, n);
   const demanda = Math.round(demandaNegocio(s, n) * (0.9 + rnd(s) * 0.2));
   const cap = capacidadNegocio(n), clientes = Math.min(demanda, cap), perdidos = demanda - clientes;
-  const ingresos = Math.round(clientes * pr.precio), sueldos = n.empleados * su.coste, productos = Math.round(clientes * T.costeCliente);
-  const gastos = T.alquiler + sueldos + productos, resultado = ingresos - gastos;
+  const ingresos = Math.round(clientes * pr.precio), sueldos = n.empleados * su.coste;
+  const productos = Math.round(T.costePct ? ingresos * T.costePct : clientes * T.costeCliente);
+  const gastos = T.alquiler + T.fijos + sueldos + productos, resultado = ingresos - gastos;
   n.caja += resultado; n.semanas += 1;
   s.acum.ingresosNeg += ingresos; s.acum.gastosNeg += gastos;
   const fam = [];
@@ -1409,10 +1507,10 @@ function semanaNegocio(s, R, n) {
   if (n.caja < 0) fam.push([C.impagoFama, 'caja en negativo: pagos con retraso']);
   for (const [d] of fam) n.fama += d;
   n.fama = clamp(n.fama, 0, 100);
-  n.ultimo = { demanda, cap, clientes, perdidos, ingresos, sueldos, productos, alquiler: T.alquiler, gastos, resultado, famaAntes, fama: n.fama, fam };
+  n.ultimo = { demanda, cap, clientes, perdidos, ingresos, sueldos, productos, alquiler: T.alquiler, fijos: T.fijos, gastos, resultado, famaAntes, fama: n.fama, fam };
   R.negocios.push([n.tipo, resultado]);
   R.neg.push([`${T.ic} ${T.n}: ${resultado >= 0 ? '+' : ''}${cr(resultado)}`, `${clientes} de ${demanda} ${T.unidad}`,
-    `Demanda = ${T.demandaBase} × precio ${pr.nombre.toLowerCase()} ${nf(pr.factor)} × (0,2 + fama ${famaAntes}/80) × (1 + reputación ${s.p.rep}/200)${factorCursos(s) !== 1 ? ` × ${nf(factorCursos(s))} (cursos)` : ''}${fm !== 1 ? ` × ${nf(fm)} (competencia)` : ''} ± 10 %. Capacidad ${n.empleados} × ${su.capacidad}. Ingresos ${cr(ingresos)} − alquiler ${cr(T.alquiler)} − sueldos ${cr(sueldos)} − género ${cr(productos)}. Fama ${famaAntes} → ${n.fama} (${fam.map(([d, t]) => `${sg(d)} ${t}`).join(', ')}).`]);
+    `Demanda = ${T.demandaBase} × precio ${pr.nombre.toLowerCase()} ${nf(pr.factor)} × (0,2 + fama ${famaAntes}/80) × (1 + reputación ${s.p.rep} × ${nf3(T.repSens)})${factorCursos(s) !== 1 ? ` × ${nf(factorCursos(s))} (cursos)` : ''}${fm !== 1 ? ` × ${nf(fm)} (competencia)` : ''} ± 10 %. Capacidad ${n.empleados} × ${su.capacidad}. Ingresos ${cr(ingresos)} − alquiler ${cr(T.alquiler)} − suministros y seguros ${cr(T.fijos)} − sueldos ${cr(sueldos)} − ${T.costePct ? `compras (${Math.round(T.costePct * 100)} % de lo vendido)` : 'género'} ${cr(productos)}. Fama ${famaAntes} → ${n.fama} (${fam.map(([d, t]) => `${sg(d)} ${t}`).join(', ')}).`]);
   if (n.caja < 0) R.opo.push(['⚠️', `La caja de tu ${T.n.toLowerCase()} está en negativo: pasa dinero o cambia precios/personal.`]);
 }
 
@@ -1428,13 +1526,16 @@ function generarAnuncios(s) {
 }
 function vivienda(s) { return s.inmuebles.find(i => i.modo === 'vivienda') || null; }
 function alquilerDe(s, id) { const i = s.inmuebles.find(x => x.id === id); return i ? i.alquiler : 0; }
-function comprarInmueble(id) {
+function comprarInmueble(id, conHipoteca) {
   const s = S, a = s.anuncios.find(x => x.id === id);
-  if (!a || s.p.dinero < a.precio) return false;
-  s.p.dinero -= a.precio; s.acum.gastosPers += a.precio;
-  s.inmuebles.push({ id: 'i' + (s.idSeq++), tipo: a.tipo, ciudad: a.ciudad, compra: a.precio, valor: a.precio, alquiler: a.alquiler, modo: 'vacio', inquilino: false });
+  if (!a || bloqueoInmueble(s, a, conHipoteca)) return false;
+  const h = conHipoteca ? condicionesHipoteca(s, a) : null, gastos = red(a.precio * CFG.inmo.gastosCompra, 100);
+  const pago = (h ? h.entrada : a.precio) + gastos;
+  s.p.dinero -= pago; s.acum.gastosPers += pago;
+  s.inmuebles.push({ id: 'i' + (s.idSeq++), tipo: a.tipo, ciudad: a.ciudad, compra: a.precio, valor: a.precio, alquiler: a.alquiler, modo: 'vacio', inquilino: false,
+    hipoteca: h ? { deuda: h.principal, cuota: h.cuota, restantes: h.semanas, plazo: s.plazoHipoteca, interes: s.interesHipoteca } : null });
   s.anuncios = s.anuncios.filter(x => x !== a);
-  anotar(s, CFG.inmuebles[a.tipo].ic, `Compro un ${CFG.inmuebles[a.tipo].n.toLowerCase()} en ${a.ciudad} por ${cr(a.precio)}.`);
+  anotar(s, CFG.inmuebles[a.tipo].ic, `Compro un ${CFG.inmuebles[a.tipo].n.toLowerCase()} en ${a.ciudad} por ${cr(a.precio)}${h ? ` con hipoteca: entrada ${cr(h.entrada)}, cuota ${cr(h.cuota)}/semana durante ${s.plazoHipoteca} años` : ''} (+${cr(gastos)} de impuestos y notaría).`);
   s.aviso = '¡Propiedad comprada! Decide si vives en ella o la alquilas.';
   celebrar = true;
   comprobarLogros(s, null);
@@ -1454,10 +1555,10 @@ function modoInmueble(id, modo) {
 function venderInmueble(id) {
   const s = S, i = s.inmuebles.find(x => x.id === id);
   if (!i) return false;
-  const v = red(i.valor * (1 - CFG.inmo.comisionVenta), 100);
-  s.p.dinero += v;
+  const v = red(i.valor * (1 - CFG.inmo.comisionVenta), 100), deuda = i.hipoteca ? Math.round(i.hipoteca.deuda) : 0;
+  s.p.dinero += v - deuda;
   s.inmuebles = s.inmuebles.filter(x => x !== i);
-  anotar(s, '🏷️', `Vendo el ${CFG.inmuebles[i.tipo].n.toLowerCase()} de ${i.ciudad} por ${cr(v)} (compré por ${cr(i.compra)}).`);
+  anotar(s, '🏷️', `Vendo el ${CFG.inmuebles[i.tipo].n.toLowerCase()} de ${i.ciudad} por ${cr(v)} (compré por ${cr(i.compra)})${deuda ? `; cancelo la hipoteca: −${cr(deuda)}` : ''}.`);
   guardar(); render();
   return true;
 }
@@ -1470,6 +1571,13 @@ function semanaInmuebles(s, R) {
     const g = Math.round(i.valor * I.gastosPct);
     s.p.dinero -= g;
     R.eco.push([`Gastos de ${CFG.inmuebles[i.tipo].n.toLowerCase()} (${i.ciudad})`, -g]);
+    if (i.hipoteca) {
+      const H = i.hipoteca, interes = H.deuda * H.interes / CFG.hipoteca.semanasAño, cuota = Math.min(H.cuota, Math.round(H.deuda + interes));
+      H.deuda = Math.max(0, H.deuda + interes - cuota); H.restantes -= 1;
+      s.p.dinero -= cuota;
+      R.eco.push([`Hipoteca de ${CFG.inmuebles[i.tipo].n.toLowerCase()} (quedan ${cr(H.deuda)})`, -cuota]);
+      if (H.deuda <= 1 || H.restantes <= 0) { i.hipoteca = null; s.hipotecasPagadas += 1; R.opo.push(['🏦', `¡Terminas de pagar la hipoteca de tu ${CFG.inmuebles[i.tipo].n.toLowerCase()}!`]); }
+    }
     if (i.modo === 'alquiler') {
       if (!i.inquilino) {
         if (rnd(s) < I.probInquilino) { i.inquilino = true; R.opo.push(['🔑', `Encuentras inquilino para tu ${CFG.inmuebles[i.tipo].n.toLowerCase()} de ${i.ciudad}.`]); }
@@ -1486,7 +1594,7 @@ function semanaInmuebles(s, R) {
 /* ---- Coches ---- */
 function comprarCoche(tipo) {
   const s = S, T = CFG.coches[tipo];
-  if (!T || s.p.dinero < T.precio) return false;
+  if (!T || s.p.dinero < T.precio || !desbloqueado(s, 'coches')) return false;
   s.p.dinero -= T.precio; s.acum.gastosPers += T.precio;
   aplicarFx(s, [['😊', T.fel], ['⭐', T.rep]]);
   s.coches.push({ id: 'k' + (s.idSeq++), tipo, valor: T.precio });
@@ -1519,6 +1627,7 @@ function valorClub(s, id) { return red(CFG.clubCompra.base * Math.exp((club(s, i
 function clubPropio(s, id) { return s.clubes.find(c => c.clubId === id) || null; }
 function clubesEnVenta(s) {
   const ids = new Set([s.clubLocal]);
+  if (s.ultimoClub) ids.add(s.ultimoClub);
   if (s.contrato) { ids.add(s.contrato.clubId); for (const id of s.mundo.ligas[s.mundo.de[s.contrato.clubId]]) ids.add(id); }
   for (const id of s.mundo.ligas['es-5'].slice(0, 3)) ids.add(id);
   for (const id of s.mundo.ligas['es-4'].slice(0, 2)) ids.add(id);
@@ -1527,7 +1636,7 @@ function clubesEnVenta(s) {
 function cajaInicialClub(s, id) { return red(valorClub(s, id) * CFG.clubCompra.cajaPct, 1000); }
 function comprarClub(id) {
   const s = S;
-  if (s.fase !== 'club' || !club(s, id) || clubPropio(s, id)) return false;
+  if (!['club', 'retirado'].includes(s.fase) || !desbloqueado(s, 'clubes') || !club(s, id) || clubPropio(s, id)) return false;
   const v = valorClub(s, id), caja = cajaInicialClub(s, id);
   if (s.p.dinero < v + caja) return false;
   s.p.dinero -= v + caja; s.acum.gastosPers += v + caja;
@@ -1590,7 +1699,8 @@ function patrimonio(s) {
     + s.negocios.reduce((a, n) => a + n.caja + valorNegocio(n), 0)
     + s.inmuebles.reduce((a, i) => a + i.valor, 0)
     + s.coches.reduce((a, k) => a + k.valor, 0)
-    + s.clubes.reduce((a, o) => a + o.caja + valorClub(s, o.clubId), 0);
+    + s.clubes.reduce((a, o) => a + o.caja + valorClub(s, o.clubId), 0)
+    - s.inmuebles.reduce((a, i) => a + (i.hipoteca ? Math.round(i.hipoteca.deuda) : 0), 0);
 }
 
 /* =====================================================================
@@ -1609,16 +1719,29 @@ const INTERACCIONES = {
   dinero: { n: 'Pedir dinero', ic: '💸', solo: ['madre', 'padre'], fx: [['rel', -10], ['€', 'según relación']] },
   romper: { n: 'Romper', ic: '💔', solo: ['pareja'], fx: [['😊', -15]] },
   despedir: { n: 'Despedir', ic: '👋', solo: ['agente'], fx: [] },
+  jugar: { n: 'Jugar juntos', ic: '🧸', solo: ['hijo'], fx: [['rel', 10], ['😊', 4], ['⚡', -5]] },
+  colegio: { n: 'Cambiar de colegio', ic: '🏫', solo: ['hijo'], fx: [] },
+  tenerHijo: { n: 'Tener un hijo', ic: '👶', solo: ['pareja'], fx: [] },
 };
-function interaccionesDe(r) { return Object.entries(INTERACCIONES).filter(([, x]) => !x.solo || x.solo.includes(r.tipo)).filter(([k]) => r.tipo !== 'agente' || k === 'despedir' || k === 'llamar'); }
+function interaccionesDe(r) {
+  return Object.entries(INTERACCIONES).filter(([, x]) => !x.solo || x.solo.includes(r.tipo))
+    .filter(([k]) => (r.tipo !== 'agente' || k === 'despedir' || k === 'llamar') && (r.tipo !== 'hijo' || (k !== 'llamar' && (k !== 'colegio' || (r.edad >= 6 && r.edad < 18)))));
+}
 function interactuar(relId, accion) {
   const s = S, r = s.rel.find(x => x.id === relId), X = INTERACCIONES[accion];
   if (!r || !X || (X.solo && !X.solo.includes(r.tipo)) || s.pendiente) return false;
   if (r.semana === s.semana) { s.aviso = `Ya has estado con ${r.nombre} esta semana.`; render(); return false; }
   if (accion === 'regalo' && s.p.dinero < 60) return false;
+  if (accion === 'tenerHijo') { const b = bloqueoHijo(s); if (b) { s.aviso = b; render(); return false; } }
   r.semana = s.semana;
   let txt = '';
-  if (accion === 'dinero') {
+  if (accion === 'tenerHijo') {
+    s.embarazo = CFG.hijos.embarazo; aplicarFx(s, [['😊', 10]]); r.v = clamp(r.v + 10, 0, 100);
+    txt = `¡${r.nombre} y yo vamos a tener un bebé! Nacerá en ${s.embarazo} semanas.`;
+  } else if (accion === 'colegio') {
+    r.privado = !r.privado; txt = `${r.nombre} irá a un colegio ${r.privado ? `privado (+${cr(CFG.hijos.privado)}/semana)` : 'público'}.`;
+    if (r.privado) r.v = clamp(r.v + 5, 0, 100);
+  } else if (accion === 'dinero') {
     if (r.v < 50 || s.ultimoPrestamoFamilia > s.semana - 10) { r.v = clamp(r.v - 5, 0, 100); txt = `${r.nombre} dice que no.`; }
     else { const v = red(100 + r.v * 3, 10); s.p.dinero += v; r.v = clamp(r.v - 10, 0, 100); s.ultimoPrestamoFamilia = s.semana; txt = `${r.nombre} te da ${cr(v)}.`; }
   } else if (accion === 'romper') {
@@ -1650,6 +1773,9 @@ const ACTIVIDADES = {
     hacer(s) { for (const n of s.negocios) n.fama = clamp(n.fama + CFG.negocioComun.visitaFama, 0, 100); return 'Tus clientes se alegran de verte.'; } },
   curso: { ic: '🎓', n: 'Curso de gestión', fx: () => [['€', -800], ['⚡', -5], ['📈', `Demanda de tus negocios +${CFG.negocioComun.cursoDemanda * 100} % para siempre`]], coste: 800,
     bloqueo: s => s.cursos >= CFG.negocioComun.cursosMax ? 'Ya has hecho todos los cursos.' : null, hacer(s) { s.cursos += 1; return `Curso de gestión completado (${s.cursos}/${CFG.negocioComun.cursosMax}).`; } },
+  citas: { ic: '💘', n: 'App de citas', fx: () => [['€', -10], ['🎲', '35 %: conocer a alguien']], coste: 10,
+    bloqueo: s => rel(s, 'pareja') ? 'Ya tienes pareja.' : null,
+    hacer(s) { if (rnd(s) < 0.35) { encolar(s, { tipo: 'suceso', id: 'cita', data: { nombre: azar(s, CFG.nombres) } }); return '¡Haces match con alguien!'; } return 'Esta semana no hay suerte.'; } },
   loteria: { ic: '🎟️', n: 'Comprar lotería', fx: () => [['€', -2], ['🍀', '1 entre 5.000: 50.000 €']], coste: 2,
     hacer(s) { const u = rnd(s); if (u < 1 / 5000) { s.p.dinero += 50000; return '¡¡TE TOCA EL PREMIO GORDO!! +50.000 €'; } if (u < 0.05) { s.p.dinero += 20; return 'Reintegro y un poco más: +20 €.'; } return 'Nada esta vez.'; } },
 };
@@ -1676,6 +1802,10 @@ function realizarActividad(id) {
 }
 
 function gastosVida(s) {
+  if (s.fase === 'retirado') {
+    const base = CFG.paises.es.vida, v = vivienda(s);
+    return v ? { v: Math.round(base * (1 - CFG.inmo.viviendaAhorro)), motivo: `vives en tu ${CFG.inmuebles[v.tipo].n.toLowerCase()}` } : { v: base, motivo: 'gastos de vida de alquiler' };
+  }
   const c = s.contrato;
   if (c.familia) return { v: c.vida, motivo: 'vives con tu familia' };
   const v = vivienda(s);
@@ -1693,6 +1823,10 @@ function objetivoFelicidad(s, P) {
   const coches = Math.min(8, s.coches.reduce((a, k) => a + CFG.coches[k.tipo].fel, 0) / 3);
   if (coches) l.push([Math.round(coches), 'coches']);
   if (s.mascota) l.push([4, 'tu perro']);
+  const hijos = s.rel.filter(r => r.tipo === 'hijo');
+  const bien = Math.min(2, hijos.filter(h => h.v >= 50).length), mal = hijos.filter(h => h.v < 30).length;
+  if (bien) l.push([bien * CFG.hijos.fel, bien === 1 ? 'tu hijo/a' : 'tus hijos']);
+  if (mal) l.push([-5 * mal, 'mala relación con tus hijos']);
   if (s.p.dinero < 0) l.push([-15, 'números rojos']);
   if (s.lesion > 0) l.push([-8, 'lesión']);
   if (P) {
@@ -1708,6 +1842,20 @@ function semanaVida(s, R) {
   }
   const p = rel(s, 'pareja');
   if (p && p.v < 15) { s.rel = s.rel.filter(x => x !== p); s.convivencia = false; aplicarFx(s, [['😊', -15]]); R.opo.push(['💔', `${p.nombre} te deja: vuestra relación estaba en ${p.v}.`]); }
+  if (s.embarazo) {
+    s.embarazo -= 1;
+    if (!s.embarazo) {
+      const nombre = azar(s, CFG.nombres), id = 'h' + (s.idSeq++);
+      s.rel.push({ id, tipo: 'hijo', nombre, v: 80, semana: 0, edad: 0, privado: false });
+      aplicarFx(s, [['😊', 15]]);
+      R.opo.push(['👶', `¡Nace ${nombre}!`]);
+      encolar(s, { tipo: 'suceso', id: 'nacimiento', data: { id } });
+    }
+  }
+  for (const h of s.rel.filter(r => r.tipo === 'hijo')) {
+    const c = costeHijo(h);
+    if (c) { s.p.dinero -= c; R.eco.push([`Gastos de ${h.nombre} (${h.edad} años${h.privado && h.edad >= 6 ? ', colegio privado' : ''})`, -c]); }
+  }
   const ag = rel(s, 'agente');
   if (ag && s.fase === 'club') { const com = Math.round(s.contrato.salario * CFG.agente.comision); s.p.dinero -= com; R.eco.push([`Comisión del representante (${Math.round(CFG.agente.comision * 100)} %)`, -com]); }
   const partes = objetivoFelicidad(s, R.partido), obj = clamp(partes.reduce((a, [v]) => a + v, 0), 0, 100);
@@ -1730,10 +1878,15 @@ const LOGROS = [
   ['club', '🏟️', 'Dueño de un club de fútbol', s => s.clubes.length > 0],
   ['presidente', '👔', 'Presidente y jugador del mismo club', s => s.fase === 'club' && !!clubPropio(s, s.contrato.clubId)],
   ['cienmil', '💰', '100.000 € de patrimonio', s => patrimonio(s) >= 100000],
-  ['imperio', '🏙️', 'Los cuatro negocios', s => s.negocios.length === Object.keys(CFG.negocios).length],
+  ['imperio', '🏙️', 'Todos los negocios', s => s.negocios.length === Object.keys(CFG.negocios).length],
   ['millon', '💎', 'Millonario: 1.000.000 € de patrimonio', s => patrimonio(s) >= 1000000],
+  ['hijo', '👶', 'Ser padre o madre', s => s.rel.some(r => r.tipo === 'hijo')],
+  ['hipoteca', '🏦', 'Pagar una hipoteca entera', s => s.hipotecasPagadas > 0],
+  ['retirada', '👋', 'Retirarse del fútbol', s => s.fase === 'retirado'],
+  ['leyenda', '🎮', 'Superar las 10 pantallas', s => s.pantalla >= PANTALLAS.length],
 ];
 function comprobarLogros(s, R) {
+  comprobarPantalla(s);
   for (const [id, ic, t, f] of LOGROS) {
     if (s.logros[id] || !f(s)) continue;
     s.logros[id] = s.semana;
@@ -1767,7 +1920,7 @@ function entradaDiario(s, R) {
   const neto = R.eco.reduce((x, [, v]) => x + v, 0);
   if (neto) L.push(['👛', `Mi dinero: ${neto >= 0 ? '+' : ''}${cr(neto)} esta semana.`]);
   const T = s.temporada;
-  const tit = s.fase === 'club' && P ? `${infoLiga(P.liga).L.n} · jornada ${P.jornada}` : s.fase === 'prep' ? 'Preparando las pruebas' : `Barrio de ${s.ciudad}`;
+  const tit = R.fase === 'club' && P ? `${infoLiga(P.liga).L.n} · jornada ${P.jornada}` : R.fase === 'prep' ? 'Preparando las pruebas' : R.fase === 'retirado' ? 'Retirado del fútbol' : `Barrio de ${s.ciudad}`;
   return { semana: R.semana, edad: s.edad, titulo: tit, lineas: L, partido: P ? { gf: P.gf, gc: P.gc, casa: P.casa, rival: P.rivalId, club: R.clubId, resultado: P.resultado, nota: P.nota, rol: P.rol } : null,
     por: { dep: R.dep, eco: R.eco, neg: R.neg }, prensa: R.prensa, año: T ? T.año : null };
 }
@@ -1878,8 +2031,175 @@ function confeti() {
 }
 
 
+
 /* =====================================================================
-   12. INTERFAZ (estilo «simulador de vida»: diario, barras, botón grande y ventanas)
+   12. PANTALLAS: la progresión del juego. Cada pantalla tiene objetivos claros;
+   al cumplirlos todos se cobra el premio y se desbloquea lo siguiente.
+   ===================================================================== */
+const PANTALLAS = [
+  { n: 'El barrio', ic: '🏘️', premio: [['😊', 5]], desbloquea: 'Las pruebas con un club',
+    obj: [['Llama la atención de un ojeador (reputación 25)', s => s.fase !== 'barrio' ? 1 : s.p.rep / CFG.barrio.repOjeador]] },
+  { n: 'Las pruebas', ic: '📋', premio: [['€', 300]], desbloquea: 'Tu carrera profesional',
+    obj: [['Firma tu primer contrato profesional', s => ['club', 'retirado'].includes(s.fase) ? 1 : s.fase === 'prep' ? 0.5 : 0]] },
+  { n: 'Semiprofesional', ic: '⚽', premio: [['€', 500]], desbloquea: 'Coches',
+    obj: [['Juega 10 partidos', s => s.stats.jugados / 10],
+          ['Nota media de 6 o más en tus últimos partidos', s => s.stats.notas.length ? notaMedia(s) / 6 : 0],
+          ['Ahorra 3.000 €', s => s.p.dinero / 3000]] },
+  { n: 'A por el ascenso', ic: '📈', premio: [['€', 2000]], desbloquea: 'Peluquería y cafetería',
+    obj: [['Juega en 3ª categoría o más arriba (o asciende)', s => s.ascensos > 0 ? 1 : (6 - (s.mejorTier || 6)) / 3],
+          ['Consigue una mejora o renovación de contrato', s => s.mejoras > 0 ? 1 : 0],
+          ['Ahorra 25.000 €', s => s.p.dinero / 25000]] },
+  { n: 'Primer negocio', ic: '💈', premio: [['€', 5000]], desbloquea: 'Inmobiliaria con hipotecas, lavandería y academia de fútbol',
+    obj: [['Compra tu primer negocio', s => s.negocios.length ? 1 : 0],
+          ['Llega a 60.000 € de patrimonio', s => patrimonio(s) / 60000]] },
+  { n: 'Casa propia', ic: '🏠', premio: [['€', 10000]], desbloquea: 'Tienda de deportes, restaurante e hijos',
+    obj: [['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0],
+          ['Ten pareja', s => rel(s, 'pareja') ? 1 : 0],
+          ['Ten 2 negocios', s => s.negocios.length / 2]] },
+  { n: 'La élite', ic: '🌍', premio: [['€', 25000]], desbloquea: 'Gimnasio y supermercado',
+    obj: [['Juega en 1ª o 2ª categoría (o ten 3 negocios)', s => (s.mejorTier || 9) <= 2 || s.negocios.length >= 3 ? 1 : Math.max(s.negocios.length / 3, (6 - (s.mejorTier || 6)) / 4)],
+          ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
+  { n: 'Familia y empresa', ic: '👨‍👩‍👧', premio: [['€', 50000]], desbloquea: 'Hotel y compra de clubes de fútbol',
+    obj: [['Ten un hijo o una hija', s => s.rel.some(r => r.tipo === 'hijo') ? 1 : s.embarazo ? 0.5 : 0],
+          ['Ten 4 negocios', s => s.negocios.length / 4],
+          ['Ten una propiedad alquilada', s => s.inmuebles.some(i => i.inquilino) ? 1 : 0]] },
+  { n: 'Colgar las botas', ic: '👴', premio: [['€', 100000]], desbloquea: 'La última pantalla',
+    obj: [[`Retírate del fútbol (desde los ${CFG.retiro.edadMin} años)`, s => s.fase === 'retirado' ? 1 : s.fase === 'club' ? Math.min(0.9, s.edad / CFG.retiro.edadMin) : 0],
+          ['Llega a 1.000.000 € de patrimonio', s => patrimonio(s) / 1000000]] },
+  { n: 'Leyenda', ic: '🏆', premio: [['😊', 20]], desbloquea: '¡Has completado el juego!',
+    obj: [['Compra un club de fútbol', s => s.clubes.length ? 1 : 0],
+          ['Ten 6 negocios', s => s.negocios.length / 6],
+          ['Llega a 5.000.000 € de patrimonio', s => patrimonio(s) / 5000000]] },
+];
+function pantallaActual(s) { return s.pantalla < PANTALLAS.length ? PANTALLAS[s.pantalla] : null; }
+function progresoObjetivos(s) { const P = pantallaActual(s); return P ? P.obj.map(([t, f]) => [t, clamp(f(s), 0, 1)]) : []; }
+function desbloqueado(s, clave) {
+  const nivel = CFG.desbloqueos[clave] || (CFG.negocios[clave] && CFG.negocios[clave].pantalla) || 1;
+  return s.pantalla + 1 >= nivel;
+}
+function textoBloqueo(s, clave) {
+  const nivel = CFG.desbloqueos[clave] || (CFG.negocios[clave] && CFG.negocios[clave].pantalla) || 1;
+  return `Se desbloquea en la pantalla ${nivel}: ${PANTALLAS[nivel - 1].n}`;
+}
+function comprobarPantalla(s) {
+  let P = pantallaActual(s);
+  while (P && progresoObjetivos(s).every(([, v]) => v >= 1)) {
+    const n = s.pantalla;
+    for (const [ic, v] of P.premio) { aplicarFx(s, [[ic, v]]); if (ic === '€') s.acum.ingresosPers += v; }
+    s.pantalla += 1;
+    encolar(s, { tipo: 'pantalla', n });
+    anotar(s, '🎮', `¡Pantalla ${n + 1} superada: ${P.n}! Premio: ${P.premio.map(([ic, v]) => ic === '€' ? cr(v) : `${ic} +${v}`).join(', ')}.`);
+    celebrar = true;
+    P = pantallaActual(s);
+  }
+}
+
+/* =====================================================================
+   13. HIPOTECAS, HIJOS Y RETIRADA
+   Un «año de juego» es una temporada: 18 semanas. Plazos y edades van en años de juego.
+   ===================================================================== */
+function cuotaHipoteca(principal, semanas, interes) {
+  const r = interes / CFG.hipoteca.semanasAño;
+  return Math.round(principal * r / (1 - Math.pow(1 + r, -semanas)));
+}
+function ingresoMedio(s) { const h = s.ingresosHist; return h.length ? h.reduce((a, b) => a + b, 0) / h.length : 0; }
+function cuotasActuales(s) { return s.inmuebles.reduce((a, i) => a + (i.hipoteca ? i.hipoteca.cuota : 0), 0); }
+function capacidadHipoteca(s) { return Math.max(0, Math.round(CFG.hipoteca.esfuerzoMax * ingresoMedio(s) - cuotasActuales(s))); }
+function condicionesHipoteca(s, a) {
+  const H = CFG.hipoteca, entrada = red(a.precio * H.entrada, 100), principal = a.precio - entrada, semanas = s.plazoHipoteca * H.semanasAño;
+  const cuota = cuotaHipoteca(principal, semanas, s.interesHipoteca);
+  return { entrada, principal, semanas, cuota, gastos: red(a.precio * CFG.inmo.gastosCompra, 100) };
+}
+function bloqueoInmueble(s, a, conHipoteca) {
+  if (!desbloqueado(s, 'inmuebles')) return textoBloqueo(s, 'inmuebles');
+  const gastos = red(a.precio * CFG.inmo.gastosCompra, 100);
+  if (!conHipoteca) return s.p.dinero >= a.precio + gastos ? null : `Necesitas ${cr(a.precio + gastos)}.`;
+  const h = condicionesHipoteca(s, a);
+  if (s.p.dinero < h.entrada + h.gastos) return `Entrada + gastos: ${cr(h.entrada + h.gastos)}.`;
+  if (h.cuota > capacidadHipoteca(s)) return `El banco no te la da: cuota ${cr(h.cuota)}/sem y solo puedes pagar ${cr(capacidadHipoteca(s))}/sem.`;
+  return null;
+}
+function amortizarHipoteca(id) {
+  const s = S, i = s.inmuebles.find(x => x.id === id);
+  if (!i || !i.hipoteca) return false;
+  const h = i.hipoteca, pago = Math.min(CFG.hipoteca.amortizar, h.deuda);
+  if (s.p.dinero < pago) return false;
+  s.p.dinero -= pago; h.deuda -= pago;
+  if (h.deuda <= 1) { i.hipoteca = null; s.hipotecasPagadas += 1; s.aviso = '¡Hipoteca liquidada!'; }
+  else { h.cuota = cuotaHipoteca(h.deuda, h.restantes, h.interes); s.aviso = `Amortizas ${cr(pago)}: la cuota baja a ${cr(h.cuota)}/sem.`; }
+  anotar(s, '🏦', s.aviso);
+  comprobarLogros(s, null);
+  guardar(); render();
+  return true;
+}
+function cambiarPlazo(años) { if (!CFG.hipoteca.plazos.includes(años)) return false; S.plazoHipoteca = años; guardar(); render(); return true; }
+
+function bloqueoHijo(s) {
+  const H = CFG.hijos, p = rel(s, 'pareja');
+  if (!desbloqueado(s, 'hijos')) return textoBloqueo(s, 'hijos');
+  if (!p) return 'Necesitas pareja.';
+  if (s.embarazo) return `Ya estáis esperando un bebé (${s.embarazo} semanas).`;
+  if (p.v < H.relMin) return `Vuestra relación debe estar en ${H.relMin} o más.`;
+  if (s.edad < H.edadMin) return `Desde los ${H.edadMin} años.`;
+  if (s.rel.filter(r => r.tipo === 'hijo').length >= H.max) return `Máximo ${H.max} hijos.`;
+  return null;
+}
+function costeHijo(h) {
+  if (h.edad >= 18) return 0;
+  const base = CFG.hijos.costes.find(([hasta]) => h.edad <= hasta)[1];
+  return base + (h.privado && h.edad >= 6 ? CFG.hijos.privado : 0);
+}
+function icHijo(h) { return h.edad < 3 ? '👶' : h.edad < 13 ? '🧒' : '🧑'; }
+function cumpleaños(s, R) {
+  s.edad += 1;
+  for (const h of s.rel.filter(r => r.tipo === 'hijo')) {
+    h.edad += 1;
+    if (h.edad === 6) R.opo.push(['🎒', `${h.nombre} empieza el colegio. En Relaciones puedes elegir colegio público o privado.`]);
+    if (h.edad === 18) R.opo.push(['🎓', `${h.nombre} cumple 18 años: ya no te cuesta dinero.`]);
+  }
+}
+function declive(s) { for (const [hasta, v] of CFG.retiro.declive) if (s.edad <= hasta) return v; return 0.35; }
+function retirarse(s, forzado, R) {
+  if (s.fase !== 'club' || (!forzado && s.edad < CFG.retiro.edadMin)) return false;
+  const c = miClub(s), RR = CFG.retiro;
+  const homenaje = s.p.rep >= RR.homenajeRep ? s.p.rep * RR.homenajePorRep : 0;
+  s.ultimoClub = c.id;
+  s.fase = 'retirado'; s.contrato = null; s.lesion = 0; s.semanasAño = 0;
+  s.plan = s.negocios.length ? 'gestionar' : 'rentas';
+  s.mods = s.mods.filter(m => m.tipo !== 'sel');
+  s.cola = s.cola.filter(e => !['ofertas', 'mejora'].includes(e.tipo));
+  if (s.pendiente && ['ofertas', 'mejora'].includes(s.pendiente.tipo)) s.pendiente = s.cola.shift() || null;
+  if (homenaje) { s.p.dinero += homenaje; s.acum.ingresosPers += homenaje; }
+  const txt = `${forzado ? 'Ningún club me ofrece contrato: ' : ''}me retiro del fútbol a los ${s.edad} años tras ${s.stats.jugados} partidos y ${s.stats.goles} goles.${homenaje ? ` Partido de homenaje en el ${c.estadio}: +${cr(homenaje)}.` : ''}`;
+  if (R) R.opo.push(['👋', txt]); else anotar(s, '👋', txt);
+  encolar(s, { tipo: 'retiro', homenaje, club: c.id, forzado: !!forzado, edad: s.edad, jugados: s.stats.jugados, goles: s.stats.goles });
+  comprobarLogros(s, R);
+  return true;
+}
+function retirarseYa() { const ok = retirarse(S, false, null); if (ok) { S.hoja = null; guardar(); render(); } return ok; }
+function semanaRetirado(s, R) {
+  s.p.energia = clamp(s.p.energia + CFG.club.recuperacion, 0, CFG.energiaMax);
+  const gv = gastosVida(s);
+  s.p.dinero -= gv.v;
+  R.eco.push([`Gastos (${gv.motivo})`, -gv.v]);
+  if (s.plan !== 'tele' && s.semana % 6 === 0 && s.p.rep > 0) { s.p.rep -= 1; R.dep.push(['Reputación −1', '', 'Retirado, la gente se va olvidando de ti poco a poco (salvo si sales en la tele).']); }
+  s.semanasAño += 1;
+  if (s.semanasAño >= CFG.hipoteca.semanasAño) { s.semanasAño = 0; cumpleaños(s, R); R.opo.push(['🎂', `Cumplo ${s.edad} años.`]); }
+  // El mundo sigue: se juega la liga de tu club (o la última en la que jugaste)
+  const T = s.temporada;
+  if (T) {
+    for (const [h, a] of T.cal[T.jornada]) simPartido(s, T, h, a);
+    T.jornada += 1;
+    if (T.jornada >= CFG.temporada.jornadas) {
+      actualizarMundo(s, T.liga, clasificacion(T));
+      iniciarTemporada(s, s.clubes.length ? s.mundo.de[s.clubes[0].clubId] : T.liga, 0, T.año + 1);
+      for (const o of s.clubes) R.opo.push(['🏟️', `El ${club(s, o.clubId).nombre} jugará la próxima temporada en ${nombreLiga(s.mundo.de[o.clubId])}.`]);
+    }
+  }
+}
+
+/* =====================================================================
+   14. INTERFAZ (estilo «simulador de vida»: diario, barras, botón grande y ventanas)
    ===================================================================== */
 let confirmarReinicio = false;
 let celebrar = false;
@@ -1897,6 +2217,7 @@ const pct = (v, max) => Math.round(clamp(v / max, 0, 1) * 100);
 function ocupacion(s) {
   if (s.fase === 'barrio') return `Juega en el barrio de ${s.ciudad}`;
   if (s.fase === 'prep') return `Prepara pruebas con el ${club(s, s.pendienteOjeador).nombre}`;
+  if (s.fase === 'retirado') return `Exfutbolista${s.negocios.length ? ` · ${s.negocios.length} ${s.negocios.length === 1 ? 'negocio' : 'negocios'}` : ''}`;
   const pos = CFG.posiciones[s.posicion].n.toLowerCase();
   return `${pos[0].toUpperCase() + pos.slice(1)} · ${CFG.paises[miClub(s).pais].flag} ${miClub(s).nombre}`;
 }
@@ -1910,9 +2231,13 @@ function renderTop() {
 
 /* ---- Pantalla principal: diario ---- */
 function htmlMision() {
-  const [a, b] = objetivos(S);
-  return `<div class="mision" id="objetivo"><b>🎯 ${esc(a.t)}</b>${a.prog != null ? `<div class="pb"><i style="width:${pct(a.prog, 1)}%"></i></div>` : ''}
-    ${a.d ? `<p>${esc(a.d)}</p>` : ''}${b ? `<p>Después: ${esc(b.t)}</p>` : ''}</div>`;
+  const s = S, P = pantallaActual(s);
+  if (!P) return `<button class="mision" id="objetivo" data-act="hoja" data-v="pantallas"><b>🏆 ¡Juego completado! Las 10 pantallas superadas</b><p>Sigue construyendo tu imperio.</p></button>`;
+  const ob = progresoObjetivos(s), hechos = ob.filter(([, v]) => v >= 1).length, total = ob.reduce((a, [, v]) => a + v, 0) / ob.length;
+  const sig = ob.find(([, v]) => v < 1);
+  return `<button class="mision" id="objetivo" data-act="hoja" data-v="pantallas"><span class="pn">PANTALLA ${s.pantalla + 1}/${PANTALLAS.length}</span>
+    <b>${P.ic} ${esc(P.n)} · ${hechos}/${ob.length} ✓</b><div class="pb"><i style="width:${pct(total, 1)}%"></i></div>
+    ${sig ? `<p>⬜ ${esc(sig[0])} (${pct(sig[1], 1)} %)</p>` : ''}</button>`;
 }
 function htmlEntrada(e, ultima) {
   const lineas = e.lineas.map(([i, t]) => `<div class="el"><span class="i">${i}</span><span>${esc(t)}</span></div>`).join('');
@@ -1932,7 +2257,7 @@ function pantallaDiario() {
   if (!s.log.length) html += `<div class="entry"><div class="eh">Semana 1 · ${s.edad} años · Barrio de ${esc(s.ciudad)}</div>
     <div class="el"><span class="i">👶</span><span>Me llamo ${esc(s.nombre)}, tengo ${s.edad} años y juego al fútbol en la plaza de ${esc(s.ciudad)}.</span></div>
     <div class="el"><span class="i">💭</span><span>Mi sueño: ser futbolista profesional y montar mis propios negocios.</span></div>
-    <div class="el"><span class="i">👉</span><span>Elige tu plan en «Carrera», prueba las «Actividades» y pulsa <b>+ Semana</b>.</span></div></div>`;
+    <div class="el"><span class="i">👉</span><span>Supera las 10 pantallas: toca la barra amarilla de arriba para ver los objetivos. Elige tu plan en «Carrera» y pulsa <b>+ Semana</b>.</span></div></div>`;
   html += s.log.map((e, i) => htmlEntrada(e, i === s.log.length - 1)).join('');
   if (s.semanaAct.lineas.length) html += `<div class="entry now"><div class="eh">Esta semana (${s.semana})</div>${s.semanaAct.lineas.map(([i, t]) => `<div class="el"><span class="i">${i}</span><span>${esc(t)}</span></div>`).join('')}</div>`;
   return html;
@@ -1955,6 +2280,13 @@ function renderDock() {
     </div>`;
 }
 
+function beneficioTipico(s, tipo) {
+  const T = CFG.negocios[tipo], n = { tipo, fama: 50, precio: 'normal', sueldo: 'basico', empleados: 1 };
+  const d = demandaNegocio(s, n) / factorModsNegocio(s, n), cap = T.sueldos.basico.capacidad;
+  n.empleados = clamp(Math.round(d / cap), 1, T.empleadosMax);
+  const cl = Math.min(d, n.empleados * cap), ing = cl * T.precios.normal.precio;
+  return Math.round(ing - T.alquiler - T.fijos - n.empleados * T.sueldos.basico.coste - (T.costePct ? ing * T.costePct : cl * T.costeCliente));
+}
 /* ---- Hojas ---- */
 function hoja(titulo, cuerpo) {
   return `<div class="hh"><h2>${titulo}</h2><button data-act="cerrar" aria-label="Cerrar">✕</button></div><div class="hb">${cuerpo}</div>`;
@@ -1973,7 +2305,14 @@ function tablaHTML(key, filas, yo) {
 function hojaCarrera() {
   const s = S;
   let h = '';
-  if (s.fase === 'club') {
+  if (s.fase === 'retirado') {
+    const uc = club(s, s.ultimoClub);
+    h += `<div class="scene">${escenaEstadio(uc)}<div class="chap">Retirado · último club: ${esc(uc.nombre)}</div></div>
+      <div class="card"><b>👋 Retirado del fútbol</b><p class="small">${s.stats.jugados} partidos, ${s.stats.goles} goles, ${s.stats.asist} asistencias y ${s.ascensos} ascensos. Ahora vives de tus negocios, tus casas y lo que elijas hacer cada semana.</p></div>`;
+    h += `<div class="sec">Plan semanal (se repite hasta que lo cambies)</div><div class="grid">${accionesDisponibles(s).map(([id, a]) => htmlPlan(id, a)).join('')}</div>`;
+    h += `<div class="sec">Trayectoria</div><div class="card"><table><tr class="hd"><td>Temp.</td><td>Club</td><td class="n">PJ</td><td class="n">Goles</td><td class="n">Nota</td></tr>
+      ${s.trayectoria.slice().reverse().map(x => `<tr><td>${x.año}/${String(x.año + 1).slice(2)}</td><td>${esc(club(s, x.clubId).nombre)}<div class="small">${esc(nombreLiga(x.liga))}</div></td><td class="n">${x.pj}</td><td class="n">${x.goles}</td><td class="n">${x.pj ? nf(x.sumaNota / x.pj) : '—'}</td></tr>`).join('')}</table></div>`;
+  } else if (s.fase === 'club') {
     const c = s.contrato, mi = miClub(s), i = ligaDe(s, mi.id), sel = puntSeleccion(s, null), u = umbralTitular(s), t = tramoActual(s), T = s.temporada;
     h += `<div class="scene">${escenaEstadio(mi)}<div class="chap">${i.P.flag} ${esc(i.L.n)} · ${esc(mi.estadio)} · ${cr(mi.cap).replace(' €', '')} plazas</div></div>
       <div class="card"><div class="row"><div class="ic">${escudoClub(mi, 40)}</div><div class="tx"><b>${esc(mi.nombre)}${clubPropio(s, mi.id) ? ' 👑' : ''}</b><span>${i.tier}ª categoría · fuerza ${nf(mi.fuerza)} · vas ${posicion(s, mi.id)}º</span></div></div>
@@ -1992,7 +2331,9 @@ function hojaCarrera() {
     h += `<div class="sec">${esc(i.L.n)} ${T.año}/${String(T.año + 1).slice(2)} · jornada ${T.jornada}/${CFG.temporada.jornadas}</div><div class="card">${tablaHTML(T.liga, clasificacion(T).map(id => [id, T.tabla[id]]), mi.id)}</div>`;
     h += `<div class="sec">Trayectoria</div><div class="card"><table><tr class="hd"><td>Temp.</td><td>Club</td><td class="n">PJ</td><td class="n">Goles</td><td class="n">Nota</td></tr>
       ${s.trayectoria.slice().reverse().map(x => `<tr><td>${x.año}/${String(x.año + 1).slice(2)}</td><td>${esc(club(s, x.clubId).nombre)}<div class="small">${esc(nombreLiga(x.liga))}</div></td><td class="n">${x.pj}</td><td class="n">${x.goles}</td><td class="n">${x.pj ? nf(x.sumaNota / x.pj) : '—'}</td></tr>`).join('')}</table>
-      <p class="small">Potencial estimado: ${s.potencial - 3}–${s.potencial + 3}. Ascensos: ${s.ascensos}.</p></div>`;
+      <p class="small">Potencial estimado: ${s.potencial - 3}–${s.potencial + 3}. Ascensos: ${s.ascensos}.${s.edad > 30 ? ` Con ${s.edad} años pierdes ${nf(declive(s))} de nivel por semana.` : ''}</p></div>`;
+    h += `<div class="sec">Retirada</div><div class="card"><p class="small">Puedes colgar las botas a partir de los ${CFG.retiro.edadMin} años. A los ${CFG.retiro.edadForzosa}, o si ningún club te ofrece contrato, te retiras sí o sí.${s.p.rep >= CFG.retiro.homenajeRep ? ` Con tu reputación tendrías partido de homenaje (+${cr(s.p.rep * CFG.retiro.homenajePorRep)}).` : ''}</p>
+      <button class="btn r full" data-act="retirarse" ${s.edad >= CFG.retiro.edadMin && !s.pendiente ? '' : 'disabled'}>👋 Retirarme del fútbol${s.edad < CFG.retiro.edadMin ? ` (desde los ${CFG.retiro.edadMin})` : ''}</button></div>`;
   } else {
     h += `<div class="scene">${escenaBarrio(s.fase === 'prep')}<div class="chap">${s.fase === 'prep' ? `Pruebas en ${s.prep.semanasRestantes} semanas` : `Barrio de ${esc(s.ciudad)}`}</div></div>`;
     h += `<div class="sec">Plan semanal (se repite hasta que lo cambies)</div><div class="grid">${accionesDisponibles(s).map(([id, a]) => htmlPlan(id, a)).join('')}</div>`;
@@ -2009,38 +2350,52 @@ function hojaBienes() {
   const s = S, pat = patrimonio(s);
   const sumN = s.negocios.reduce((a, n) => a + n.caja + valorNegocio(n), 0), sumI = s.inmuebles.reduce((a, i) => a + i.valor, 0);
   const sumK = s.coches.reduce((a, k) => a + k.valor, 0), sumC = s.clubes.reduce((a, o) => a + o.caja + valorClub(s, o.clubId), 0);
+  const deuda = s.inmuebles.reduce((a, i) => a + (i.hipoteca ? Math.round(i.hipoteca.deuda) : 0), 0);
   const h0 = s.historial, mx = Math.max(1, ...h0.map(x => x.patrimonio));
   let h = `<div class="card" id="resumen"><div class="small" style="text-align:center">Patrimonio</div><div class="big" id="patrimonio">${cr(pat)}</div>
-    <div class="chips" style="justify-content:center">${chip('👛', cr(s.p.dinero))}${sumN ? chip('🏪', cr(sumN)) : ''}${sumI ? chip('🏠', cr(sumI)) : ''}${sumK ? chip('🚗', cr(sumK)) : ''}${sumC ? chip('🏟️', cr(sumC)) : ''}</div>
+    <div class="chips" style="justify-content:center">${chip('👛', cr(s.p.dinero))}${sumN ? chip('🏪', cr(sumN)) : ''}${sumI ? chip('🏠', cr(sumI)) : ''}${sumK ? chip('🚗', cr(sumK)) : ''}${sumC ? chip('🏟️', cr(sumC)) : ''}${deuda ? `<span class="chip b">🏦 −${cr(deuda)}</span>` : ''}</div>
     ${h0.length > 1 ? `<div class="chart" style="margin-top:10px">${h0.map(x => `<div style="height:${Math.max(3, Math.max(0, x.patrimonio) / mx * 100)}%"></div>`).join('')}</div><p class="small">Últimas ${h0.length} semanas</p>` : ''}</div>`;
   // Negocios
   h += `<div class="sec">Negocios</div><div class="card lista">${Object.entries(CFG.negocios).map(([k, T]) => {
     const n = negocioDe(s, k);
     if (n) return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Caja ${cr(n.caja)} · fama ${n.fama}${n.ultimo ? ` · última semana ${n.ultimo.resultado >= 0 ? '+' : ''}${cr(n.ultimo.resultado)}` : ''}</span></div><button class="btn w" data-act="hoja" data-v="negocio:${k}">Gestionar</button></div>`;
     const b = bloqueoNegocio(s, k);
-    return `<div class="row"><div class="ic" style="${b ? 'filter:grayscale(1);opacity:.5' : ''}">${T.ic}</div><div class="tx"><b>${T.n}</b><span>${cr(T.precio)} + caja${b ? ` · 🔒 ${esc(b)}` : ''}</span></div><button class="btn" data-act="hoja" data-v="negocio:${k}" ${b ? 'disabled' : ''}>Ver</button></div>`;
+    return `<div class="row"><div class="ic" style="${b ? 'filter:grayscale(1);opacity:.5' : ''}">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Traspaso ${cr(T.precio)}${b ? ` · 🔒 ${esc(b)}` : ` · gana ~${cr(beneficioTipico(s, k))}/sem`}</span></div><button class="btn" data-act="hoja" data-v="negocio:${k}" ${b ? 'disabled' : ''}>Ver</button></div>`;
   }).join('')}</div>`;
   // Inmuebles
   h += `<div class="sec">Mis propiedades</div><div class="card lista">${s.inmuebles.length ? s.inmuebles.map(i => {
     const T = CFG.inmuebles[i.tipo], dif = i.valor / i.compra - 1;
     return `<div class="row" style="flex-wrap:wrap"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n} · ${esc(i.ciudad)}</b><span>Vale ${cr(i.valor)} (<span class="${dif >= 0 ? 'up' : 'down'}">${dif >= 0 ? '+' : ''}${nf(dif * 100)} %</span>) · ${i.modo === 'vivienda' ? '🛋️ vives aquí' : i.modo === 'alquiler' ? (i.inquilino ? `🔑 alquilado ${cr(i.alquiler)}/sem` : '🔎 buscando inquilino') : 'vacío'}</span></div>
+      ${i.hipoteca ? `<div class="small" style="width:100%">🏦 Hipoteca: debes ${cr(i.hipoteca.deuda)} · cuota ${cr(i.hipoteca.cuota)}/sem · quedan ${Math.ceil(i.hipoteca.restantes / CFG.hipoteca.semanasAño)} años · interés ${nf(i.hipoteca.interes * 100)} %
+        <button class="btn w" style="min-height:36px;padding:4px 10px;margin-left:4px" data-act="amortizar" data-id="${i.id}" ${s.p.dinero >= Math.min(CFG.hipoteca.amortizar, i.hipoteca.deuda) ? '' : 'disabled'}>Amortizar ${cr(Math.min(CFG.hipoteca.amortizar, i.hipoteca.deuda))}</button></div>` : ''}
       <div class="seg" style="width:100%">${[['vivienda', '🛋️ Vivir'], ['alquiler', '🔑 Alquilar'], ['vacio', 'Vacío']].map(([m, t]) => `<button data-act="inm" data-id="${i.id}" data-v="${m}" class="${i.modo === m ? 'sel' : ''}">${t}</button>`).join('')}
       <button data-act="venderInm" data-id="${i.id}">Vender ${cr(red(i.valor * (1 - CFG.inmo.comisionVenta), 100))}</button></div></div>`; }).join('')
     : '<p class="small">Aún no tienes propiedades. Vivir en tu casa rebaja tus gastos y sube tu felicidad; alquilarla te da ingresos cada semana.</p>'}</div>`;
-  h += `<div class="sec">Inmobiliaria · se renueva cada ${CFG.inmo.renovarCada} semanas</div><div class="card lista">${s.anuncios.map(a => {
-    const T = CFG.inmuebles[a.tipo];
-    return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n} · ${esc(a.ciudad)}</b><span>${cr(a.precio)} · alquiler posible ${cr(a.alquiler)}/sem</span></div><button class="btn g" data-act="comprarInm" data-id="${a.id}" ${s.p.dinero >= a.precio ? '' : 'disabled'}>Comprar</button></div>`; }).join('')}
-    <p class="small">Los precios se mueven cada semana (tendencia al alza con altibajos). Gastos: ${nf3(CFG.inmo.gastosPct * 100 * 52)} % del valor al año. Alquiler: impuesto del ${CFG.inmo.impuestoAlquiler * 100} %. Vender cuesta un ${CFG.inmo.comisionVenta * 100} %.</p></div>`;
+  if (!desbloqueado(s, 'inmuebles')) h += `<div class="sec">Inmobiliaria</div><div class="card">🔒 ${esc(textoBloqueo(s, 'inmuebles'))}</div>`;
+  else {
+    const H = CFG.hipoteca;
+    h += `<div class="sec">Inmobiliaria · se renueva cada ${CFG.inmo.renovarCada} semanas</div><div class="card">
+      <div class="small">🏦 Hipoteca: entrada del ${H.entrada * 100} %, interés ${nf(s.interesHipoteca * 100)} %, plazo:</div>
+      <div class="seg">${H.plazos.map(p => `<button data-act="plazo" data-v="${p}" class="${s.plazoHipoteca === p ? 'sel' : ''}">${p} años</button>`).join('')}</div>
+      <div class="small">El banco te deja pagar cuotas de hasta ${cr(capacidadHipoteca(s))}/sem (el ${H.esfuerzoMax * 100} % de lo que ingresas de media${cuotasActuales(s) ? `, menos las cuotas que ya pagas` : ''}). Al comprar se pagan además un ${CFG.inmo.gastosCompra * 100} % de impuestos y notaría.</div>
+      <div class="lista">${s.anuncios.map(a => {
+        const T = CFG.inmuebles[a.tipo], hc = condicionesHipoteca(s, a), b1 = bloqueoInmueble(s, a, false), b2 = bloqueoInmueble(s, a, true);
+        return `<div class="row" style="flex-wrap:wrap"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n} · ${esc(a.ciudad)}</b><span>${cr(a.precio)} · alquiler posible ${cr(a.alquiler)}/sem</span>
+          <span style="display:block">Con hipoteca: entrada ${cr(hc.entrada)} + ${cr(hc.gastos)} y ${cr(hc.cuota)}/sem durante ${s.plazoHipoteca} años</span></div>
+          <div class="seg" style="width:100%"><button data-act="comprarInm" data-id="${a.id}" data-v="contado" ${b1 ? 'disabled' : ''}>💶 Al contado</button><button data-act="comprarInm" data-id="${a.id}" data-v="hipoteca" ${b2 ? 'disabled' : ''}>🏦 Con hipoteca</button></div>
+          ${b1 && b2 ? `<div class="lock" style="width:100%">🔒 ${esc(b2)}</div>` : ''}</div>`; }).join('')}</div>
+      <p class="small">Los precios se mueven cada semana (tendencia al alza con altibajos). Gastos: ${nf3(CFG.inmo.gastosPct * 100 * 52)} % del valor al año. Alquiler: impuesto del ${CFG.inmo.impuestoAlquiler * 100} %. Vender cuesta un ${CFG.inmo.comisionVenta * 100} %.</p></div>`;
+  }
   // Coches
   h += `<div class="sec">Coches</div><div class="card lista">${s.coches.map(k => { const T = CFG.coches[k.tipo];
     return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Vale ${cr(k.valor)} (pierde ${nf3(CFG.cocheDeprecia * 100)} % por semana)</span></div><button class="btn w" data-act="venderCoche" data-id="${k.id}">Vender</button></div>`; }).join('')}
-    ${Object.entries(CFG.coches).map(([k, T]) => `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>${cr(T.precio)} · 😊 +${T.fel} · ⭐ +${T.rep}</span></div><button class="btn g" data-act="comprarCoche" data-v="${k}" ${s.p.dinero >= T.precio ? '' : 'disabled'}>Comprar</button></div>`).join('')}
+    ${!desbloqueado(s, 'coches') ? `<p>🔒 ${esc(textoBloqueo(s, 'coches'))}</p>` : Object.entries(CFG.coches).map(([k, T]) => `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>${cr(T.precio)} · 😊 +${T.fel} · ⭐ +${T.rep}</span></div><button class="btn g" data-act="comprarCoche" data-v="${k}" ${s.p.dinero >= T.precio ? '' : 'disabled'}>Comprar</button></div>`).join('')}
     <p class="small">Un coche alegra y da imagen, pero pierde valor y tiene mantenimiento.</p></div>`;
   // Clubes
   h += `<div class="sec">Clubes de fútbol</div><div class="card lista">${s.clubes.map(o => { const c = club(s, o.clubId);
     return `<div class="row"><div class="ic">${escudoClub(c, 30)}</div><div class="tx"><b>${esc(c.nombre)} 👑</b><span>${esc(nombreLiga(s.mundo.de[c.id]))} · vale ${cr(valorClub(s, c.id))} · caja ${cr(o.caja)}</span></div><button class="btn w" data-act="hoja" data-v="club:${c.id}">Gestionar</button></div>`; }).join('')}
-    ${s.fase !== 'club' ? '<p class="small">🔒 Necesitas un contrato profesional.</p>' : clubesEnVenta(s).map(id => { const c = club(s, id), v = valorClub(s, id), cj = cajaInicialClub(s, id);
-      return `<div class="row"><div class="ic">${escudoClub(c, 30)}</div><div class="tx"><b>${esc(c.nombre)}${id === s.clubLocal ? ' · tu barrio' : id === s.contrato.clubId ? ' · tu club' : ''}</b><span>${esc(nombreLiga(s.mundo.de[id]))} · ${cr(v)} + ${cr(cj)} de caja</span></div><button class="btn g" data-act="comprarClub" data-id="${id}" ${s.p.dinero >= v + cj ? '' : 'disabled'}>Comprar</button></div>`; }).join('')}
+    ${!desbloqueado(s, 'clubes') ? `<p>🔒 ${esc(textoBloqueo(s, 'clubes'))}</p>` : clubesEnVenta(s).map(id => { const c = club(s, id), v = valorClub(s, id), cj = cajaInicialClub(s, id);
+      return `<div class="row"><div class="ic">${escudoClub(c, 30)}</div><div class="tx"><b>${esc(c.nombre)}${id === s.clubLocal ? ' · tu barrio' : s.contrato && id === s.contrato.clubId ? ' · tu club' : ''}</b><span>${esc(nombreLiga(s.mundo.de[id]))} · ${cr(v)} + ${cr(cj)} de caja</span></div><button class="btn g" data-act="comprarClub" data-id="${id}" ${s.p.dinero >= v + cj ? '' : 'disabled'}>Comprar</button></div>`; }).join('')}
     <p class="small">Valor del club = ${cr(CFG.clubCompra.base)} × e^((fuerza − 45) / ${CFG.clubCompra.escala}). Si invierte y asciende, vale más.</p></div>`;
   // Finanzas
   const u = s.ultimo, pers = u ? u.eco : [], tot = pers.reduce((x, [, v]) => x + v, 0), A = s.acum;
@@ -2059,13 +2414,13 @@ function hojaNegocio(tipo) {
     const total = T.precio + s.cajaElegida;
     return hoja(`${T.ic} ${T.n}`, `<div class="card" style="text-align:center"><div style="font-size:64px">${T.ic}</div><h3>${T.n} en traspaso</h3>
       <p>Precio: <b>${cr(T.precio)}</b> + dinero para su <b>caja</b>.</p>
-      <p class="small">Gastos semanales: alquiler ${cr(T.alquiler)} + sueldos (${cr(T.sueldos.basico.coste)}–${cr(T.sueldos.bueno.coste)} por persona) + ${cr(T.costeCliente)} por ${T.unidad.replace(/s$/, '')}. La caja va aparte de tu dinero.</p></div>
+      <p class="small">Cada semana: alquiler ${cr(T.alquiler)} + suministros y seguros ${cr(T.fijos)} + sueldos con Seguridad Social (${cr(T.sueldos.basico.coste)}–${cr(T.sueldos.bueno.coste)} por persona) + ${T.costePct ? `compras: el ${Math.round(T.costePct * 100)} % de lo que vendes` : `${cr(T.costeCliente)} por ${T.unidad.replace(/s$/, '')}`}. La caja va aparte de tu dinero.</p>
+      <p>Con la plantilla que tiene y precios normales ganaría unos <b>${cr(beneficioTipico(S, tipo))}/semana</b> (recuperas la inversión en ~${Math.max(1, Math.round(T.precio / Math.max(1, beneficioTipico(S, tipo))))} semanas).</p></div>
       ${b ? `<div class="card">🔒 ${esc(b)}</div>` : `<div class="sec">Caja inicial</div><div class="seg">${T.cajaOpciones.map(c => `<button data-act="caja" data-v="${c}" class="${s.cajaElegida === c ? 'sel' : ''}">${cr(c)}</button>`).join('')}</div>
       <div class="pbar"><i style="width:${pct(s.p.dinero, total)}%;background:var(--green2)"></i></div>
       <button class="btn g full" id="btnComprar" data-act="comprarNeg" data-v="${tipo}" ${s.p.dinero >= total ? '' : 'disabled'}>${s.p.dinero >= total ? `Comprar por ${cr(total)}` : `Te faltan ${cr(total - s.p.dinero)}`}</button>`}`);
   }
   const u = n.ultimo, dem = Math.round(demandaNegocio(s, n)), cap = capacidadNegocio(n), mx = Math.max(dem, cap, 1), pr = T.precios[n.precio];
-  const vendible = !s.negocios.some(x => CFG.negocios[x.tipo].requiere === tipo);
   return hoja(`${T.ic} ${T.n}`, `<div class="card"><div class="row"><div class="ic">${T.ic}</div><div class="tx"><b id="caja" class="${n.caja < 0 ? 'down' : ''}">Caja ${cr(n.caja)}</b><span>Fama ${n.fama}/100 · vale ${cr(valorNegocio(n))}</span></div></div>
       <div class="small" style="margin-top:8px">👥 ${T.unidad[0].toUpperCase() + T.unidad.slice(1)} previstas: ~${dem}</div><div class="pbar"><i style="width:${dem / mx * 100}%;background:var(--purple)"></i></div>
       <div class="small" style="margin-top:6px">${T.icEmp} Capacidad: ${cap}</div><div class="pbar"><i style="width:${cap / mx * 100}%;background:var(--blue)"></i></div>
@@ -2083,10 +2438,9 @@ function hojaNegocio(tipo) {
       <button data-act="traspaso" data-t="${tipo}" data-v="aPersonal" ${n.caja >= C.traspaso ? '' : 'disabled'}>🏪 → 👛 ${cr(C.traspaso)}</button></div></div>
     ${u ? `<div class="sec">Última semana</div><div class="card"><table>
       <tr><td>Ingresos (${u.clientes} ${T.unidad})</td><td class="n up">+${cr(u.ingresos)}</td></tr><tr><td>Alquiler</td><td class="n down">−${cr(u.alquiler)}</td></tr>
-      <tr><td>Sueldos</td><td class="n down">−${cr(u.sueldos)}</td></tr><tr><td>Género y consumo</td><td class="n down">−${cr(u.productos)}</td></tr>
+      <tr><td>Suministros y seguros</td><td class="n down">−${cr(u.fijos || 0)}</td></tr><tr><td>Sueldos</td><td class="n down">−${cr(u.sueldos)}</td></tr><tr><td>${T.costePct ? 'Compras' : 'Género y consumo'}</td><td class="n down">−${cr(u.productos)}</td></tr>
       <tr class="tot"><td>Resultado</td><td class="n ${u.resultado >= 0 ? 'up' : 'down'}">${u.resultado >= 0 ? '+' : ''}${cr(u.resultado)}</td></tr></table></div>` : ''}
-    <button class="btn r full" data-act="venderNeg" data-v="${tipo}" ${vendible ? '' : 'disabled'}>Vender por ${cr(valorNegocio(n))} + caja</button>
-    ${vendible ? '' : '<p class="note">No puedes venderlo mientras tengas el negocio que depende de él.</p>'}`);
+    <button class="btn r full" data-act="venderNeg" data-v="${tipo}">Vender por ${cr(valorNegocio(n))} + caja</button>`);
 }
 
 function hojaClub(id) {
@@ -2108,11 +2462,13 @@ function hojaClub(id) {
 
 function hojaRelaciones() {
   const s = S, tipos = CFG.relaciones;
-  const h = s.rel.map(r => `<div class="card"><div class="row"><div class="ic">${tipos[r.tipo].ic}</div><div class="tx"><b>${esc(r.nombre)}</b><span>${tipos[r.tipo].n}${r.tipo === 'agente' ? ` · cobra el ${Math.round(CFG.agente.comision * 100)} % de tu sueldo y consigue +${Math.round(CFG.agente.sueldoExtra * 100)} % en las ofertas` : ''}</span>
+  const bh = bloqueoHijo(s);
+  const h = s.rel.map(r => `<div class="card"><div class="row"><div class="ic">${r.tipo === 'hijo' ? icHijo(r) : tipos[r.tipo].ic}</div><div class="tx"><b>${esc(r.nombre)}</b><span>${r.tipo === 'hijo' ? `${r.edad} ${r.edad === 1 ? 'año' : 'años'}${r.edad >= 6 && r.edad < 18 ? ` · colegio ${r.privado ? 'privado' : 'público'}` : ''} · ${costeHijo(r) ? `cuesta ${cr(costeHijo(r))}/sem` : 'ya no te cuesta dinero'}` : tipos[r.tipo].n}${r.tipo === 'agente' ? ` · cobra el ${Math.round(CFG.agente.comision * 100)} % de tu sueldo y consigue +${Math.round(CFG.agente.sueldoExtra * 100)} % en las ofertas` : ''}</span>
       <div class="pbar"><i style="width:${r.v}%;background:${colorBarra(r.v)}"></i></div></div><b>${r.v}</b></div>
-    <div class="chips" style="margin-top:8px">${interaccionesDe(r).map(([k, x]) => `<button class="btn ${k === 'romper' || k === 'despedir' ? 'r' : 'w'}" style="min-height:38px;padding:6px 10px;font-size:13px" data-act="rel" data-id="${r.id}" data-v="${k}" ${r.semana === s.semana ? 'disabled' : ''}>${x.ic} ${x.n}</button>`).join('')}</div>
+    <div class="chips" style="margin-top:8px">${interaccionesDe(r).map(([k, x]) => `<button class="btn ${k === 'romper' || k === 'despedir' ? 'r' : k === 'tenerHijo' ? 'g' : 'w'}" style="min-height:38px;padding:6px 10px;font-size:13px" data-act="rel" data-id="${r.id}" data-v="${k}" ${r.semana === s.semana || (k === 'tenerHijo' && bh) ? 'disabled' : ''}>${x.ic} ${x.n}</button>`).join('')}</div>
+    ${r.tipo === 'pareja' && bh ? `<p class="lock">👶 ${esc(bh)}</p>` : ''}
     ${r.semana === s.semana ? '<p class="lock">Ya habéis estado juntos esta semana.</p>' : ''}</div>`).join('');
-  return hoja('❤️ Relaciones', `<p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
+  return hoja('❤️ Relaciones', `${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
     ${rel(s, 'pareja') ? '' : '<p class="note">💘 Sin pareja. Quizá conozcas a alguien…</p>'}${rel(s, 'agente') ? '' : `<p class="note">🕴️ Con reputación ${CFG.agente.repMin} o más, algún representante se fijará en ti.</p>`}`);
 }
 
@@ -2122,6 +2478,17 @@ function hojaActividades() {
     return `<div class="card"><div class="row"><div class="ic">${A.ic}</div><div class="tx"><b>${A.n}</b>${chips(A.fx(s))}${b ? `<div class="lock">🔒 ${esc(b)}</div>` : ''}</div>
       <button class="btn g" data-act="actividad" data-v="${k}" ${b ? 'disabled' : ''}>Hacer</button></div></div>`; }).join('');
   return hoja('🎯 Actividades', `<p class="small">Hasta ${CFG.maxActividades} actividades por semana, además de tu plan. Llevas ${s.semanaAct.acts.length}/${CFG.maxActividades}.</p>${h}`);
+}
+function hojaPantallas() {
+  const s = S;
+  return hoja('🎮 Pantallas', `<p class="small">Supera cada pantalla cumpliendo sus objetivos. Al hacerlo cobras un premio y se desbloquean cosas nuevas.</p>
+    ${PANTALLAS.map((P, k) => {
+      const hecha = k < s.pantalla, actual = k === s.pantalla, ob = actual ? progresoObjetivos(s) : P.obj.map(([t]) => [t, hecha ? 1 : 0]);
+      return `<div class="card nivel ${hecha ? 'hecha' : actual ? 'actual' : 'bloq'}"><div class="row"><div class="ic">${hecha ? '✅' : actual ? P.ic : '🔒'}</div>
+        <div class="tx"><span>PANTALLA ${k + 1}</span><b>${esc(P.n)}</b></div></div>
+        ${hecha || actual ? ob.map(([t, v]) => `<div class="obj"><span>${v >= 1 ? '✅' : '⬜'} ${esc(t)}</span>${!hecha && v < 1 ? `<div class="pbar"><i style="width:${pct(v, 1)}%;background:var(--gold)"></i></div>` : ''}</div>`).join('') : ''}
+        <div class="small">🎁 ${P.premio.map(([ic, v]) => ic === '€' ? cr(v) : `${ic} +${v}`).join(', ')} · 🔓 ${esc(P.desbloquea)}</div></div>`;
+    }).join('')}`);
 }
 function hojaLogros() {
   const s = S;
@@ -2174,14 +2541,30 @@ function popup() {
     return `<div class="pi">${e.ic}</div><h2>${esc(textoSuceso(s, e, d, 't'))}</h2><p class="pd">${esc(textoSuceso(s, e, d, 'd'))}</p>
       ${e.ops.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${esc(o.n)}</b>${chips(o.fx(s, d))}</button>`).join('')}`;
   }
+  if (ev.tipo === 'pantalla') {
+    const P = PANTALLAS[ev.n], N = PANTALLAS[ev.n + 1];
+    return `<div class="pi">🎮</div><h2>¡Pantalla ${ev.n + 1} superada!</h2><p class="pd"><b>${P.ic} ${esc(P.n)}</b></p>
+      <div class="chips" style="justify-content:center">${P.premio.map(([ic, v]) => chip(ic, v)).join('')}</div>
+      <div class="card" style="margin-top:12px;background:#f4fbf6">🔓 <b>Desbloqueado:</b> ${esc(P.desbloquea)}</div>
+      ${N ? `<div class="card" style="background:#fffbea"><div class="small">SIGUIENTE · PANTALLA ${ev.n + 2}</div><b>${N.ic} ${esc(N.n)}</b>${N.obj.map(([t]) => `<div class="small">⬜ ${esc(t)}</div>`).join('')}</div>` : '<div class="card">🏆 <b>¡Has completado el juego!</b> Puedes seguir jugando tu vida.</div>'}
+      <button class="btn g full" data-act="resolver" data-v="ok">${N ? 'Siguiente pantalla ▶' : '¡Genial!'}</button>`;
+  }
+  if (ev.tipo === 'retiro') {
+    const c = club(s, ev.club);
+    return `<div class="pi">👋</div><h2>${ev.forzado ? 'Fin de tu carrera' : 'Cuelgas las botas'}</h2><p class="pd">${ev.forzado ? 'Ningún club te ofrece contrato. ' : ''}Te retiras a los ${ev.edad} años en el ${esc(c.nombre)}.</p>
+      <div class="chips" style="justify-content:center">${chip('👕', `${ev.jugados} partidos`)}${chip('⚽', `${ev.goles} goles`)}${chip('⬆️', `${s.ascensos} ascensos`)}${ev.homenaje ? chip('€', ev.homenaje) : ''}</div>
+      ${ev.homenaje ? `<p class="small" style="text-align:center">Partido de homenaje en el ${esc(c.estadio)}.</p>` : ''}
+      <div class="card" style="margin-top:10px">Ahora empieza otra vida: tus negocios, tus casas, tu familia… o la tele. Cambia tu plan semanal en «Carrera».</div>
+      <button class="btn g full" data-act="resolver" data-v="ok">Empezar mi nueva vida</button>`;
+  }
   if (ev.tipo === 'fin') {
-    const i = infoLiga(ev.liga), mi = club(s, s.contrato.clubId), z = ev.zona, t = ev.tramo;
+    const i = infoLiga(ev.liga), mi = club(s, ev.clubId), z = ev.zona, t = ev.tramo;
     const ban = z === 'campeon' ? '🏆 ¡Campeones!' : z === 'ascenso' ? '🎉 ¡Ascenso!' : z === 'descenso' ? '😢 Descenso' : `${ev.pos}º puesto`;
     return `<div class="pi">${z === 'campeon' ? '🏆' : z === 'ascenso' ? '🎉' : z === 'descenso' ? '😢' : '🏁'}</div><h2>Fin de la temporada ${ev.año}/${String(ev.año + 1).slice(2)}</h2>
       <p class="pd"><b>${ban}</b> · ${esc(mi.nombre)} en ${esc(i.L.n)}${ev.ligaNueva !== ev.liga ? `<br>La próxima temporada: ${esc(nombreLiga(ev.ligaNueva))}` : ''}</p>
       <div class="chips" style="justify-content:center">${chip('👕', `${t.pj} partidos`)}${chip('⚽', `${t.goles} goles`)}${chip('⭐', `nota ${t.pj ? nf(t.sumaNota / t.pj) : '—'}`)}${chip('🎂', `${s.edad} años`)}</div>
       ${ev.primas.map(p => `<p class="small">💰 ${esc(p)}</p>`).join('')}
-      <div style="margin-top:10px">${tablaHTML(ev.liga, ev.tabla, s.contrato.clubId)}</div>
+      <div style="margin-top:10px">${tablaHTML(ev.liga, ev.tabla, ev.clubId)}</div>
       <button class="btn g full" data-act="resolver" data-v="ok">Continuar</button>`;
   }
   return '';
@@ -2208,7 +2591,7 @@ function render() {
   main.innerHTML = pantallaDiario();
   const h = S.hoja;
   $('hoja').innerHTML = !h ? '' : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
-    : h === 'logros' ? hojaLogros() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
+    : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
   if (celebrar) { document.body.insertAdjacentHTML('beforeend', confeti()); setTimeout(() => document.querySelectorAll('body > .confetti').forEach(x => x.remove()), 3500); celebrar = false; }
@@ -2231,13 +2614,16 @@ document.addEventListener('click', e => {
     case 'elegir': elegir(b.dataset.id); break;
     case 'hoja': S.hoja = v; guardar(); render(); break;
     case 'cerrar': S.hoja = S.hoja && (S.hoja.startsWith('negocio:') || S.hoja.startsWith('club:')) ? 'bienes' : null; guardar(); render(); break;
-    case 'resolver': celebrar = !!(S.pendiente && S.pendiente.tipo === 'ofertas' && v !== 'quedarse') || (S.pendiente && S.pendiente.tipo === 'fin' && ['ascenso', 'campeon'].includes(S.pendiente.zona)); if (!resolver(v)) celebrar = false; break;
+    case 'resolver': celebrar = !!(S.pendiente && S.pendiente.tipo === 'ofertas' && v !== 'quedarse') || (S.pendiente && S.pendiente.tipo === 'pantalla') || (S.pendiente && S.pendiente.tipo === 'fin' && ['ascenso', 'campeon'].includes(S.pendiente.zona)); if (!resolver(v)) celebrar = false; break;
     case 'caja': S.cajaElegida = Number(v); render(); break;
     case 'comprarNeg': comprarNegocio(v, S.cajaElegida); break;
     case 'neg': cambiarNegocio(b.dataset.t, b.dataset.c, b.dataset.c === 'empleados' ? Number(v) : v); break;
     case 'traspaso': traspasar(b.dataset.t, v); break;
     case 'venderNeg': venderNegocio(v); S.hoja = 'bienes'; render(); break;
-    case 'comprarInm': comprarInmueble(id); break;
+    case 'comprarInm': comprarInmueble(id, v === 'hipoteca'); break;
+    case 'plazo': cambiarPlazo(Number(v)); break;
+    case 'amortizar': amortizarHipoteca(id); break;
+    case 'retirarse': retirarseYa(); break;
     case 'inm': modoInmueble(id, v); break;
     case 'venderInm': venderInmueble(id); break;
     case 'comprarCoche': comprarCoche(v); break;
@@ -2268,6 +2654,9 @@ window.__P1 = {
   elegir, avanzarSemana, resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,
   comprarClub, cambiarClub, traspasarClub, venderClub, interactuar, realizarActividad, bloqueoActividad,
+  PANTALLAS, progresoObjetivos: () => progresoObjetivos(S), desbloqueado: k => desbloqueado(S, k), comprobarPantalla: () => comprobarPantalla(S),
+  cambiarPlazo, amortizarHipoteca, capacidadHipoteca: () => capacidadHipoteca(S), condicionesHipoteca: a => condicionesHipoteca(S, a), bloqueoInmueble: (a, h) => bloqueoInmueble(S, a, h),
+  bloqueoHijo: () => bloqueoHijo(S), retirarseYa, beneficioTipico: t => beneficioTipico(S, t), bloqueoNegocio: t => bloqueoNegocio(S, t),
   objetivos: () => objetivos(S), patrimonio: () => patrimonio(S), valorClub: id => valorClub(S, id), clubesEnVenta: () => clubesEnVenta(S),
   pruebaBase: () => pruebaBase(S), condicionMejora: () => condicionMejora(S), clasificacion: () => clasificacion(S.temporada),
   club: id => club(S, id), ligaDe: id => ligaDe(S, id), posicion: id => posicion(S, id), umbralTitular: () => umbralTitular(S),

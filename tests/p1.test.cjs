@@ -1,4 +1,4 @@
-// Pruebas automáticas del prototipo P1 (simulador de vida, v0.4).
+// Pruebas automáticas del prototipo P1 (simulador de vida, v0.5).
 // Ejecución: node tests/p1.test.cjs   (necesita Playwright con Chromium instalado; tarda unos minutos)
 // Opcional: SHOT_DIR=/carpeta para guardar capturas de pantalla.
 // Nota: Chromium con emulación de móvil NO sustituye una prueba real en Safari / iPhone.
@@ -55,14 +55,14 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await tap(page, '#btnAvanzar');
     check('El plan se repite sin volver a elegirlo', (await st(page)).semana === 3 && (await st(page)).log[1].lineas.some(([, t]) => t.includes('partido en la plaza')));
     // Hojas
-    for (const [h, sel] of [['carrera', '.opt'], ['bienes', '#patrimonio'], ['relaciones', '[data-act=rel]'], ['actividades', '[data-act=actividad]'], ['logros', '.logro'], ['ajustes', '#btnReiniciar']]) {
+    for (const [h, sel] of [['carrera', '.opt'], ['bienes', '#patrimonio'], ['relaciones', '[data-act=rel]'], ['actividades', '[data-act=actividad]'], ['logros', '.logro'], ['pantallas', '.nivel'], ['ajustes', '#btnReiniciar']]) {
       await tap(page, `[data-act=hoja][data-v=${h}]`);
       const ok = (await page.locator(`#hoja ${sel}`).count()) > 0;
       if (!ok) check(`Se abre la hoja «${h}»`, false);
       await shot(page, `02_hoja_${h}`);
       await tap(page, '#hoja [data-act=cerrar]');
     }
-    check('Se abren y cierran Carrera, Bienes, Relaciones, Actividades, Logros y Partida', (await page.locator('#hoja .hh').count()) === 0);
+    check('Se abren y cierran Carrera, Bienes, Relaciones, Actividades, Logros, Pantallas y Partida', (await page.locator('#hoja .hh').count()) === 0);
     await tap(page, '[data-act=hoja][data-v=carrera]');
     await tap(page, '[data-act=elegir][data-id=entrenarSolo]');
     await tap(page, '#hoja [data-act=cerrar]');
@@ -103,6 +103,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
           await tap(page, (await page.locator('#modal [data-v=quedarse]').count()) ? '#modal [data-v=quedarse]' : '#modal [data-v="0"]');
         } else if (t === 'mejora') await tap(page, '#modal [data-v=aceptar]');
         else if (t === 'fin') { log.finInfo = log.finInfo || s.pendiente.zona || s.pendiente.pos; await tap(page, '#modal [data-v=ok]'); }
+        else if (t === 'pantalla' || t === 'retiro') { log.pantallas = (log.pantallas || 0) + (t === 'pantalla' ? 1 : 0); await tap(page, '#modal [data-v=ok]'); }
         else {
           const antes = JSON.stringify([s.p, s.mods, s.agenda, s.rel, s.negocios]);
           await tap(page, '#modal [data-v="0"]');
@@ -132,29 +133,33 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Fin de temporada en ventana emergente; se juegan dos temporadas', log.fin >= 2 && s.trayectoria.length >= 2, `${log.fin} fin(es), ${JSON.stringify(log.finInfo)}`);
     check('Hay imprevistos y su opción tiene efecto', (log.suceso || 0) > 3 && sucesoOk > 0, `${log.suceso} imprevistos, ${sucesoOk} con efecto`);
     check('Un año más por temporada: 19 años al acabar la segunda', s.edad === 19, `${s.edad} años`);
+    check('Se superan pantallas jugando (barrio, pruebas…) con su ventana', (log.pantallas || 0) >= 2 && s.pantalla >= 2, `pantalla actual ${s.pantalla + 1}`);
 
     // Bienes con toques (se da dinero para no jugar 100 semanas más en la prueba de interfaz)
-    await page.evaluate(() => { __P1.S.p.dinero = 2000000; __P1.render(); });
+    // y se coloca en la pantalla 8 para tener desbloqueados los negocios
+    await page.evaluate(() => { __P1.S.p.dinero = 2000000; __P1.S.pantalla = 7; __P1.render(); });
     await tap(page, '[data-act=hoja][data-v=bienes]');
     await shot(page, '05_bienes');
     await tap(page, '[data-act=hoja][data-v="negocio:peluqueria"]');
-    await tap(page, '#hoja [data-act=caja][data-v="5000"]');
+    await tap(page, '#hoja [data-act=caja][data-v="6000"]');
     await tap(page, '#btnComprar');
     let d = await st(page);
-    check('Comprar la peluquería: −(traspaso + caja) de tu dinero; la caja es la elegida', d.negocios.length === 1 && d.negocios[0].caja === 5000 && d.p.dinero === 2000000 - 30000);
+    check('Comprar la peluquería: −(traspaso + caja) de tu dinero; la caja es la elegida', d.negocios.length === 1 && d.negocios[0].caja === 6000 && d.p.dinero === 2000000 - 36000);
+    const emp0 = d.negocios[0].empleados;
     await tap(page, '#hoja [data-act=neg][data-c=empleados][data-v="1"]');
     await tap(page, '#hoja [data-act=neg][data-c=sueldo][data-v=bueno]');
     await tap(page, '#hoja [data-act=neg][data-c=precio][data-v=premium]');
     d = await st(page);
-    check('Personal, sueldo y precio desde la interfaz (contratar sale de la caja)', d.negocios[0].empleados === 2 && d.negocios[0].sueldo === 'bueno' && d.negocios[0].precio === 'premium' && d.negocios[0].caja === 4700);
+    check('Personal, sueldo y precio desde la interfaz (contratar sale de la caja)', d.negocios[0].empleados === emp0 + 1 && d.negocios[0].sueldo === 'bueno' && d.negocios[0].precio === 'premium' && d.negocios[0].caja === 5700);
     await shot(page, '06_negocio');
     await tap(page, '#hoja [data-act=cerrar]');
-    check('La cafetería se desbloquea al tener la peluquería', await page.locator('#hoja [data-v="negocio:cafeteria"]').isEnabled() && !(await page.locator('#hoja [data-v="negocio:tienda"]').isEnabled()));
-    const anuncio = d.anuncios[0];
-    await tap(page, `#hoja [data-act=comprarInm][data-id=${anuncio.id}]`);
+    check('Negocios bloqueados por pantalla: gimnasio abierto en la 8, hotel cerrado hasta la 9', await page.locator('#hoja [data-v="negocio:gimnasio"]').isEnabled() && !(await page.locator('#hoja [data-v="negocio:hotel"]').isEnabled()) && (await page.locator('#hoja').textContent()).includes('pantalla 9'));
+    await page.evaluate(() => { __P1.S.pantalla = 8; __P1.render(); });
+    const anuncio = d.anuncios[0], dinAntes = d.p.dinero, gastosCompra = Math.round(anuncio.precio * 0.10 / 100) * 100;
+    await tap(page, `#hoja [data-act=comprarInm][data-id=${anuncio.id}][data-v=contado]`);
     d = await st(page);
     const inm = d.inmuebles[0];
-    check('Comprar una propiedad de la inmobiliaria', inm && inm.compra === anuncio.precio && d.p.dinero === 1970000 - anuncio.precio);
+    check('Comprar una propiedad al contado (+10 % de impuestos y notaría)', inm && inm.compra === anuncio.precio && !inm.hipoteca && d.p.dinero === dinAntes - anuncio.precio - gastosCompra);
     await tap(page, `#hoja [data-act=inm][data-id=${inm.id}][data-v=alquiler]`);
     await tap(page, '#hoja [data-act=comprarCoche][data-v=utilitario]');
     const local = d.clubLocal, vClub = await page.evaluate(id => __P1.valorClub(id), local);
@@ -191,12 +196,16 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('La inversión alta sube la fuerza del club comprado', (await page.evaluate(id => __P1.club(id).fuerza, local)) > fuerza0);
     d = await st(page);
     check('Logros: contrato, negocio, casa, coche y club', ['contrato', 'negocio', 'casa', 'coche', 'club'].every(k => d.logros[k]));
+    await tap(page, '#objetivo');
+    await shot(page, '09_pantallas');
+    check('La barra de pantalla abre el mapa de las 10 pantallas', (await page.locator('#hoja .nivel').count()) === 10 && (await page.locator('#hoja .nivel.actual').count()) === 1);
+    await tap(page, '#hoja [data-act=cerrar]');
     const pat = await page.evaluate(() => {
       const S = __P1.S; const v = n => Math.round(__P1.CFG.negocios[n.tipo].precio * (0.5 + n.fama / 100));
-      const calc = S.p.dinero + S.negocios.reduce((a, n) => a + n.caja + v(n), 0) + S.inmuebles.reduce((a, i) => a + i.valor, 0) + S.coches.reduce((a, k) => a + k.valor, 0) + S.clubes.reduce((a, o) => a + o.caja + __P1.valorClub(o.clubId), 0);
+      const calc = S.p.dinero + S.negocios.reduce((a, n) => a + n.caja + v(n), 0) + S.inmuebles.reduce((a, i) => a + i.valor - (i.hipoteca ? Math.round(i.hipoteca.deuda) : 0), 0) + S.coches.reduce((a, k) => a + k.valor, 0) + S.clubes.reduce((a, o) => a + o.caja + __P1.valorClub(o.clubId), 0);
       return [calc, __P1.patrimonio()];
     });
-    check('Patrimonio = dinero + negocios + casas + coches + clubes', pat[0] === pat[1]);
+    check('Patrimonio = dinero + negocios + casas + coches + clubes − hipotecas', pat[0] === pat[1]);
     await tap(page, '[data-act=hoja][data-v=bienes]');
     await shot(page, '08_bienes_lleno');
     await tap(page, '#hoja [data-act=cerrar]');
@@ -221,13 +230,14 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     const r = await page.evaluate(() => {
       const G = __P1, out = {};
       G.CFG.club.probSuceso = 0;
-      const resolverTodo = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'mejora' ? 'aceptar' : e.tipo === 'fin' ? 'ok' : e.tipo === 'ofertas' ? (e.ventana === 'invierno' || G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0') : '0'); } };
+      const resolverTodo = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'mejora' ? 'aceptar' : ['fin', 'pantalla', 'retiro'].includes(e.tipo) ? 'ok' : e.tipo === 'ofertas' ? (e.ventana === 'invierno' || G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0') : '0'); } };
       const semana = a => { resolverTodo(); if (a) G.elegir(a); const ok = G.avanzarSemana(); return ok; };
+      const cerrarPantallas = () => { while (G.S.pendiente && G.S.pendiente.tipo === 'pantalla') G.resolver('ok'); };
       function alClub(seed, idx) {
         G.nueva(seed);
-        G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
-        for (let i = 0; i < 3; i++) { G.elegir('descansar'); G.avanzarSemana(); }
-        G.resolver(String(idx));
+        G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto'); cerrarPantallas();
+        for (let i = 0; i < 3; i++) { G.elegir('descansar'); G.avanzarSemana(); cerrarPantallas(); }
+        G.resolver(String(idx)); cerrarPantallas();
       }
       // Mundo y calendario
       G.nueva(3);
@@ -262,15 +272,21 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       const a = G.realizarActividad('meditar'), b = G.realizarActividad('meditar'), c = G.realizarActividad('redes'), d = G.realizarActividad('loteria');
       out.actividades = a && !b && c && !d;
       semana('normal'); out.actividadesReset = G.realizarActividad('meditar');
-      // Negocios: desbloqueo en cadena y fama
-      alClub(1, 1); G.S.p.dinero = 2000000;
-      out.cadena = !G.comprarNegocio('cafeteria', 5000) && G.comprarNegocio('peluqueria', 5000) && G.comprarNegocio('cafeteria', 5000) && !G.comprarNegocio('gimnasio', 25000);
+      // Pantallas: los negocios se desbloquean al avanzar de pantalla
+      alClub(1, 1); G.S.p.dinero = 20000000; resolverTodo();
+      G.S.pantalla = 3; const p4 = !G.comprarNegocio('peluqueria', 6000);
+      G.S.pantalla = 4; const p5 = G.comprarNegocio('peluqueria', 6000) && !G.comprarNegocio('gimnasio', 60000);
+      G.S.pantalla = 7; const p8 = G.comprarNegocio('gimnasio', 60000) && !G.comprarNegocio('hotel', 100000);
+      out.desbloqueos = p4 && p5 && p8;
+      G.S.pantalla = 9;
       Object.assign(G.S.negocios[0], { precio: 'premium', fama: 40, empleados: 2, sueldo: 'bueno' });
       semana('normal'); out.premiumBajaFama = G.S.negocios[0].fama === 38;
-      out.noVenderBase = !G.venderNegocio('peluqueria');
+      // Realismo: todos los negocios ganan dinero con una gestión normal y tardan entre 1 y 10 años (52-520 semanas) en amortizarse
+      out.realismo = Object.keys(G.CFG.negocios).map(k => { const b = G.beneficioTipico(k), sem = G.CFG.negocios[k].precio / b; return [k, b, Math.round(sem)]; });
+      out.realista = out.realismo.every(([, b, sem]) => b > 0 && sem >= 52 && sem <= 520);
       // Inmuebles: vivir en tu casa rebaja los gastos (en España, fuera de casa de tu familia)
       const gv0 = G.gastosVida().v;
-      const an = G.S.anuncios[0]; G.comprarInmueble(an.id); const im = G.S.inmuebles[0];
+      const an = G.S.anuncios[0]; G.comprarInmueble(an.id, false); const im = G.S.inmuebles[0];
       G.modoInmueble(im.id, 'vivienda');
       out.vivienda = G.gastosVida().v === Math.round(gv0 * 0.4);
       const val0 = im.valor; for (let i = 0; i < 20; i++) semana('normal');
@@ -288,12 +304,15 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       let errores = 0, total = 0;
       for (const [id, e] of Object.entries(G.SUCESOS)) {
         for (let k = 0; k < e.ops.length; k++) {
-          alClub(20 + total, 1); G.S.p.dinero = 900000; G.comprarNegocio('peluqueria', 5000);
-          G.comprarInmueble(G.S.anuncios[0].id); G.modoInmueble(G.S.inmuebles[0].id, 'alquiler'); G.S.inmuebles[0].inquilino = true;
+          alClub(20 + total, 1); resolverTodo(); G.S.pantalla = 9; G.S.p.dinero = 9000000; G.comprarNegocio('peluqueria', 6000);
+          G.comprarInmueble(G.S.anuncios[0].id, false); G.modoInmueble(G.S.inmuebles[0].id, 'alquiler'); G.S.inmuebles[0].inquilino = true;
+          G.S.inmuebles[0].hipoteca = { deuda: 50000, cuota: 400, restantes: 200, plazo: 20, interes: 0.035 };
           G.comprarCoche('utilitario'); G.comprarClub(G.S.clubLocal);
+          G.S.rel.push({ id: 'h1', tipo: 'hijo', nombre: 'Leo', v: 70, semana: 0, edad: 8, privado: false });
+          if (id === 'colgarBotas') G.S.edad = 33;
           if (id === 'mudarse' || id === 'aniversario' || id === 'discusion') G.S.rel.push({ id: 'pareja', tipo: 'pareja', nombre: 'Noa', v: 60, semana: 0 });
           if (id === 'mudarse') G.modoInmueble(G.S.inmuebles[0].id, 'vivienda');
-          const data = e.prep ? e.prep(G.S) : {};
+          const data = e.prep ? e.prep(G.S) : id === 'nacimiento' ? { id: 'h1' } : id === 'cita' ? { nombre: 'Noa' } : {};
           try { G.S.pendiente = { tipo: 'suceso', id, data }; G.render(); if (!G.resolver(String(k))) errores++; } catch (err) { errores++; }
           total++;
         }
@@ -323,6 +342,46 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
         if (G.S.contrato.salario === 240) { if (rep === 80) okAlta++; else okBaja++; }
       }
       out.pedir = { okAlta, okBaja };
+      // Pantalla 1 → 2 al dejar el barrio: premio y ventana
+      G.nueva(12); G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
+      out.pantalla1 = G.S.pantalla === 1 && G.S.pendiente && G.S.pendiente.tipo === 'pantalla' && G.S.pendiente.n === 0;
+      // Hipoteca: el banco mira tus ingresos; la cuota baja la deuda cada semana
+      alClub(14, 1); resolverTodo(); G.S.pantalla = 9;
+      const caro = G.S.anuncios.slice().sort((x, y) => y.precio - x.precio)[0];
+      G.S.ingresosHist = [200, 200, 200]; G.S.p.dinero = 2000000;
+      const negada = !!G.bloqueoInmueble(caro, true);
+      G.S.ingresosHist = [20000, 20000, 20000];
+      const hc = G.condicionesHipoteca(caro), d0 = G.S.p.dinero;
+      const okH = G.comprarInmueble(caro.id, true);
+      const ih = G.S.inmuebles[0];
+      const pagoInicial = d0 - G.S.p.dinero === hc.entrada + hc.gastos;
+      const pat0 = G.patrimonio(); const deuda0 = ih.hipoteca.deuda;
+      semana('normal');
+      const bajaDeuda = G.S.inmuebles[0].hipoteca.deuda < deuda0 && G.S.ultimo.eco.some(([t, v]) => t.startsWith('Hipoteca') && v === -hc.cuota);
+      const cuota0 = G.S.inmuebles[0].hipoteca.cuota; G.amortizarHipoteca(ih.id);
+      out.hipoteca = { negada, okH, pagoInicial, bajaDeuda, amortiza: G.S.inmuebles[0].hipoteca.cuota < cuota0, cuotaFormula: hc.cuota === Math.round(hc.principal * (0.035 / 18) / (1 - Math.pow(1 + 0.035 / 18, -hc.semanas))) };
+      // Hijos: embarazo, nacimiento, gastos y cumpleaños
+      alClub(15, 1); resolverTodo(); G.S.pantalla = 9; G.S.edad = 24;
+      G.S.rel.push({ id: 'pareja', tipo: 'pareja', nombre: 'Noa', v: 90, semana: 0 });
+      const th = G.interactuar('pareja', 'tenerHijo');
+      let nacio = false, gasto = false;
+      for (let i = 0; i < 16; i++) { G.S.rel.find(r => r.id === 'pareja').v = 90; semana('normal'); if (G.S.pendiente && G.S.pendiente.id === 'nacimiento') nacio = true; if (G.S.ultimo.eco.some(([t]) => t.startsWith('Gastos de'))) gasto = true; resolverTodo(); }
+      const hijo = G.S.rel.find(r => r.tipo === 'hijo');
+      out.hijos = { th, nacio, gasto, hijo: !!hijo, edad0: hijo && hijo.edad, segundo: !!G.bloqueoHijo() === false };
+      // Retirada voluntaria: sin sueldo, el mundo sigue y cumples años
+      alClub(16, 1); resolverTodo(); G.S.edad = 29;
+      const antes30 = !G.retirarseYa(); G.S.edad = 30;
+      const ret = G.retirarseYa();
+      const popupRetiro = G.S.pendiente && G.S.pendiente.tipo === 'retiro'; resolverTodo();
+      const j0 = G.S.temporada.jornada, año0 = G.S.temporada.año;
+      for (let i = 0; i < 18; i++) semana(null);
+      out.retiro = { antes30, ret, popupRetiro, fase: G.S.fase, sinSueldo: !G.S.ultimo.eco.some(([t]) => t.startsWith('Salario')), mundo: G.S.temporada.año === año0 + 1 && G.S.temporada.jornada === j0, edad: G.S.edad, plan: G.S.plan };
+      // Declive con la edad y retirada forzosa a los 40
+      alClub(17, 1); resolverTodo(); G.S.edad = 34; G.S.p.nivel = 70; G.S.p.energia = 90; semana('normal');
+      out.declive = G.S.ultimo.dep.some(([t]) => t.startsWith('Edad: −'));
+      alClub(18, 1); resolverTodo(); G.S.edad = 39;
+      for (let i = 0; i < 18 && G.S.fase === 'club'; i++) { G.S.p.energia = 90; semana('normal'); resolverTodo(); }
+      out.forzosa = G.S.fase === 'retirado' && G.S.edad === 40;
       // Sin evento pendiente no hay bloqueo; con evento, no se avanza
       G.nueva(4); G.S.pendiente = { tipo: 'ojeador', clubId: 'c0' }; out.conEvento = !G.avanzarSemana();
       return out;
@@ -335,7 +394,13 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('La felicidad cambia la nota (felicidad 95 frente a 5: +0,9)', r.felicidadNota);
     check('Relaciones: bajan 1 por semana; una interacción por persona y semana', r.relaciones);
     check('Actividades: máximo 2 por semana, sin repetir, y se reinician', r.actividades && r.actividadesReset);
-    check('Negocios en cadena: peluquería → cafetería → tienda → gimnasio', r.cadena && r.noVenderBase);
+    check('Los negocios se desbloquean por pantallas (peluquería en la 5, gimnasio en la 8, hotel en la 9)', r.desbloqueos);
+    check('Negocios realistas: todos ganan dinero y se amortizan en 1–10 años', r.realista, r.realismo.map(([k, b, sem]) => `${k} ${b} €/sem (${sem} sem)`).join(', '));
+    check('Pantalla 1 superada al dejar el barrio, con premio y ventana', r.pantalla1);
+    check('Hipoteca: el banco la niega con pocos ingresos; entrada + gastos; la cuota baja la deuda; amortizar baja la cuota', Object.values(r.hipoteca).every(Boolean), JSON.stringify(r.hipoteca));
+    check('Hijos: embarazo de 14 semanas, nacimiento, gastos semanales', r.hijos.th && r.hijos.nacio && r.hijos.gasto && r.hijos.hijo, JSON.stringify(r.hijos));
+    check('Retirada: desde los 30, sin sueldo, el mundo sigue y cumples años', r.retiro.antes30 && r.retiro.ret && r.retiro.popupRetiro && r.retiro.fase === 'retirado' && r.retiro.sinSueldo && r.retiro.mundo && r.retiro.edad === 31, JSON.stringify(r.retiro));
+    check('Con 34 años se pierde nivel cada semana; a los 40 la retirada es obligatoria', r.declive && r.forzosa);
     check('Negocio: premium con poca fama pierde fama', r.premiumBajaFama);
     check('Vivir en tu casa rebaja un 60 % los gastos de vida', r.vivienda);
     check('Las propiedades cambian de valor con el mercado', r.revaloriza);
@@ -365,7 +430,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
             if (ev.tipo === 'ojeador') G.resolver('corto');
             else if (ev.tipo === 'ofertas') { let best = 0, bv = -1e9; ev.ofertas.forEach((o, i) => { const v = st.valor(o, G.ligaDe(o.clubId).tier); if (v > bv) { bv = v; best = i; } }); G.resolver(String(best)); }
             else if (ev.tipo === 'mejora') G.resolver(st.mejora);
-            else G.resolver(ev.tipo === 'fin' ? 'ok' : '0');
+            else G.resolver(['fin', 'pantalla', 'retiro'].includes(ev.tipo) ? 'ok' : '0');
             continue;
           }
           const s = S();
@@ -378,7 +443,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
           else a = st.pick(s);
           G.elegir(a);
           if (s.fase === 'club' && s.p.fel < 50) G.realizarActividad('meditar');
-          if (!G.avanzarSemana()) break;
+          if (!G.avanzarSemana() && !S().pendiente) break;
         }
         const s = S();
         return { cien: L.cien, millon: L.millon, nivel: s.p.nivel, fama: s.negocios.length ? Math.max(...s.negocios.map(n => n.fama)) : 0, fel: s.p.fel };
@@ -386,10 +451,11 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       const neto = o => o.salario * 0.8 - o.vida;
       const strats = {
         crecer: { pos: 'delantero', mejora: 'pedir', valor: (o, t) => -t * 1000 + neto(o), pick: s => s.lesion ? 'reposo' : s.p.energia < 40 ? (s.p.dinero >= 60 ? 'fisio' : 'reposo') : 'extra',
-          invertir(G, s) { if (!s.negocios.length && s.p.dinero > 32000) G.comprarNegocio('peluqueria', 5000); } },
+          invertir(G, s) { if (!s.negocios.length && s.p.dinero > 37000) G.comprarNegocio('peluqueria', 6000); } },
         rentista: { pos: 'medio', mejora: 'largo', valor: o => neto(o) + o.fichaje / 20, pick: s => s.lesion ? 'reposo' : s.semana % 3 === 0 ? 'patrocinio' : s.p.energia < 45 ? 'reposo' : 'normal',
-          invertir(G, s) { if (!s.negocios.length && s.p.dinero > 27000) G.comprarNegocio('peluqueria', 2000);
-            const a = s.anuncios.slice().sort((x, y) => x.precio - y.precio)[0]; if (s.negocios.length && a && s.p.dinero > a.precio + 3000) { G.comprarInmueble(a.id); const i = G.S.inmuebles[G.S.inmuebles.length - 1]; G.modoInmueble(i.id, G.S.inmuebles.length === 1 ? 'vivienda' : 'alquiler'); } } },
+          invertir(G, s) { if (!s.negocios.length && s.p.dinero > 34000) G.comprarNegocio('peluqueria', 3000);
+            const a = s.anuncios.slice().sort((x, y) => x.precio - y.precio)[0];
+            if (s.negocios.length && a && (!G.bloqueoInmueble(a, false) || !G.bloqueoInmueble(a, true))) { G.comprarInmueble(a.id, !!G.bloqueoInmueble(a, false)); const i = G.S.inmuebles[G.S.inmuebles.length - 1]; G.modoInmueble(i.id, G.S.inmuebles.length === 1 ? 'vivienda' : 'alquiler'); } } },
         empresario: { pos: 'defensa', mejora: 'aceptar', valor: (o, t) => -t * 300 + neto(o) + (o.familia ? 200 : 0), pick: s => s.lesion ? 'reposo' : s.p.energia < 45 ? 'reposo' : 'normal',
           invertir(G, s) {
             for (const [k, T] of Object.entries(G.CFG.negocios)) if (!s.negocios.find(n => n.tipo === k) && s.p.dinero > T.precio + T.cajaOpciones[1] + 2000) { if (G.comprarNegocio(k, T.cajaOpciones[1])) { G.cambiarNegocio(k, 'sueldo', 'bueno'); G.cambiarNegocio(k, 'empleados', 1); } }

@@ -1,4 +1,4 @@
-# P1 — Del barrio al negocio (versión 0.4, 6 de octubre de 2026)
+# P1 — Del barrio al negocio (versión 0.5, 6 de octubre de 2026)
 
 **Simulador de vida** de un futbolista, en vertical y pensado para iPhone, al estilo de los juegos
 tipo BitLife: un diario de tu vida, barras de estado, un botón grande para avanzar el tiempo, menús
@@ -10,6 +10,22 @@ No es un simulador de fútbol: los partidos se simulan con reglas que el juego e
 - Sin anuncios, compras, cuentas de usuario ni servicios de IA externos.
 - Clubes, ciudades y estadios son **ficticios**. Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
+
+**Novedades de la versión 0.5**
+- **10 pantallas**: el juego avanza por niveles. Cada pantalla tiene 1–3 objetivos claros (barra
+  amarilla arriba; tócala para ver el mapa). Al cumplirlos aparece «¡Pantalla superada!», cobras un
+  premio y se **desbloquea** lo siguiente (coches, negocios, inmobiliaria, hijos, clubes…).
+- **9 negocios realistas**: peluquería, cafetería, lavandería, academia de fútbol, tienda de deportes,
+  restaurante, gimnasio, supermercado y hotel. Cada uno con su alquiler, gastos fijos, sueldos con
+  Seguridad Social y coste de lo que vende; ganan lo que ganaría un negocio así y tardan años en
+  recuperar la inversión.
+- **Hipotecas**: entrada del 20 %, plazo de 10, 20 o 30 años, cuota calculada con el interés, el banco
+  solo te la da si la cuota cabe en el 40 % de tus ingresos; se puede amortizar; el euríbor sube y baja.
+- **Hijos**: con pareja estable puedes tener hasta 4; embarazo, nacimiento, gastos por edad, colegio
+  público o privado, imprevistos de hijos.
+- **Retirada**: a partir de los 31 años pierdes nivel cada semana; puedes retirarte desde los 30 (con
+  partido de homenaje si tienes fama) y a los 40, o si nadie te ficha, te retiras sí o sí. Después
+  sigues jugando tu vida: negocios, tele, cantera, familia… y el mundo del fútbol sigue.
 
 **Novedades de la versión 0.4**
 - **Nueva interfaz estilo simulador de vida**: cabecera con tu nombre, ocupación, edad y dinero;
@@ -24,11 +40,10 @@ No es un simulador de fútbol: los partidos se simulan con reglas que el juego e
   (si tienes reputación). Bajan solas si no las cuidas.
 - **Actividades** (2 por semana): gimnasio, fiesta, vacaciones, meditar, redes, visitar tus negocios,
   curso de gestión y lotería.
-- **44 imprevistos** distintos que afectan a varias cosas a la vez: dinero, felicidad, energía,
+- **44 imprevistos** distintos (51 en la versión 0.5) que afectan a varias cosas a la vez: dinero, felicidad, energía,
   reputación, nivel, relaciones, selección, negocios, casas y clubes.
 - **Bienes**:
-  - **4 negocios en cadena**: peluquería (25.000 €) → cafetería (70.000 €) → tienda de deportes
-    (180.000 €) → gimnasio (450.000 €). Cada uno con su caja, personal, sueldos y precios.
+  - **Negocios** con su caja, personal, sueldos y precios (en la 0.5 son 9 y se desbloquean por pantallas).
   - **Inmobiliaria**: estudios, pisos, casas adosadas, áticos, chalets y villas. Se revalorizan con
     el mercado; puedes **vivir** en una (−60 % de gastos de vida en España, más felicidad) o
     **alquilarlas** (ingresos semanales, inquilinos que no pagan, calderas que se rompen…).
@@ -57,7 +72,60 @@ La partida se guarda sola en el navegador. Las partidas de versiones anteriores 
 3. Pulsa **+ Semana**.
 4. Lee el **diario** y decide en las **ventanas emergentes** que aparezcan.
 
-## 3. Reglas principales
+## 3. Las 10 pantallas
+
+| # | Pantalla | Objetivos | Premio | Desbloquea |
+|---|---|---|---|---|
+| 1 | 🏘️ El barrio | Reputación 25 (que te vea un ojeador) | +5 felicidad | Las pruebas |
+| 2 | 📋 Las pruebas | Firmar tu primer contrato | 300 € | Tu carrera |
+| 3 | ⚽ Semiprofesional | 10 partidos · nota media ≥ 6 · ahorrar 3.000 € | 500 € | Coches |
+| 4 | 📈 A por el ascenso | Jugar en 3ª categoría o más (o ascender) · mejora o renovación de contrato · ahorrar 25.000 € | 2.000 € | Peluquería y cafetería |
+| 5 | 💈 Primer negocio | Comprar un negocio · 60.000 € de patrimonio | 5.000 € | Inmobiliaria e hipotecas, lavandería, academia |
+| 6 | 🏠 Casa propia | Vivir en una casa tuya · tener pareja · 2 negocios | 10.000 € | Tienda, restaurante e hijos |
+| 7 | 🌍 La élite | Jugar en 1ª/2ª categoría (o 3 negocios) · 300.000 € de patrimonio | 25.000 € | Gimnasio y supermercado |
+| 8 | 👨‍👩‍👧 Familia y empresa | Tener un hijo · 4 negocios · una propiedad alquilada | 50.000 € | Hotel y clubes de fútbol |
+| 9 | 👴 Colgar las botas | Retirarte del fútbol · 1.000.000 € de patrimonio | 100.000 € | La última pantalla |
+| 10 | 🏆 Leyenda | Comprar un club · 6 negocios · 5.000.000 € de patrimonio | +20 felicidad | ¡Juego completado! |
+
+En vidas simuladas, las pantallas 1–8 se superan entre los 17 y los 25 años, la 9 al retirarse
+(31–35 años) y la 10 entre los 39 y los 45.
+
+## 4. Negocios (importes semanales de juego)
+
+| Negocio | Traspaso | Alquiler + fijos | Sueldo (con S. S.) | Coste de lo vendido | Precio normal | Gana aprox.* | Se amortiza* |
+|---|---|---|---|---|---|---|---|
+| 💈 Peluquería | 30.000 € | 250 + 150 € | 370 € (50 clientes) | 1,5 €/cliente | 16 € | ~310 €/sem | ~2 años |
+| ☕ Cafetería | 60.000 € | 450 + 350 € | 400 € (300 consumiciones) | 1 € | 3,5 € | ~550 €/sem | ~2 años |
+| 🧺 Lavandería | 90.000 € | 350 + 300 € | 380 € (1 encargado) | 1,2 €/lavado | 6 € | ~675 €/sem | ~2,5 años |
+| 🥅 Academia de fútbol | 120.000 € | 700 + 300 € | 300 € (40 alumnos) | 1,5 € | 20 €/sem | 750–2.000 €/sem (depende mucho de tu fama) | 1–3 años |
+| 👟 Tienda de deportes | 180.000 € | 1.200 + 400 € | 400 € (140 ventas) | 80 % de lo vendido | 45 € | ~980 €/sem | ~3,5 años |
+| 🍽️ Restaurante | 300.000 € | 900 + 2.400 € | 450 € (65 comensales) | 32 % de lo vendido | 24 € | ~1.500 €/sem | ~4 años |
+| 🏋️ Gimnasio | 450.000 € | 2.800 + 3.500 € | 420 € (280 socios) | 0,8 €/socio | 9 €/sem | ~2.000 €/sem | ~4,5 años |
+| 🛒 Supermercado | 650.000 € | 2.500 + 2.000 € | 400 € (300 compras) | 80 % de lo vendido | 28 € | ~3.200 €/sem | ~4 años |
+| 🏨 Hotel con encanto | 1.500.000 € | 0 + 3.500 € (edificio propio) | 430 € (35 noches) | 15 €/noche | 80 € | ~3.600 €/sem | ~8 años |
+
+\* Con fama 50, reputación 50, precios normales y la plantilla justa (52 semanas = 1 año real).
+Al comprarlo heredas la plantilla del dueño anterior. Demanda = base × precio × (0,2 + fama/80)
+× (1 + tu reputación × sensibilidad) × cursos ± 10 %. La academia es la que más depende de tu fama.
+
+## 5. Hipotecas, hijos y retirada
+
+Un «año de juego» es una temporada: 18 semanas (edades, plazos e intereses van en años de juego).
+- **Hipoteca**: entrada 20 % + 10 % de impuestos y notaría (también al contado). Interés 3,5 % anual
+  (el euríbor puede subirlo o bajarlo medio punto). Cuota = deuda × r / (1 − (1 + r)^−semanas), con
+  r = interés / 18. El banco exige que todas tus cuotas quepan en el 40 % de tus ingresos medios de las
+  últimas semanas. Amortizar 10.000 € baja la cuota. Al vender, se cancela lo que quede.
+- **Hijos**: con pareja (relación ≥ 60), desde los 20 años y con la pantalla 7. Embarazo de 14 semanas;
+  cuestan 150 €/semana hasta los 5 años y 220 € hasta los 17 (+150 € con colegio privado). Si os
+  lleváis bien, +5 de felicidad cada uno (hasta 2); si la relación baja de 30, −5.
+- **Retirada**: desde los 31 años pierdes 0,15 de nivel por semana (0,35 desde los 34). Puedes
+  retirarte desde los 30 en «Carrera»; desde los 36 tu club ya no renueva, desde los 37 nadie te
+  ofrece contrato y a los 40 te retiras sí o sí. Con reputación ≥ 50 tienes partido de homenaje
+  (reputación × 100 €). Retirado eliges plan: tus negocios (+3 fama), comentarista de TV (reputación
+  × 30 € y mantienes la fama), entrenar en una cantera (350 €), familia (+3 en todas las relaciones)
+  o vivir de las rentas. Tu reputación baja 1 cada 6 semanas salvo en la tele.
+
+## 6. Reglas principales
 
 **Carrera** (igual que la versión 0.3): barrio → ojeador → pruebas → club del barrio (5ª división) o
 del ojeador (4ª) → temporadas de 18 jornadas con ascensos, descensos, mercados de invierno y verano,
@@ -110,33 +178,32 @@ la selección.
 **Patrimonio** = tu dinero + cajas y valor de negocios + valor de casas y coches + cajas y valor de clubes.
 Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven con los botones de traspaso.
 
-## 4. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
+## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-60 de 60 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
-1. Presentación, diario, misión, 4 barras, botón «+ Semana», plan que se repite, las 6 hojas, botones
-   de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
-2. **Una vida jugada con toques**: ojeador, dos ofertas españolas distintas, partidos en el diario con
-   resultado y nota, mejora de contrato, dos fines de temporada, imprevistos con efecto, 19 años al
-   acabar la segunda temporada. Después (con dinero añadido para no jugar 100 semanas más): compra y
-   gestión de la peluquería, desbloqueo de la cafetería, piso en alquiler que encuentra inquilino,
-   coche, compra del club del barrio con inversión alta que sube su fuerza, relaciones y actividades;
-   tu dinero y las cajas no se mezclan; patrimonio, logros, guardado y reinicio.
-3. **Reglas**: mundo, calendario, determinismo, ascenso con prima, felicidad en la nota (+0,9 entre
-   felicidad 95 y 5), relaciones, actividades, cadena de negocios, vivienda (−60 % de gastos),
-   revalorización, coches, clubes, **los 44 imprevistos con sus 77 opciones**, préstamo,
-   representante, lesiones y negociación.
-4. **Vidas completas** (3 estrategias × 3 vidas, hasta 300 semanas; todas llegan a 100.000 €):
-   - «Crecer» (entrenamiento extra, buscar categoría): 100.000 € en la semana ~80, millón ~123, nivel ~92.
-   - «Empresario» (los 4 negocios bien gestionados): 100.000 € ~115, millón ~171, fama de negocio ~99.
-   - «Rentista» (patrocinios, casas en alquiler): 100.000 € ~138, millón ~210.
-   Ninguna gana en todo.
+68 de 68 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+1. Presentación, diario, barra de pantalla, 4 barras, botón «+ Semana», plan que se repite, las 7 hojas,
+   botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
+2. **Una vida jugada con toques**: ojeador, ofertas, partidos, mejora, dos temporadas, imprevistos,
+   pantallas superadas con su ventana. Después (con dinero añadido y en la pantalla 8): peluquería y su
+   gestión, bloqueo del hotel hasta la pantalla 9, casa al contado (+10 % de gastos), alquiler, coche,
+   club del barrio con inversión, relaciones y actividades, mapa de pantallas, cuentas separadas,
+   patrimonio con hipotecas, guardado y reinicio.
+3. **Reglas**: mundo, calendario, determinismo, ascenso, felicidad, relaciones, actividades,
+   **desbloqueo de negocios por pantallas**, **realismo de los 9 negocios** (todos ganan dinero y se
+   amortizan en 1–10 años), pantalla 1 con premio, **hipoteca** (el banco la niega con pocos ingresos,
+   entrada + gastos, la cuota baja la deuda, amortizar baja la cuota, fórmula de la cuota), **hijos**
+   (embarazo, nacimiento, gastos), **retirada** (desde los 30, sin sueldo, el mundo sigue, cumpleaños;
+   declive a los 34; retirada obligatoria a los 40), **los 51 imprevistos con sus 89 opciones**,
+   préstamo, representante, lesiones y negociación.
+4. Vidas completas con tres estrategias (todas llegan a 100.000 € y ninguna gana en todo).
+
+Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
 **No se ha probado:** Safari en Mac ni iPhone real.
 
-## 5. Pendientes y simplificaciones
+## 8. Pendientes y simplificaciones
 
-- Sin hipotecas ni mejoras de vivienda; los inmuebles se pagan al contado.
-- Sin hijos, estudios, jubilación ni muerte del personaje.
+- Sin reformas de vivienda, estudios de los hijos ni muerte del personaje.
 - Las divisiones tienen 10 equipos para que una temporada dure 18 semanas.
 - Equilibrio por revisar tras jugarlo: precios de negocios y clubes, frecuencia de imprevistos
   (`club.probSuceso`), efecto de la felicidad.
