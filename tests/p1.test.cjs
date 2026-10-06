@@ -45,18 +45,19 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Se guardan nombre, personaje y posición', !si.intro && si.nombre === 'Leo' && si.avatar === '🧑🏾' && si.posicion === 'medio' && (await page.locator('#top').textContent()).includes('Leo'));
     await page.evaluate(() => { __P1.nueva(7); __P1.CFG.club.probSuceso = 0; });
     await shot(page, '01_diario_inicio');
-    check('Pantalla principal: diario, misión, 4 barras y botón «+ Semana»', (await page.locator('.entry').count()) === 1 && (await page.locator('#objetivo').count()) === 1 && (await page.locator('#dock .st').count()) === 4 && (await page.locator('#btnAvanzar').isEnabled()));
+    check('Pantalla principal: agenda (mañana, tarde, noche), lo que viene, indicadores, parte y «Cerrar la semana»', (await page.locator('.entry').count()) === 1 && (await page.locator('#objetivo').count()) === 1 && (await page.locator('#agenda .slot').count()) >= 3 && (await page.locator('.gauge').count()) >= 4 && (await page.locator('.prox li').count()) >= 1 && (await page.locator('#btnAvanzar').isEnabled()));
     const rep0 = (await st(page)).p.rep;
     await tap(page, '#btnAvanzar');
     const s1 = await st(page);
-    check('«+ Semana» avanza y escribe la semana en el diario', s1.semana === 2 && s1.log.length === 1 && (await page.locator('.entry').count()) === 1 && (await page.locator('.entry .el').count()) >= 2);
+    check('«Cerrar la semana» avanza y escribe el parte semanal', s1.semana === 2 && s1.log.length === 1 && (await page.locator('.entry').count()) === 1 && (await page.locator('.entry .el').count()) >= 2);
     check('El plan por defecto (partido en la plaza) sube la reputación', s1.p.rep > rep0, `${rep0} → ${s1.p.rep}`);
     check('Cada semana explica sus reglas en «¿Por qué?»', (await page.locator('details.por .rl').count()) >= 2);
     await tap(page, '#btnAvanzar');
     check('El plan se repite sin volver a elegirlo', (await st(page)).semana === 3 && (await st(page)).log[1].lineas.some(([, t]) => t.includes('partido en la plaza')));
     // Hojas
     for (const [h, sel] of [['carrera', '.opt'], ['bienes', '#patrimonio'], ['relaciones', '[data-act=rel]'], ['actividades', '[data-act=actividad]'], ['logros', '.logro'], ['pantallas', '.nivel'], ['ajustes', '#btnReiniciar']]) {
-      await tap(page, `[data-act=hoja][data-v=${h}]`);
+      if (h === 'actividades') await tap(page, '[data-act=hoja][data-v=relaciones]');
+      await tap(page, h === 'actividades' ? '#hoja [data-act=hoja][data-v=actividades]' : `[data-act=hoja][data-v=${h}]`);
       const ok = (await page.locator(`#hoja ${sel}`).count()) > 0;
       if (!ok) check(`Se abre la hoja «${h}»`, false);
       await shot(page, `02_hoja_${h}`);
@@ -66,8 +67,15 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await tap(page, '[data-act=hoja][data-v=carrera]');
     await tap(page, '[data-act=elegir][data-id=entrenarSolo]');
     await tap(page, '#hoja [data-act=cerrar]');
-    check('El plan se cambia desde Carrera y se ve en la barra inferior', (await st(page)).plan === 'entrenarSolo' && (await page.locator('#dock .plan').textContent()).includes('Entrenar'));
-    const layout = await page.evaluate(() => ({ minH: Math.min(...[...document.querySelectorAll('.ab, .age')].map(b => b.getBoundingClientRect().height)) }));
+    check('El plan se cambia desde Carrera y se ve en la agenda', (await st(page)).plan === 'entrenarSolo' && (await page.locator('#agenda .slot').first().textContent()).includes('Entrenar'));
+    const layout = await page.evaluate(() => ({ minH: Math.min(...[...document.querySelectorAll('.ab, .cerrar, #agenda .slot')].map(b => b.getBoundingClientRect().height)) }));
+    await tap(page, '[data-act=hoja][data-v="slot:tarde"]');
+    await tap(page, '#hoja [data-act=slotSet][data-v="act:meditar"]');
+    const felA = (await st(page)).p.fel, semA = (await st(page)).semana;
+    await tap(page, '#btnAvanzar');
+    for (let g = 0; g < 6 && (await st(page)).pendiente; g++) await page.evaluate(() => __P1.resolver('0') || __P1.resolver('ok') || __P1.resolver('corto'));
+    const dA = await st(page), ultimo = dA.log[dA.log.length - 1];
+    check('Agenda: la tarde se programa con toques y se hace al cerrar la semana (y se repite)', dA.agendaSlots.tarde === 'act:meditar' && ultimo.lineas.some(([, t]) => /Meditar/.test(t)) && ultimo.lineas.some(([, t]) => /Noche libre/.test(t)) && dA.semana === semA + 1);
     check('Botones principales de al menos 44 px', layout.minH >= 44, `mínimo ${Math.round(layout.minH)} px`);
     for (const w of [320, 375, 390]) {
       await page.setViewportSize({ width: w, height: 680 });
@@ -175,7 +183,8 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await tap(page, '[data-act=hoja][data-v=relaciones]');
     await tap(page, '#hoja [data-act=rel][data-id=madre][data-v=tiempo]');
     await tap(page, '#hoja [data-act=cerrar]');
-    await tap(page, '[data-act=hoja][data-v=actividades]');
+    await tap(page, '[data-act=hoja][data-v=relaciones]');
+    await tap(page, '#hoja [data-act=hoja][data-v=actividades]');
     await tap(page, '#hoja [data-act=actividad][data-v=meditar]');
     await tap(page, '#hoja [data-act=cerrar]');
     d = await st(page);
@@ -196,6 +205,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('La inversión alta sube la fuerza del club comprado', (await page.evaluate(id => __P1.club(id).fuerza, local)) > fuerza0);
     d = await st(page);
     check('Logros: contrato, negocio, casa, coche y club', ['contrato', 'negocio', 'casa', 'coche', 'club'].every(k => d.logros[k]));
+    await resolverConToques();
     await tap(page, '#objetivo');
     await shot(page, '09_pantallas');
     check('La barra de pantalla abre el mapa de las 10 pantallas', (await page.locator('#hoja .nivel').count()) === 10 && (await page.locator('#hoja .nivel.actual').count()) === 1);
@@ -213,7 +223,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     const antes = await st(page);
     await page.reload();
     const despues = await st(page);
-    check('La vida entera se guarda y se recupera al recargar', despues.semana === antes.semana && despues.p.dinero === antes.p.dinero && despues.log.length === antes.log.length && despues.clubes.length === 1 && despues.inmuebles.length === 1);
+    check('La vida entera se guarda y se recupera al recargar', despues.semana === antes.semana && despues.p.dinero === antes.p.dinero && despues.log.length === antes.log.length && despues.clubes.length === antes.clubes.length && despues.inmuebles.length === antes.inmuebles.length, JSON.stringify([antes.semana, despues.semana, antes.p.dinero, despues.p.dinero, antes.log.length, despues.log.length, despues.clubes.length, despues.inmuebles.length]));
     await tap(page, '[data-act=hoja][data-v=ajustes]');
     await tap(page, '#btnReiniciar');
     check('Reiniciar pide confirmación', (await st(page)).semana === antes.semana);
@@ -569,7 +579,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await tap(page, '#btnEmpezar');
     let d = await st(page);
     check('Escalada: empiezas con 14 años en el rocódromo, con 5 cualidades', d.deporte === 'escalada' && d.fase === 'rocodromo' && d.edad === 14 && Object.keys(d.esc.at).length === 5 && d.esc.at.resistencia > d.esc.at.cabeza);
-    check('Escalada: la cabecera, el diario y la barra lo dicen', (await page.locator('#top').textContent()).includes('rocódromo') && (await page.locator('#main').textContent()).includes('escalo') && (await page.locator('.ab').first().textContent()).includes('🧗'));
+    check('Escalada: la cabecera, el diario y la barra lo dicen', (await page.locator('#top').textContent()).includes('rocódromo') && (await page.locator('#main').textContent()).includes('escalo') && (await page.locator('#dock').textContent()).includes('🧗'));
     await tap(page, '[data-act=hoja][data-v=carrera]');
     await shot(page, '40_escalada_carrera');
     check('Escalada: la hoja Carrera muestra cualidades y plan del rocódromo', (await page.locator('#hoja [data-act=elegir][data-id=amigos]').count()) === 1 && (await page.locator('#hoja [data-act=elegir][data-id=tabla]').count()) === 0);
