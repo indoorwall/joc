@@ -325,7 +325,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       // Imprevistos: todos se pueden mostrar y resolver sin errores
       let errores = 0, total = 0;
       for (const [id, e] of Object.entries(G.SUCESOS)) {
-        if (e.dep === 'escalada') continue; // se prueban en la sección de escalada
+        if (e.dep && ![].concat(e.dep).some(d => d === 'futbol' || d === 'equipo')) continue; // los de otros deportes se prueban en su sección
         for (let k = 0; k < e.ops.length; k++) {
           alClub(20 + total, 1); resolverTodo(); G.S.pantalla = 9; G.S.p.dinero = 9000000; G.comprarNegocio('peluqueria', 6000);
           G.comprarInmueble(G.S.anuncios[0].id, false); G.modoInmueble(G.S.inmuebles[0].id, 'alquiler'); G.S.inmuebles[0].inquilino = true;
@@ -746,7 +746,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       // Imprevistos de escalada
       let errores = 0, total = 0;
       for (const [id, e] of Object.entries(G.SUCESOS)) {
-        if (e.dep !== 'escalada') continue;
+        if (!e.dep || ![].concat(e.dep).some(d => d === 'escalada' || d === 'individual')) continue;
         for (let k = 0; k < e.ops.length; k++) {
           s = escalador(500 + total, 24); s.p.rep = 75; s.p.dinero = 20000; s.esc.nacional = s.esc.año; s.esc.carga = 70; s.esc.maxVia = 15;
           for (const kk of Object.keys(s.esc.at)) s.esc.at[kk] = 60;
@@ -756,7 +756,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
           total++;
         }
       }
-      out.sucesos = { errores, total, distintos: Object.values(G.SUCESOS).filter(e => e.dep === 'escalada').length };
+      out.sucesos = { errores, total, distintos: Object.values(G.SUCESOS).filter(e => e.dep && [].concat(e.dep).some(d => d === 'escalada' || d === 'individual')).length };
       // En escalada no salen imprevistos de fútbol
       s = escalador(19, 22); let futbol = 0;
       for (let i = 0; i < 200; i++) { const e = G.elegirSuceso(); if (e && ['cena', 'tarde', 'botas', 'capitan', 'hijoFutbol'].includes(e.id)) futbol++; }
@@ -1174,7 +1174,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       out.cambian = G.S.retos.hasta > hasta && G.S.retos.lista.map(r => r.id).join() !== ids0;
       // Cada deporte y etapa tiene los suyos
       G.nueva(122, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.nuevosRetos();
-      out.escalada = G.S.retos.lista.every(r => !G.RETOS[r.id].dep || G.RETOS[r.id].dep === 'escalada') && G.S.retos.lista.length === 3;
+      out.escalada = G.S.retos.lista.every(r => !G.RETOS[r.id].dep || ['escalada', 'individual'].includes(G.RETOS[r.id].dep)) && G.S.retos.lista.length === 3;
       return out;
     });
     check('Retos: 3 retos en el inicio que se abren con un toque', re0.n === 3 && re0.fila && re1.hoja === 'retos' && re1.filas === 3, JSON.stringify([re0, re1]));
@@ -1306,6 +1306,11 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       G.S.p.rep = 45; G.S.p.nivel = 55; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
       const marcadores = []; let empates = 0;
       for (let i = 0; i < 40; i++) { L(); G.S.p.energia = 80; G.elegir(G.S.fase === 'club' ? 'normal' : 'descansar'); G.avanzarSemana(); const P = G.S.ultimo && G.S.ultimo.partido; if (P && P.gf != null) { marcadores.push(P.gf, P.gc); if (P.gf === P.gc) empates++; } }
+      let errB = 0, totB = 0;
+      for (const [id, e] of Object.entries(G.SUCESOS)) { if (!e.dep || ![].concat(e.dep).some(d => d === 'basket' || d === 'equipo')) continue;
+        for (let k = 0; k < e.ops.length; k++) { const S = G.S; S.rel.forEach(r => { if (r.id === 'h1') r.futbol = false; }); if (!S.rel.some(r => r.id === 'h1')) S.rel.push({ id: 'h1', tipo: 'hijo', nombre: 'Leo', v: 70, semana: 0, edad: 8, privado: false });
+          try { const data = e.prep ? e.prep(S) : {}; S.pendiente = { tipo: 'suceso', id, data }; G.render(); if (!G.resolver(String(k))) errB++; } catch (x) { errB++; } totB++; L(); } }
+      o.sucesos = [totB, errB];
       const T = G.S.temporada, tb = Object.values(T.tabla);
       o.marcadores = marcadores.length > 20 && Math.min(...marcadores) >= 45 && Math.max(...marcadores) <= 140 && empates === 0;
       o.tabla = tb.every(x => x.e === 0 && x.pts === 2 * x.g + x.p);
@@ -1318,7 +1323,34 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       return o; });
     check('Deportes: se puede elegir entre fútbol, baloncesto, escalada, skate, surf y boxeo', bq.deportes === 'futbol,basket,escalada,skate,surf,boxeo', JSON.stringify(bq));
     check('Baloncesto: base, alero y pívot; Liga ACB, FEB y NBA; partidos con puntos (sin empates) y tabla de 2 por victoria y 1 por derrota', bq.posiciones === 'base,alero,pivot' && bq.ligas && bq.marcadores && bq.tabla, JSON.stringify(bq));
-    check('Baloncesto: puntos, rebotes y asistencias; logros, marcas y textos propios (ni goles ni botas)', bq.stats && bq.sinFutbol && bq.logros && bq.marcas && bq.carrera, JSON.stringify(bq));
+    check('Baloncesto: puntos, rebotes y asistencias; logros, marcas, imprevistos y textos propios (ni goles ni botas)', bq.stats && bq.sinFutbol && bq.logros && bq.marcas && bq.carrera && bq.sucesos[0] >= 8 && bq.sucesos[1] === 0, JSON.stringify(bq));
+
+    // Deportes individuales nuevos (mismo motor que la escalada, con su propio paquete)
+    const ind = await page.evaluate(() => {
+      const G = __P1, out = {}, was = G.silencio;
+      for (const dep of ['skate']) {
+        G.silencio = true; G.nueva(41, null, dep, null);
+        const L = () => { for (let g = 0; G.S.pendiente && g < 30; g++) G.resolver('si') || G.resolver('ok') || G.resolver('club') || G.resolver('aceptar') || G.resolver('0') || G.resolver('todo'); };
+        const o = { fase0: G.S.fase, edad0: G.S.edad, mods: Object.keys(G.CFG.escalada.pesosGen).join(','), zonas: Object.keys(G.ZONAS).length };
+        G.S.p.rep = 20;
+        for (let i = 0; i < 90; i++) { L(); G.S.p.energia = 80; const d = Object.keys(G.ACCIONES).filter(k => G.disponible(k)); G.elegir(d[i % d.length]); G.avanzarSemana(); }
+        const E = G.S.esc; o.comps = E.comps; o.palmares = E.palmares.length && E.palmares.every(p => G.CFG.escalada.pesosGen[p.mod] !== undefined || /jjoo|clasif/.test(p.amb));
+        o.marcas = G.CFG.escalada.patrocinadores.length;
+        let err = 0, tot = 0;
+        for (const [id, e] of Object.entries(G.SUCESOS)) { if (!e.dep || ![].concat(e.dep).some(d => d === dep || d === 'individual')) continue;
+          for (let k = 0; k < e.ops.length; k++) { const S = G.S; S.fase = 'escalador'; S.lesion = 0; S.p.rep = 75; S.p.dinero = 20000; S.esc.nacional = S.esc.año; S.edad = 24;
+            if (!S.esc.proy && Object.keys(G.ZONAS).length) G.cambiarProyecto('tipo', 'via');
+            if (!S.rel.some(r => r.id === 'h1')) S.rel.push({ id: 'h1', tipo: 'hijo', nombre: 'Leo', v: 70, semana: 0, edad: 8, privado: false });
+            S.rel.forEach(r => { if (r.id === 'h1') r.futbol = false; });
+            try { const data = e.prep ? e.prep(S) : {}; S.pendiente = { tipo: 'suceso', id, data }; G.render(); if (!G.resolver(String(k))) err++; } catch (x) { err++; } tot++; L(); } }
+        o.sucesos = [tot, err];
+        G.silencio = was; G.render();
+        const txt = document.body.innerText; o.limpio = !/rocódromo|escalad|pies de gato|fútbol|\bgoles\b/i.test(txt);
+        G.S.hoja = 'carrera'; G.render(); const h = document.getElementById('hoja').textContent; o.carrera = h.length > 500 && !/rocódromo|escalad|pies de gato/i.test(h); G.S.hoja = null; G.render();
+        out[dep] = o;
+      }
+      return out; });
+    check('Skate: street y park, spots reales, 14 años en el skatepark, competiciones y marcas propias, sin textos de escalada', ind.skate.fase0 === 'rocodromo' && ind.skate.edad0 === 14 && ind.skate.mods === 'street,park' && ind.skate.zonas >= 10 && ind.skate.comps > 5 && ind.skate.palmares && ind.skate.marcas >= 20 && ind.skate.limpio && ind.skate.carrera && ind.skate.sucesos[0] >= 20 && ind.skate.sucesos[1] === 0, JSON.stringify(ind));
 
     // Inicio compacto: con marcas y retos, la agenda se ve entera encima de JUGAR en un iPhone 13
     {

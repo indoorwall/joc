@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-171 de 171 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+172 de 172 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -545,6 +545,12 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    tabla de 2 puntos por victoria y 1 por derrota; puntos, rebotes y asistencias según tu posición y minutos;
    jugadas finales (triple sobre la bocina, penetración, pase; falta, tapón o defensa); marcas propias
    (Air Jordaniano, Spaldon, Piqui…); cancha del barrio y pabellones; triple-doble como logro secreto.
+   **Skate**: street y park (las dos modalidades olímpicas); empiezas con 14 años en el skatepark del barrio;
+   cualidades propias (pop, aguante, técnica, cabeza, fluidez); «Cuerpo» y «Tobillos» en vez de piel y dedos;
+   spots reales (MACBA, Fòrum, Madrid Río, Southbank, Hubba Hideout, El Toro, Venice, Burnside, Bowl du Prado,
+   Bryggeriet) con trucos de street y de bowl como «proyectos»; Copa y Campeonato de España, Pro Tour mundial,
+   Equis Games por invitación, Mundiales, Europeos y Juegos; marcas propias (Elemento, Panadero, Santa Crus,
+   Vanz, Naik SB, Espitfuego, Trasher, Suprim, Monstruo…); imprevistos, logros, tienda y mejoras propios.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
