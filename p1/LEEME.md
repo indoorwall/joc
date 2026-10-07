@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-173 de 173 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+174 de 174 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -557,6 +557,13 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    «proyectos»; Circuito español, Qualifying Series, Championship Tour, desafíos de olas grandes por invitación
    (Nazaré, Jaws), Mundiales y Juegos; mangas con las dos mejores olas; marcas propias (Pukus, Perdido, Channel
    Islas, O'Nail, Rip Curvas, Quicksilva, Billabonk…); localismo, swell del año, delfines y gaviotas ladronas.
+   **Boxeo**: amateur (torneos olímpicos con oro, plata y dos bronces: Copa y Campeonato de España, Copa del
+   Mundo, preolímpico y Juegos) y profesional desde los 18 (veladas contra rivales de tu nivel cada pocas
+   semanas, con bolsa según tu fama; título de Europa con 5 victorias; mundial tras ganar el europeo; velada
+   estelar en Las Vegas por invitación); récord con victorias y KO; «Cara» y «Golpes» acumulados (los KO en
+   contra pueden dejarte de baja); sin retos al aire libre; marcas propias (Everlas, Ganador Gloves, Cleto Reyos,
+   Proteínas Hulk…); pesaje, rueda de prensa, promotor, sparring del campeón y hasta una película de tu vida.
+   Las partidas creadas sin posición válida (por ejemplo, de otro deporte) toman la primera de su deporte.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

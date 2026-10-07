@@ -1328,7 +1328,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     // Deportes individuales nuevos (mismo motor que la escalada, con su propio paquete)
     const ind = await page.evaluate(() => {
       const G = __P1, out = {}, was = G.silencio;
-      for (const dep of ['skate', 'surf']) {
+      for (const dep of ['skate', 'surf', 'boxeo']) {
         G.silencio = true; G.nueva(41, null, dep, null);
         const L = () => { for (let g = 0; G.S.pendiente && g < 30; g++) G.resolver('si') || G.resolver('ok') || G.resolver('club') || G.resolver('aceptar') || G.resolver('0') || G.resolver('todo'); };
         const o = { fase0: G.S.fase, edad0: G.S.edad, mods: Object.keys(G.CFG.escalada.pesosGen).join(','), zonas: Object.keys(G.ZONAS).length };
@@ -1346,10 +1346,20 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
         o.sucesos = [tot, err];
         G.silencio = was; G.render();
         const txt = document.body.innerText; o.limpio = !/rocódromo|escalad|pies de gato|fútbol|\bgoles\b/i.test(txt);
+        if (dep === 'boxeo') { const E = G.S.esc; o.box = E.box || null; o.velada = E.palmares.some(p => p.amb === 'europa' && /gana|pierde/.test(p.marca)); }
         G.S.hoja = 'carrera'; G.render(); const h = document.getElementById('hoja').textContent; o.carrera = h.length > 500 && !/rocódromo|escalad|pies de gato/i.test(h); G.S.hoja = null; G.render();
         out[dep] = o;
       }
       return out; });
+    const bx = await page.evaluate(() => { const G = __P1, o = {};
+      G.nueva(61, null, 'boxeo', null); const S = G.S; S.fase = 'escalador'; S.esc.equipo = 'club'; S.edad = 17;
+      const cal = G.calendarioEsc(), velada = cal.find(c => c.amb === 'europa'), europeo = cal.find(c => c.amb === 'europeo'), mundial = cal.find(c => c.amb === 'mundial');
+      o.menor = /18 años/.test(G.reqComp(velada) || ''); S.edad = 20; o.adulto = G.reqComp(velada) === null;
+      o.europeoBloq = /5 victorias/.test(G.reqComp(europeo) || ''); S.esc.box = { v: 5, d: 0, ko: 0, kod: 0 }; o.europeoOk = G.reqComp(europeo) === null;
+      o.mundialBloq = /título de Europa/.test(G.reqComp(mundial) || ''); S.esc.mejor.europeo = 1; o.mundialOk = G.reqComp(mundial) === null;
+      o.sinRoca = !G.disponible('roca') && Object.keys(G.ZONAS).length === 0;
+      return o; });
+    check('Boxeo: amateur y profesional; veladas desde los 18, título de Europa con 5 victorias y mundial tras ganar el europeo; récord y sin «roca»', ind.boxeo.mods === 'amateur,pro' && ind.boxeo.edad0 === 15 && ind.boxeo.velada && ind.boxeo.box && ind.boxeo.limpio && ind.boxeo.carrera && ind.boxeo.sucesos[0] >= 15 && ind.boxeo.sucesos[1] === 0 && bx.menor && bx.adulto && bx.europeoBloq && bx.europeoOk && bx.mundialBloq && bx.mundialOk && bx.sinRoca, JSON.stringify([ind.boxeo, bx]));
     check('Surf: shortboard y olas grandes, olas reales, 14 años en la playa, circuitos y marcas propias, sin textos de escalada', ind.surf.fase0 === 'rocodromo' && ind.surf.edad0 === 14 && ind.surf.mods === 'shortboard,grandes' && ind.surf.zonas >= 10 && ind.surf.comps > 5 && ind.surf.palmares && ind.surf.marcas >= 15 && ind.surf.limpio && ind.surf.carrera && ind.surf.sucesos[0] >= 15 && ind.surf.sucesos[1] === 0, JSON.stringify(ind.surf));
     check('Skate: street y park, spots reales, 14 años en el skatepark, competiciones y marcas propias, sin textos de escalada', ind.skate.fase0 === 'rocodromo' && ind.skate.edad0 === 14 && ind.skate.mods === 'street,park' && ind.skate.zonas >= 10 && ind.skate.comps > 5 && ind.skate.palmares && ind.skate.marcas >= 20 && ind.skate.limpio && ind.skate.carrera && ind.skate.sucesos[0] >= 20 && ind.skate.sucesos[1] === 0, JSON.stringify(ind));
 

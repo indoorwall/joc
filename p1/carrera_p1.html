@@ -267,7 +267,9 @@
   .btn.w { background: #eef1f6; color: var(--ink); box-shadow: 0 4px 0 #cdd3de; }
   .btn.full { display: block; width: 100%; margin-top: 10px; min-height: 52px; font-size: 17px; }
   .btn:disabled { background: #dfe3ea; color: #8a92a3; cursor: not-allowed; box-shadow: 0 4px 0 #c5cbd6; }
-  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; margin: 6px 0; }
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; margin: 6px 0; }
+  .seg button { min-width: 0; overflow-wrap: anywhere; }
+  @media (max-width: 340px) { .seg button { font-size: 13px; } }
   .seg button { min-height: 46px; border-radius: 12px; border: 2px solid var(--line); background: #fff; font-size: 14px; font-weight: 800; cursor: pointer; padding: 4px; box-shadow: 0 3px 0 var(--line); }
   .seg button.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
   .seg button:disabled { opacity: .45; }
@@ -1083,7 +1085,7 @@ const DEPORTES = {
   escalada: { n: 'Escalada', ic: '🧗', motor: 'individual' },
   skate: { n: 'Skate', ic: '🛹', motor: 'individual' },
   surf: { n: 'Surf', ic: '🏄', motor: 'individual' },
-  boxeo: { n: 'Boxeo', ic: '🥊', motor: 'individual', pronto: true },
+  boxeo: { n: 'Boxeo', ic: '🥊', motor: 'individual' },
 };
 const depDe = s => (s && s.deporte) || 'futbol';
 const esIndDep = d => (DEPORTES[d || 'futbol'] || DEPORTES.futbol).motor === 'individual';
@@ -1219,6 +1221,8 @@ function crearMundo(s) {
   s.clubLocal = local;
   s.ciudad = club(s, local).ciudad;
 }
+// Posición del jugador en su deporte (si no vale para este deporte, la primera)
+function posDe(s) { if (!CFG.posiciones[s.posicion]) s.posicion = Object.keys(CFG.posiciones)[0]; return CFG.posiciones[s.posicion]; }
 function nuevaPartida(seed, dep) {
   const i = CFG.inicio;
   const s = {
@@ -1244,6 +1248,7 @@ function nuevaPartida(seed, dep) {
   s.potencial = Math.round(CFG.club.potencial[0] + rnd(s) * (CFG.club.potencial[1] - CFG.club.potencial[0]));
   s.deporte = dep && !esIndDep(dep) && DEPORTES[dep] ? dep : 'futbol';
   crearMundo(s);
+  posDe(s);
   s.rel = [
     { id: 'madre', tipo: 'madre', nombre: 'Mamá', v: 85, semana: 0 },
     { id: 'padre', tipo: 'padre', nombre: 'Papá', v: 80, semana: 0 },
@@ -1601,7 +1606,7 @@ function procesarAgenda(s, R) {
 
 function semanaClub(s, R, mods) {
   const c = s.contrato, K = CFG.club, T = s.temporada, yo = c.clubId, mi = miClub(s);
-  const pos = CFG.posiciones[s.posicion];
+  const pos = posDe(s);
   c.semanas += 1;
   const tramo = tramoActual(s);
   s.mejorTier = Math.min(s.mejorTier || 9, ligaDe(s, yo).tier);
@@ -1776,7 +1781,7 @@ function terminosOferta(s, id) {
   const f = clamp((s.p.nivel - (c.fuerza - 8)) / 20, 0, 1);
   const salario = red((L.sueldo[0] + (L.sueldo[1] - L.sueldo[0]) * (0.2 + 0.6 * f)) * (0.9 + rnd(s) * 0.2) * (rel(s, 'agente') ? 1 + CFG.agente.sueldoExtra : 1), 10);
   const conAscenso = i.tier > 1 && rnd(s) < 0.7;
-  const pos = CFG.posiciones[s.posicion];
+  const pos = posDe(s);
   const familia = c.pais === 'es' && c.ciudad === s.ciudad;
   return {
     clubId: id, salario, temporadas: 1 + Math.floor(rnd(s) * 3), fichaje: red(salario * (2 + rnd(s) * 6), 50),
@@ -3628,6 +3633,7 @@ function calendarioEsc(s, año) {
 }
 function nombreComp(c, s) {
   const A = AMBITOS[c.amb], juv = s && s.edad < 20 && A.juvenil ? ` ${s.edad < 16 ? 'sub-16' : s.edad < 18 ? 'sub-18' : 'sub-20'}` : '';
+  if (TX.nombreComp) return TX.nombreComp(c, juv);
   if (c.amb === 'jjoo') return `Juegos Olímpicos · ${MODS[c.mod].n.toLowerCase()}`;
   return `${A.n}${juv} de ${MODS[c.mod].n.toLowerCase()}`;
 }
@@ -3641,6 +3647,7 @@ function reqComp(s, c) {
   if (s.fase !== 'escalador') return 'Primero entra en un equipo y federarte.';
   if (s.lesion > 0) return 'Estás lesionado/a.';
   if (c.amb !== 'auto' && c.amb !== 'esp' && c.amb !== 'cesp' && s.edad < 16) return 'Desde los 16 años.';
+  if (TX.req) { const r = TX.req(s, c); if (r !== undefined) return r; }
   if (A.invitacion) return E.invit[c.id] === true ? null : E.invit[c.id] === false ? 'Rechazaste la invitación.' : 'Solo por invitación (fama 65 o un top 16 en Copa del Mundo).';
   if (A.nacional && E.nacional !== E.año) return 'Solo con el equipo nacional.';
   if ((c.amb === 'mundial' || c.amb === 'europeo') && !E.anual.cm) return 'La federación solo lleva a quien ha competido este año en la Copa del Mundo.';
@@ -3676,10 +3683,11 @@ function phi(z) { // distribución normal acumulada
   const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2);
   return 0.5 * (1 + (z >= 0 ? y : -y));
 }
+const premioDe = (s, c, pos) => TX.premio ? TX.premio(s, c, pos) : (AMBITOS[c.amb].premio[pos - 1] || 0);
 function competirEsc(s, R, c) {
   const E = s.esc, K = CFG.escalada, A = AMBITOS[c.amb], juv = s.edad < 20 && A.juvenil;
   const antes = { mejor: E.mejor[c.amb], esp: E.anual.mejorEsp, mundo: E.anual.mejorMundo, mm: (E.mejorMundoMod[c.mod] || {})[E.año] };
-  const media = A.media - (juv ? K.juvenilMenos : 0), L = nivelMod(s, c.mod);
+  const L = nivelMod(s, c.mod), media = TX.media ? TX.media(s, c, L) : A.media - (juv ? K.juvenilMenos : 0), pod = A.podio || 3;
   const fz = efectoForma(s, CFG.forma.escBajo, CFG.forma.escAlto), animo = (s.p.fel - 50) / 25, cab = (E.at.cabeza - 50) / 10 * A.presion, piel = E.piel < 30 ? -(30 - E.piel) / 5 : 0;
   const MD = MODS[c.mod], suerte = gauss(s) * (MD.suerte || 4), resbalon = !!MD.resbalon && rnd(s) < K.resbalon;
   if (fz <= -2) R.opo.push(['😫', `Llego ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} a la ${A.n}: ${nf(r1(fz))} puntos por la falta de energía.`]);
@@ -3694,33 +3702,35 @@ function competirEsc(s, R, c) {
   else if (c.mod === 'velocidad') { if (resbalon) marca = 'resbalón: sin tiempo'; else { const t = Math.max(4.8, 5 + (96 - L) / 7.5 - suerte * 0.06); marca = `${t.toFixed(2).replace('.', ',')} s`; if (!E.mejorTiempo || t < E.mejorTiempo) E.mejorTiempo = Math.round(t * 100) / 100; } }
   else marca = `${Math.round(200 * phi(z))} puntos`;
   // Dinero
-  const coste = costeComp(s, c), premio = A.premio[pos - 1] || 0;
+  const coste = costeComp(s, c), premio = premioDe(s, c, pos);
   pagarEsc(s, R, coste, `Inscripción${coste > A.ins ? ' y viaje' : ''}: ${A.n}`);
   let bruto = premio;
   if (premio) R.eco.push([c.amb === 'jjoo' ? 'Premio del Consejo Superior de Deportes por la medalla' : `Premio (${pos}º)`, premio]);
-  if (pos <= 3 && ORDEN_AMB.indexOf(c.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) { const b = Math.round(pt.primaPodio * K.factorPrima[c.amb]); bruto += b; R.eco.push([`Prima de ${pt.marca} por el podio`, b]); }
+  if (pos <= pod && ORDEN_AMB.indexOf(c.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) { const b = Math.round(pt.primaPodio * K.factorPrima[c.amb]); bruto += b; R.eco.push([`Prima de ${pt.marca} por el podio`, b]); }
   if (bruto) { const imp = Math.round(bruto * tipoImpuesto(bruto)); s.p.dinero += bruto - imp; if (imp) { R.eco.push([`Impuestos de premios (${Math.round(tipoImpuesto(bruto) * 100)} %)`, -imp]); s.acum.impuestos += imp; } E.anual.premios += premio; }
   // Reputación y seguidores
-  const f = pos === 1 ? 1.6 : pos <= 3 ? 1.2 : ronda === 'final' ? 0.7 : ronda === 'semifinal' ? 0.35 : 0.1;
+  const f = pos === 1 ? 1.6 : pos <= pod ? 1.2 : ronda === 'final' ? 0.7 : ronda === 'semifinal' ? 0.35 : 0.1;
   // Una competición pequeña no te hace famoso/a: cuanto más cerca estás de su techo de fama, menos suma
   const dRep = Math.round(A.rep * f * clamp((A.techo - s.p.rep) / 25, 0, 1));
-  s.p.rep += dRep; E.seg += dRep * 250 + (pos <= 3 ? 1000 * (ORDEN_AMB.indexOf(c.amb) + 1) : 0);
+  s.p.rep += dRep; E.seg += dRep * 250 + (pos <= pod ? 1000 * (ORDEN_AMB.indexOf(c.amb) + 1) : 0);
   s.p.energia -= A.energia; E.piel = clamp(E.piel - 15, 0, 100); E.carga = clamp(E.carga + 10, 0, 100);
   // Estadísticas
   E.comps += 1; E.anual.comps += 1;
-  if (pos <= 3) { E.podios += 1; E.anual.podios += 1; }
+  if (pos <= pod) { E.podios += 1; E.anual.podios += 1; }
   E.mejor[c.amb] = Math.min(E.mejor[c.amb] || 99, pos);
   if (c.amb === 'esp' || c.amb === 'cesp') E.anual.mejorEsp = Math.min(E.anual.mejorEsp, pos);
   if (c.amb === 'mundo') { E.anual.cm = true; E.anual.mejorMundo = Math.min(E.anual.mejorMundo, pos); const m = E.mejorMundoMod[c.mod] = E.mejorMundoMod[c.mod] || {}; m[E.año] = Math.min(m[E.año] || 99, pos); if (ronda === 'final') E.finales += 1; }
-  if (['mundial', 'europeo', 'jjoo'].includes(c.amb) && pos <= 3) E.medallas.push({ año: E.año, amb: c.amb, mod: c.mod, pos });
+  if (['mundial', 'europeo', 'jjoo'].includes(c.amb) && pos <= pod) E.medallas.push({ año: E.año, amb: c.amb, mod: c.mod, pos });
   if (c.amb === 'clasif' && pos <= A.plazas) { E.olimpico = { año: E.año, mod: c.mod }; R.opo.push(['🏅', `¡Plaza para los Juegos Olímpicos de ${SEDES_JJOO[E.año] || E.año} (${MODS[c.mod].n.toLowerCase()})!`]); celebrar = true; }
   const nombre = nombreComp(c, s);
   E.palmares.unshift({ año: E.año, mes: mesEsc(s), n: nombre, lugar: c.lugar, mod: c.mod, amb: c.amb, pos, N, ronda, marca }); E.palmares = E.palmares.slice(0, 40);
   const ic = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : MODS[c.mod].ic;
-  R.escLineas.push([ic, `${nombre} (${c.lugar}): ${ronda === 'clasificación' ? 'me quedo en la clasificación' : `llego a la ${ronda}`}, puesto ${pos} de ${N}. ${marca[0].toUpperCase() + marca.slice(1)}.${dRep ? ` +${dRep} reputación.` : ''}`]);
+  if (TX.lineaComp) R.escLineas.push([ic, TX.lineaComp(s, c, pos, N, marca, dRep, nombre)]);
+  else R.escLineas.push([ic, `${nombre} (${c.lugar}): ${ronda === 'clasificación' ? 'me quedo en la clasificación' : `llego a la ${ronda}`}, puesto ${pos} de ${N}. ${marca[0].toUpperCase() + marca.slice(1)}.${dRep ? ` +${dRep} reputación.` : ''}`]);
   R.dep.push([`${nombre}: ${pos}º de ${N}`, marca,
     `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(fz))} por tu forma (energía ${s.p.energia}) ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
-  R.comp = { pos, N, ronda, amb: c.amb };
+  R.comp = { pos, N, ronda, amb: c.amb, podio: pos <= pod };
+  if (TX.trasComp) TX.trasComp(s, R, c, pos, z, marca);
   prepararMomentoEsc(s, c, pos, ronda, antes, nombre);
   if (c.amb === 'jjoo') {
     if (pos === 1) { E.becaOlimpica = { hasta: E.año + 4, mod: c.mod }; R.opo.push(['🥇', `¡Campeón/a olímpico/a! Premio de ${cr(A.premio[0])} y beca de ${cr(K.becaOlimpica)} al año hasta los Juegos de ${E.año + 4}.`]); }
@@ -3796,7 +3806,7 @@ function semanaEscalada(s, R) {
   s.p.nivel = r1(nivelGeneral(s)); E.nv = s.p.nivel;
   // Felicidad propia de la escalada
   R.felExtra = [];
-  if (R.comp) { if (R.comp.pos <= 3) R.felExtra.push([5, 'podio']); else if (R.comp.ronda === 'final') R.felExtra.push([3, 'final']); else if (R.comp.pos > R.comp.N / 2) R.felExtra.push([-2, 'mala competición']); }
+  if (R.comp) { if (R.comp.podio) R.felExtra.push([5, TX.felPodio || 'podio']); else if (R.comp.ronda === 'final') R.felExtra.push([3, 'final']); else if (R.comp.pos > R.comp.N / 2) R.felExtra.push([-2, 'mala competición']); }
   if (R.escLineas.some(([i]) => i === '🎉')) R.felExtra.push([5, 'encadenamiento']);
 }
 function economiaEsc(s, R) {
@@ -3899,7 +3909,7 @@ function objetivoPatro(s, cat) {
   if (esInd(s)) {
     const E = s.esc;
     const O = CFG.escalada.objCat;
-    if (O.podio.includes(cat)) return { tipo: 'podio', v: 1, t: 'Subir a un podio este año' };
+    if (O.podio.includes(cat)) return { tipo: 'podio', v: 1, t: TX.objPodio || 'Subir a un podio este año' };
     if (O.grado.includes(cat) && hayRoca()) { const v = Math.min(Math.max(E.maxVia + 1, 8), GRADOS_VIA.length - 1); return { tipo: 'grado', v, t: `${TX.encadenoInf} ${gV(v)} ${TX.enRoca}` }; }
     if (O.seg.includes(cat)) { const v = Math.max(2000, red(E.seg * 1.25, 1000)); return { tipo: 'seg', v, t: `Llegar a ${nf(v / 1000)} mil seguidores` }; }
     return { tipo: 'comps', v: 4, t: 'Competir 4 veces este año' };
@@ -4338,7 +4348,7 @@ function hojaCarreraEsc() {
       ${s.patros.length ? `<span class="badge g">💼 ${s.patros.length} ${s.patros.length === 1 ? 'patrocinador' : 'patrocinadores'} · ${cr(s.patros.reduce((a, p) => a + p.año, 0))}/año</span>` : ''}
       <span class="badge">${TX.gPiel[0]} ${TX.gPiel[1]} ${E.piel}</span><span class="badge ${E.carga > CFG.escalada.cargaRiesgo ? 'b' : ''}">${TX.gCarga[0]} ${TX.cargaLarga} ${E.carga}</span>
       <span class="badge">📱 ${nf(E.seg / 1000)} mil seguidores</span>${E.mejorTiempo ? `<span class="badge">⏱️ 15 m en ${String(E.mejorTiempo).replace('.', ',')} s</span>` : ''}
-      <span class="badge">🏆 ${E.comps} competiciones · ${E.podios} podios</span></div></div>`;
+      <span class="badge">🏆 ${E.comps} competiciones · ${E.podios} ${TX.podios || 'podios'}</span></div></div>`;
   // Cualidades
   h += `<div class="sec">Cualidades · nivel en cada modalidad</div><div class="card">${Object.keys(ATTRS).map(k => barraAttr(s, k)).join('')}
     <div class="chips" style="margin-top:8px">${Object.keys(CFG.escalada.pesosGen).map(m => chip(MODS[m].ic, `${MODS[m].n} ${nf(nivelMod(s, m))}`)).join('')}</div>
@@ -4408,7 +4418,7 @@ function popupEsc(s, ev) {
     <button class="po" data-act="resolver" data-v="si"><b>Aceptar</b>${chips([['💰', `Ayuda ${cr(ev.beca)}/semana`], ['✈️', 'Viajes pagados'], ['🌍', 'Copa de Europa y del Mundo'], ['📈', 'Entrenamiento ×1,1']])}</button>
     <button class="po" data-act="resolver" data-v="no"><b>Rechazar</b>${chips([[TX.icRoca, TX.masTiempo], ['🔒', 'Sin competiciones internacionales']])}</button>`;
   if (ev.tipo === 'finEsc') return `<div class="pi">🏁</div><h2>Resumen de ${ev.año}</h2><p class="pd">Cumples ${ev.edad} años.</p>
-    <div class="chips" style="justify-content:center">${chip('🏆', `${ev.comps} competiciones`)}${chip('🥇', `${ev.podios} podios`)}${ev.mejorEsp < 99 ? chip('🇪🇸', `mejor puesto en España: ${ev.mejorEsp}º`) : ''}${ev.mejorMundo < 99 ? chip('🌍', `${AMBITOS.mundo.n}: ${ev.mejorMundo}º`) : ''}${ev.premios ? chip('€', ev.premios) : ''}${ev.patros ? chip('💼', `patrocinios ${cr(ev.patros)}/año`) : ''}${ev.beca ? chip('🎓', 'beca del Estado el año que viene') : ''}</div>${ev.perdida ? `<p class="small" style="text-align:center">Se pierden ${cr(ev.perdida)} de beca sin gastar.</p>` : ''}
+    <div class="chips" style="justify-content:center">${chip('🏆', `${ev.comps} competiciones`)}${chip('🥇', `${ev.podios} ${TX.podios || 'podios'}`)}${ev.mejorEsp < 99 ? chip('🇪🇸', `mejor puesto en España: ${ev.mejorEsp}º`) : ''}${ev.mejorMundo < 99 ? chip('🌍', `${AMBITOS.mundo.n}: ${ev.mejorMundo}º`) : ''}${ev.premios ? chip('€', ev.premios) : ''}${ev.patros ? chip('💼', `patrocinios ${cr(ev.patros)}/año`) : ''}${ev.beca ? chip('🎓', 'beca del Estado el año que viene') : ''}</div>${ev.perdida ? `<p class="small" style="text-align:center">Se pierden ${cr(ev.perdida)} de beca sin gastar.</p>` : ''}
     ${TX.finMax(ev) ? `<div class="card" style="margin-top:10px">${TX.finMax(ev)}</div>` : ''}
     <button class="btn w full" data-act="resolver" data-v="tarjeta">📸 Ver mi tarjeta de la temporada</button>
     <button class="btn g full" data-act="resolver" data-v="ok">Empezar ${ev.año + 1}</button>`;
@@ -4416,7 +4426,7 @@ function popupEsc(s, ev) {
 }
 function popupRetiroEsc(s, ev) {
   return `<div class="pi">👋</div><h2>Dejas la competición</h2><p class="pd">Te retiras del alto nivel a los ${ev.edad} años. ${TX.retiroFrase}</p>
-    <div class="chips" style="justify-content:center">${chip('🏆', `${ev.comps} competiciones`)}${chip('🥇', `${ev.podios} podios`)}${TX.retiroChips(ev)}${ev.medallas ? chip('🏅', `${ev.medallas} medallas`) : ''}</div>
+    <div class="chips" style="justify-content:center">${chip('🏆', `${ev.comps} competiciones`)}${chip('🥇', `${ev.podios} ${TX.podios || 'podios'}`)}${TX.retiroChips(ev)}${ev.medallas ? chip('🏅', `${ev.medallas} medallas`) : ''}</div>
     <div class="card" style="margin-top:10px">Ahora empieza otra vida: tus negocios, tus casas, tu familia… o entrenar a jóvenes. Cambia tu plan semanal en «Carrera».</div>
     <button class="btn g full" data-act="resolver" data-v="ok">Empezar mi nueva vida</button>`;
 }
@@ -4442,7 +4452,7 @@ function ocupacion(s) {
   if (s.fase === 'barrio') return `Juega en el barrio de ${s.ciudad}`;
   if (s.fase === 'prep') return `Prepara pruebas con el ${club(s, s.pendienteOjeador).nombre}`;
   if (s.fase === 'retirado') return `${TXE.exDeportista}${s.negocios.length ? ` · ${s.negocios.length} ${s.negocios.length === 1 ? 'negocio' : 'negocios'}` : ''}`;
-  const pos = CFG.posiciones[s.posicion].n.toLowerCase();
+  const pos = posDe(s).n.toLowerCase();
   return `${pos[0].toUpperCase() + pos.slice(1)} · ${CFG.paises[miClub(s).pais].flag} ${miClub(s).nombre}`;
 }
 function etiquetaSemana(s) {
@@ -5273,6 +5283,7 @@ function avatarSVG(s, L, modo) {
   if (L.calzado === 'deportivas') h += zap('#ffffff', `<path d="M35 144 h10 M54 144 h10" stroke="${rc}" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#ccc"/><rect x="50" y="146" width="19" height="3" fill="#ccc"/>`);
   else if (L.calzado === 'botas') h += zap('#1d1d1f', `<path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#999" stroke-width="2"/><path d="M36 143 h8 M55 143 h8" stroke="${c1}" stroke-width="2"/>`);
   else if (L.calzado === 'zapasBasket') h += `<rect x="31" y="134" width="19" height="15" rx="5" fill="#e63946"/><rect x="50" y="134" width="19" height="15" rx="5" fill="#e63946"/><rect x="31" y="145" width="19" height="4" fill="#fff"/><rect x="50" y="145" width="19" height="4" fill="#fff"/><path d="M36 139 l8 4 M55 139 l8 4" stroke="#fff" stroke-width="2"/>`;
+  else if (L.calzado === 'botasBoxeo') h += `<rect x="33" y="128" width="16" height="21" rx="4" fill="#f2f2f2" stroke="#2a2340" stroke-width="1"/><rect x="51" y="128" width="16" height="21" rx="4" fill="#f2f2f2" stroke="#2a2340" stroke-width="1"/><path d="M35 133 h12 M35 137 h12 M53 133 h12 M53 137 h12" stroke="#e63946" stroke-width="1.5"/>`;
   else if (L.calzado === 'zapasSkate') h += zap('#2a2d34', `<rect x="31" y="145" width="19" height="4" fill="#f2efe6"/><rect x="50" y="145" width="19" height="4" fill="#f2efe6"/><path d="M35 142 q5 -3 10 0 M54 142 q5 -3 10 0" stroke="#f2efe6" stroke-width="1.6" fill="none"/>`);
   else if (L.calzado === 'pies') h += `<path d="M31 140 h18 v9 h-22 q-1 -5 4 -9Z M51 140 h18 q5 4 4 9 h-22Z" fill="#ff7a1a"/><path d="M33 145 h14 M53 145 h14" stroke="#2a2d34" stroke-width="2"/>`;
   else if (L.calzado === 'chanclas') h += `<rect x="38" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="53" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="31" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/><rect x="50" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/>`;
@@ -5307,6 +5318,7 @@ function avatarSVG(s, L, modo) {
   if (L.extra === 'medalla') h += `<path d="M42 68 L50 86 L58 68" fill="none" stroke="#2f6fe0" stroke-width="3.5"/><circle cx="50" cy="90" r="6.5" fill="#f5c518" stroke="#b08a00"/><text x="50" y="93" text-anchor="middle" font-size="8" font-weight="900" fill="#b08a00">1</text>`;
   if (L.extra === 'magnesio') h += `<rect x="62" y="100" width="13" height="14" rx="4" fill="#f2f2f2" stroke="#9aa" stroke-width="1"/><circle cx="66" cy="102" r="1" fill="#fff"/>`;
   if (L.extra === 'balonBasket') h += `<circle cx="84" cy="140" r="10" fill="#f28a2e" stroke="#7a3b0b" stroke-width="1.2"/><path d="M74 140 h20 M84 130 v20 M77 133 q7 7 0 14 M91 133 q-7 7 0 14" stroke="#7a3b0b" stroke-width="1.1" fill="none"/>`;
+  if (L.extra === 'guantes') h += `<circle cx="80" cy="104" r="8" fill="#e63946" stroke="#2a2340" stroke-width="1.5"/><circle cx="20" cy="104" r="8" fill="#e63946" stroke="#2a2340" stroke-width="1.5"/><path d="M74 108 h12 M14 108 h12" stroke="#fff" stroke-width="2"/>`;
   if (L.extra === 'tablaSurf') h += `<g transform="rotate(-8 84 118)"><ellipse cx="84" cy="118" rx="7" ry="30" fill="#ffd166" stroke="#2a2340" stroke-width="1.5"/><path d="M84 90 V146" stroke="#e63946" stroke-width="2"/></g>`;
   if (L.extra === 'tablaSk') h += `<g transform="rotate(-70 84 128)"><rect x="62" y="124" width="44" height="8" rx="4" fill="#e8a33d" stroke="#2a2340" stroke-width="1.5"/><circle cx="70" cy="134" r="2.6" fill="#fff" stroke="#2a2340" stroke-width="1"/><circle cx="98" cy="134" r="2.6" fill="#fff" stroke="#2a2340" stroke-width="1"/></g>`;
   if (L.extra === 'balon') h += `<circle cx="84" cy="141" r="9" fill="#fff" stroke="#333" stroke-width="1"/><path d="M84 137 l3.5 2.5 -1.3 4 h-4.4 l-1.3 -4Z" fill="#333"/>`;
@@ -5553,7 +5565,8 @@ function resolverMomento(s, ev, op) {
     const A = AMBITOS[ev.amb], nuevo = clamp(ev.pos + (ok ? -o.sube : o.baja), 1, A.final || ev.pos + 1);
     if (nuevo !== ev.pos) cambiarPuestoEsc(s, ev, nuevo);
     s.p.rep = clamp(s.p.rep + (nuevo < ev.pos ? 3 : nuevo > ev.pos ? -1 : 0), 0, 100); s.p.fel = clamp(s.p.fel + (ok ? 4 : -3), 0, 100);
-    marcador = `Puesto final: ${nuevo}º${nuevo <= 3 ? ` ${['🥇', '🥈', '🥉'][nuevo - 1]}` : ''}${(A.premio[nuevo - 1] || 0) !== (A.premio[ev.pos - 1] || 0) ? ` · premio ${cr(A.premio[nuevo - 1] || 0)}` : ''}`;
+    const pn = premioDe(s, ev, nuevo), pv = premioDe(s, ev, ev.pos);
+    marcador = TX.marcadorMomento ? TX.marcadorMomento(ev, nuevo, pn) : `Puesto final: ${nuevo}º${nuevo <= 3 ? ` ${['🥇', '🥈', '🥉'][nuevo - 1]}` : ''}${pn !== pv ? ` · premio ${cr(pn)}` : ''}`;
     const e = s.log.find(x => x.semana === ev.semana);
     if (e) e.lineas.push([ok ? '⚡' : '😖', `${titulo}: ${o.n.toLowerCase()}. ${texto} ${marcador}.`]);
   }
@@ -5564,14 +5577,15 @@ function resolverMomento(s, ev, op) {
 }
 function cambiarPuestoEsc(s, ev, nuevo) {
   const E = s.esc, A = AMBITOS[ev.amb], K = CFG.escalada, mismoAño = ev.año === E.año;
-  const dPremio = (A.premio[nuevo - 1] || 0) - (A.premio[ev.pos - 1] || 0);
+  const dPremio = premioDe(s, ev, nuevo) - premioDe(s, ev, ev.pos), pod = A.podio || 3;
+  if (TX.cambioPuesto) TX.cambioPuesto(s, ev, nuevo);
   if (dPremio > 0) { const imp = Math.round(dPremio * tipoImpuesto(dPremio)); s.p.dinero += dPremio - imp; s.acum.impuestos += imp; } else s.p.dinero += dPremio;
   if (mismoAño) E.anual.premios += dPremio;
-  if (nuevo <= 3 && ev.pos > 3) {
+  if (nuevo <= pod && ev.pos > pod) {
     E.podios++; if (mismoAño) E.anual.podios++;
     if (ORDEN_AMB.indexOf(ev.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) s.p.dinero += Math.round(pt.primaPodio * K.factorPrima[ev.amb]);
   }
-  if (nuevo > 3 && ev.pos <= 3) { E.podios--; if (mismoAño) E.anual.podios--; }
+  if (nuevo > pod && ev.pos <= pod) { E.podios--; if (mismoAño) E.anual.podios--; }
   E.mejor[ev.amb] = Math.min(ev.antes.mejor || 99, nuevo);
   if (mismoAño && (ev.amb === 'esp' || ev.amb === 'cesp')) E.anual.mejorEsp = Math.min(ev.antes.esp || 99, nuevo);
   if (mismoAño && ev.amb === 'mundo') { E.anual.mejorMundo = Math.min(ev.antes.mundo || 99, nuevo); const m = E.mejorMundoMod[ev.mod] = E.mejorMundoMod[ev.mod] || {}; m[ev.año] = Math.min(ev.antes.mm || 99, nuevo); }
@@ -5815,7 +5829,7 @@ function semanaPersonajes(s, R) {
     }
   }
   // Escalada: el rival compite en las mismas pruebas que tú
-  if (esc && R.comp && !r.lesion) {
+  if (esc && R.comp && !r.lesion && R.comp.N > 2) {
     const c = R.comp, pos = clamp(Math.round(c.pos + (r.nivel - s.p.nivel) * -0.8 + gauss(s) * 4), 1, c.N);
     if (pos <= 3) r.podios++;
     const gano = c.pos < pos;
@@ -5843,7 +5857,7 @@ function htmlPersonajes(s) {
   const P = pjs(s), r = P.rival, escal = esInd(s);
   const donde = escal ? r.equipo : r.clubId ? `${club(s, r.clubId).nombre} (${nombreLiga(s.mundo.de[r.clubId])})` : 'en el barrio de al lado';
   return `<div class="sec">🎭 Tu gente del deporte</div><div class="card lista">
-    <div class="row"><div class="ic">${r.amigo ? '🤝' : '😤'}</div><div class="tx"><b>${esc(r.nombre)} · ${r.amigo ? `tu rival… y amig${ga(s)}` : 'tu rival'}</b><span>${esc(donde)} · nivel ${nf(r.nivel)} (tú ${nf(s.p.nivel)}) · fama ${r.rep}${r.lesion ? ` · 🤕 lesionad${ga(s)}` : ''}</span><span>${escal ? `Podios: ${r.podios}` : `${TXE.uGolCorto}: ${r.goles}`} · duelos ${r.duelos[0]}-${r.duelos[1]}</span></div></div>
+    <div class="row"><div class="ic">${r.amigo ? '🤝' : '😤'}</div><div class="tx"><b>${esc(r.nombre)} · ${r.amigo ? `tu rival… y amig${ga(s)}` : 'tu rival'}</b><span>${esc(donde)} · nivel ${nf(r.nivel)} (tú ${nf(s.p.nivel)}) · fama ${r.rep}${r.lesion ? ` · 🤕 lesionad${ga(s)}` : ''}</span><span>${escal ? `${TX.podios ? 'Victorias' : 'Podios'}: ${r.podios}` : `${TXE.uGolCorto}: ${r.goles}`} · duelos ${r.duelos[0]}-${r.duelos[1]}</span></div></div>
     <div class="row"><div class="ic">🧓</div><div class="tx"><b>${esc(P.mentor.nombre)} · tu mentor${escal ? 'a' : ''}</b><span>${esc(P.mentor.rol[0].toUpperCase() + P.mentor.rol.slice(1))}. Aparece cuando más lo necesitas.</span></div></div>
     <div class="row"><div class="ic">🎙️</div><div class="tx"><b>${esc(P.periodista.nombre)} · ${esc(P.periodista.medio)}</b><span>Sigue tu carrera desde el principio. Cuidado con lo que le cuentas.</span></div></div></div>`;
 }
@@ -6767,6 +6781,214 @@ CFG.mejoras.material.push(
   { id: 'quiver', dep: 'surf', ic: '🏄', n: 'Quiver de tablas', p: 900, ef: { entreno: 0.05 }, d: 'Una tabla para cada tipo de ola.' },
   { id: 'neopreno', dep: 'surf', ic: '🥽', n: 'Neopreno de invierno', p: 350, ef: { energia: 2, animo: 1 }, d: 'Entras al agua en enero sin quedarte azul.' },
   { id: 'surfskateCasa', dep: 'surf', ic: '🛹', n: 'Surfskate y balance board', p: 250, ef: { entreno: 0.03 }, d: 'Para entrenar giros sin mojarte.' },
+);
+// ---------------------------------------------------------------------
+// BOXEO (motor individual con combates 1 contra 1). Amateur (torneos olímpicos) y profesional (veladas y títulos).
+// En los combates hay dos «participantes»: puesto 1 = victoria, 2 = derrota. Rivales según tu nivel; bolsas según tu fama.
+// ---------------------------------------------------------------------
+function escenaGimnasioBox() {
+  return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <rect width="360" height="170" fill="#3a2d2a"/><rect x="0" y="0" width="360" height="60" fill="#4d3b36"/>
+    ${Array.from({ length: 5 }, (_, i) => `<rect x="${18 + i * 72}" y="10" width="40" height="28" fill="#f2d49b" opacity=".5" stroke="#2a2340" stroke-width="2"/>`).join('')}
+    <rect x="0" y="128" width="360" height="42" fill="#6b4f3a" stroke="#2a2340" stroke-width="3"/>
+    <rect x="150" y="70" width="200" height="58" fill="#2b5f9e" stroke="#2a2340" stroke-width="3"/>
+    <path d="M150 82 H350 M150 96 H350 M150 110 H350" stroke="#e63946" stroke-width="3"/><rect x="146" y="62" width="8" height="66" fill="#d9d9d9" stroke="#2a2340" stroke-width="2"/><rect x="344" y="62" width="8" height="66" fill="#d9d9d9" stroke="#2a2340" stroke-width="2"/>
+    <path d="M60 20 V60" stroke="#2a2340" stroke-width="3"/><rect x="46" y="60" width="28" height="56" rx="12" fill="#c0392b" stroke="#2a2340" stroke-width="3"/>
+    <circle cx="105" cy="78" r="6" fill="#ffd9b0" stroke="#2a2340" stroke-width="2.5"/><path d="M105 84 L105 104 M105 90 L88 88 M105 90 L94 98 M105 104 L98 120 M105 104 L112 120" stroke="#2a2340" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="86" cy="88" r="4.5" fill="#e63946" stroke="#2a2340" stroke-width="1.5"/><circle cx="93" cy="98" r="4.5" fill="#e63946" stroke="#2a2340" stroke-width="1.5"/></svg>`;
+}
+const recordBox = s => { const B = (s.esc && s.esc.box) || { v: 0, d: 0, ko: 0 }; return `${B.v}-${B.d}${B.ko ? ` (${B.ko} KO)` : ''}`; };
+const PRO_BOX = ['europa', 'master', 'europeo', 'mundial'];
+const MARCA_AMATEUR = (s, z, L, suerte, ronda, resb, pos, N) => pos === 1 ? `oro: gana la final ${azar(s, ['5-0', '4-1', '3-2'])}` : pos === 2 ? 'plata: pierde la final' : pos <= 4 ? 'bronce: cae en semifinales' : pos <= 8 ? 'cae en cuartos de final' : 'cae en la primera ronda';
+const MARCA_PRO = (s, z, L, suerte, ronda, resb, pos) => { const as = 1 + Math.floor(rnd(s) * 10), ko = Math.abs(z) > 0.9 && rnd(s) < 0.6;
+  return pos === 1 ? (ko ? `gana por KO en el ${as}º asalto` : `gana a los puntos (${azar(s, ['97-93', '98-92', '96-94', '115-113'])})`) : (ko ? `pierde por KO en el ${as}º asalto` : `pierde a los puntos (${azar(s, ['93-97', '94-96', '113-115'])})`); };
+PAQ.boxeo = paqueteInd({
+  GRADOS_VIA: [], GRADOS_BLOQUE: [], ZONAS: {},
+  CAL_ESC: [
+    [3, 'auto', 'amateur', 'tu comunidad'], [7, 'esp', 'amateur', 'Madrid'], [12, 'cesp', 'amateur', 'Valencia'], [9, 'mundo', 'amateur', 'Colonia (Alemania)'], [15, 'mundo', 'amateur', 'Liverpool (Reino Unido)'],
+    [2, 'europa', 'pro', 'Madrid'], [5, 'europa', 'pro', 'Barcelona'], [8, 'europa', 'pro', 'Bilbao'], [11, 'europa', 'pro', 'Sevilla'], [14, 'europa', 'pro', 'Valencia'], [17, 'europa', 'pro', 'Málaga'],
+    [13, 'europeo', 'pro', 'Londres (Reino Unido)'], [16, 'mundial', 'pro', 'Riad (Arabia Saudí)'], [10, 'master', 'pro', 'Las Vegas (EE. UU.)'],
+  ],
+  ATTRS: { fuerza: { n: 'Pegada', ic: '👊', corto: 'pegada' }, resistencia: { n: 'Resistencia', ic: '🔁', corto: 'resistencia' }, tecnica: { n: 'Técnica', ic: '🎯', corto: 'técnica' },
+    cabeza: { n: 'Cabeza (frialdad y encajar)', ic: '🧠', corto: 'cabeza' }, velocidad: { n: 'Velocidad y reflejos', ic: '⚡', corto: 'velocidad' } },
+  MODS: {
+    amateur: { n: 'Amateur', ic: '🥇', pesos: { tecnica: 0.4, velocidad: 0.3, resistencia: 0.15, cabeza: 0.15 }, d: 'Torneos olímpicos: tres asaltos, gana quien puntúa más.', ultimo: 'Último asalto', marca: MARCA_AMATEUR },
+    pro: { n: 'Profesional', ic: '🥊', pesos: { fuerza: 0.35, resistencia: 0.3, cabeza: 0.2, tecnica: 0.15 }, suerte: 5, d: 'Veladas a 8, 10 o 12 asaltos: pegada, aguante y cabeza.', ultimo: 'Último asalto', marca: MARCA_PRO },
+  },
+  AMBITOS: Object.assign(nombresAmb(AMBITOS, { auto: 'Torneo autonómico', esp: 'Copa de España', cesp: 'Campeonato de España', mundo: 'Copa del Mundo', clasif: 'Preolímpico', jjoo: 'Juegos Olímpicos' }), {
+    auto: Object.assign({}, AMBITOS.auto, { n: 'Torneo autonómico', N: 16, semi: 4, final: 2, podio: 4 }),
+    esp: Object.assign({}, AMBITOS.esp, { n: 'Copa de España', N: 16, semi: 4, final: 2, podio: 4 }),
+    cesp: Object.assign({}, AMBITOS.cesp, { n: 'Campeonato de España', N: 16, semi: 4, final: 2, podio: 4 }),
+    mundo: Object.assign({}, AMBITOS.mundo, { n: 'Copa del Mundo', N: 32, semi: 4, final: 2, podio: 4 }),
+    clasif: Object.assign({}, AMBITOS.clasif, { n: 'Preolímpico', N: 32, semi: 4, final: 2, plazas: 4 }),
+    jjoo: Object.assign({}, AMBITOS.jjoo, { n: 'Juegos Olímpicos', N: 16, semi: 4, final: 2, podio: 4 }),
+    europa: { n: 'Velada profesional', media: 50, sd: 6, N: 2, semi: 0, final: 2, podio: 1, ins: 0, viaje: 0, techo: 60, rep: 3, premio: [2500, 1000], presion: 0.5, energia: 22 },
+    master: { n: 'Velada estelar', media: 78, sd: 5, N: 2, semi: 0, final: 2, podio: 1, ins: 0, viaje: 0, techo: 95, rep: 15, premio: [70000, 25000], presion: 1, energia: 25, invitacion: true },
+    europeo: { n: 'Título de Europa', media: 72, sd: 5, N: 2, semi: 0, final: 2, podio: 1, ins: 0, viaje: 0, techo: 85, rep: 12, premio: [18000, 7000], presion: 0.9, energia: 25 },
+    mundial: { n: 'Título mundial', media: 81, sd: 4.5, N: 2, semi: 0, final: 2, podio: 1, ins: 0, viaje: 0, techo: 100, rep: 25, premio: [110000, 40000], presion: 1.3, energia: 25 },
+  }),
+  EQUIPOS: {
+    club: { n: 'Gimnasio del barrio', ic: '🏠', cuota: 15, calidad: 1.0, d: 'Un entrenador de toda la vida, guantes viejos y mucho corazón.' },
+    centro: { n: 'Centro de alto rendimiento', ic: '🏛️', cuota: 45, calidad: 1.2, nivelMin: 30, d: 'Entrenadores de la federación, sparrings de nivel y médicos, pero lejos de casa.' },
+    libre: { n: 'Por libre', ic: '🎒', cuota: 0, calidad: 0.85, bono: 10, d: 'Sin cuota ni horarios, pero sin entrenador fijo: pagas cada sesión de gimnasio.' },
+  },
+  LESIONES_ESC: {
+    dedos: [['mano rota', 4, 8, 'fuerza']], codo: [['tendinitis en la rodilla', 2, 4, 'resistencia']],
+    bloque: [['corte en la ceja', 1, 3, 'tecnica'], ['nariz rota', 2, 4, 'cabeza'], ['conmoción leve', 2, 4, 'cabeza']],
+    roca: [['conmoción', 3, 6, 'cabeza']], velocidad: [['muñeca', 2, 5, 'velocidad']],
+  },
+  cfg: {
+    inicio: { edad: 15, energia: 75, rep: 3, dinero: 40, attrs: { fuerza: 22, resistencia: 22, tecnica: 26, cabeza: 22, velocidad: 22 } },
+    fuertes: { tecnico: { n: 'Estilista', ic: '🎯', attr: 'tecnica', d: 'Técnica: boxeas de lejos y ganas a los puntos.' },
+      pegador: { n: 'Pegador', ic: '👊', attr: 'fuerza', d: 'Pegada: un golpe tuyo cambia cualquier combate.' },
+      rapido: { n: 'Rápido', ic: '⚡', attr: 'velocidad', d: 'Velocidad: entras, golpeas y sales antes de que te vean.' } },
+    declive: [[31, 0], [35, 0.08], [99, 0.18]], edadRetiro: 28, edadRetiroForzosa: 40, edadTabla: 16, cargaRiesgo: 45,
+    pesosGen: { amateur: 0.5, pro: 0.5 }, modVia: 'pro', modBloque: 'amateur', modsGrandes: [], modsJJOO: ['amateur'], clasifLugar: 'Busto Arsizio (Italia)',
+    catsPatro: ['local', 'guantes', 'bebida', 'ropa', 'nutricion', 'tecno'], objCat: { grado: [], seg: ['ropa', 'tecno'], podio: ['guantes', 'bebida'] },
+    piesGato: 90, semanasPies: 10,
+    patrocinadores: [
+      { id: 'barRing', marca: 'Bar El Ring', cat: 'local', ic: '🍺', año: [0, 600], rep: 10, repMax: 45, lema: 'Aquí se ven todas las veladas', d: 'Te invitan a comer y llevas su nombre en el pantalón.' },
+      { id: 'carniceria', marca: 'Carnicería Pepe', cat: 'local', ic: '🥩', año: [300, 2000], rep: 22, repMax: 60, lema: 'Proteína del barrio', d: 'Filetes gratis y tu foto en el mostrador.' },
+      { id: 'fisioPunos', marca: 'Fisio Puños de Acero', cat: 'local', ic: '🩹', año: [500, 2500], rep: 30, req: 'esp', lema: 'Manos como nuevas', d: 'Una clínica especializada en boxeadores.' },
+      { id: 'everlas', marca: 'Everlas', cat: 'guantes', ic: '🥊', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Los guantes de toda la vida', d: 'Guantes gratis y algo de dinero si ganas.' },
+      { id: 'ganador', marca: 'Ganador Gloves', cat: 'guantes', ic: '🥊', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Hechos a mano para pegar', d: 'Guantes a medida y un fijo al año.' },
+      { id: 'cletoReyos', marca: 'Cleto Reyos', cat: 'guantes', ic: '🥊', año: [4000, 20000], rep: 60, req: 'mundo', material: true, lema: 'Los guantes de los campeones', d: 'Guantes con tu nombre y un buen fijo.' },
+      { id: 'aquarios', marca: 'Aquarios', cat: 'bebida', ic: '🧃', año: [1000, 5000], rep: 40, req: 'nacional', lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida busca deportistas de la selección.' },
+      { id: 'monstruo', marca: 'Monstruo Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Libera a la bestia', d: 'Su logo en tu calzón y un buen fijo.' },
+      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te da alitas… para esquivar', d: 'Solo estrellas: entradas espectaculares y viajes por todo el mundo.' },
+      { id: 'kapa', marca: 'Kapa', cat: 'ropa', ic: '🧢', año: [300, 2500], rep: 20, repMax: 55, lema: 'Dos personas sentadas espalda con espalda', d: 'Chándales y algo de dinero.' },
+      { id: 'adibasBox', marca: 'Adibas', cat: 'ropa', ic: '👟', año: [2000, 12000], rep: 45, req: 'nacional', lema: 'Tres rayas y ninguna excusa', d: 'Botas de boxeo, ropa y un buen fijo.' },
+      { id: 'naikBox', marca: 'Naik', cat: 'ropa', ic: '✔️', año: [8000, 40000], rep: 72, req: 'mundo', lema: 'Just du it (y esquiva)', d: 'Solo estrellas: anuncios por todo el mundo.' },
+      { id: 'proteinasHulk', marca: 'Proteínas Hulk', cat: 'nutricion', ic: '💪', año: [300, 2000], rep: 18, repMax: 55, lema: 'Ponte verde de envidia', d: 'Batidos gratis y algo de dinero.' },
+      { id: 'myProteina', marca: 'MiProteína', cat: 'nutricion', ic: '🥤', año: [1500, 8000], rep: 45, req: 'nacional', lema: 'Cada gramo cuenta (sobre todo en el pesaje)', d: 'Nutrición deportiva y un fijo.' },
+      { id: 'gopru', marca: 'GoPru', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus combinaciones en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
+      { id: 'sansongBox', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del pabellón', d: 'Tecnología y anuncios por todo el mundo.' },
+    ],
+  },
+  TX: {
+    introSub: 'Una vida: del gimnasio del barrio a los Juegos y los títulos mundiales… y dueño/a de negocios y casas.',
+    introInicio: 'Empiezas con 15 años en el gimnasio del barrio: torneos amateur, veladas profesionales desde los 18 y, quién sabe, Las Vegas.',
+    introNota: 'Campeonatos reales; rivales, promotores y marcas ficticios.',
+    deporte: 'boxeo', materialGratis: 'Guantes', deportistas: 'boxeadores',
+    mentor: { nombre: 'Manolo', rol: 'el entrenador del gimnasio' }, rivalEquipo: 'Gimnasio del barrio vecino', rivalFicha: 'entra en el equipo de la federación',
+    consejo: '«La guardia arriba, la barbilla abajo. Y nunca, nunca dejes de mover los pies.»',
+    rivalPresenta: 'Tiene tu edad, entrena en el gimnasio de al lado y dice que pegas «como una mosca». Hoy está aquí.',
+    mentorFinal: '«Ya estoy mayor. ¿Te harías cargo de los chavales del gimnasio los sábados?»',
+    titulares: (n, c) => [`${n} hace 2.000 saltos de comba. El vecino de abajo se muda.`, `${n} rompe el saco del gimnasio de ${c}. El dueño lo enmarca.`,
+      `${n} se come un churro antes del pesaje. Da el peso por 3 gramos.`, `Un niño de ${c} copia el saludo de ${n} al subir al ring. Se tropieza con las cuerdas.`],
+    lugar: 'Gimnasio', lugarBarrio: 'Gimnasio del barrio', icLugar: '🥊', ocupInicial: 'Entrena en el gimnasio de', exDeportista: 'Exboxeador/a',
+    seFija: 'El entrenador del gimnasio se fija en ti', meVe: 'El entrenador me ve en el saco', bono: 'Sesión de gimnasio', equipoTxt: 'El entrenador del gimnasio te ha visto hacer guantes',
+    masTiempo: 'Más tiempo para entrenar', retiroLugar: '🥊 El ring sigue ahí', retiroFrase: 'El ring seguirá ahí.',
+    gPiel: ['🤕', 'Cara'], gCarga: ['🧠', 'Golpes'], cargaLarga: 'Golpes acumulados', material: ['🥊', 'Guantes', 'unos guantes'],
+    icRoca: '🥊', secRoca: '', primera: '', rocaEn: '', pruebo: '', proyecto: '', encadeno: '', encadenado: '', encadenoInf: 'Ganar', enRoca: '', secEnvios: '', zonasDe: '',
+    tipos: { via: ['🥊', 'Profesional', 'pro'], bloque: ['🥇', 'Amateur', 'amateur'] },
+    resumenNivel: s => `Récord profesional: ${recordBox(s)} · Nivel amateur ${nf(nivelMod(s, 'amateur'))} · profesional ${nf(nivelMod(s, 'pro'))}`,
+    ocupMax: s => (s.esc.box && s.esc.box.v + s.esc.box.d) ? `récord ${recordBox(s)}` : '',
+    compAyuda: s => `Amateur: Copa y Campeonato de España (desde los 15 años), Copa del Mundo y Juegos con el equipo nacional; oro, plata y dos bronces. Profesional (desde los 18): veladas cada pocas semanas contra rivales de tu nivel; la bolsa crece con tu fama. Con 5 victorias puedes pelear por el título de Europa; si lo ganas, por el mundial. Las Vegas: solo por invitación. Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''}, con plaza en el preolímpico (top 4).`,
+    secGrados: '', gradosAyuda: '',
+    finMax: ev => S && S.esc && S.esc.box && (S.esc.box.v + S.esc.box.d) ? `🥊 Récord profesional: <b>${recordBox(S)}</b>.` : '',
+    retiroChips: () => S && S.esc ? chip('🥊', recordBox(S)) : '', retiroMax: () => S && S.esc ? `, récord profesional ${recordBox(S)}` : '',
+    basta: 'las manos y la cabeza dicen basta.', tarjetaExtra: s => ['🥊', recordBox(s), 'récord pro'], salonTitulo: s => `Récord ${recordBox(s)} · `,
+    sueño: 'Mi sueño: ser campeón/a del mundo, llenar Las Vegas… y vivir de lo que me gusta.', podios: 'medallas y victorias', objPodio: 'Ganar un combate o una medalla este año', diarioJuego: 'entreno en el gimnasio de', felPodio: 'victoria',
+    escenaInt: () => escenaGimnasioBox(),
+    accNo: ['roca'],
+    // Combates: rivales de tu nivel en las veladas; títulos con requisitos; bolsas según tu fama
+    media: (s, c, L) => c.amb === 'europa' ? Math.max(40, L - 2) : AMBITOS[c.amb].media - (s.edad < 20 && AMBITOS[c.amb].juvenil ? CFG.escalada.juvenilMenos : 0),
+    premio: (s, c, pos) => { const A = AMBITOS[c.amb], b = A.premio[pos - 1] || 0; return PRO_BOX.includes(c.amb) ? red(b * (1 + s.p.rep / 100), 100) : b; },
+    req: (s, c) => {
+      if (!PRO_BOX.includes(c.amb)) return undefined;
+      const E = s.esc, B = E.box || { v: 0 };
+      if (s.edad < 18) return 'Los combates profesionales, desde los 18 años.';
+      if (c.amb === 'master') return E.invit[c.id] === true ? null : E.invit[c.id] === false ? 'Rechazaste la invitación.' : 'Solo por invitación (fama 65 o campeón/a de Europa).';
+      if (c.amb === 'europeo' && B.v < 5) return 'Necesitas 5 victorias como profesional.';
+      if (c.amb === 'mundial' && (E.mejor.europeo || 99) !== 1 && s.p.rep < 80) return 'Antes tienes que ganar el título de Europa (o tener fama 80).';
+      return null;
+    },
+    trasComp: (s, R, c, pos, z, marca) => {
+      const E = s.esc; E.box = E.box || { v: 0, d: 0, ko: 0, kod: 0 };
+      E.carga = clamp(E.carga + (pos === 1 ? 6 : 14), 0, 100);
+      if (!PRO_BOX.includes(c.amb)) return;
+      if (pos === 1) { E.box.v++; if (/KO/.test(marca)) E.box.ko++; } else { E.box.d++; if (/KO/.test(marca)) { E.box.kod++; if (rnd(s) < 0.5) { s.lesion = Math.max(s.lesion, 2 + Math.floor(rnd(s) * 3)); E.lesTipo = 'conmoción tras el KO'; } } }
+    },
+    cambioPuesto: (s, ev, nuevo) => { const B = s.esc.box; if (!B || !PRO_BOX.includes(ev.amb) || nuevo === ev.pos) return; if (nuevo === 1) { B.v++; B.d--; } else { B.v--; B.d++; }
+      const pm = s.esc.palmares.find(x => x.año === ev.año && x.n === ev.nombre && x.pos === ev.pos); if (pm) pm.marca = nuevo === 1 ? 'remontada: gana en el último asalto' : 'pierde en el último asalto'; },
+    nombreComp: (c, juv) => PRO_BOX.includes(c.amb) ? AMBITOS[c.amb].n : `${AMBITOS[c.amb].n}${juv}`,
+    lineaComp: (s, c, pos, N, marca, dRep, nombre) => PRO_BOX.includes(c.amb) ? `${nombre} (${c.lugar}): ${marca}. Récord ${recordBox(s)}.${dRep ? ` +${dRep} reputación.` : ''}` : `${nombre} (${c.lugar}): ${marca}.${dRep ? ` +${dRep} reputación.` : ''}`,
+    marcadorMomento: (ev, nuevo, pn) => PRO_BOX.includes(ev.amb) ? `${nuevo === 1 ? '¡Victoria!' : 'Derrota'} · bolsa ${cr(pn)}` : `Puesto final: ${nuevo}º${nuevo <= 3 ? ` ${['🥇', '🥈', '🥉'][nuevo - 1]}` : ''}`,
+    final: { ic: '🥊', t: ev => PRO_BOX.includes(ev.amb) ? 'Último asalto: vas perdiendo a los puntos' : `Final: último asalto, vas ${ev.pos}º`, d: ev => `${ev.nombre}. ${PRO_BOX.includes(ev.amb) ? 'Solo un KO o un asalto perfecto te da la victoria.' : 'La medalla está en juego.'}`,
+      ops: [{ id: 'todo', n: 'Ir a por el KO', base: 0.33, sube: 1, baja: 1, ok: '¡Gancho al hígado y a la lona! Ganas por KO.', mal: 'Te abres demasiado y te cazan con un contragolpe.' },
+            { id: 'leer', n: 'Boxear con cabeza', base: 0.4, tecnica: true, sube: 1, baja: 0, ok: 'Le ganas el asalto con la izquierda: los jueces te dan el combate.', mal: 'Boxeas bien, pero no basta para darle la vuelta.' },
+            { id: 'seguro', n: 'Aguantar de pie hasta la campana', base: 0.8, sube: 0, baja: 1, ok: 'Aguantas los tres minutos con dignidad.', mal: 'Te cuentan hasta ocho en el último segundo.' }] },
+    acc: {
+      amigos: { ic: '🥊', n: 'Entrenar con los del gimnasio', fx: s => [['🎯', '+técnica'], ['⭐', repAmigos(s)], ['⚡', -10]], pro: s => `+${repAmigos(s)} reputación: el entrenador se fija en ti`, con: () => '−10 energía · algún golpe', why: () => 'Reputación = 2 + nivel/15. Así empiezan casi todos: comba, saco y guantes con los amigos.' },
+      rocoBloque: { ic: '🥊', n: 'Sparring', fx: () => [['👊', '+pegada'], ['🎯', '+técnica'], ['⚡', -15], ['🤕', 'cara −18']], pro: () => 'Mejora pegada y técnica contra un rival de verdad', con: () => '−15 energía · golpes en la cara', why: () => 'Base: pegada 1,0 y técnica 0,5 por semana, multiplicadas por calidad, edad y techo.' },
+      tabla: { ic: '🏋️', n: 'Pesas y fuerza', fx: () => [['👊', '+pegada ×1,4'], ['⚡', -12], ['🤕', 'riesgo de mano']], pro: () => 'La forma más rápida de ganar pegada', con: () => 'Mucha carga en manos y hombros',
+        why: () => `Base: pegada 1,4. Con muchos golpes acumulados el riesgo de lesión se multiplica por 1,5. Desde los ${CFG.escalada.edadTabla} años.`, disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : s.edad < CFG.escalada.edadTabla ? `Desde los ${CFG.escalada.edadTabla} años.` : null },
+      resistencia: { ic: '🏃', n: 'Correr y comba', fx: () => [['🔁', '+resistencia'], ['🧠', '+cabeza'], ['⚡', -15]], pro: () => 'Mejora resistencia y cabeza (combates largos)', con: () => '−15 energía', why: () => 'Base: resistencia 1,2 y cabeza 0,3.' },
+      tecnica: { ic: '🎯', n: 'Manoplas con el entrenador', motivo: 'Sesión con entrenador', fx: () => [['🎯', '+técnica'], ['🧠', '+cabeza'], ['€', -35]], pro: () => 'Técnica, guardia y combinaciones', con: () => '−35 € · −10 energía', why: () => 'Base: técnica 1,1 y cabeza 0,5. Sin golpes en la cara.' },
+      velocidad: { ic: '⚡', n: 'Saco y velocidad', motivo: 'Sesión de saco', fx: () => [['⚡', '+velocidad'], ['⚡', -12], ['€', -10]], pro: () => 'Velocidad de manos y reflejos', con: () => '−12 energía · −10 €', why: () => 'Base: velocidad 1,3 y pegada 0,2.' },
+      descansoEsc: { fx: () => [['⚡', 25], ['🤕', 'cara +30'], ['🧠', 'golpes −30']], pro: () => '+25 energía · la cara y la cabeza se recuperan' },
+      fisioEsc: { pro: s => s.lesion > 0 ? 'La lesión dura una semana menos' : 'Bajan los golpes acumulados' },
+      ayudar: { n: 'Limpiar el gimnasio', pro: () => '+25 € y entrenas gratis', why: () => 'Fregar el ring y colgar los sacos: así se pagan la cuota muchos chavales.' },
+      monitor: { n: 'Dar clases de boxeo', pro: () => `+${cr(CFG.escalada.pagoMonitor)} por dar clases en un gimnasio`, why: () => 'Un trabajo habitual entre boxeadores que empiezan.' },
+      equipador: { ic: '🥊', n: 'Sparring de pago para un campeón', pro: () => `+${cr(CFG.escalada.pagoEquipador)} por hacer guantes con un campeón que prepara un combate`, why: () => 'Para ser sparring de un campeón hay que aguantar: desde nivel 50 y 18 años.' },
+      equipar: { ic: '🥊', n: 'Abrir el gimnasio a los chavales del barrio', motivo: 'Guantes y sacos para el gimnasio', con: () => '−80 € en material', why: () => 'Devuelves al boxeo lo que te dio.' },
+      entrenadorEsc: { n: 'Entrenar a jóvenes boxeadores' },
+    },
+  },
+});
+PAQ.boxeo.PANTALLAS_ESC = pantallasInd({ roca: false, p1: 'El gimnasio del barrio', ic: '🥊', obj1: 'Aguanta tus primeros guantes (nivel amateur 35)', f1: s => nivelMod(s, 'amateur') / 35,
+  verbo: '', grado: () => '', enRoca: '', mundo: 'Copa del Mundo', enMundo: 'en la Copa del Mundo', escuela: 'Escuela de boxeo', tienda: 'tienda de material de boxeo',
+  recinto: 'gimnasio de boxeo', marca: 'Marca de guantes', leyenda: 'Leyenda del boxeo', icLeyenda: '🥊', huella: 'Deja huella: medalla, título mundial o 6 negocios' });
+NOMBRES_NEG.boxeo = { academia: { n: 'Academia deportiva', ic: '🏅' }, escuelaEsc: { n: 'Escuela de boxeo', ic: '🥊' }, tiendaEsc: { n: 'Tienda de material de boxeo', ic: '🛍️' }, rocodromo: { n: 'Gimnasio de boxeo', ic: '🥊' }, marcaPresas: { n: 'Marca de guantes', ic: '🥊' } };
+CAT_PATRO.guantes = 'Guantes'; CAT_PATRO.nutricion = 'Nutrición';
+// Contenido propio del boxeo
+Object.assign(SUCESOS, {
+  pesaje: { dep: 'boxeo', fases: ['club'], ic: '⚖️', t: 'No das el peso', d: 'Mañana es el pesaje y te sobran 800 gramos.',
+    ops: [{ n: 'Sauna y a correr con chubasquero', fx: () => [['⚡', -12], ['😊', -2]], txt: 'Das el peso por 20 gramos. Estás seco como una pasa.' },
+          { n: 'Subir de categoría', fx: () => [['🎲', '50 %: rival más grande']], hacer(s) { if (rnd(s) < 0.5) { aplicarFx(s, [['😊', -3]]); s.esc.carga = clamp(s.esc.carga + 10, 0, 100); return 'El rival de la nueva categoría pega como un camión.'; } aplicarFx(s, [['😊', 3]]); return 'Te sientes más fuerte que nunca en tu nuevo peso.'; } }] },
+  ruedaPrensa: { dep: 'boxeo', fases: ['club'], ic: '🎤', cond: s => s.p.rep >= 25, t: 'Rueda de prensa caliente', d: 'Tu rival te provoca delante de las cámaras.',
+    ops: [{ n: 'Contestarle con gracia', fx: () => [['⭐', 3], ['😊', 2]], txt: 'Tu frase es titular en todas partes. La velada vende el doble.' },
+          { n: 'Cara a cara (y a ver qué pasa)', fx: () => [['🎲', '40 %: empujón y multa']], hacer(s) { if (rnd(s) < 0.4) { aplicarFx(s, [['€', -500], ['⭐', 1]]); return 'Empujón, separación y multa de 500 €. Pero el vídeo lo ve todo el mundo.'; } aplicarFx(s, [['⭐', 4]]); return 'Le aguantas la mirada 40 segundos. Él baja los ojos primero.'; } },
+          { n: 'Ignorarle', fx: () => [['😊', 1]], txt: 'Respondes en el ring, como los grandes.' }] },
+  promotor: { dep: 'boxeo', fases: ['club'], ic: '🕴️', cond: s => s.edad >= 18 && s.p.rep >= 35, t: 'Un promotor quiere llevar tu carrera', d: 'Promete veladas en la tele y bolsas más grandes… a cambio de un porcentaje.',
+    ops: [{ n: 'Firmar', fx: () => [['⭐', 4], ['€', '−10 % de tus bolsas (simbólico)']], hacer(s) { aplicarFx(s, [['⭐', 4]]); return 'Tu próxima velada sale en la tele. Te reconocen por la calle.'; } },
+          { n: 'Seguir por tu cuenta', fx: () => [['😊', 1]], txt: 'Libre, pero con menos focos.' }] },
+  ceja: { dep: 'boxeo', fases: ['club'], ic: '🩸', t: 'Se te abre la ceja en el sparring', d: 'Mucha sangre y un entrenador muy nervioso.',
+    ops: [{ n: 'Puntos y descanso', fx: () => [['⚡', 5], ['😊', -2]], hacer(s) { s.esc.piel = clamp(s.esc.piel - 20, 0, 100); aplicarFx(s, [['⚡', 5], ['😊', -2]]); return 'Seis puntos. Te queda una cicatriz muy de película.'; } }] },
+  sparringCampeon: { dep: 'boxeo', fases: ['club'], ic: '👑', cond: s => s.p.nivel >= 50, t: 'El campeón del mundo te llama de sparring', d: 'Prepara una pelea y quiere a alguien con tu estilo.',
+    ops: [{ n: 'Ir', fx: () => [['🎯', '+2 técnica'], ['⚡', -15], ['🤕', 'golpes']], hacer(s) { s.esc.at.tecnica = Math.min(techoAttr(s, 'tecnica'), s.esc.at.tecnica + 2); s.esc.carga = clamp(s.esc.carga + 15, 0, 100); aplicarFx(s, [['⚡', -15], ['⭐', 2]]); return 'Aprendes en una semana lo que no habías aprendido en un año. Y te llevas unos cuantos golpes.'; } },
+          { n: 'Mejor no', fx: () => [], txt: 'Tu entrenador suspira.' }] },
+  churros: { dep: 'boxeo', fases: ['barrio', 'club'], ic: '🍩', peso: 0.6, t: 'Huele a churros en la calle del gimnasio', d: 'Llevas tres semanas a pechuga y brócoli.',
+    ops: [{ n: 'Uno no hace daño', fx: () => [['😊', 5], ['⚡', -2]], txt: 'Fueron seis. Y chocolate.' },
+          { n: 'Resistir', fx: () => [['😊', -2], ['⭐', 1]], txt: 'Tu entrenador te ve pasar de largo y casi llora de orgullo.' }] },
+  gimnasioCierra: { dep: 'boxeo', fases: ['barrio', 'club', 'retirado'], ic: '🏚️', peso: 0.4, t: 'El gimnasio del barrio puede cerrar', d: 'El dueño no puede pagar el alquiler.',
+    ops: [{ n: 'Poner 1.000 €', fx: () => [['€', -1000], ['⭐', 3], ['😊', 6]], txt: 'El gimnasio sigue abierto. Ahora hay una placa con tu nombre.' },
+          { n: 'Organizar una velada benéfica', fx: () => [['⚡', -10], ['⭐', 2], ['😊', 4]], txt: 'Se llena el pabellón. El gimnasio se salva.' },
+          { n: 'No puedo ayudar', fx: () => [['😊', -4]], txt: 'Cierra en verano. Te duele más que cualquier golpe.' }] },
+  pelicula: { dep: 'boxeo', fases: ['club', 'retirado'], ic: '🎬', peso: 0.4, cond: s => s.p.rep >= 60, t: 'Quieren hacer una película sobre tu vida', d: 'Con escalera de un museo y todo.',
+    ops: [{ n: 'Aceptar', fx: () => [['€', 8000], ['⭐', 5]], hacer(s) { aplicarFx(s, [['€', 8000], ['⭐', 5]]); s.esc.seg += 20000; return 'El actor que te interpreta pega fatal, pero la película triunfa.'; } },
+          { n: 'Prefiero estar tranquilo/a', fx: () => [['😊', 2]], txt: 'Sin cámaras.' }] },
+  hijoBoxeo: { dep: 'boxeo', fases: ['club', 'retirado'], ic: '🥊', cond: s => s.rel.some(r => r.tipo === 'hijo' && r.edad >= 8 && r.edad < 18 && !r.futbol), prep: s => ({ id: azar(s, s.rel.filter(r => r.tipo === 'hijo' && r.edad >= 8 && r.edad < 18 && !r.futbol)).id }),
+    t: (s, d) => `${hijoDe(s, d).nombre} quiere boxear como tú`, d: 'Te pide apuntarse al gimnasio y unos guantes.',
+    ops: [{ n: 'Apuntarle (solo técnica, sin golpes)', fx: () => [['€', '−20/sem'], ['🧒', 12], ['😊', 5]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v + 12, 0, 100); aplicarFx(s, [['😊', 5]]); s.mods.push({ tipo: 'ingreso', v: -20, sem: 36, motivo: `Gimnasio de ${h.nombre}` }); return `${h.nombre} salta a la comba como un profesional. Lloras un poco.`; } },
+          { n: 'Mejor otro deporte', fx: () => [['🧒', -6]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v - 6, 0, 100); return `${h.nombre} se lleva un disgusto.`; } }] },
+});
+LOGROS.push(
+  ['debutPro', '🥊', 'Debutar como profesional', s => !!(s.esc.box && s.esc.box.v + s.esc.box.d), 'boxeo'],
+  ['primerKO', '💥', 'Primera victoria por KO', s => !!(s.esc.box && s.esc.box.ko), 'boxeo'],
+  ['invicto', '🛡️', 'Invicto: 10 victorias sin perder como profesional', s => !!(s.esc.box && s.esc.box.v >= 10 && s.esc.box.d === 0), 'boxeo'],
+  ['copaMundoBox', '🌍', 'Competir en la Copa del Mundo', s => !!s.esc.mejor.mundo, 'boxeo'],
+  ['tituloEuropa', '🏆', 'Campeón/a de Europa profesional', s => (s.esc.mejor.europeo || 99) === 1, 'boxeo'],
+  ['vegas', '🎰', 'Pelear en Las Vegas', s => !!s.esc.mejor.master, 'boxeo'],
+  ['campeonMundo', '👑', 'Campeón/a del mundo', s => (s.esc.mejor.mundial || 99) === 1, 'boxeo', true],
+);
+CFG.look.items.extra.push({ id: 'guantes', n: 'Guantes de boxeo', p: 60, dep: 'boxeo', gratisCat: 'guantes' });
+CFG.look.items.calzado.push({ id: 'botasBoxeo', n: 'Botas de boxeo', p: 80, dep: 'boxeo' });
+CFG.mejoras.material.push(
+  { id: 'sacoCasa', dep: 'boxeo', ic: '🥊', n: 'Saco de boxeo en casa', p: 300, ef: { entreno: 0.04 }, d: 'Para cuando el gimnasio está cerrado (o el vecino no).' },
+  { id: 'protector', dep: 'boxeo', ic: '🦷', n: 'Casco y protector a medida', p: 250, ef: { lesion: 0.12 }, d: 'Menos cortes y menos visitas al dentista.' },
+  { id: 'recuperacion', dep: 'boxeo', ic: '🛁', n: 'Equipo de recuperación', p: 2500, ef: { energia: 2, lesion: 0.08 }, d: 'Botas de presoterapia y hielo: el cuerpo lo agradece.' },
 );
 
 // Jugadas decisivas del baloncesto (últimos segundos de un partido igualado)
