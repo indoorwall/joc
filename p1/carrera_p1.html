@@ -123,6 +123,8 @@
   .escena .yo.salta { animation: salta .6s ease-in-out 3; }
   @keyframes salta { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
   @media (prefers-reduced-motion: reduce) { .escena .yo.salta { animation: none; } }
+  button.pill { border: 0; cursor: pointer; font: inherit; }
+  .link { background: none; border: 0; padding: 0; color: var(--acc); font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
   .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 68px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -544,7 +546,39 @@ const CFG = {
   // Tu personaje: capas del avatar y tienda. p = precio en € (de juego); req = qué hace falta
   // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
   // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
-  humor: { probTitular: 0.2 },   // probabilidad de un titular gracioso cada semana
+  humor: { probTitular: 0.2 },
+  // Mejoras: en qué gastar el dinero. ef: entreno (+% de lo que mejoras), energia (+/semana),
+  // animo (se suma a tu felicidad), lesion (−% de probabilidad), viajes (−% del viaje a la roca).
+  mejorasMaxLesion: 0.6,
+  mejoras: {
+    personal: [   // sem = € por semana
+      { id: 'entrenador', ic: '🧑‍🏫', n: 'Entrenador personal', sem: 150, ef: { entreno: 0.15 }, d: 'Te corrige todo. Hasta cómo respiras.' },
+      { id: 'fisio', ic: '💆', n: 'Fisio personal', sem: 120, ef: { lesion: 0.3, energia: 3 }, d: 'Manos mágicas y muy poca piedad.' },
+      { id: 'nutri', ic: '🥗', n: 'Nutricionista', sem: 80, ef: { energia: 4 }, d: 'Adiós a los bocadillos de calamares (casi siempre).' },
+      { id: 'psico', ic: '🧠', n: 'Psicólogo deportivo', sem: 100, ef: { animo: 6 }, d: 'Para la presión, los nervios y los lunes.' },
+    ],
+    material: [   // p = € una vez
+      { id: 'cafetera', ic: '☕', n: 'Cafetera italiana', p: 60, ef: { energia: 1 }, d: 'Pequeña, ruidosa y milagrosa.' },
+      { id: 'consola', ic: '🎮', n: 'Consola de última generación', p: 500, ef: { animo: 3 }, d: 'Desconectar… si no pierdes al online.' },
+      { id: 'colchon', ic: '🛏️', n: 'Colchón de los buenos', p: 600, ef: { energia: 2 }, d: 'Dormir bien también es entrenar.' },
+      { id: 'sofa', ic: '🛋️', n: 'Sofá gigante', p: 900, ef: { animo: 2 }, d: 'Para las tardes libres y las siestas épicas.' },
+      { id: 'hielo', ic: '🧊', n: 'Bañera de hielo', p: 1500, ef: { lesion: 0.15, energia: 2 }, d: 'Duele muchísimo. Funciona.' },
+      { id: 'botasPro', dep: 'futbol', ic: '👟', n: 'Botas de gama alta', p: 250, ef: { entreno: 0.03 }, d: 'El balón te obedece un poquito más.' },
+      { id: 'porteria', dep: 'futbol', ic: '🥅', n: 'Portería en el jardín', p: 800, ef: { entreno: 0.05 }, d: 'Tiros a cualquier hora (los vecinos, encantados).' },
+      { id: 'gimnasio', dep: 'futbol', ic: '🏋️', n: 'Gimnasio en casa', p: 6000, ef: { entreno: 0.1, lesion: 0.1 }, d: 'Fuerza y prevención sin salir de casa.' },
+      { id: 'multipresa', dep: 'escalada', ic: '🪵', n: 'Multipresa en la puerta', p: 150, ef: { entreno: 0.04 }, d: 'Colgada en el marco de la puerta, como manda la tradición.' },
+      { id: 'crashpad', dep: 'escalada', ic: '🟥', n: 'Crash pads nuevos', p: 400, ef: { lesion: 0.15 }, d: 'Caídas más blandas en bloque.' },
+      { id: 'plafon', dep: 'escalada', ic: '🧱', n: 'Plafón en casa', p: 4000, ef: { entreno: 0.1 }, d: 'Tu propio desplome en el garaje.' },
+      { id: 'furgo', dep: 'escalada', ic: '🚐', n: 'Furgoneta camperizada', p: 18000, ef: { viajes: 0.5, animo: 3 }, d: 'Vida de furgo: viajes a la roca a mitad de precio.' },
+    ],
+    caprichos: [  // se gastan; espera = semanas hasta poder repetir
+      { id: 'masaje', ic: '💆‍♀️', n: 'Masaje', p: 60, fx: [['⚡', 12]], espera: 2, d: 'Tus piernas te lo agradecen.', txt: 'Salgo flotando.' },
+      { id: 'cenaLujo', ic: '🍣', n: 'Cena de lujo', p: 180, fx: [['😊', 8]], espera: 3, d: 'Platos enormes con comida diminuta.', txt: 'Sigo con hambre, pero muy feliz.' },
+      { id: 'spa', ic: '🧖', n: 'Día de spa', p: 250, fx: [['⚡', 20], ['😊', 6]], espera: 4, d: 'Albornoz, rodajas de pepino y cero preocupaciones.', txt: 'Paz interior desbloqueada.' },
+      { id: 'fiestaCasa', ic: '🥳', n: 'Fiesta en casa', p: 300, fx: [['😊', 10], ['🧑‍🤝‍🧑', 10], ['⚡', -10]], espera: 6, d: 'Pizza, música y un vecino quejándose.', txt: 'Mis amigos dicen que es la fiesta del año.' },
+      { id: 'crucero', ic: '🛳️', n: 'Crucero por el Mediterráneo', p: 6000, fx: [['⚡', 40], ['😊', 20]], espera: 18, d: 'Una semana de bufé libre y bailes de salón.', txt: 'Vuelvo moreno/a y con 3 kilos de más.' },
+    ],
+  },   // probabilidad de un titular gracioso cada semana
   look: {
     felEstreno: 2,
     capas: [['pelo', '💇', 'Pelo'], ['colorPelo', '🎨', 'Tinte'], ['piel', '✋', 'Piel'], ['cara', '🧔', 'Cara'], ['ropa', '👕', 'Ropa'], ['colorRopa', '🖌️', 'Color'],
@@ -1036,7 +1070,7 @@ function nuevaPartida(seed) {
     historial: [],
     intro: true, nombre: '', avatar: CFG.avatares[0], posicion: 'delantero', deporte: 'futbol', fuerte: 'bloque',
     patros: [], patroOf: { ofrecida: {}, prox: 0, ultEv: -99 }, patroTemp: { partidos: 0, pj: 0, tit: 0, goles: 0 }, patrosHist: [], tardePatro: null,
-    look: Object.assign({}, LOOK_INICIAL), armario: [],
+    look: Object.assign({}, LOOK_INICIAL), armario: [], personal: [], materialCasa: [], usoCapricho: {},
   };
   s.potencial = Math.round(CFG.club.potencial[0] + rnd(s) * (CFG.club.potencial[1] - CFG.club.potencial[0]));
   s.mundo = generarMundo(s);
@@ -1076,6 +1110,9 @@ function migrar(s) {
   if (!s.patroTemp) s.patroTemp = { partidos: 0, pj: 0, tit: 0, goles: 0 };
   if (!s.look) s.look = Object.assign({}, LOOK_INICIAL);
   if (!s.armario) s.armario = [];
+  if (!s.personal) s.personal = [];
+  if (!s.materialCasa) s.materialCasa = [];
+  if (!s.usoCapricho) s.usoCapricho = {};
   if (!s.patrosHist) s.patrosHist = s.patros.map(p => ren[p.id] || p.id);
   const cat = s.deporte === 'escalada' ? CFG.escalada.patrocinadores : CFG.patrocinio.futbol;
   for (const pt of s.patros) {
@@ -1104,7 +1141,7 @@ function repPlaza(s) {
 }
 function pruebaBase(s) { return s.p.nivel + s.p.energia / 5 + s.p.rep / 5 + (s.prep ? s.prep.ajuste : 0); }
 function factorTecho(s) { return r1(clamp((s.potencial - s.p.nivel) / CFG.club.margenTecho, 0, 1)); }
-function mejoraSemana(s, extra) { return (extra ? CFG.club.mejoraExtra : CFG.club.mejoraNormal) * calidadEntreno(s) * crecimientoEdad(s) * factorTecho(s); }
+function mejoraSemana(s, extra) { return (extra ? CFG.club.mejoraExtra : CFG.club.mejoraNormal) * calidadEntreno(s) * crecimientoEdad(s) * factorTecho(s) * (1 + efMejoras(s).entreno); }
 function crecimientoEdad(s) { for (const [hasta, f] of CFG.club.edadCrec) if (s.edad <= hasta) return f; return 0.4; }
 function calidadEntreno(s) { return CFG.club.calidadTier[ligaDe(s, s.contrato.clubId).tier - 1] || 0.9; }
 function visibilidad(s, id) { const i = ligaDe(s, id); return r1((CFG.club.visTier[i.tier - 1] || 1) * i.P.vis); }
@@ -1293,6 +1330,7 @@ function avanzarSemana() {
   }
 
   semanaPatros(s, R);
+  semanaMejoras(s, R);
   for (const n of s.negocios) semanaNegocio(s, R, n);
   semanaInmuebles(s, R);
   semanaCoches(s, R);
@@ -1436,7 +1474,7 @@ function semanaClub(s, R, mods) {
   if (P.rol === 'titular') s.p.energia -= K.energiaTitular;
   if (P.rol === 'suplente') s.p.energia -= K.energiaSuplente;
   if (juega && energiaAntes < K.lesionUmbral) {
-    const prob = (K.lesionUmbral - energiaAntes) * K.lesionPctPorPunto;
+    const prob = Math.round((K.lesionUmbral - energiaAntes) * K.lesionPctPorPunto * (1 - efMejoras(s).lesion));
     if (rnd(s) * 100 < prob) {
       s.lesion = K.lesionSemanas[0] + Math.floor(rnd(s) * (K.lesionSemanas[1] - K.lesionSemanas[0] + 1));
       P.lesion = s.lesion;
@@ -2498,6 +2536,8 @@ function objetivoFelicidad(s, P, extra) {
   if (mal) l.push([-5 * mal, 'mala relación con tus hijos']);
   if (s.p.dinero < 0) l.push([-15, 'números rojos']);
   if (s.lesion > 0) l.push([-8, 'lesión']);
+  const em = efMejoras(s).animo;
+  if (em) l.push([em, 'tus comodidades y tu equipo']);
   for (const x of extra || []) l.push(x);
   if (P) {
     if (P.rol === 'titular') l.push([3, 'jugar de titular']); if (P.rol === 'banquillo') l.push([-4, 'no jugar']);
@@ -2542,6 +2582,7 @@ const LOGROS = [
   ['alitas', '🐂', 'Te da alitas: firma con Red Toro', s => (s.patrosHist || []).includes('redtoro')],
   ['compras', '🛍️', 'Primera compra en la tienda', s => (s.compras || 0) > 0],
   ['oro', '✨', 'Zapatillas de oro', s => (s.armario || []).includes('calzado:doradas')],
+  ['equipoPropio', '🧑‍🏫', 'Tu propio equipo: entrenador, fisio, nutricionista y psicólogo', s => (s.personal || []).length >= 4],
   ['ascenso', '⬆️', 'Primer ascenso', s => s.ascensos > 0, 'futbol'],
   ['extranjero', '✈️', 'Jugar en el extranjero', s => s.fase === 'club' && miClub(s).pais !== 'es', 'futbol'],
   ['primera', '🏆', 'Jugar en primera división', s => s.fase === 'club' && ligaDe(s, s.contrato.clubId).tier === 1, 'futbol'],
@@ -2993,7 +3034,7 @@ function edadEsc(s) { for (const [hasta, f] of CFG.escalada.edadCrec) if (s.edad
 function calidadEsc(s) { const E = s.esc; return r1((E.equipo ? EQUIPOS[E.equipo].calidad : 0.9) * (E.nacional === E.año ? 1.1 : 1)); }
 function ganancia(s, k, base) {
   const E = s.esc, techo = clamp((techoAttr(s, k) - E.at[k]) / CFG.escalada.margenTecho, 0, 1);
-  return Math.round(base * CFG.escalada.ritmo * calidadEsc(s) * edadEsc(s) * techo * (s.p.energia < 30 ? 0.6 : 1) * 100) / 100;
+  return Math.round(base * CFG.escalada.ritmo * calidadEsc(s) * edadEsc(s) * techo * (s.p.energia < 30 ? 0.6 : 1) * (1 + efMejoras(s).entreno) * 100) / 100;
 }
 function mesEsc(s) { return Math.floor(s.semanasAño * 12 / CFG.hipoteca.semanasAño); }
 function condicionesZona(s, Z) {
@@ -3078,9 +3119,9 @@ const ACCIONES_ESC = {
     pro: () => 'La vía de velocidad es siempre la misma: se entrena de memoria', con: () => '−12 energía · −10 € de desplazamiento', why: () => 'Base: explosividad 1,3 y fuerza 0,2.',
     disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : null,
     aplicar(s, R) { entrenarEsc(s, R, 'Muro de velocidad', [['velocidad', 1.3], ['fuerza', 0.2]], { e: 12, piel: 4, carga: 8, coste: 10, motivo: 'Desplazamiento al muro de velocidad', lesion: 'velocidad' }); } },
-  roca: { fases: ['escalador'], ic: '⛰️', n: 'Proyectar en roca', fx: s => [['⛰️', s.esc.proy ? `${s.esc.proy.tipo === 'via' ? gV(s.esc.proy.grado) : gB(s.esc.proy.grado)} en ${ZONAS[s.esc.proy.zona].n}` : 'elige proyecto'], ['⚡', -18], ['€', -(s.esc.proy ? ZONAS[s.esc.proy.zona].coste : 0)]],
+  roca: { fases: ['escalador'], ic: '⛰️', n: 'Proyectar en roca', fx: s => [['⛰️', s.esc.proy ? `${s.esc.proy.tipo === 'via' ? gV(s.esc.proy.grado) : gB(s.esc.proy.grado)} en ${ZONAS[s.esc.proy.zona].n}` : 'elige proyecto'], ['⚡', -18], ['€', -(s.esc.proy ? costeViajeZona(s, ZONAS[s.esc.proy.zona]) : 0)]],
     pro: () => 'Avanzas en tu proyecto; encadenar da fama y patrocinadores', con: () => '−18 energía · −25 piel · viaje', why: () => 'Avance = 18 + (tu nivel − nivel del grado) × 5, por las condiciones del mes, la piel y la cabeza.',
-    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : !s.esc.proy ? 'Elige un proyecto en «Carrera».' : s.esc.proy.cerrado > s.semana ? `Sector cerrado por nidificación ${s.esc.proy.cerrado - s.semana} semanas más.` : dineroEsc(s) < ZONAS[s.esc.proy.zona].coste && s.edad >= CFG.escalada.edadPagas ? `Necesitas ${cr(ZONAS[s.esc.proy.zona].coste)} para el viaje.` : null,
+    disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : !s.esc.proy ? 'Elige un proyecto en «Carrera».' : s.esc.proy.cerrado > s.semana ? `Sector cerrado por nidificación ${s.esc.proy.cerrado - s.semana} semanas más.` : dineroEsc(s) < costeViajeZona(s, ZONAS[s.esc.proy.zona]) && s.edad >= CFG.escalada.edadPagas ? `Necesitas ${cr(costeViajeZona(s, ZONAS[s.esc.proy.zona]))} para el viaje.` : null,
     aplicar(s, R) { rocaEsc(s, R); } },
   descansoEsc: { fases: ['rocodromo', 'escalador'], ic: '😴', n: 'Descanso activo', fx: () => [['⚡', 25], ['🖐️', 'piel +30'], ['🤏', 'carga −30']],
     pro: () => '+25 energía · la piel y los tendones se recuperan', con: () => 'no mejoras', why: () => 'Antes de competir conviene llegar descansado: la energía suma o resta en la competición.',
@@ -3145,7 +3186,7 @@ function rocaEsc(s, R) {
   const L = nivelMod(s, P.tipo === 'via' ? 'dificultad' : 'bloque'), nec = P.tipo === 'via' ? nivelVia(P.grado) : nivelBloque(P.grado);
   const pielF = E.piel < 25 ? 0.6 : 1, cab = 1 + (E.at.cabeza - 50) / 200;
   const base = clamp(18 + (L - nec) * 5, 2, 55), avance = Math.max(1, Math.round(base * cond.f * pielF * cab));
-  entrenarEsc(s, R, `Roca en ${Z.n}`, [['tecnica', 0.3], ['cabeza', 0.5], [P.tipo === 'via' ? 'resistencia' : 'fuerza', 0.3]], { e: 18, piel: 25, carga: 12, coste: Z.coste, motivo: `Viaje a ${Z.n}`, lesion: P.tipo === 'via' ? 'roca' : 'bloque', pies: true });
+  entrenarEsc(s, R, `Roca en ${Z.n}`, [['tecnica', 0.3], ['cabeza', 0.5], [P.tipo === 'via' ? 'resistencia' : 'fuerza', 0.3]], { e: 18, piel: 25, carga: 12, coste: costeViajeZona(s, Z), motivo: `Viaje a ${Z.n}`, lesion: P.tipo === 'via' ? 'roca' : 'bloque', pies: true });
   if (Z.f !== '🇪🇸') E.viajes[P.zona] = (E.viajes[P.zona] || 0) + 1;
   P.prog += avance; P.sem += 1;
   const g = P.tipo === 'via' ? gV(P.grado) : gB(P.grado);
@@ -3300,7 +3341,7 @@ const LESIONES_ESC = {
 };
 function riesgoLesionEsc(s, energiaAntes, en) {
   const E = s.esc, K = CFG.escalada;
-  return Math.round((Math.max(0, E.carga - K.cargaRiesgo) * K.lesionPorCarga + (energiaAntes < 30 ? (30 - energiaAntes) * 0.5 : 0) + (s.edad > 30 ? (s.edad - 30) * 0.3 : 0)) * (en.tabla ? 1.5 : 1) * 10) / 10;
+  return Math.round((Math.max(0, E.carga - K.cargaRiesgo) * K.lesionPorCarga + (energiaAntes < 30 ? (30 - energiaAntes) * 0.5 : 0) + (s.edad > 30 ? (s.edad - 30) * 0.3 : 0)) * (en.tabla ? 1.5 : 1) * (1 - efMejoras(s).lesion) * 10) / 10;
 }
 function lesionarEsc(s, R, en) {
   const l = azar(s, LESIONES_ESC[en.tipo] || LESIONES_ESC.bloque), sem = l[1] + Math.floor(rnd(s) * (l[2] - l[1] + 1));
@@ -3865,6 +3906,7 @@ function hojaCarreraEsc() {
           ${r ? '' : `<button class="btn ${ins ? 'g' : 'w'}" data-act="escIns" data-id="${c.id}" data-v="${ins ? 'no' : 'si'}">${ins ? '✓ Voy' : 'Ir'}</button>`}</div>`; }).join('') || '<p class="small">No quedan competiciones este año.</p>'}</div>
       <p class="small">Premios: Copa y Campeonato de España 500, 300 y 200 €; Copa del Mundo 8.000, 7.000 y 5.000 €; másters por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, del Mundo, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} con plaza en el clasificatorio (top 10).</p></div>`;
     // Patrocinadores y becas
+    h += `<div class="sec">🛒 Tu equipo y material</div><div class="card lista">${resumenMejoras(s)}</div>`;
     h += `<div class="sec">💼 Patrocinadores y becas</div><div class="card lista">${resumenPatros(s)}
       <p class="small">🥇 Oro olímpico: ${cr(AMBITOS.jjoo.premio[0])} de premio y una beca de ${cr(CFG.escalada.becaOlimpica)} al año hasta los siguientes Juegos; si allí no repites el oro, la pierdes.${E.becaOlimpica ? ` Ahora la cobras hasta ${E.becaOlimpica.hasta}.` : ''}</p>
       <p class="small">🎓 Beca del Estado: ${E.becaHasta >= E.año ? `cobras ${cr(CFG.escalada.becaEstado.mes)} al mes hasta final de ${E.becaHasta}. Saldo para gastar en escalada: ${cr(E.becaSaldo)} (lo que sobre al acabar el año se pierde).` : `si llegas a una final de Copa del Mundo (las ${CFG.escalada.becaEstado.puesto} mejores), el Estado te da ${cr(CFG.escalada.becaEstado.mes)} al mes durante ese año y el siguiente, para gastar solo en escalada.`}</p>
@@ -3945,7 +3987,7 @@ function renderTop() {
   if (s.intro) { $('top').innerHTML = ''; return; }
   $('top').innerHTML = `<button class="hava" data-act="hoja" data-v="avatar" aria-label="Tu personaje (pantalla ${s.pantalla + 1})"><span class="hcara">${avatarSVG(s, null, 'busto')}</span><i>${Math.min(s.pantalla + 1, pantallas(s).length)}</i></button>
     <div class="hwho"><b>${esc(s.nombre)} · ${s.edad} años</b><span>${esc(ocupacion(s))}</span></div>
-    <div class="hres"><span class="pill oro num ${s.p.dinero < 0 ? 'down' : ''}" id="dinero">💰 ${cr(s.p.dinero)}</span>
+    <div class="hres"><button class="pill oro num ${s.p.dinero < 0 ? 'down' : ''}" id="dinero" data-act="hoja" data-v="mejoras" aria-label="Mejoras: en qué gastar tu dinero">💰 ${cr(s.p.dinero)}</button>
       <div class="hbtns"><button data-act="hoja" data-v="logros">🏅 ${logrosDe(s).filter(l => s.logros[l[0]]).length}/${logrosDe(s).length}</button><button data-act="hoja" data-v="ajustes" aria-label="Ajustes">⚙️</button></div></div>`;
 }
 
@@ -4108,7 +4150,7 @@ function pantallaSemana() {
 function renderDock() {
   const s = S;
   if (s.intro) { $('dock').innerHTML = ''; return; }
-  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' || h === 'patros' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas', 'avatar'].includes(h) ? 3 : -1;
+  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' || h === 'patros' || h === 'mejoras' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas', 'avatar'].includes(h) ? 3 : -1;
   const t = (k, v, ic, n) => `<button class="ab ${on === k ? 'on' : ''}" data-act="hoja" data-v="${v}"><span>${ic}</span>${n}</button>`;
   $('dock').innerHTML = `<nav class="tabs">${t(0, '', '🏠', 'Inicio')}${t(1, 'carrera', s.deporte === 'escalada' ? '🧗' : '⚽', 'Carrera')}${t(2, 'bienes', '🏢', 'Empresa')}${t(3, 'relaciones', '🧑‍🤝‍🧑', 'Vida')}</nav>`;
 }
@@ -4241,6 +4283,7 @@ function hojaCarrera() {
         <div class="vs"><div>${escudoClub(a, 30)}<b>${esc(a.nombre)}</b>${posicion(s, a.id)}º · ${nf(a.fuerza)}</div><b>VS</b><div>${escudoClub(b, 30)}<b>${esc(b.nombre)}</b>${posicion(s, b.id)}º · ${nf(b.fuerza)}</div></div></div>`; }
     h += `<div class="sec">Plan semanal (se repite hasta que lo cambies)</div><div class="grid">${accionesDisponibles(s).map(([id, a]) => htmlPlan(id, a)).join('')}</div>`;
     h += `<div class="sec">💼 Patrocinadores</div><div class="card lista">${resumenPatros(s)}</div>`;
+    h += `<div class="sec">🛒 Tu equipo y material</div><div class="card lista">${resumenMejoras(s)}</div>`;
     h += `<div class="sec">${esc(i.L.n)} ${T.año}/${String(T.año + 1).slice(2)} · jornada ${T.jornada}/${CFG.temporada.jornadas}</div><div class="card">${tablaHTML(T.liga, clasificacion(T).map(id => [id, T.tabla[id]]), mi.id)}</div>`;
     h += `<div class="sec">Trayectoria</div><div class="card"><table><tr class="hd"><td>Temp.</td><td>Club</td><td class="n">PJ</td><td class="n">Goles</td><td class="n">Nota</td></tr>
       ${s.trayectoria.slice().reverse().map(x => `<tr><td>${x.año}/${String(x.año + 1).slice(2)}</td><td>${esc(club(s, x.clubId).nombre)}<div class="small">${esc(nombreLiga(x.liga))}</div></td><td class="n">${x.pj}</td><td class="n">${x.goles}</td><td class="n">${x.pj ? nf(x.sumaNota / x.pj) : '—'}</td></tr>`).join('')}</table>
@@ -4382,7 +4425,7 @@ function hojaRelaciones() {
     <div class="chips" style="margin-top:8px">${interaccionesDe(r).map(([k, x]) => `<button class="btn ${k === 'romper' || k === 'despedir' ? 'r' : k === 'tenerHijo' ? 'g' : 'w'}" style="min-height:38px;padding:6px 10px;font-size:13px" data-act="rel" data-id="${r.id}" data-v="${k}" ${r.semana === s.semana || (k === 'tenerHijo' && bh) ? 'disabled' : ''}>${x.ic} ${x.n}</button>`).join('')}</div>
     ${r.tipo === 'pareja' && bh ? `<p class="lock">👶 ${esc(bh)}</p>` : ''}
     ${r.semana === s.semana ? '<p class="lock">Ya habéis estado juntos esta semana.</p>' : ''}</div>`).join('');
-  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="avatar">🧍 Personaje y tienda</button><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div><div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
+  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="avatar">🧍 Personaje y tienda</button><button data-act="hoja" data-v="mejoras">🛒 Mejoras</button><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div><div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
     ${rel(s, 'pareja') ? '' : '<p class="note">💘 Sin pareja. Quizá conozcas a alguien…</p>'}${rel(s, 'agente') ? '' : `<p class="note">🕴️ Con reputación ${CFG.agente.repMin} o más, algún representante se fijará en ti.</p>`}`);
 }
 
@@ -4717,6 +4760,109 @@ function hojaAvatar() {
     <p class="small">Lo que compras es tuyo para siempre y te lo puedes cambiar cuando quieras. Estrenar algo comprado sube el ánimo (+${CFG.look.felEstreno}). Algunas cosas se desbloquean con pantallas, logros o patrocinadores, y tus marcas te regalan sus productos (botas, pies de gato, relojes…).</p>`);
 }
 
+/* =====================================================================
+   17. MEJORAS: en qué gastar tu dinero (personal, material y caprichos)
+   ===================================================================== */
+const GRUPOS_MEJORA = [['personal', '👥 Tu equipo', 'Se paga cada semana. Si un día no puedes pagar, se va.'], ['material', '🏠 Material y casa', 'Se paga una vez y es tuyo para siempre.'], ['caprichos', '🎁 Caprichos', 'Se gastan al usarlos y hay que esperar para repetir.']];
+function itemMejora(g, id) { return (CFG.mejoras[g] || []).find(x => x.id === id); }
+function mejorasDe(s, g) { return CFG.mejoras[g].filter(x => !x.dep || x.dep === (s.deporte || 'futbol')); }
+// Suma de los efectos de tu personal y tu material
+function efMejoras(s) {
+  const e = { entreno: 0, energia: 0, animo: 0, lesion: 0, viajes: 0, coste: 0 };
+  const sumar = x => { for (const k in x.ef) e[k] += x.ef[k]; };
+  for (const id of s.personal || []) { const x = itemMejora('personal', id); if (x) { sumar(x); e.coste += x.sem; } }
+  for (const id of s.materialCasa || []) { const x = itemMejora('material', id); if (x && (!x.dep || x.dep === (s.deporte || 'futbol'))) sumar(x); }
+  e.lesion = Math.min(e.lesion, CFG.mejorasMaxLesion);
+  return e;
+}
+function chipsMejora(ef) {
+  const l = [];
+  if (ef.entreno) l.push(['📈', `Entrenamiento +${Math.round(ef.entreno * 100)} %`]);
+  if (ef.energia) l.push(['⚡', `+${ef.energia}/semana`]);
+  if (ef.animo) l.push(['😊', `+${ef.animo} al ánimo`]);
+  if (ef.lesion) l.push(['🩹', `Lesiones −${Math.round(ef.lesion * 100)} %`]);
+  if (ef.viajes) l.push(['🚐', `Viajes −${Math.round(ef.viajes * 100)} %`]);
+  return l;
+}
+function costeViajeZona(s, Z) { return Math.round(Z.coste * (1 - efMejoras(s).viajes)); }
+function dineroLibre(s) { return s.deporte === 'escalada' && s.esc ? dineroEsc(s) : s.p.dinero; }
+
+function contratar(id) {
+  const s = S, x = itemMejora('personal', id);
+  if (!x || s.personal.includes(id) || s.p.dinero < x.sem) return false;
+  s.personal.push(id);
+  anotar(s, x.ic, `Contrato a mi ${x.n.toLowerCase()}: ${cr(x.sem)} por semana.`);
+  guardar(); render(); return true;
+}
+function despedir(id) {
+  const s = S, x = itemMejora('personal', id);
+  if (!x || !s.personal.includes(id)) return false;
+  s.personal = s.personal.filter(y => y !== id);
+  anotar(s, '👋', `Dejo de contar con mi ${x.n.toLowerCase()}.`);
+  guardar(); render(); return true;
+}
+function comprarMaterial(id) {
+  const s = S, x = itemMejora('material', id);
+  if (!x || (x.dep && x.dep !== (s.deporte || 'futbol')) || s.materialCasa.includes(id) || s.p.dinero < x.p) return false;
+  s.p.dinero -= x.p; s.acum.gastosPers += x.p; s.materialCasa.push(id);
+  s.p.fel = clamp(s.p.fel + 2, 0, 100);
+  anotar(s, x.ic, `Me compro: ${x.n.toLowerCase()} (−${cr(x.p)}).`);
+  guardar(); render(); return true;
+}
+function bloqueoCapricho(s, x) {
+  const ult = (s.usoCapricho || {})[x.id];
+  if (ult != null && s.semana - ult < x.espera) return `Otra vez en ${x.espera - (s.semana - ult)} ${x.espera - (s.semana - ult) === 1 ? 'semana' : 'semanas'}`;
+  if (s.p.dinero < x.p) return `Necesitas ${cr(x.p)}`;
+  return null;
+}
+function usarCapricho(id) {
+  const s = S, x = itemMejora('caprichos', id);
+  if (!x || bloqueoCapricho(s, x)) return false;
+  s.p.dinero -= x.p; s.acum.gastosPers += x.p;
+  aplicarFx(s, x.fx);
+  s.usoCapricho = Object.assign({}, s.usoCapricho, { [id]: s.semana });
+  anotar(s, x.ic, `${x.n} (−${cr(x.p)}). ${x.txt}`);
+  guardar(); render(); return true;
+}
+// Cada semana: se paga al personal y se notan los efectos
+function semanaMejoras(s, R) {
+  for (const id of s.personal.slice()) {
+    const x = itemMejora('personal', id);
+    if (!x) continue;
+    if (dineroLibre(s) < x.sem) { s.personal = s.personal.filter(y => y !== id); R.opo.push(['👋', `Mi ${x.n.toLowerCase()} se va: no le puedo pagar.`]); continue; }
+    if (s.deporte === 'escalada' && s.esc) pagarEsc(s, R, x.sem, x.n); else { s.p.dinero -= x.sem; R.eco.push([x.n, -x.sem]); }
+  }
+  const e = efMejoras(s);
+  if (e.energia) s.p.energia = clamp(s.p.energia + e.energia, 0, CFG.energiaMax);
+  const l = chipsMejora(e).map(([i, t]) => `${i} ${t}`).join(' · ');
+  if (l) R.dep.push(['Tu equipo y tu material', l, 'El entrenamiento extra se suma a lo que mejoras; la energía, cada semana; el ánimo, a tu felicidad; y las lesiones son menos probables.']);
+}
+function resumenMejoras(s) {
+  const e = efMejoras(s), l = chipsMejora(e).map(([i, t]) => `${i} ${t}`).join(' · ');
+  return `<div class="row"><div class="ic">🛒</div><div class="tx"><b>${s.personal.length ? `${s.personal.length} en tu equipo · ${cr(e.coste)}/sem` : 'Sin equipo propio'}</b><span>${l || 'Entrenador, fisio, nutricionista, psicólogo, material para casa y caprichos.'}</span></div>
+    <button class="btn" data-act="hoja" data-v="mejoras">Ver</button></div>`;
+}
+function hojaMejoras() {
+  const s = S, e = efMejoras(s), resumen = chipsMejora(e);
+  let h = `<div class="card"><div class="row"><div class="ic">💰</div><div class="tx"><b>${cr(s.p.dinero)}</b><span>${e.coste ? `Tu equipo te cuesta ${cr(e.coste)} por semana` : 'Ahora mismo no pagas a nadie'}${s.deporte === 'escalada' && s.esc && s.esc.becaSaldo > 0 ? ` (la beca del Estado lo paga primero: te quedan ${cr(s.esc.becaSaldo)})` : ''}.</span></div></div>
+    ${resumen.length ? chips(resumen) : '<p class="small">Contrata, compra o date un capricho: cada cosa dice lo que te da.</p>'}</div>`;
+  for (const [g, tit, sub] of GRUPOS_MEJORA) {
+    h += `<div class="sec">${tit}</div><p class="small">${sub}</p><div class="card lista">`;
+    for (const x of mejorasDe(s, g)) {
+      let btn;
+      if (g === 'personal') btn = s.personal.includes(x.id) ? `<button class="btn r" data-act="despedir" data-id="${x.id}">Despedir</button>` : `<button class="btn g" data-act="contratar" data-id="${x.id}" ${s.p.dinero < x.sem ? 'disabled' : ''}>${cr(x.sem)}/sem</button>`;
+      else if (g === 'material') btn = s.materialCasa.includes(x.id) ? '<button class="btn w" disabled>✓ Tuyo</button>' : `<button class="btn g" data-act="material" data-id="${x.id}" ${s.p.dinero < x.p ? 'disabled' : ''}>${cr(x.p)}</button>`;
+      else { const b = bloqueoCapricho(s, x); btn = `<button class="btn" data-act="capricho" data-id="${x.id}" ${b ? 'disabled' : ''}>${cr(x.p)}</button>`; }
+      const fx = g === 'caprichos' ? x.fx : chipsMejora(Object.assign({ entreno: 0, energia: 0, animo: 0, lesion: 0, viajes: 0 }, x.ef));
+      const b = g === 'caprichos' ? bloqueoCapricho(s, x) : null;
+      h += `<div class="row" style="flex-wrap:wrap"><div class="ic">${x.ic}</div><div class="tx"><b>${esc(x.n)}</b><span>${esc(x.d)}</span>${chips(fx)}${b && !b.startsWith('Necesitas') ? `<span class="lock">⏳ ${esc(b)}</span>` : ''}</div>${btn}</div>`;
+    }
+    h += '</div>';
+  }
+  h += `<p class="small">Para el aspecto de tu personaje (ropa, peinados, gafas…) está la <button class="link" data-act="hoja" data-v="avatar">tienda de tu personaje</button>. Importes de juego.</p>`;
+  return hoja('🛒 Mejoras', h);
+}
+
 function render() {
   if (!S || silencio) return;
   syncEsc(S);
@@ -4728,7 +4874,7 @@ function render() {
   if (S.intro) { main.innerHTML = pantallaIntro(); $('hoja').innerHTML = ''; $('modal').innerHTML = ''; return; }
   main.innerHTML = pantallaSemana();
   const h = S.hoja;
-  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
+  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
@@ -4749,6 +4895,10 @@ document.addEventListener('click', e => {
     case 'lookIntro': S.nombre = $('nombre').value; if (itemLook(b.dataset.c, v) && !itemLook(b.dataset.c, v).p) S.look[b.dataset.c] = v; render(); break;
     case 'look': ponerLook(b.dataset.c, v); break;
     case 'capaLook': S.capaLook = v; render(); break;
+    case 'contratar': contratar(id); break;
+    case 'despedir': despedir(id); break;
+    case 'material': comprarMaterial(id); break;
+    case 'capricho': usarCapricho(id); break;
     case 'posicion': S.nombre = $('nombre').value; S.posicion = v; render(); break;
     case 'deporte': S.nombre = $('nombre').value; S.deporte = v; render(); break;
     case 'fuerte': S.nombre = $('nombre').value; S.fuerte = v; render(); break;
@@ -4804,7 +4954,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)),
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,

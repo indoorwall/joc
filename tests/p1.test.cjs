@@ -908,6 +908,42 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Humor: titulares de prensa graciosos y bocadillos de tu personaje que salta cuando está feliz', hu.titular && hu.bocadillo && hu.sinBocadillo, JSON.stringify(hu));
     check('Humor: logros secretos que no se ven hasta conseguirlos (chanclas con calcetines y traje)', hu.secretos && hu.chanclas && hu.visible, JSON.stringify(hu));
 
+    // Mejoras: en qué gastar el dinero (con toques)
+    await page.evaluate(() => { const G = __P1; G.CFG.club.probSuceso = 0; G.nueva(71, null, 'escalada', 'bloque'); G.S.p.dinero = 30000; G.S.hoja = null; G.render(); });
+    await tap(page, '#dinero');
+    const mj1 = await page.evaluate(() => ({ hoja: __P1.S.hoja, filas: document.querySelectorAll('#hoja .row').length }));
+    await tap(page, '[data-act=contratar][data-id=entrenador]');
+    await tap(page, '[data-act=material][data-id=plafon]');
+    const mj2 = await page.evaluate(() => ({ personal: __P1.S.personal.slice(), mat: __P1.S.materialCasa.slice(), d: __P1.S.p.dinero }));
+    const mj = await page.evaluate(() => {
+      const G = __P1, out = {};
+      out.ef = G.efMejoras();
+      // Entrenar con entrenador y plafón mejora más (misma partida, misma suerte)
+      const snap = JSON.stringify(G.S), suma = () => Object.values(G.S.esc.at).reduce((a, v) => a + v, 0);
+      const sin = JSON.parse(snap); sin.personal = []; sin.materialCasa = []; G.S = sin;
+      let a0 = suma(); G.elegir('amigos'); G.avanzarSemana(); const gSin = suma() - a0;
+      G.S = JSON.parse(snap); a0 = suma(); G.elegir('amigos'); G.avanzarSemana(); const gCon = suma() - a0;
+      out.entrena = gCon > gSin * 1.15; out.gSin = gSin; out.gCon = gCon;
+      out.pagaEntrenador = G.S.ultimo.eco.some(([t, v]) => t === 'Entrenador personal' && v === -150) || G.S.ultimo.dep.some(([t]) => t.startsWith('Entrenador personal'));
+      // Material: no se compra dos veces; cada deporte tiene el suyo
+      out.unaVez = !G.comprarMaterial('plafon') && !G.comprarMaterial('porteria');
+      // Caprichos: dan lo que dicen y hay que esperar para repetir
+      G.S.p.energia = 30; const d0 = G.S.p.dinero; out.spa = G.usarCapricho('spa') && G.S.p.energia === 50 && G.S.p.dinero === d0 - 250 && !G.usarCapricho('spa');
+      // Lesiones y viajes
+      G.comprarMaterial('crashpad'); G.contratar('fisio'); out.lesion = Math.abs(G.efMejoras().lesion - 0.45) < 1e-9;
+      const v0 = G.costeViajeZona('siurana'); G.S.p.dinero += 20000; G.comprarMaterial('furgo'); out.furgo = G.costeViajeZona('siurana') === Math.round(v0 / 2);
+      // Sin dinero, el personal se va
+      G.S.p.dinero = 0; G.S.esc.becaSaldo = 0; G.elegir('descansoEsc'); G.avanzarSemana();
+      out.seVa = G.S.personal.length === 0 && G.S.ultimo.opo.some(([, t]) => t.includes('no le puedo pagar'));
+      // Fútbol: lo suyo
+      G.nueva(72); G.S.p.dinero = 10000; out.futbol = G.comprarMaterial('porteria') && !G.comprarMaterial('plafon') && G.contratar('psico') && G.efMejoras().animo === 6;
+      return out;
+    });
+    check('Mejoras: se abren tocando tu dinero; contratar y comprar con toques', mj1.hoja === 'mejoras' && mj1.filas >= 10 && mj2.personal.includes('entrenador') && mj2.mat.includes('plafon') && mj2.d === 26000, JSON.stringify([mj1, mj2]));
+    check('Mejoras: el entrenador y el material hacen que entrenes mejor, y el entrenador se paga cada semana', mj.entrena && mj.pagaEntrenador, JSON.stringify(mj));
+    check('Mejoras: material para siempre y propio de cada deporte; caprichos con espera', mj.unaVez && mj.spa && mj.futbol, JSON.stringify(mj));
+    check('Mejoras: fisio y crash pads bajan las lesiones; la furgo abarata los viajes; sin dinero, tu equipo se va', mj.lesion && mj.furgo && mj.seVa, JSON.stringify(mj));
+
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
       const G = __P1; G.silencio = true; G.CFG.club.probSuceso = 0.45;

@@ -13,6 +13,18 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
+**Novedades de la versión 0.10: el dinero sirve para algo (🛒 Mejoras)**
+- Se abre tocando tu dinero (arriba), desde Carrera o desde Vida. Tres tipos de gasto, en los dos deportes:
+  - **Tu equipo** (se paga cada semana; si no puedes pagar, se va): entrenador personal (+15 % en lo que
+    mejoras entrenando), fisio (−30 % de lesiones y +3 de energía por semana), nutricionista (+4 de
+    energía por semana) y psicólogo deportivo (+6 a tu felicidad). En escalada la beca del Estado los paga primero.
+  - **Material y casa** (para siempre): cafetera, consola, colchón, sofá, bañera de hielo; en fútbol,
+    botas de gama alta, portería en el jardín y gimnasio en casa; en escalada, multipresa, crash pads,
+    plafón en casa y **furgoneta camperizada** (viajes a la roca a mitad de precio).
+  - **Caprichos** (se gastan y hay que esperar para repetir): masaje, cena de lujo, día de spa, fiesta
+    en casa y crucero por el Mediterráneo.
+- Cada efecto se ve en «¿Por qué ha pasado esto?» de cada semana. Logro nuevo: tener los cuatro del equipo.
+
 **Novedades de la versión 0.10: toques de humor**
 - **15 imprevistos graciosos** en los dos deportes: una paloma que te «elige», el jersey de la abuela,
   karaoke (50 % ovación, 50 % ridículo), el GPS que te mete por un camino de cabras, un gato okupa, ser
@@ -373,7 +385,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-129 de 129 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+133 de 133 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -412,6 +424,10 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    la escena, regalos de las marcas y cosas propias de cada deporte; sin desplazamiento horizontal.
 6d. **Humor**: los imprevistos graciosos existen y se resuelven (dentro de las pruebas de todos los
    imprevistos), titulares graciosos, bocadillo y salto de tu personaje, logros secretos ocultos hasta conseguirlos.
+6e. **Mejoras**: se abren tocando tu dinero; contratar y comprar con toques; con entrenador y plafón se
+   mejora más entrenando (misma partida y misma suerte); el entrenador se paga cada semana; material para
+   siempre y propio de cada deporte; caprichos con espera; fisio y crash pads bajan las lesiones; la furgo
+   abarata los viajes; sin dinero, tu equipo se va.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
