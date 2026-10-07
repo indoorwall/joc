@@ -75,7 +75,7 @@
   .mision p { margin: 5px 0 0; font-size: 13px; color: rgba(255,255,255,.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Escena */
-  .escena { position: relative; height: 118px; border-radius: 20px; overflow: hidden; border: 3px solid rgba(255,255,255,.22); box-shadow: 0 6px 0 rgba(0,0,0,.3); }
+  .escena { position: relative; height: 136px; border-radius: 20px; overflow: hidden; border: 3px solid rgba(255,255,255,.22); box-shadow: 0 6px 0 rgba(0,0,0,.3); }
   .escena svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .escena .marcas { position: absolute; left: 10px; right: 70px; top: 44px; display: flex; flex-wrap: nowrap; overflow: hidden; justify-content: flex-start; gap: 4px; background: none; border: 0; padding: 0; min-height: 0; box-shadow: none; }
   .escena .marcas span { background: rgba(255,255,255,.94); color: #15202b; font-weight: 900; font-size: 11px; border-radius: 6px; padding: 2px 6px; box-shadow: 0 2px 0 rgba(0,0,0,.35); white-space: nowrap; }
@@ -117,6 +117,12 @@
   .pelos { display: flex; flex-wrap: wrap; gap: 6px; }
   .pelos button { flex: 1 0 auto; min-height: 36px; padding: 4px 8px; border-radius: 10px; border: 2px solid var(--line); background: #fff; color: #15202b; font-weight: 800; font-size: 12px; cursor: pointer; }
   .pelos button.sel { border-color: var(--acc); background: var(--acc-soft); }
+  .escena .bocata { position: absolute; right: 64px; bottom: 36px; max-width: 58%; background: #fff; color: #15202b; font-weight: 800; font-size: 12px; line-height: 1.2; padding: 5px 9px; border-radius: 12px; box-shadow: 0 2px 0 rgba(0,0,0,.3); }
+  .escena .bocata > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .escena .bocata::after { content: ''; position: absolute; right: -10px; bottom: 7px; border: 6px solid transparent; border-left-color: #fff; }
+  .escena .yo.salta { animation: salta .6s ease-in-out 3; }
+  @keyframes salta { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+  @media (prefers-reduced-motion: reduce) { .escena .yo.salta { animation: none; } }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
   .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 68px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -538,6 +544,7 @@ const CFG = {
   // Tu personaje: capas del avatar y tienda. p = precio en € (de juego); req = qué hace falta
   // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
   // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
+  humor: { probTitular: 0.2 },   // probabilidad de un titular gracioso cada semana
   look: {
     felEstreno: 2,
     capas: [['pelo', '💇', 'Pelo'], ['colorPelo', '🎨', 'Tinte'], ['piel', '✋', 'Piel'], ['cara', '🧔', 'Cara'], ['ropa', '👕', 'Ropa'], ['colorRopa', '🖌️', 'Color'],
@@ -1303,6 +1310,7 @@ function avanzarSemana() {
     if (ev) encolar(s, { tipo: 'suceso', id: ev.id, data: ev.data });
   }
 
+  if (rnd(s) < CFG.humor.probTitular) { const [m, t] = titularGracioso(s); R.opo.push(['📰', `${m}: «${t}»`]); }
   for (const [, v] of R.eco) { if (v > 0) s.acum.ingresosPers += v; else s.acum.gastosPers -= v; }
   s.p.nivel = clamp(r1(s.p.nivel), 0, CFG.nivelMax);
   s.p.rep = clamp(Math.round(s.p.rep), 0, 100);
@@ -1403,7 +1411,7 @@ function semanaClub(s, R, mods) {
   T.jornada += 1;
 
   const pT = s.patroTemp; pT.partidos += 1;
-  if (juega) { pT.pj += 1; pT.goles += P.goles; if (titular) pT.tit += 1; }
+  if (juega) { pT.pj += 1; pT.goles += P.goles; if (titular) pT.tit += 1; if (P.goles >= 3) s.hattrick = (s.hattrick || 0) + 1; }
   if (juega) {
     s.stats.jugados += 1; s.stats.goles += P.goles; s.stats.asist += P.asist;
     s.stats.notas.push(P.nota); if (s.stats.notas.length > 20) s.stats.notas.shift();
@@ -1677,6 +1685,55 @@ const amigo = s => (rel(s, 'amigo') || { nombre: 'Tu amigo' }).nombre;
 const pareja = s => (rel(s, 'pareja') || { nombre: 'Tu pareja' }).nombre;
 
 const SUCESOS = {
+  // ---- Toques de humor (los dos deportes) ----
+  paloma: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🕊️', peso: 0.6, t: 'Una paloma te ha elegido', d: 'En plena calle, una paloma te deja un «regalito» en el hombro. Dicen que da buena suerte.',
+    ops: [{ n: 'Creer que da suerte', fx: () => [['😊', 4]], hacer(s) { aplicarFx(s, [['😊', 4]]); s.palomaSuerte = true; return 'Te convences de que es una señal. Esta semana te sientes imparable.'; } },
+          { n: 'Perseguir a la paloma', fx: () => [['⚡', -5], ['😊', 1]], txt: 'La paloma gana. Siempre gana.' }] },
+  jersey: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🧶', peso: 0.6, t: 'Tu abuela te ha hecho un jersey', d: 'Es de lana, lleva tu cara bordada y pica muchísimo. Quiere verte con él puesto.',
+    ops: [{ n: 'Ponértelo con orgullo', fx: () => [['😊', 3], ['👩', 4]], txt: 'Picor extremo, amor infinito. Tu madre hace fotos.' },
+          { n: 'Esconderlo en el armario', fx: () => [['😊', -1]], txt: 'Lo encontrará. Siempre lo encuentra.' }] },
+  karaoke: { fases: ['club', 'retirado'], ic: '🎤', peso: 0.6, cond: s => s.edad >= 18, t: 'Noche de karaoke', d: 'Tus amigos te retan a cantar una balada delante de todo el bar.',
+    ops: [{ n: 'Darlo todo', fx: () => [['🎲', '50 %: ovación (+2 ⭐)'], ['🎲', '50 %: ridículo (−1 ⭐)'], ['⚡', -6]],
+            hacer(s) { aplicarFx(s, [['⚡', -6]]); if (rnd(s) < 0.5) { aplicarFx(s, [['⭐', 2], ['😊', 5]]); return '¡Ovación! Alguien lo graba y lo sube. Te piden otra.'; } aplicarFx(s, [['⭐', -1], ['😊', -2]]); return 'Desafinas tanto que el camarero desenchufa la máquina.'; } },
+          { n: 'Solo aplaudir', fx: () => [['🧑‍🤝‍🧑', -2]], txt: 'Tus amigos te llaman «el muermo» durante una semana.' }] },
+  gps: { fases: ['club', 'retirado'], ic: '🗺️', peso: 0.5, t: 'El GPS te la juega', d: 'Vas a un sitio importante y el GPS te mete por un camino de cabras.',
+    ops: [{ n: 'Seguir al GPS', fx: () => [['⚡', -8], ['😊', -2]], txt: 'Llegas 40 minutos tarde y con una cabra como nueva amiga.' },
+          { n: 'Preguntar a un señor mayor', fx: () => [['⚡', -2], ['😊', 2]], txt: 'Te explica el camino, la historia del pueblo y la vida de su cuñado.' }] },
+  gato: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🐈', peso: 0.5, t: 'Un gato se cuela en tu casa', d: 'Entra por la ventana, se come tu cena y se tumba en tu cama como si fuera suya.',
+    ops: [{ n: 'Dejar que se quede (ahora manda él)', fx: () => [['😊', 4], ['€', -30]], txt: 'Comida de gato de lujo: 30 €. Él decide cuándo te deja dormir.' },
+          { n: 'Sacarlo por la ventana', fx: () => [['😊', -1]], txt: 'Vuelve al día siguiente. Y al otro. Y al otro.' }] },
+  meme: { fases: ['club'], ic: '😂', peso: 0.5, cond: s => s.p.rep >= 30, t: 'Te has convertido en meme', d: 'Una foto tuya poniendo una cara rarísima circula por todas partes.',
+    ops: [{ n: 'Reírte de ti', fx: () => [['⭐', 3], ['😊', 2]], txt: '«Por fin alguien con sentido del humor». Ganas fans.' },
+          { n: 'Pedir que la borren', fx: () => [['⭐', -1], ['😊', -2]], txt: 'Ahora la ha visto el doble de gente. Internet es así.' }] },
+  taladro: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🔨', peso: 0.5, t: 'Tu vecino taladra a las 8 de la mañana', d: 'Lleva tres semanas con «una pequeña reforma».',
+    ops: [{ n: 'Hablar con él', fx: () => [['😊', 1], ['⚡', -2]], txt: 'Te enseña la reforma durante una hora. Es un baño.' },
+          { n: 'Ponerte tapones', fx: () => [['⚡', -4]], txt: 'No funcionan. Nada funciona.' },
+          { n: 'Regalarle un taladro silencioso', fx: () => [['€', -120], ['😊', 3], ['⚡', 4]], txt: 'Silencio. Paz. La mejor inversión de tu vida.' }] },
+  concurso: { fases: ['club', 'retirado'], ic: '📺', peso: 0.4, cond: s => s.p.rep >= 40, t: 'Te invitan a un concurso de la tele', d: '«¿Quién sabe más?». Premio: 3.000 €. Riesgo: hacer el ridículo en directo.',
+    ops: [{ n: 'Ir', fx: () => [['🎲', '45 %: +3.000 €'], ['🎲', '55 %: ridículo (−1 ⭐)'], ['⚡', -5]],
+            hacer(s) { aplicarFx(s, [['⚡', -5]]); if (rnd(s) < 0.45) { aplicarFx(s, [['€', 3000], ['⭐', 3], ['😊', 5]]); return '¡Ganas! Te llevas 3.000 € y un jamón.'; } aplicarFx(s, [['⭐', -1], ['😊', -2]]); return 'Fallas la primera: «¿De qué color era el caballo blanco de Santiago?».'; } },
+          { n: 'Mejor no', fx: () => [], txt: 'Lo ves en casa. Sabías todas las respuestas, claro.' }] },
+  doble: { fases: ['club'], ic: '👯', peso: 0.4, cond: s => s.p.rep >= 50, t: 'Aparece tu doble', d: 'Un señor idéntico a ti firma autógrafos en tu nombre en un centro comercial.',
+    ops: [{ n: 'Contratarle para los actos aburridos', fx: () => [['€', -200], ['⚡', 10]], txt: 'Ahora va él a las inauguraciones. Nadie nota la diferencia.' },
+          { n: 'Denunciarlo', fx: () => [['⭐', 1]], txt: 'Sale en las noticias. Al final hasta te cae bien.' }] },
+  tejado: { dep: 'futbol', fases: ['barrio'], ic: '🏚️', peso: 0.8, t: 'El balón, al tejado de la señora Pepa', d: 'Es el tercero esta semana. La señora Pepa sale con la escoba.',
+    ops: [{ n: 'Pedir perdón y el balón', fx: () => [['😊', 1], ['⚡', -2]], txt: 'Te lo devuelve pinchado… pero con una magdalena.' },
+          { n: 'Subir a por él', fx: () => [['⚡', -6], ['⭐', 1]], txt: 'Lo recuperas. Todo el barrio aplaude. La señora Pepa, no.' }] },
+  mascotaClub: { dep: 'futbol', fases: ['club'], ic: '🦁', peso: 0.5, t: 'La mascota del club te reta a bailar', d: 'Un león de peluche gigante te reta a un duelo de baile en el descanso.',
+    ops: [{ n: 'Aceptar el reto', fx: () => [['⭐', 2], ['😊', 3], ['⚡', -3]], txt: 'Pierdes contra un león de peluche, pero el estadio enloquece.' },
+          { n: 'Ignorarla', fx: () => [['😊', -1]], txt: 'Te persigue hasta el túnel de vestuarios.' }] },
+  arbitro: { dep: 'futbol', fases: ['club'], ic: '🟨', peso: 0.4, t: 'El árbitro es tu antiguo profe de mates', d: 'Te reconoce en el túnel: «¿Ya te sabes las tablas?».',
+    ops: [{ n: 'Saludarle con cariño', fx: () => [['😊', 2]], txt: 'Te pita una falta a favor. Seguro que es casualidad.' },
+          { n: 'Recitar la tabla del 7', fx: () => [['⭐', 1], ['😊', 1]], txt: 'Te equivocas en 7 × 8. Amarilla «por chulería».' }] },
+  cabra: { dep: 'escalada', fases: ['club'], ic: '🐐', peso: 0.5, t: 'Una cabra montesa te juzga', d: 'Estás en el paso clave de tu proyecto y una cabra te mira fijamente desde una repisa.',
+    ops: [{ n: 'Ignorarla y apretar', fx: () => [['😊', 2]], txt: 'Haces el paso. La cabra se va, decepcionada.' },
+          { n: 'Bajar a hacerle una foto', fx: () => [['⭐', 1], ['⚡', -3]], hacer(s) { aplicarFx(s, [['⭐', 1], ['⚡', -3]]); if (s.esc) s.esc.seg += 500; return `La foto se hace viral: «La cabra que vio a ${s.nombre} caerse».`; } }] },
+  magnesioCae: { dep: 'escalada', fases: ['barrio', 'club'], ic: '🌫️', peso: 0.5, t: 'Explosión de magnesio', d: 'Se te cae la bolsa de magnesio desde lo alto de la vía. Debajo había un grupo de turistas.',
+    ops: [{ n: 'Pedir perdón desde arriba', fx: () => [['😊', -1]], txt: 'Parecen fantasmas. Uno te pide una foto.' },
+          { n: 'Hacer como que no has sido tú', fx: () => [['😊', 1]], txt: 'Todo el mundo sabe que has sido tú.' }] },
+  cancion: { dep: 'escalada', fases: ['barrio', 'club'], ic: '🎵', peso: 0.5, t: 'Te inventas una canción para los pegues', d: '«Pie, mano, pie… ¡y al suelo!». Todo el rocódromo la canta ya.',
+    ops: [{ n: 'Grabarla y subirla', fx: () => [['⭐', 2], ['⚡', -3]], hacer(s) { aplicarFx(s, [['⭐', 2], ['⚡', -3]]); if (s.esc) s.esc.seg += 300; return 'Tres mil reproducciones. Dos son de tu madre.'; } },
+          { n: 'Que quede como leyenda', fx: () => [['😊', 2]], txt: 'Dentro de diez años la seguirán cantando sin saber que es tuya.' }] },
   // ---- Vida (cualquier etapa) ----
   botas: { fases: ['barrio', 'prep', 'club'], ic: '👟', t: 'Tus botas están destrozadas', d: 'Se han abierto por la puntera justo antes de entrenar.',
     ops: [{ n: 'Comprar unas buenas', fx: () => [['€', -80], ['💪', 1], ['😊', 2]], txt: 'Botas nuevas. Se nota en el toque.' },
@@ -2514,6 +2571,15 @@ const LOGROS = [
   ['retirada', '👋', 'Retirarse del fútbol', s => s.fase === 'retirado', 'futbol'],
   ['retiradaEsc', '👋', 'Retirarse de la competición', s => s.fase === 'retirado', 'escalada'],
   ['leyenda', '🎮', 'Superar las 10 pantallas', s => s.pantalla >= pantallas(s).length],
+  // Secretos: no se ven hasta que los consigues
+  ['siesta', '😴', 'Rey o reina de la siesta: 4 semanas seguidas con la tarde y la noche libres', s => (s.rachaLibre || 0) >= 4, null, true],
+  ['excusas', '🙅', 'Maestro de las excusas: 5 excusas a tus marcas', s => (s.excusas || 0) >= 5, null, true],
+  ['viral', '🤳', 'Improvisas con una marca y se hace viral', s => (s.virales || 0) > 0, null, true],
+  ['chanclas', '🧦', 'Chanclas con calcetines… y traje', s => !!s.look && s.look.calzado === 'chanclas' && s.look.ropa === 'traje', null, true],
+  ['arcoiris', '🌈', 'Pelo de colores', s => !!s.look && ['azul', 'rosa', 'verde'].includes(s.look.colorPelo), null, true],
+  ['bancarrota', '🫠', 'Tocar fondo: −1.000 € en la cuenta', s => s.p.dinero <= -1000, null, true],
+  ['palomita', '🕊️', 'Elegido por una paloma', s => !!s.palomaSuerte, null, true],
+  ['hattrick', '🎩', 'Hat-trick: 3 goles en un partido', s => (s.hattrick || 0) > 0, 'futbol', true],
 ];
 function logrosDe(s) { return LOGROS.filter(l => !l[4] || l[4] === (s.deporte || 'futbol')); }
 function comprobarLogros(s, R) {
@@ -3554,7 +3620,7 @@ function resolverPatro(s, ev, op) {
     const pt = s.patros.find(p => p.id === ev.id), X = EVENTOS_PATRO[ev.ev];
     if (!X || !['si', 'no', 'loco'].includes(op) || (op === 'loco' && !X.loco)) return null;
     if (!pt) return ['📣', 'El compromiso se cancela: ya no tienes contrato con esa marca.'];
-    if (op === 'no') { pt.rel = clamp(pt.rel - relNoPatro(pt), 0, 100); pt.faltas += 1; return ['🙅', `Me excuso con ${pt.marca}. No les gusta nada: relación ${pt.rel}/100.`]; }
+    if (op === 'no') { pt.rel = clamp(pt.rel - relNoPatro(pt), 0, 100); pt.faltas += 1; s.excusas = (s.excusas || 0) + 1; return ['🙅', `Me excuso con ${pt.marca}. No les gusta nada: relación ${pt.rel}/100.`]; }
     s.tardePatro = pt.marca; pt.eventos += 1;
     if (op === 'si') {
       aplicarFx(s, X.si(s, pt)); pt.rel = clamp(pt.rel + X.rel, 0, 100);
@@ -3564,7 +3630,7 @@ function resolverPatro(s, ev, op) {
     }
     aplicarFx(s, [['⚡', -4]]);
     if (rnd(s) < 0.5) {
-      pt.rel = clamp(pt.rel + 18, 0, 100); s.p.rep = clamp(s.p.rep + 2, 0, 100);
+      pt.rel = clamp(pt.rel + 18, 0, 100); s.p.rep = clamp(s.p.rep + 2, 0, 100); s.virales = (s.virales || 0) + 1;
       if (s.deporte === 'escalada') s.esc.seg += 2000;
       return ['🤳', `${X.loco}… ¡y se hace viral! ${pt.marca} está encantada: relación ${pt.rel}/100 y +2 de fama.`];
     }
@@ -3960,6 +4026,45 @@ function entradaInicial(s) {
     <div class="el"><span class="i">💭</span><span>Mi sueño: ser futbolista profesional y montar mis propios negocios.</span></div>`}
     <div class="el"><span class="i">👉</span><span>Elige qué haces por la mañana, la tarde y la noche y pulsa <b>Jugar semana</b>. Arriba ves la pantalla que tienes que superar.</span></div></div>`;
 }
+
+/* ---- Toques de humor: titulares de prensa y lo que dice tu personaje ---- */
+const MEDIOS_HUMOR = ['Diario del Barrio', 'Radio Patio', 'El Chismoso Deportivo', 'Telebarrio', 'La Voz del Bar'];
+function titularGracioso(s) {
+  const n = s.nombre || 'Tu personaje', c = s.ciudad, l = [
+    `${n} es visto comiendo una ensalada. Los expertos no se lo creen.`,
+    `Avistamiento: ${n} haciendo cola en el súper como una persona normal.`,
+    `El peluquero de ${n} pide un aumento: «El mérito es mío».`,
+    `Un vecino de ${c} asegura que ${n} le debe 2 € desde 2019. ${n} lo niega.`,
+    `${n} intenta explicar su deporte a su abuela. La abuela cree que trabaja en un banco.`,
+  ];
+  if (s.deporte === 'escalada') l.push(
+    `${n} encuentra por fin la presa perfecta: era un chicle.`,
+    `Un estudio revela que ${n} ha dicho «solo un pegue más» 4.000 veces este año.`,
+    `Los vecinos del rocódromo de ${c}: «${n} grita "¡venga!" demasiado fuerte».`,
+    `${n} pierde un pie de gato en la vía. La comunidad escaladora organiza una búsqueda.`);
+  else l.push(
+    `Polémica en ${c}: ¿corre ${n} más que el autobús de la línea 7?`,
+    `${n} se ata los cordones en directo: 3.000 visualizaciones.`,
+    `Un niño lleva la camiseta de ${n}. Su madre: «Era la que estaba de oferta».`,
+    `${n} pide un bocadillo «como el de los profesionales». Le ponen uno normal.`);
+  const L = s.look || {};
+  if (L.calzado === 'chanclas') l.push(`Escándalo de moda: ${n} sale a la calle con chanclas y calcetines.`);
+  if (['azul', 'rosa', 'verde'].includes(L.colorPelo)) l.push(`${n} estrena pelo de colores. Las peluquerías de ${c}, colapsadas.`);
+  if (L.cabeza === 'corona') l.push(`${n} aparece con corona en el súper. «Es por si acaso».`);
+  if ((s.patros || []).length) { const m = s.patros[0].marca; l.push(`${m}: «Estamos muy orgullosos de ${n}». Fuentes internas dicen que lo leyeron de una tarjeta.`); }
+  return [azar(s, MEDIOS_HUMOR), azar(s, l)];
+}
+function bocadillo(s) {
+  const pick = l => l[s.semana % l.length], u = s.ultimo || {}, P = u.partido;
+  if (s.lesion > 0) return ['Ay, ay, ay…', 'Esta tirita es de la suerte', 'Volveré más fuerte (cuando pueda andar)'].map(t => [t, 0])[s.semana % 3];
+  if (P && P.goles && (P.rol === 'titular' || P.rol === 'suplente')) return [pick(['¡GOOOOL! ¿Lo habéis visto?', 'Ese gol lo explico en mi libro', '¿Alguien lo ha grabado?']), 1];
+  if (u.comp && u.comp.pos <= 3) return [pick(['¡Al podio, mamá!', 'Ni yo me lo creo', 'Hoy invito yo (a agua)']), 1];
+  if (s.p.energia < 25) return [pick(['Necesito una siesta de tres días', 'Zzz…', 'Mis piernas han dimitido']), 0];
+  if (s.p.dinero < 0) return [pick(['¿Alguien tiene 5 €?', 'Mi banco ya no me habla', '¿Se puede pagar con sonrisas?']), 0];
+  if (s.p.fel < 35) return [pick(['Hoy no es mi día', 'Necesito un abrazo… o una pizza', 'Mañana será mejor']), 0];
+  if (s.p.fel > 80) return [pick(['¡Hoy me siento imparable!', 'Nadie me puede parar', '¿Habéis visto qué estilazo?']), 1];
+  return null;
+}
 // La escena del lugar donde estás ahora
 function escenaActual(s) {
   if (s.deporte === 'escalada' && s.esc) {
@@ -3988,7 +4093,8 @@ function pantallaSemana() {
   const s = S, a = ACCIONES[s.plan], fin = finDeSemana(s), pr = proximos(s).filter(([cu]) => !(fin && cu === 'Esta semana')).slice(0, 2), [svg, lugar] = escenaActual(s);
   const [emo, ...txt] = a ? a.t.split(' ') : ['❓', 'Elige', 'tu', 'plan'];
   let h = htmlMision();
-  h += `<section class="escena">${svg}<button class="yo" data-act="hoja" data-v="avatar" aria-label="Tu personaje">${avatarSVG(s, null, 'cuerpo')}</button>${marcasEscena(s)}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
+  const bo = bocadillo(s);
+  h += `<section class="escena">${svg}<button class="yo ${bo && bo[1] ? 'salta' : ''}" data-act="hoja" data-v="avatar" aria-label="Tu personaje">${avatarSVG(s, null, 'cuerpo')}</button>${bo ? `<span class="bocata"><span>${esc(bo[0])}</span></span>` : ''}${marcasEscena(s)}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
   h += `<div class="gauges ${s.deporte === 'escalada' && s.fase !== 'retirado' ? 'g6' : ''}">${gauges(s)}</div>`;
   h += `<section class="panel" id="agenda"><div class="ph"><span>Tu semana</span><span>se repite sola</span></div>
     <div class="tiles"><button class="slot principal" data-act="hoja" data-v="plan"><span class="tt">☀️ Mañana</span><span class="te">${emo}</span><b>${esc(txt.join(' '))}</b></button>${Object.keys(SLOTS).map(k => slotHtml(s, k)).join('')}</div>
@@ -4043,6 +4149,8 @@ function cerrarSemana() {
       if (s.pendiente) break; // por ejemplo, conoces a alguien: decide antes de seguir
     }
     if (s.pendiente) { guardar(); render(); return false; }
+    const sl = s.agendaSlots || {};
+    s.rachaLibre = !sl.tarde && !sl.noche ? (s.rachaLibre || 0) + 1 : 0;
   }
   return avanzarSemana();
 }
@@ -4298,7 +4406,10 @@ function hojaPantallas() {
 }
 function hojaLogros() {
   const s = S;
-  return hoja('🏅 Logros', `<div class="logros">${logrosDe(s).map(([id, ic, t]) => `<div class="logro ${s.logros[id] ? '' : 'no'}"><span>${ic}</span>${esc(t)}${s.logros[id] ? `<div class="small">Semana ${s.logros[id]}</div>` : ''}</div>`).join('')}</div>`);
+  const secretos = logrosDe(s).filter(l => l[5] && !s.logros[l[0]]).length;
+  return hoja('🏅 Logros', `<div class="logros">${logrosDe(s).map(([id, ic, t, , , oculto]) => oculto && !s.logros[id] ? `<div class="logro no secreto"><span>❓</span>Logro secreto</div>`
+    : `<div class="logro ${s.logros[id] ? '' : 'no'}"><span>${ic}</span>${esc(t)}${s.logros[id] ? `<div class="small">Semana ${s.logros[id]}</div>` : ''}</div>`).join('')}</div>
+    ${secretos ? `<p class="small">Te quedan ${secretos} logros secretos. Pista: algunos salen haciendo el tonto.</p>` : ''}`);
 }
 // Modo pruebas: atajos para probar el juego sin jugar semanas y semanas. Lo que hagas aquí queda anotado en el diario.
 function hojaPruebas() {

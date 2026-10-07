@@ -13,6 +13,18 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
+**Novedades de la versión 0.10: toques de humor**
+- **15 imprevistos graciosos** en los dos deportes: una paloma que te «elige», el jersey de la abuela,
+  karaoke (50 % ovación, 50 % ridículo), el GPS que te mete por un camino de cabras, un gato okupa, ser
+  meme, el vecino del taladro, un concurso de la tele, tu doble; en fútbol, el balón en el tejado de la
+  señora Pepa, el duelo de baile con la mascota del club y el árbitro que fue tu profe de mates; en
+  escalada, la cabra montesa que te juzga, la explosión de magnesio y la canción de los pegues.
+- **Titulares de prensa graciosos** de vez en cuando (20 % de las semanas), algunos según tu aspecto
+  o tus marcas: «Escándalo de moda: sale a la calle con chanclas y calcetines».
+- Tu personaje **habla** en la escena (un bocadillo según cómo te va: gol, podio, sin energía, sin
+  dinero, triste, feliz) y **salta** cuando celebra.
+- **8 logros secretos** que no se ven hasta conseguirlos (pista en la hoja de logros).
+
 **Novedades de la versión 0.10: tu personaje con tienda**
 - Avatar **dibujado por capas** (ya no es un emoji): pelo (11 peinados), tinte, piel (6 tonos), cara
   (pecas, bigote, barba…), ropa (camiseta, la de tu equipo con sus colores, sudadera, hawaiana, traje
@@ -361,7 +373,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-126 de 126 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+129 de 129 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -398,6 +410,8 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 6c. **Tu personaje**: se abre tocando tu cara, tienda con toques (comprar cobra una vez y es para
    siempre), bloqueos por logros, pantallas y dinero, la cara cambia con el ánimo y las lesiones, sale en
    la escena, regalos de las marcas y cosas propias de cada deporte; sin desplazamiento horizontal.
+6d. **Humor**: los imprevistos graciosos existen y se resuelven (dentro de las pruebas de todos los
+   imprevistos), titulares graciosos, bocadillo y salto de tu personaje, logros secretos ocultos hasta conseguirlos.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

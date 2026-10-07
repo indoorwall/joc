@@ -885,6 +885,29 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Tu cara cambia con el ánimo y con las lesiones; tu personaje sale en la escena', lk4.cambiaCara && lk4.tirita && lk4.escena);
     check('Las marcas regalan sus productos (pies de gato gratis con patrocinador) y cada deporte tiene lo suyo', lk4.piesAntes === 90 && lk4.piesDespues === 0 && lk4.piesGratis && lk4.sinBotasEsc && lk4.botasPrecio === 80, JSON.stringify(lk4));
 
+    // Toques de humor
+    const hu = await page.evaluate(() => {
+      const G = __P1, out = {};
+      const ids = ['paloma', 'jersey', 'karaoke', 'gps', 'gato', 'meme', 'taladro', 'concurso', 'doble', 'tejado', 'mascotaClub', 'arbitro', 'cabra', 'magnesioCae', 'cancion'];
+      out.sucesos = ids.every(id => G.SUCESOS[id]);
+      G.CFG.club.probSuceso = 0; G.nueva(61); G.CFG.humor.probTitular = 1;
+      G.elegir('plaza'); G.avanzarSemana();
+      out.titular = G.S.log[G.S.log.length - 1].lineas.some(([i, t]) => i === '📰' && t.includes('«'));
+      G.CFG.humor.probTitular = 0.2;
+      G.S.p.fel = 90; G.S.ultimo = null; G.S.pendiente = null; G.render();
+      out.bocadillo = !!document.querySelector('.escena .bocata') && !!document.querySelector('.escena .yo.salta');
+      G.S.p.fel = 55; G.S.p.energia = 60; G.render(); out.sinBocadillo = !document.querySelector('.escena .bocata');
+      G.S.hoja = 'logros'; G.render(); out.secretos = document.getElementById('hoja').textContent.includes('Logro secreto');
+      G.S.look.calzado = 'chanclas'; G.S.look.ropa = 'traje'; G.S.hoja = null; G.elegir('plaza'); G.avanzarSemana();
+      out.chanclas = !!G.S.logros.chanclas;
+      G.S.hoja = 'logros'; G.render(); out.visible = document.getElementById('hoja').textContent.includes('Chanclas con calcetines');
+      G.S.hoja = null; G.render();
+      return out;
+    });
+    check('Humor: imprevistos graciosos en los dos deportes (paloma, karaoke, la mascota del club, la cabra montesa…)', hu.sucesos);
+    check('Humor: titulares de prensa graciosos y bocadillos de tu personaje que salta cuando está feliz', hu.titular && hu.bocadillo && hu.sinBocadillo, JSON.stringify(hu));
+    check('Humor: logros secretos que no se ven hasta conseguirlos (chanclas con calcetines y traje)', hu.secretos && hu.chanclas && hu.visible, JSON.stringify(hu));
+
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
       const G = __P1; G.silencio = true; G.CFG.club.probSuceso = 0.45;
