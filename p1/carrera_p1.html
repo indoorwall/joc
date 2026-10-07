@@ -77,7 +77,7 @@
   /* Escena */
   .escena { position: relative; height: 136px; border-radius: 20px; overflow: hidden; border: 3px solid rgba(255,255,255,.22); box-shadow: 0 6px 0 rgba(0,0,0,.3); }
   .escena svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .escena .marcas { position: absolute; left: 10px; right: 70px; top: 44px; display: flex; flex-wrap: nowrap; overflow: hidden; justify-content: flex-start; gap: 4px; background: none; border: 0; padding: 0; min-height: 0; box-shadow: none; }
+  .escena .marcas { position: absolute; left: 10px; right: 70px; top: 31px; display: flex; flex-wrap: nowrap; overflow: hidden; justify-content: flex-start; gap: 4px; background: none; border: 0; padding: 13px 0; min-height: 0; box-shadow: none; }
   .escena .marcas span { background: rgba(255,255,255,.94); color: #15202b; font-weight: 900; font-size: 11px; border-radius: 6px; padding: 2px 6px; box-shadow: 0 2px 0 rgba(0,0,0,.35); white-space: nowrap; }
   .relp { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; font-size: 13px; font-weight: 800; }
   .relp .pb { flex: 1; height: 10px; border-radius: 99px; background: rgba(0,0,0,.12); overflow: hidden; }
@@ -95,10 +95,11 @@
   .lookInfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-weight: 700; }
   .lookInfo b { font-size: 18px; font-weight: 900; }
   .lookInfo .small { color: #5b6475; }
-  .lookTabs { display: flex; gap: 6px; overflow-x: auto; padding: 12px 2px 8px; scrollbar-width: none; }
+  .lookTabs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; padding: 12px 0 8px; }
   .lookTabs::-webkit-scrollbar { display: none; }
-  .lookTabs button { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px; min-height: 54px; border-radius: 14px; border: 2px solid var(--line); background: #fff; color: #15202b; font-weight: 800; font-size: 11px; box-shadow: 0 3px 0 var(--line); cursor: pointer; }
+  .lookTabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; min-height: 54px; padding: 4px 0; border-radius: 14px; border: 2px solid var(--line); background: #fff; color: #15202b; font-weight: 800; font-size: 11px; box-shadow: 0 3px 0 var(--line); cursor: pointer; }
   .lookTabs button span { font-size: 20px; }
+  .lookTabs button { font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .lookTabs button.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
   .lookGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .lk { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px 8px; border-radius: 14px; border: 2px solid var(--line); background: #fff; color: #15202b; box-shadow: 0 3px 0 var(--line); min-width: 0; cursor: pointer; }
@@ -128,13 +129,20 @@
   .carta { background: #fffdf3; color: #2a2d34; border: 2px dashed #d9cfa8; text-align: left; font-size: 14px; }
   .carta p { margin: 6px 0; }
   textarea.codigo { width: 100%; min-height: 70px; margin: 8px 0; border-radius: 12px; border: 2px solid var(--line); padding: 8px; font-size: 11px; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
+  .entry .mas { min-height: 44px; }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
   .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 68px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Indicadores */
-  .gauges { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin: 10px 0; }
-  .gauges.g6 { grid-template-columns: repeat(3, 1fr); }
+  .gauges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 10px 0; }
+  .gauges.g6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .gauges > * { min-width: 0; }
+  @media (max-width: 360px) {
+    .gauges.g6 .gauge { padding: 3px 5px; gap: 2px 4px; }
+    .gauges.g6 .gauge .ic { font-size: 14px; }
+    .gauges.g6 .gauge .n { font-size: 8.5px; letter-spacing: 0; }
+  }
   .gauge { background: rgba(0,0,0,.3); border: 2px solid rgba(255,255,255,.12); border-radius: 14px; padding: 3px 8px; color: #fff; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 6px; }
   .gauge .ic { font-size: 18px; grid-row: span 2; }
   .gauge .n { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.7); display: flex; justify-content: space-between; }
@@ -334,7 +342,7 @@ const CFG = {
   inicio: { edad: 17, nivel: 30, energia: 70, rep: 5, dinero: 60 },
   energiaMax: 100, nivelMax: 99,
 
-  barrio: { recuperacion: 10, repOjeador: 25, plazaRepBase: 3, plazaBonusEnergia: 2, trabajoPago: 60, entrenadorCoste: 90 },
+  barrio: { recuperacion: 10, repOjeador: 40, plazaRepBase: 3, plazaBonusEnergia: 2, trabajoPago: 60, entrenadorCoste: 90 },
   prueba: { semanasCorto: 3, semanasLargo: 5, penalLargo: 4, suerte: 5 },
 
   temporada: { equipos: 10, jornadas: 18, mercadoInvierno: 9, ascienden: 2, descienden: 2, añoInicio: 2026 },
@@ -513,7 +521,8 @@ const CFG = {
   },
   hipoteca: { interesAnual: 0.035, entrada: 0.2, plazos: [10, 20, 30], semanasAño: 18, esfuerzoMax: 0.4, amortizar: 10000, cambioEuribor: 0.005 },
   hijos: { max: 4, embarazo: 14, edadMin: 20, relMin: 60, costes: [[5, 150], [17, 220]], privado: 150, fel: 5 },
-  retiro: { edadMin: 30, edadForzosa: 40, edadSinRenovacion: 36, edadSinOfertas: 37, declive: [[30, 0], [33, 0.15], [99, 0.35]], homenajeRep: 50, homenajePorRep: 100, tvRepMin: 40, tvPorRep: 30, entrenadorSueldo: 350 },
+  retiro: { edadMin: 30, edadForzosa: 40, edadSinRenovacion: 36, edadSinOfertas: 37, declive: [[30, 0], [33, 0.15], [99, 0.35]], homenajeRep: 50, homenajePorRep: 100, tvRepMin: 40, tvPorRep: 30, entrenadorSueldo: 350,
+    embajadorRepMin: 30, embajadorPorRep: 20, libroCapitulos: 6, libroPorRep: 300 },
   inmo: { gastosCompra: 0.10, gastosPct: 0.00015, tendencia: 0.0008, volatilidad: 0.004, comisionVenta: 0.05, impuestoAlquiler: 0.2,
     probInquilino: 0.5, anuncios: 5, renovarCada: 8, viviendaAhorro: 0.6, viviendaFel: 8 },
   coches: {
@@ -533,7 +542,7 @@ const CFG = {
   },
 
   // ---- Vida: felicidad, relaciones y actividades ----
-  felicidad: { inicial: 70, base: 35, porRelacion: 0.3, inercia: 0.25, efectoNota: 100 },
+  felicidad: { inicial: 64, base: 38, porRelacion: 0.3, inercia: 0.25, efectoNota: 100 },
   relaciones: {
     madre: { n: 'Madre', ic: '👩', decae: 1 }, padre: { n: 'Padre', ic: '👨', decae: 1 },
     amigo: { n: 'Mejor amigo/a', ic: '🧑‍🤝‍🧑', decae: 1 }, pareja: { n: 'Pareja', ic: '❤️', decae: 2 },
@@ -636,7 +645,8 @@ const CFG = {
     relInicial: 60, relRuptura: 25, relRenueva: 40, relFiel: 80, relObjetivo: 15, relFallo: 20,
     primaObjetivo: 0.1,       // si cumples el objetivo: 10 % de lo que te pagan al año
     semanasMinObj: 6,         // si firmas al final de la temporada, el objetivo no cuenta hasta la siguiente
-    separacionEventos: 3,     // como mucho un compromiso cada 3 semanas
+    separacionEventos: 5,     // como mucho un compromiso cada 5 semanas
+    semanasEnClub: 4, partidosMin: 3,   // fútbol: las marcas esperan a verte 4 semanas en el club y 3 partidos jugados
     cats: { futbol: ['local', 'botas', 'bebida', 'ropa', 'comida', 'tecno', 'reloj', 'coche'], escalada: ['local', 'bebida', 'pies', 'material', 'ropa', 'magnesio', 'tecno'] },
     rechazoSemanas: 18,   // si rechazas a una marca, no vuelve a llamarte en un año
     vetoSemanas: 36,      // si rompe contigo o no te renueva, no vuelve en dos años
@@ -731,7 +741,7 @@ const CFG = {
       { id: 'sansongEsc', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del campamento base', d: 'Tecnología y anuncios por todo el mundo.' },
     ],
     edadPagas: 18,   // hasta esta edad tu familia paga cuota, bono, licencia y competiciones en España
-    segColab: 10000, colabPorMil: 2.5, semanasPies: 8, piesGato: 130, edadRetiro: 28,
+    segColab: 10000, colabPorMil: 2.5, semanasPies: 8, piesGato: 130, edadRetiro: 28, edadRetiroForzosa: 40,
     // En qué pantalla se desbloquea cada cosa si eres escalador/a
     desbloqueos: { coches: 4, escuelaEsc: 5, peluqueria: 6, cafeteria: 6, tiendaEsc: 6, inmuebles: 7, rocodromo: 7, lavanderia: 7, academia: 7,
       hijos: 8, tienda: 8, restaurante: 8, marcaPresas: 9, gimnasio: 9, supermercado: 9, hotel: 10, clubes: 99 },
@@ -1300,6 +1310,24 @@ const ACCIONES = {
     pro: s => `+${cr(s.p.rep * CFG.retiro.tvPorRep)} brutos · +1 reputación`, con: () => '−5 energía', why: () => `Pago = reputación × ${CFG.retiro.tvPorRep} € (paga impuestos). Mantiene tu fama.`,
     disponible: s => s.p.rep >= CFG.retiro.tvRepMin ? null : `Necesitas reputación ${CFG.retiro.tvRepMin}.`,
     aplicar(s, R) { const b = s.p.rep * CFG.retiro.tvPorRep, imp = Math.round(b * tipoImpuesto(b)); s.p.dinero += b - imp; s.acum.impuestos += imp; s.p.rep += 1; s.p.energia -= 5; R.eco.push(['Programa de televisión (neto)', b - imp]); R.dep.push(['Comentarista de TV', '+1 reputación, −5 energía', `${s.p.rep - 1} × ${CFG.retiro.tvPorRep} € brutos.`]); },
+  },
+  embajador: {
+    fases: ['retirado'], ic: '🤝', n: 'Embajador de marcas', fx: s => [['€', s.p.rep * CFG.retiro.embajadorPorRep], ['⚡', -6]],
+    pro: s => `+${cr(s.p.rep * CFG.retiro.embajadorPorRep)} brutos por semana`, con: () => '−6 energía · tu fama sigue bajando', why: () => `Pago = reputación × ${CFG.retiro.embajadorPorRep} € (paga impuestos). Las marcas pagan por tu nombre mientras se acuerden de ti.`,
+    disponible: s => s.p.rep >= CFG.retiro.embajadorRepMin ? null : `Necesitas reputación ${CFG.retiro.embajadorRepMin}.`,
+    aplicar(s, R) { const b = s.p.rep * CFG.retiro.embajadorPorRep, imp = Math.round(b * tipoImpuesto(b)); s.p.dinero += b - imp; s.acum.impuestos += imp; s.p.energia -= 6; R.eco.push(['Embajador de marcas (neto)', b - imp]); R.dep.push(['Embajador de marcas', `+${cr(b - imp)} netos`, `Reputación ${s.p.rep} × ${CFG.retiro.embajadorPorRep} €.`]); },
+  },
+  biografia: {
+    fases: ['retirado'], ic: '📖', n: 'Escribir tu biografía', fx: s => [['📖', `Capítulo ${Math.min((s.libro || 0) + 1, CFG.retiro.libroCapitulos)} de ${CFG.retiro.libroCapitulos}`], ['😊', 2], ['⚡', -4]],
+    pro: s => `Al terminarla, unos ${cr(s.p.rep * CFG.retiro.libroPorRep)} y +5 de fama`, con: () => '−4 energía por semana · solo una vez', why: () => `${CFG.retiro.libroCapitulos} semanas escribiendo. Ventas = reputación × ${CFG.retiro.libroPorRep} €.`,
+    disponible: s => s.libroPublicado ? 'Ya publicaste tu biografía.' : null,
+    aplicar(s, R) {
+      s.libro = (s.libro || 0) + 1; s.p.energia -= 4; s.p.fel = clamp(s.p.fel + 2, 0, 100);
+      if (s.libro < CFG.retiro.libroCapitulos) { R.dep.push(['Escribir tu biografía', `capítulo ${s.libro} de ${CFG.retiro.libroCapitulos}`, 'Cuando la termines, se publica.']); return; }
+      const v = s.p.rep * CFG.retiro.libroPorRep, imp = Math.round(v * tipoImpuesto(v)); s.libroPublicado = true; s.p.dinero += v - imp; s.acum.impuestos += imp; s.p.rep = clamp(s.p.rep + 5, 0, 100);
+      R.eco.push(['Ventas de tu biografía (neto)', v - imp]); R.opo.push(['📖', `¡Publico mi biografía! Se vende bien: +${cr(v - imp)} netos y +5 de fama. Mi madre ha comprado 40.`]);
+      s.plan = 'rentas';
+    },
   },
   entrenador: {
     fases: ['retirado'], dep: 'futbol', ic: '🧑‍🏫', n: 'Entrenar en una cantera', fx: () => [['€', CFG.retiro.entrenadorSueldo], ['😊', 2], ['⚡', -10]],
@@ -2735,6 +2763,7 @@ const LOGROS = [
   ['arcoiris', '🌈', 'Pelo de colores', s => !!s.look && ['azul', 'rosa', 'verde'].includes(s.look.colorPelo), null, true],
   ['bancarrota', '🫠', 'Tocar fondo: −1.000 € en la cuenta', s => s.p.dinero <= -1000, null, true],
   ['quiebra', '📉', 'Quiebra… y vuelta a empezar', s => (s.quiebras || 0) > 0, null, true],
+  ['biografia', '📖', 'Publicar tu biografía', s => !!s.libroPublicado],
   ['palomita', '🕊️', 'Elegido por una paloma', s => !!s.palomaSuerte, null, true],
   ['hattrick', '🎩', 'Hat-trick: 3 goles en un partido', s => (s.hattrick || 0) > 0, 'futbol', true],
 ];
@@ -2894,7 +2923,7 @@ function confeti() {
    ===================================================================== */
 const PANTALLAS = [
   { n: 'El barrio', ic: '🏘️', premio: [['😊', 5]], desbloquea: 'Las pruebas con un club',
-    obj: [['Llama la atención de un ojeador (reputación 25)', s => s.fase !== 'barrio' ? 1 : s.p.rep / CFG.barrio.repOjeador]] },
+    obj: [[`Llama la atención de un ojeador (reputación ${CFG.barrio.repOjeador})`, s => s.fase !== 'barrio' ? 1 : s.p.rep / CFG.barrio.repOjeador]] },
   { n: 'Las pruebas', ic: '📋', premio: [['€', 300]], desbloquea: 'Tu carrera profesional',
     obj: [['Firma tu primer contrato profesional', s => ['club', 'retirado'].includes(s.fase) ? 1 : s.fase === 'prep' ? 0.5 : 0]] },
   { n: 'Semiprofesional', ic: '⚽', premio: [['€', 500]], desbloquea: 'Coches',
@@ -3539,9 +3568,10 @@ function buscarInvitaciones(s, R) {
   const E = s.esc;
   for (const c of calendarioEsc(s, E.año)) {
     if (c.amb !== 'master' || c.sem !== s.semanasAño + 2 || E.invit[c.id] !== undefined || !invitadoMaster(s, c)) continue;
-    E.invit[c.id] = 'pendiente';
-    encolar(s, { tipo: 'invitacion', id: c.id, mod: c.mod, lugar: c.lugar, sem: c.sem });
-    R.opo.push(['💌', `Me invitan al ${nombreComp(c, s)} de ${c.lugar}.`]);
+    E.invit[c.id] = true;
+    for (const x of calendarioEsc(s, E.año)) if (x.sem === c.sem && x.id !== c.id) E.ins[x.id] = false;
+    E.ins[c.id] = true;
+    R.opo.push(['💌', `Me invitan al ${nombreComp(c, s)} de ${c.lugar} (viaje pagado, hasta ${cr(AMBITOS.master.premio[0])} de premio). Voy en 2 semanas; si no quiero ir, lo cancelo en Carrera.`]);
   }
 }
 
@@ -3559,6 +3589,7 @@ function nuevoAñoEsc(s, R) {
   if (s.fase === 'escalador') {
     if (s.edad >= K.edadPagas) pagarEsc(s, R, K.licencia, 'Licencia federativa del año');
     encolar(s, resumen);
+    if (s.edad >= K.edadRetiroForzosa) { R.opo.push(['🦴', `Cumplo ${s.edad}: los dedos y la espalda dicen basta.`]); retirarseEsc(s, true, R); return; }
     if (ofrecer) encolar(s, { tipo: 'nacional', año: E.año, beca: K.becaBase });
   }
 }
@@ -3647,7 +3678,7 @@ function textoProgresoPatro(s, o) {
   return `${ok ? '✅' : '⏳'} ${Math.min(a, v)} de ${v}`;
 }
 // Cada cuánto te llama la marca: las grandes piden más
-function cadaEventoPatro(s, pt) { const b = pt.año >= 20000 ? [4, 3] : pt.año >= 3000 ? [6, 4] : [9, 5]; return b[0] + Math.floor(rnd(s) * b[1]); }
+function cadaEventoPatro(s, pt) { const b = pt.año >= 20000 ? [6, 3] : pt.año >= 3000 ? [8, 4] : [11, 5]; return b[0] + Math.floor(rnd(s) * b[1]); }
 function ofertasPatro(s, cat) {
   const act = s.patros.find(p => p.cat === cat), minimo = act ? act.año * 1.15 + 50 : -1;
   const l = catalogoPatro(s).filter(P => P.cat === cat && !marcaBloqueada(s, P.id) && cumpleReqPatro(s, P)).map(P => [P, pagoPatro(s, P)]).filter(([, v]) => v > minimo).sort((a, b) => b[1] - a[1]);
@@ -3667,6 +3698,8 @@ function ofertasPatro(s, cat) {
 function buscarOfertas(s, R) {
   const O = s.patroOf;
   if (s.semana < O.prox) return;
+  // Fútbol: las marcas esperan a verte jugar unas semanas en tu club
+  if (s.deporte !== 'escalada' && (!s.contrato || s.contrato.semanas < CFG.patrocinio.semanasEnClub || s.stats.jugados < CFG.patrocinio.partidosMin)) return;
   let mejor = null;
   for (const cat of CFG.patrocinio.cats[s.deporte === 'escalada' ? 'escalada' : 'futbol']) {
     if ((O.ofrecida[cat] || -99) > s.semana - 12) continue;
@@ -3708,6 +3741,18 @@ const EVENTOS_PATRO = {
   viaje: { ic: '✈️', cond: (s, pt) => pt.año >= 15000, t: pt => `Viaje de rodaje con ${pt.marca}`,
     d: () => 'Un sitio precioso para grabar… con el despertador a las 5 para pillar la luz buena. Y repetir el salto 30 veces.',
     si: () => [['⚡', -15], ['😊', 6], ['⭐', 2]], rel: 15 },
+  podcast: { ic: '🎙️', cond: s => s.p.rep >= 30, t: pt => `Entrevista en el pódcast de ${pt.marca}`,
+    d: () => 'Una hora hablando de tu vida. El presentador te pregunta tres veces cuál es tu comida favorita.',
+    si: () => [['⚡', -3], ['⭐', 1]], rel: 9, loco: 'Contar la historia más vergonzosa de tu vida' },
+  colegio: { ic: '🏫', t: pt => `Visita a un colegio con ${pt.marca}`,
+    d: () => 'Doscientos niños, cien preguntas y una pregunta final: «¿Cuánto dinero ganas?».',
+    si: () => [['⚡', -5], ['😊', 6]], rel: 11 },
+  sorteo: { ic: '🎁', t: pt => `Sorteo con fans para ${pt.marca}`,
+    d: () => 'Firmas productos para un sorteo. Tienes que poner una dedicatoria distinta en cada uno. Son 80.',
+    si: () => [['⚡', -4], ['⭐', 1]], rel: 9 },
+  cena: { ic: '🥂', cond: (s, pt) => pt.año >= 8000, t: pt => `Cena con los jefes de ${pt.marca}`,
+    d: () => 'Restaurante caro, conversación sobre «sinergias» y un postre que es una espuma.',
+    si: () => [['⚡', -4], ['😊', 1]], rel: 13, loco: 'Pedir un bocata de calamares' },
   bar: { ic: '🍽️', cond: (s, pt) => pt.cat === 'local', t: pt => `Foto con el dueño de ${pt.marca}`,
     d: () => 'Quiere una foto contigo para colgarla al lado de la máquina de tabaco. Y que pruebes la tortilla. Es obligatorio.',
     si: () => [['⚡', -2], ['😊', 3]], rel: 12 },
@@ -3823,7 +3868,7 @@ function popupPatro(s, ev) {
     const act = s.patros.find(p => p.cat === ev.cat);
     return `<div class="pi">💼</div><h2>Oferta de patrocinio</h2><p class="pd">${esc(CAT_PATRO[ev.cat])}. ${act ? `Ahora tienes a ${esc(act.marca)} (${act.año ? `${cr(act.año)}/año` : 'material'}).` : 'Sería tu primer patrocinador de esta categoría.'} A cambio tendrás compromisos con la marca y un objetivo de temporada.</p>
       ${ev.ofertas.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${o.ic} ${esc(o.marca)}</b><span class="small"><i>«${esc(o.lema || '')}»</i> ${esc(o.d)}</span>
-        ${chips([['💰', o.año ? `${cr(o.año)}/año` : 'material gratis'], ['📄', `${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}`], ['🎯', o.obj.t], ['📣', `un compromiso cada ~${o.año >= 20000 ? 5 : o.año >= 3000 ? 8 : 11} semanas`]]
+        ${chips([['💰', o.año ? `${cr(o.año)}/año` : 'material gratis'], ['📄', `${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}`], ['🎯', o.obj.t], ['📣', `un compromiso cada ~${o.año >= 20000 ? 7 : o.año >= 3000 ? 10 : 13} semanas`]]
           .concat(o.primaPodio ? [['🥇', `Podio en Copa del Mundo: +${cr(o.primaPodio)}`], ['⛰️', `8b o más: +${cr(o.primaGrado)}`]] : [])
           .concat(o.primaGol ? [['⚽', `+${cr(o.primaGol)} por gol`], ['⬆️', `Ascenso o título: +${cr(o.primaTitulo)}`]] : [])
           .concat(o.material ? [['👟', s.deporte === 'escalada' ? 'Pies de gato gratis' : 'Botas gratis']] : []).concat(o.bono ? [['🧱', 'Entrenas gratis']] : []))}</button>`).join('')}

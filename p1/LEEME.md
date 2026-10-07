@@ -13,6 +13,30 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
+**Novedades de la versión 0.10: arreglos tras el análisis de juego**
+- **Escalada**: las pantallas 2 y 3 se pueden pasar compitiendo o yendo a la roca (antes la roca era
+  obligatoria y quien solo competía se quedaba atascado para siempre). Retirada obligatoria a los 40.
+- **Negocios y clubes**: si la caja sigue en negativo 6 semanas, **concurso**: cierran y se liquidan
+  por el 50 % de su valor; la deuda que quede la pagas tú. Aviso cuando un negocio pierde dinero 3
+  semanas seguidas y **gerente** opcional (7 % de los ingresos, mínimo 120 €/semana) que ajusta la
+  plantilla a la demanda y no usa precios que hunden la fama.
+- **Imprevistos**: las opciones que no puedes pagar se desactivan.
+- **Banco**: de menor, la deuda la pagan tus padres (y se enfadan); por debajo de 500 € solo cobra una
+  comisión de 15 € por semana, sin embargo ni quiebra.
+- **Copia de seguridad** (en ⚙️): copiar tu partida en un código y cargarla después; aviso de que
+  Safari en iPhone puede borrar los datos tras 7 días sin abrir la web.
+- **Menos ventanas**: un compromiso de patrocinador cada 5 semanas como mucho (y 4 tipos nuevos:
+  pódcast, visita a un colegio, sorteo con fans y cena con los jefes); las invitaciones a másters ya
+  no abren ventana: te apuntan y puedes cancelarlo en Carrera.
+- **Ritmo**: el ánimo ya no baja cada semana al empezar; el ojeador llega con reputación 40 (unas 5
+  semanas de barrio); en fútbol las marcas esperan a verte 4 semanas en el club y 3 partidos.
+- **Pantallas de vida con alternativa**: pareja **o** tu propio coche; hijo **o** 2 propiedades.
+- **De retirado**: embajador de marcas (cobras según tu fama) y escribir tu biografía (6 semanas;
+  se publica, da dinero, fama y un logro).
+- **Interfaz**: la tienda del personaje muestra todas las pestañas en dos filas; los logos de la escena
+  y «Ver el parte completo» se tocan bien (44 px); en escalada los 6 indicadores ya caben en pantallas de
+  320 px (antes se salían por la derecha). Arreglado el fallo al retirarte justo al acabar una temporada.
+
 **Novedades de la versión 0.10: marcas más realistas y sin repetirse**
 - **Muchas más marcas**: 32 de fútbol en 8 categorías (local, botas, bebida, ropa, comida, tecnología,
   reloj y coche) y 25 de escalada en 7 (local, bebida, pies de gato, material, ropa, magnesio y tecnología).
@@ -411,7 +435,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-141 de 141 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+151 de 151 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -457,10 +481,15 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    mejora más entrenando (misma partida y misma suerte); el entrenador se paga cada semana; material para
    siempre y propio de cada deporte; caprichos con espera; fisio y crash pads bajan las lesiones; la furgo
    abarata los viajes; sin dinero, tu equipo se va.
-6f. **Números rojos**: carta del banco con una semana de plazo; pasado el plazo, intereses y embargo
+6f. **Números rojos**: carta del banco con una semana de plazo; menores (pagan sus padres) y deudas pequeñas (solo comisión); pasado el plazo, intereses y embargo
    (caja del negocio, luego el coche) hasta cubrir la deuda, sin tocar la casa si no hace falta; si sales a tiempo, nada.
    Sin nada que embargar: quiebra voluntaria (deuda borrada, menos fama, sin marcas, sin hipotecas) o
    quiebra forzada a las 4 semanas.
+6g. **Arreglos del análisis**: pantalla 2 de escalada compitiendo; imprevistos que no puedes pagar desactivados;
+   concurso de negocios y gerente; copia de seguridad con código; pantallas de vida con alternativa; compromisos
+   espaciados; ánimo estable; ojeador desde la semana 4; marcas que esperan a verte jugar; retirada de escalada a
+   los 40; embajador y biografía; pestañas de la tienda y zonas táctiles; sin desbordes a 320 px (la comprobación
+   ahora mide el ancho real de la pantalla).
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

@@ -84,7 +84,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       await page.setViewportSize({ width: w, height: 680 });
       for (const h of [null, 'carrera', 'bienes', 'relaciones', 'actividades', 'negocio:peluqueria']) {
         await page.evaluate(h => { __P1.S.hoja = h; __P1.render(); }, h);
-        const over = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > window.innerWidth);
+        const over = await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > document.documentElement.clientWidth);
         if (over) check(`Sin desplazamiento horizontal a ${w} px (${h || 'diario'})`, false);
       }
     }
@@ -618,7 +618,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     for (const w of [320, 390]) {
       await page.setViewportSize({ width: w, height: 700 });
       for (const h of ['carrera', null]) { await page.evaluate(h => { __P1.S.hoja = h; __P1.render(); }, h);
-        if (await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > window.innerWidth)) check(`Escalada sin desplazamiento horizontal a ${w} px`, false); }
+        if (await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > document.documentElement.clientWidth)) check(`Escalada sin desplazamiento horizontal a ${w} px`, false); }
     }
     await page.setViewportSize({ width: 390, height: 844 });
 
@@ -688,7 +688,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       out.masterSinInv = /invitación/.test(G.reqComp(ma) || '');
       for (const k of Object.keys(s.esc.at)) s.esc.at[k] = 95;
       s.p.rep = 70; s.semanasAño = ma.sem - 2; G.elegir('descansoEsc'); G.avanzarSemana();
-      out.masterInv = [G.S.pendiente].concat(G.S.cola).some(e => e && e.tipo === 'invitacion');
+      out.masterInv = G.S.esc.invit[ma.id] === true && G.S.esc.ins[ma.id] === true && G.S.ultimo.opo.some(([, t]) => t.includes('Me invitan'));
       limpiar();
       for (let i = 0; i < 3; i++) { G.S.p.rep = 70; semana('descansoEsc'); }
       const pm = G.S.esc.palmares.find(x => x.amb === 'master') || {};
@@ -893,7 +893,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     const lk3 = await page.evaluate(() => ({ d: __P1.S.p.dinero, pelo: __P1.S.look.pelo }));
     for (const w of [320, 390]) {
       await page.setViewportSize({ width: w, height: 700 });
-      if (await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > window.innerWidth)) check(`Tienda sin desplazamiento horizontal a ${w} px`, false);
+      if (await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > document.documentElement.clientWidth)) check(`Tienda sin desplazamiento horizontal a ${w} px`, false);
     }
     await page.setViewportSize({ width: 390, height: 844 });
     const lk4 = await page.evaluate(() => {
@@ -1064,6 +1064,48 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Negocios: si la caja sigue en negativo, concurso y cierre; el gerente ajusta la plantilla', fx.concurso && fx.gerente, JSON.stringify(fx));
     check('Copia de seguridad: exportar la partida a un código y volver a cargarla', fx.importa, JSON.stringify(fx));
     check('Fútbol: las pantallas de vida tienen alternativa (pareja o coche, hijo o propiedades)', fx.sinPareja, JSON.stringify(fx));
+    // Ritmo e interfaz (puntos naranjas del análisis)
+    await page.setViewportSize({ width: 320, height: 640 });
+    const nj = await page.evaluate(() => {
+      const G = __P1, out = {}, limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver('si') || G.resolver('ok') || G.resolver('0') || G.resolver('club') || G.resolver('corto') || G.resolver('seguir'); };
+      G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0;
+      // Compromisos de patrocinador: como mucho uno cada 5 semanas, aunque tengas muchas marcas
+      G.nueva(101, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.S.edad = 22; G.S.p.dinero = 5000;
+      for (const id of ['tenaja', 'edelrit', 'enueve', 'kombucha', 'tiza']) G.firmarPatro(id);
+      const sem = [];
+      for (let i = 0; i < 40; i++) { G.S.p.rep = 40; G.S.p.dinero = 5000; G.elegir('descansoEsc'); G.avanzarSemana(); if ([G.S.pendiente].concat(G.S.cola).some(e => e && e.tipo === 'eventoPatro')) sem.push(G.S.semana); limpiar(); }
+      out.compromisos = sem.length >= 4 && sem.every((w, i) => !i || w - sem[i - 1] >= 5); out.semCompromisos = sem;
+      // Ánimo estable al empezar
+      G.nueva(102); const f0 = G.S.p.fel; for (let i = 0; i < 4; i++) { G.elegir('plaza'); G.avanzarSemana(); limpiar(); }
+      out.animo = G.S.p.fel >= f0 - 3; out.fel = [f0, G.S.p.fel];
+      // Barrio: el ojeador no llega antes de la semana 4
+      G.nueva(103); let oj = null; for (let i = 0; i < 10 && !oj; i++) { G.elegir('plaza'); G.avanzarSemana(); if (G.S.pendiente && G.S.pendiente.tipo === 'ojeador') oj = G.S.semana - 1; else limpiar(); }
+      out.barrio = oj >= 4; out.oj = oj;
+      // Fútbol: las marcas no llaman en tu primera semana en el club
+      G.S.pendiente = null; G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
+      for (let i = 0; i < 4; i++) { limpiar(); G.elegir('descansar'); G.avanzarSemana(); } limpiar();
+      G.S.p.rep = 60; let pronto = false; for (let i = 0; i < 2; i++) { G.elegir('normal'); G.avanzarSemana(); if ([G.S.pendiente].concat(G.S.cola).some(e => e && e.tipo === 'patrocinio')) pronto = true; limpiar(); }
+      out.noPronto = G.S.fase === 'club' && !pronto;
+      // Escalada: retirada obligatoria a los 40
+      G.nueva(104, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.S.edad = 39; G.S.semanasAño = 17; G.S.p.dinero = 5000;
+      G.elegir('descansoEsc'); G.avanzarSemana(); limpiar(); out.retiro40 = G.S.fase === 'retirado' && G.S.edad === 40;
+      // De retirado: embajador de marcas y biografía
+      G.S.p.rep = 50; const d0 = G.S.p.dinero; G.elegir('embajador'); G.avanzarSemana(); limpiar();
+      out.embajador = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Embajador') && v > 0);
+      for (let i = 0; i < 6; i++) { G.elegir('biografia'); G.avanzarSemana(); limpiar(); }
+      out.biografia = !!G.S.libroPublicado && !!G.S.logros.biografia;
+      // Interfaz: pestañas de la tienda visibles y zonas táctiles grandes
+      G.nueva(105, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.firmarPatro('tenaja'); G.S.hoja = 'avatar'; G.render();
+      out.pestanas = [...document.querySelectorAll('.lookTabs button')].every(b => { const r = b.getBoundingClientRect(); return r.right <= window.innerWidth && r.left >= 0; });
+      G.S.hoja = null; G.render(); const m = document.querySelector('.escena .marcas');
+      out.marcas = !!m && m.getBoundingClientRect().height >= 44;
+      return out;
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    check('Menos ventanas: un compromiso de patrocinador cada 5 semanas como mucho; másters sin ventana', nj.compromisos && r.masterInv, JSON.stringify(nj));
+    check('Ritmo: ánimo estable al empezar, ojeador no antes de la semana 4 y marcas que esperan a verte jugar', nj.animo && nj.barrio && nj.noPronto, JSON.stringify(nj));
+    check('Escalada: retirada a los 40; de retirado, embajador de marcas y biografía', nj.retiro40 && nj.embajador && nj.biografia, JSON.stringify(nj));
+    check('Interfaz: todas las pestañas de la tienda se ven a 320 px y los logos de la escena se tocan bien (≥ 44 px)', nj.pestanas && nj.marcas, JSON.stringify(nj));
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
