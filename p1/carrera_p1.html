@@ -468,9 +468,9 @@ const CFG = {
       tipos: ['AC #', 'US #', 'FC #', 'SS #', 'Virtus #', 'Calcio #'],
       estadio: (c, cap) => (cap < 3000 ? 'Campo Comunale di ' : 'Stadio di ') + c,
       ligas: [
-        { n: 'Serie A', fuerza: 81, cap: [10000, 70000], sueldo: [7000, 35000] },
-        { n: 'Serie B', fuerza: 69, cap: [4000, 25000], sueldo: [1200, 5000] },
-        { n: 'Serie C', fuerza: 59, cap: [1500, 12000], sueldo: [350, 1200] },
+        { n: 'Prima Serie', fuerza: 81, cap: [10000, 70000], sueldo: [7000, 35000] },
+        { n: 'Seconda Serie', fuerza: 69, cap: [4000, 25000], sueldo: [1200, 5000] },
+        { n: 'Terza Serie', fuerza: 59, cap: [1500, 12000], sueldo: [350, 1200] },
       ],
     },
     fr: {
@@ -730,33 +730,33 @@ const CFG = {
       { id: 'talleres', marca: 'Talleres Manolo', cat: 'local', ic: '🔧', año: [300, 1500], rep: 15, tiers: [3, 5], lema: 'Si hace ruido, lo arreglamos', d: 'El taller de toda la vida quiere salir en tus fotos.' },
       { id: 'autoescuela', marca: 'Autoescuela Rápida', cat: 'local', ic: '🚦', año: [500, 2500], rep: 22, tiers: [2, 4], lema: 'Aprobarás… a la tercera', d: 'Una autoescuela de la ciudad con muchas ganas de anunciarse.' },
       { id: 'inmobiliaria', marca: 'Inmobiliaria Tu Casa', cat: 'local', ic: '🏠', año: [1500, 8000], rep: 35, tiers: [1, 3], lema: 'Pisos con vistas (al patio)', d: 'La inmobiliaria más grande de la ciudad.' },
-      { id: 'yoma', marca: 'Yoma', cat: 'botas', ic: '👟', año: [0, 1500], rep: 18, tiers: [2, 4], material: true, lema: 'Botas de las de toda la vida', d: 'Botas gratis y algo de dinero: viste a muchos equipos modestos.' },
-      { id: 'kelmi', marca: 'Kelmi', cat: 'botas', ic: '👟', año: [0, 2500], rep: 25, tiers: [2, 4], material: true, lema: 'La marca de la banda en la bota', d: 'Botas y un pequeño fijo.' },
-      { id: 'mizumo', marca: 'Mizumo', cat: 'botas', ic: '👟', año: [1000, 8000], rep: 35, tiers: [2, 3], material: true, lema: 'Para los que miran bien el balón', d: 'Botas japonesas de mucha calidad.' },
-      { id: 'pumba', marca: 'Pumba', cat: 'botas', ic: '🐗', año: [3000, 30000], rep: 45, tiers: [1, 2], material: true, lema: 'Hakuna patada', d: 'Una de las grandes: solo ficha en Primera y Segunda.' },
-      { id: 'adibas', marca: 'Adibas', cat: 'botas', ic: '👟', año: [15000, 120000], rep: 60, tiers: [1, 1], material: true, lema: 'Tres rayas y ninguna excusa', d: 'Botas, ropa y un buen fijo. Solo Primera División.' },
-      { id: 'naik', marca: 'Naik', cat: 'botas', ic: '✔️', año: [60000, 400000], rep: 80, req: 'estrella', material: true, lema: 'Just du it', d: 'Solo estrellas de Primera: anuncios por todo el mundo.' },
+      { id: 'yoma', marca: 'Toledo Sport', cat: 'botas', ic: '👟', año: [0, 1500], rep: 18, tiers: [2, 4], material: true, lema: 'Botas de las de toda la vida', d: 'Botas gratis y algo de dinero: viste a muchos equipos modestos.' },
+      { id: 'kelmi', marca: 'Garra Sport', cat: 'botas', ic: '👟', año: [0, 2500], rep: 25, tiers: [2, 4], material: true, lema: 'La garra se lleva en los pies', d: 'Botas y un pequeño fijo.' },
+      { id: 'mizumo', marca: 'Kumo', cat: 'botas', ic: '👟', año: [1000, 8000], rep: 35, tiers: [2, 3], material: true, lema: 'Para los que miran bien el balón', d: 'Botas japonesas de mucha calidad.' },
+      { id: 'pumba', marca: 'Felino', cat: 'botas', ic: '🐆', año: [3000, 30000], rep: 45, tiers: [1, 2], material: true, lema: 'Salta como un gato', d: 'Una de las grandes: solo ficha en Primera y Segunda.' },
+      { id: 'adibas', marca: 'Trébol', cat: 'botas', ic: '👟', año: [15000, 120000], rep: 60, tiers: [1, 1], material: true, lema: 'Corre, salta, repite', d: 'Botas, ropa y un buen fijo. Solo Primera División.' },
+      { id: 'naik', marca: 'Victoria', cat: 'botas', ic: '🏅', año: [60000, 400000], rep: 80, req: 'estrella', material: true, lema: 'Hazlo y punto', d: 'Solo estrellas de Primera: anuncios por todo el mundo.' },
       { id: 'aguaPueblo', marca: 'Agua Manantial del Pueblo', cat: 'bebida', ic: '💧', año: [200, 1200], rep: 10, tiers: [3, 5], lema: 'Directa de la fuente (de la plaza)', d: 'Un agua de la zona que patrocina a los chavales del pueblo.' },
       { id: 'refrescoSur', marca: 'Refrescos del Sur', cat: 'bebida', ic: '🥤', año: [800, 4000], rep: 28, tiers: [2, 3], lema: 'Con burbujas y con arte', d: 'Una marca de refrescos regional.' },
-      { id: 'aquarios', marca: 'Aquarios', cat: 'bebida', ic: '🧃', año: [5000, 25000], rep: 45, tiers: [1, 2], lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida.' },
-      { id: 'gatorrada', marca: 'Gatorrada', cat: 'bebida', ic: '⚡', año: [15000, 70000], rep: 62, tiers: [1, 1], lema: 'Suda la gota gorda', d: 'La bebida de los vestuarios de Primera.' },
-      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [60000, 250000], rep: 85, req: 'estrella', lema: 'Te da alitas… o casi', d: 'Solo estrellas: vídeos imposibles, eventos y fiestas.' },
-      { id: 'kapa', marca: 'Kapa', cat: 'ropa', ic: '🧢', año: [500, 3000], rep: 20, tiers: [2, 4], lema: 'Dos personas sentadas espalda con espalda', d: 'Chándales y algo de dinero.' },
-      { id: 'loto', marca: 'Loto', cat: 'ropa', ic: '🍀', año: [800, 5000], rep: 30, tiers: [2, 3], lema: 'Con esta ropa, te va a tocar', d: 'Ropa deportiva italiana de las de siempre.' },
-      { id: 'underamour', marca: 'Under Amour', cat: 'ropa', ic: '💘', año: [5000, 40000], rep: 50, tiers: [1, 2], lema: 'Entrena con el corazón', d: 'Ropa técnica y un buen fijo.' },
-      { id: 'hugobros', marca: 'Hugo Bros', cat: 'ropa', ic: '🕴️', año: [25000, 120000], rep: 75, tiers: [1, 1], lema: 'Elegancia de vestuario', d: 'Trajes para las fotos oficiales. Solo Primera.' },
+      { id: 'aquarios', marca: 'Isobar', cat: 'bebida', ic: '🧃', año: [5000, 25000], rep: 45, tiers: [1, 2], lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida.' },
+      { id: 'gatorrada', marca: 'Hidromax', cat: 'bebida', ic: '⚡', año: [15000, 70000], rep: 62, tiers: [1, 1], lema: 'Suda la gota gorda', d: 'La bebida de los vestuarios de Primera.' },
+      { id: 'redtoro', marca: 'Rayo Energy', cat: 'bebida', ic: '⚡', año: [60000, 250000], rep: 85, req: 'estrella', lema: 'Te pone las pilas… o casi', d: 'Solo estrellas: vídeos imposibles, eventos y fiestas.' },
+      { id: 'kapa', marca: 'Delta Sport', cat: 'ropa', ic: '🧢', año: [500, 3000], rep: 20, tiers: [2, 4], lema: 'Chándales de los de antes', d: 'Chándales y algo de dinero.' },
+      { id: 'loto', marca: 'Fortuna Sport', cat: 'ropa', ic: '🍀', año: [800, 5000], rep: 30, tiers: [2, 3], lema: 'Con esta ropa, te va a tocar', d: 'Ropa deportiva italiana de las de siempre.' },
+      { id: 'underamour', marca: 'Coraza', cat: 'ropa', ic: '💘', año: [5000, 40000], rep: 50, tiers: [1, 2], lema: 'Entrena con el corazón', d: 'Ropa técnica y un buen fijo.' },
+      { id: 'hugobros', marca: 'Sastrería Bruno', cat: 'ropa', ic: '🕴️', año: [25000, 120000], rep: 75, tiers: [1, 1], lema: 'Elegancia de vestuario', d: 'Trajes para las fotos oficiales. Solo Primera.' },
       { id: 'pizzeria', marca: 'Pizzería Mamma Mía', cat: 'comida', ic: '🍕', año: [200, 1000], rep: 10, tiers: [3, 5], lema: 'Masa fina, corazón grande', d: 'Pizza gratis los lunes a cambio de una foto.' },
-      { id: 'telepizzo', marca: 'Telepizzo', cat: 'comida', ic: '🛵', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Llega antes que tu contraataque', d: 'Una cadena de pizzas que busca caras conocidas.' },
-      { id: 'burguerRey', marca: 'Burguer Rey', cat: 'comida', ic: '👑', año: [10000, 50000], rep: 58, tiers: [1, 2], lema: 'El rey de las hamburguesas (y del VAR)', d: 'Anuncios en la tele y menús con tu nombre.' },
-      { id: 'xiaomo', marca: 'Xiaomo', cat: 'tecno', ic: '📱', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Mucho móvil por poco dinero', d: 'Móviles y un pequeño fijo.' },
-      { id: 'sansong', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [10000, 80000], rep: 60, tiers: [1, 2], lema: 'La pantalla más grande del vestuario', d: 'Tecnología y anuncios con mucha luz.' },
-      { id: 'manzana', marca: 'Manzana', cat: 'tecno', ic: '🍎', año: [40000, 200000], rep: 82, req: 'estrella', lema: 'Piensa diferente (pero paga igual)', d: 'Solo trabaja con estrellas mundiales.' },
-      { id: 'casiyo', marca: 'Casiyo', cat: 'reloj', ic: '⌚', año: [800, 5000], rep: 32, tiers: [2, 3], lema: 'Hace pip, pero es puntual', d: 'Relojes digitales de toda la vida.' },
-      { id: 'festinos', marca: 'Festinos', cat: 'reloj', ic: '⏱️', año: [5000, 30000], rep: 50, tiers: [1, 2], lema: 'Puntual como un penalti', d: 'Relojes de deporte de gama media-alta.' },
-      { id: 'rolecs', marca: 'Rolecs', cat: 'reloj', ic: '👑', año: [50000, 200000], rep: 85, req: 'estrella', lema: 'Para cuando el tiempo es oro (literalmente)', d: 'Solo ficha a lo más alto del fútbol.' },
-      { id: 'kiya', marca: 'Kiya', cat: 'coche', ic: '🚙', año: [1500, 8000], rep: 38, tiers: [2, 3], lema: 'Siete años de garantía y uno de patrocinio', d: 'Un fijo y un coche para ir a entrenar.' },
-      { id: 'siat', marca: 'Siat', cat: 'coche', ic: '🚗', año: [4000, 20000], rep: 48, tiers: [1, 2], lema: 'Auto emoción (o eso dicen)', d: 'Un fijo y un coche nuevo cada año.' },
-      { id: 'audy', marca: 'Audy', cat: 'coche', ic: '🏎️', año: [25000, 120000], rep: 70, tiers: [1, 1], lema: 'Cuatro aros y un sueldo', d: 'Coche de lujo y un fijo muy alto. Solo Primera.' },
+      { id: 'telepizzo', marca: 'Pizzamóvil', cat: 'comida', ic: '🛵', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Llega antes que tu contraataque', d: 'Una cadena de pizzas que busca caras conocidas.' },
+      { id: 'burguerRey', marca: 'Burger Barón', cat: 'comida', ic: '👑', año: [10000, 50000], rep: 58, tiers: [1, 2], lema: 'El rey de las hamburguesas (y del VAR)', d: 'Anuncios en la tele y menús con tu nombre.' },
+      { id: 'xiaomo', marca: 'Dragonfón', cat: 'tecno', ic: '📱', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Mucho móvil por poco dinero', d: 'Móviles y un pequeño fijo.' },
+      { id: 'sansong', marca: 'Solaris', cat: 'tecno', ic: '📲', año: [10000, 80000], rep: 60, tiers: [1, 2], lema: 'La pantalla más grande del vestuario', d: 'Tecnología y anuncios con mucha luz.' },
+      { id: 'manzana', marca: 'Pera', cat: 'tecno', ic: '🍎', año: [40000, 200000], rep: 82, req: 'estrella', lema: 'Piensa en verde (pero paga igual)', d: 'Solo trabaja con estrellas mundiales.' },
+      { id: 'casiyo', marca: 'Tic-Tac', cat: 'reloj', ic: '⌚', año: [800, 5000], rep: 32, tiers: [2, 3], lema: 'Hace pip, pero es puntual', d: 'Relojes digitales de toda la vida.' },
+      { id: 'festinos', marca: 'Puntual', cat: 'reloj', ic: '⏱️', año: [5000, 30000], rep: 50, tiers: [1, 2], lema: 'Puntual como un penalti', d: 'Relojes de deporte de gama media-alta.' },
+      { id: 'rolecs', marca: 'Aurum', cat: 'reloj', ic: '👑', año: [50000, 200000], rep: 85, req: 'estrella', lema: 'Para cuando el tiempo es oro (literalmente)', d: 'Solo ficha a lo más alto del fútbol.' },
+      { id: 'kiya', marca: 'Hana Motors', cat: 'coche', ic: '🚙', año: [1500, 8000], rep: 38, tiers: [2, 3], lema: 'Muchos años de garantía y uno de patrocinio', d: 'Un fijo y un coche para ir a entrenar.' },
+      { id: 'siat', marca: 'Ibérica Motors', cat: 'coche', ic: '🚗', año: [4000, 20000], rep: 48, tiers: [1, 2], lema: 'Motor con salero', d: 'Un fijo y un coche nuevo cada año.' },
+      { id: 'audy', marca: 'Lince Motors', cat: 'coche', ic: '🏎️', año: [25000, 120000], rep: 70, tiers: [1, 1], lema: 'Rápido como un lince', d: 'Coche de lujo y un fijo muy alto. Solo Primera.' },
     ],
   },
   escalada: {
@@ -780,7 +780,7 @@ const CFG = {
     // Se cobra cada mes durante ese año y el siguiente, pero solo se puede gastar en escalada:
     // lo que no gastes en entrenar, viajar o competir se pierde al acabar el año.
     becaEstado: { mes: 1400, puesto: 8 },
-    // Oro olímpico: premio de 90.000 € y beca de 60.000 € al año hasta los siguientes Juegos.
+    // Oro en los Juegos: premio de 90.000 € y beca de 60.000 € al año hasta los siguientes Juegos.
     // Si en esos Juegos no vuelves a ganar (o no vas), la pierdes.
     becaOlimpica: 60000, semanaJJOO: 10,
     // Patrocinadores: una marca por categoría a la vez. año = € por año de juego según tu fama (de mín. a máx.).
@@ -792,27 +792,27 @@ const CFG = {
       { id: 'rocoLocal', marca: 'Rocódromo de tu ciudad', cat: 'local', ic: '🧱', año: [300, 2000], rep: 22, bono: true, repMax: 60, lema: 'Aquí se cae con estilo', d: 'Entrenas gratis allí y sales en sus redes.' },
       { id: 'clinica', marca: 'Clínica Dedos Sanos', cat: 'local', ic: '🩹', año: [500, 2500], rep: 30, req: 'esp', lema: 'Poleas como nuevas', d: 'Una clínica de fisioterapia especializada en escaladores.' },
       { id: 'kombucha', marca: 'Kombucha Zen', cat: 'bebida', ic: '🍵', año: [300, 1500], rep: 18, repMax: 50, lema: 'Fermentada como tus antebrazos', d: 'Una bebida pequeña que adora a los escaladores.' },
-      { id: 'aquarios', marca: 'Aquarios', cat: 'bebida', ic: '🧃', año: [1000, 5000], rep: 40, req: 'nacional', lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida busca deportistas de la selección.' },
-      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te da alitas… o casi', d: 'Solo ficha estrellas: vídeos, eventos y viajes por todo el mundo.' },
-      { id: 'tenaja', marca: 'Tenaja', cat: 'pies', ic: '👟', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Pies pequeños, sueños grandes', d: 'Pies de gato gratis y algo de dinero si destacas.' },
-      { id: 'ocum', marca: 'Ocum', cat: 'pies', ic: '🦶', año: [0, 3000], rep: 25, material: true, repMax: 65, lema: 'Pies de gato checos (y muy apretados)', d: 'Pies de gato gratis y un pequeño fijo.' },
-      { id: 'escarpa', marca: 'Escarpa', cat: 'pies', ic: '👟', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Hechos para pisar donde no se puede', d: 'Pies de gato y un fijo al año.' },
-      { id: 'fivediez', marca: 'Five Diez', cat: 'pies', ic: '🖐️', año: [2000, 12000], rep: 50, req: 'nacional', material: true, lema: 'Cinco dedos, diez de nota', d: 'Pies de gato y un buen fijo.' },
-      { id: 'esportiva', marca: 'La Esportiva', cat: 'pies', ic: '👟', año: [4000, 20000], rep: 60, req: 'mundo', material: true, lema: 'Más apretados que tu agenda', d: 'Equipo internacional de la marca.' },
-      { id: 'edelrit', marca: 'Edelrit', cat: 'material', ic: '🪢', año: [0, 2500], rep: 22, repMax: 55, lema: 'Cuerdas que no te dejan colgado', d: 'Cuerdas, arneses y algo de dinero.' },
-      { id: 'kamp', marca: 'Kamp', cat: 'material', ic: '🪝', año: [500, 4000], rep: 30, req: 'esp', lema: 'Mosquetones con acento italiano', d: 'Material y un pequeño fijo.' },
-      { id: 'beals', marca: 'Beals', cat: 'material', ic: '🧶', año: [1000, 6000], rep: 40, req: 'esp', lema: 'Cuerdas francesas, caídas suaves', d: 'Cuerdas y un fijo al año.' },
-      { id: 'petzel', marca: 'Petzel', cat: 'material', ic: '🔦', año: [2000, 12000], rep: 50, req: 'nacional', lema: 'Luz en la frente, cabeza en la vía', d: 'Material y un fijo al año.' },
-      { id: 'blackdiamante', marca: 'Black Diamante', cat: 'material', ic: '💎', año: [3000, 15000], rep: 58, req: 'mundo', lema: 'Duro como un diamante (negro)', d: 'Equipo internacional de la marca.' },
-      { id: 'enueve', marca: 'E-Nueve', cat: 'ropa', ic: '🌀', año: [300, 2500], rep: 20, repMax: 55, lema: 'Pantalones con estilo de fábrica', d: 'Ropa de escalada italiana y algo de dinero.' },
-      { id: 'patagonio', marca: 'Patagonio', cat: 'ropa', ic: '🧥', año: [1000, 8000], rep: 40, req: 'esp', lema: 'Ropa para salvar el planeta… y tu culo del frío', d: 'Ropa y un fijo; les gustan los proyectos en roca.' },
-      { id: 'mamut', marca: 'Mamut', cat: 'ropa', ic: '🦣', año: [3000, 15000], rep: 52, req: 'nacional', lema: 'Abriga como un mamut', d: 'Ropa, material y un fijo al año.' },
-      { id: 'arcterrix', marca: 'Arcterrix', cat: 'ropa', ic: '🦅', año: [5000, 25000], rep: 62, req: 'mundo', lema: 'Tan cara que da vértigo', d: 'Ropa técnica de lujo.' },
-      { id: 'southface', marca: 'The South Face', cat: 'ropa', ic: '🧥', año: [8000, 35000], rep: 72, req: 'mundo', lema: 'Nunca dejes de bajar', d: 'Una de las grandes: expediciones y documentales.' },
+      { id: 'aquarios', marca: 'Isobar', cat: 'bebida', ic: '🧃', año: [1000, 5000], rep: 40, req: 'nacional', lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida busca deportistas de la selección.' },
+      { id: 'redtoro', marca: 'Rayo Energy', cat: 'bebida', ic: '⚡', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te pone las pilas… o casi', d: 'Solo ficha estrellas: vídeos, eventos y viajes por todo el mundo.' },
+      { id: 'tenaja', marca: 'Sierra', cat: 'pies', ic: '👟', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Pies pequeños, sueños grandes', d: 'Pies de gato gratis y algo de dinero si destacas.' },
+      { id: 'ocum', marca: 'Bohemia', cat: 'pies', ic: '🦶', año: [0, 3000], rep: 25, material: true, repMax: 65, lema: 'Pies de gato checos (y muy apretados)', d: 'Pies de gato gratis y un pequeño fijo.' },
+      { id: 'escarpa', marca: 'Andina', cat: 'pies', ic: '👟', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Hechos para pisar donde no se puede', d: 'Pies de gato y un fijo al año.' },
+      { id: 'fivediez', marca: 'Agarre', cat: 'pies', ic: '🖐️', año: [2000, 12000], rep: 50, req: 'nacional', material: true, lema: 'Agarran hasta en el techo', d: 'Pies de gato y un buen fijo.' },
+      { id: 'esportiva', marca: 'Dolomía', cat: 'pies', ic: '👟', año: [4000, 20000], rep: 60, req: 'mundo', material: true, lema: 'Más apretados que tu agenda', d: 'Equipo internacional de la marca.' },
+      { id: 'edelrit', marca: 'Nudo Alpino', cat: 'material', ic: '🪢', año: [0, 2500], rep: 22, repMax: 55, lema: 'Cuerdas que no te dejan colgado', d: 'Cuerdas, arneses y algo de dinero.' },
+      { id: 'kamp', marca: 'Alpina', cat: 'material', ic: '🪝', año: [500, 4000], rep: 30, req: 'esp', lema: 'Mosquetones con acento italiano', d: 'Material y un pequeño fijo.' },
+      { id: 'beals', marca: 'Cordada', cat: 'material', ic: '🧶', año: [1000, 6000], rep: 40, req: 'esp', lema: 'Cuerdas francesas, caídas suaves', d: 'Cuerdas y un fijo al año.' },
+      { id: 'petzel', marca: 'Frontal', cat: 'material', ic: '🔦', año: [2000, 12000], rep: 50, req: 'nacional', lema: 'Luz en la frente, cabeza en la vía', d: 'Material y un fijo al año.' },
+      { id: 'blackdiamante', marca: 'Piedra Negra', cat: 'material', ic: '💎', año: [3000, 15000], rep: 58, req: 'mundo', lema: 'Dura como el basalto', d: 'Equipo internacional de la marca.' },
+      { id: 'enueve', marca: 'Gradiente', cat: 'ropa', ic: '🌀', año: [300, 2500], rep: 20, repMax: 55, lema: 'Pantalones con estilo de fábrica', d: 'Ropa de escalada italiana y algo de dinero.' },
+      { id: 'patagonio', marca: 'Tierra del Fuego', cat: 'ropa', ic: '🧥', año: [1000, 8000], rep: 40, req: 'esp', lema: 'Ropa para salvar el planeta… y tu culo del frío', d: 'Ropa y un fijo; les gustan los proyectos en roca.' },
+      { id: 'mamut', marca: 'Mastodonte', cat: 'ropa', ic: '🦣', año: [3000, 15000], rep: 52, req: 'nacional', lema: 'Abriga como un mastodonte', d: 'Ropa, material y un fijo al año.' },
+      { id: 'arcterrix', marca: 'Fósil', cat: 'ropa', ic: '🦅', año: [5000, 25000], rep: 62, req: 'mundo', lema: 'Tan cara que da vértigo', d: 'Ropa técnica de lujo.' },
+      { id: 'southface', marca: 'Vertiente', cat: 'ropa', ic: '🧥', año: [8000, 35000], rep: 72, req: 'mundo', lema: 'Siempre hacia arriba', d: 'Una de las grandes: expediciones y documentales.' },
       { id: 'tiza', marca: 'Tiza Blanca', cat: 'magnesio', ic: '⬜', año: [0, 600], rep: 12, repMax: 45, lema: 'Agarra hasta los lunes', d: 'Magnesio gratis para toda la temporada.' },
       { id: 'friccion', marca: 'Fricción Labs', cat: 'magnesio', ic: '🧪', año: [500, 3000], rep: 35, req: 'esp', lema: 'Ciencia aplicada a tus manos sudadas', d: 'Magnesio de laboratorio y un fijo.' },
-      { id: 'gopru', marca: 'GoPru', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus caídas en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
-      { id: 'sansongEsc', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del campamento base', d: 'Tecnología y anuncios por todo el mundo.' },
+      { id: 'gopru', marca: 'Toma Extrema', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus caídas en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
+      { id: 'sansongEsc', marca: 'Solaris', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del campamento base', d: 'Tecnología y anuncios por todo el mundo.' },
     ],
     edadPagas: 18,   // hasta esta edad tu familia paga cuota, bono, licencia y competiciones en España
     catsPatro: ['local', 'bebida', 'pies', 'material', 'ropa', 'magnesio', 'tecno'],
@@ -2939,7 +2939,7 @@ const LOGROS = [
   ['contrato', '📝', 'Primer contrato profesional', s => s.fase === 'club', 'equipo'],
   ['gol', '⚽', 'Primer gol como profesional', s => s.stats.goles > 0, 'futbol'],
   ['patro1', '💼', 'Primer patrocinador', s => (s.patrosHist || []).length > 0],
-  ['alitas', '🐂', 'Te da alitas: firma con Red Toro', s => (s.patrosHist || []).includes('redtoro')],
+  ['alitas', '⚡', 'Con energía: firma con Rayo Energy', s => (s.patrosHist || []).includes('redtoro')],
   ['compras', '🛍️', 'Primera compra en la tienda', s => (s.compras || 0) > 0],
   ['oro', '✨', 'Zapatillas de oro', s => (s.armario || []).includes('calzado:doradas')],
   ['equipoPropio', '🧑‍🏫', 'Tu propio equipo: entrenador, fisio, nutricionista y psicólogo', s => (s.personal || []).length >= 4],
@@ -2955,7 +2955,7 @@ const LOGROS = [
   ['finalMundo', '🔥', 'Final de Copa del Mundo', s => (s.esc.mejor.mundo || 99) <= 8, 'escalada'],
   ['faEsc', '🆕', 'Primera ascensión', s => s.esc.fa > 0, 'escalada'],
   ['nuevea', '💎', 'Encadenar un 9a', s => s.esc.maxVia >= 20, 'escalada'],
-  ['olimpico', '🏅', 'Ir a unos Juegos Olímpicos', s => !!s.esc.olimpico, 'escalada'],
+  ['olimpico', '🏅', 'Ir a los Juegos de Verano', s => !!s.esc.olimpico, 'escalada'],
   ['medallaEsc', '🥇', 'Medalla en un Mundial, Europeo o Juegos', s => s.esc.medallas.length > 0, 'escalada'],
   ['pareja', '❤️', 'Encontrar pareja', s => !!rel(s, 'pareja')],
   ['coche', '🚗', 'Primer coche', s => s.coches.length > 0],
@@ -3328,7 +3328,7 @@ const MODS = {
   bloque: { n: 'Bloque', ic: '🪨', pesos: { fuerza: 0.45, tecnica: 0.35, cabeza: 0.1, velocidad: 0.1 }, d: 'Problemas cortos y explosivos de 4 a 5 m sobre colchonetas, sin cuerda.' },
   dificultad: { n: 'Dificultad', ic: '🧗', pesos: { resistencia: 0.4, tecnica: 0.25, cabeza: 0.2, fuerza: 0.15 }, d: 'Vías largas con cuerda: gana quien llega más alto.' },
   velocidad: { n: 'Velocidad', ic: '⏱️', suerte: 3, resbalon: true, pesos: { velocidad: 0.7, fuerza: 0.2, cabeza: 0.1 }, d: 'La misma pared de 15 m en todo el mundo, contra el reloj.' },
-  combinada: { n: 'Bloque y dificultad', ic: '🏅', pesos: null, de: ['bloque', 'dificultad'], d: 'Formato olímpico: suma de bloque y dificultad.' },
+  combinada: { n: 'Bloque y dificultad', ic: '🏅', pesos: null, de: ['bloque', 'dificultad'], d: 'Formato de los Juegos: suma de bloque y dificultad.' },
 };
 // Zonas reales. buenos = meses con buenas condiciones (0 = enero). coste = gasto por semana (viaje, comida, alojamiento).
 const ZONAS = {
@@ -3360,8 +3360,8 @@ const AMBITOS = {
   mundo: { n: 'Copa del Mundo', media: 72, sd: 6, N: 100, semi: 24, final: 8, ins: 100, viaje: 900, techo: 85, rep: 12, premio: [8000, 7000, 5000, 3000, 2500, 2000, 1500, 1000], presion: 0.8, energia: 20, nacional: true },
   europeo: { n: 'Campeonato de Europa', media: 70, sd: 6, N: 80, semi: 20, final: 8, ins: 100, viaje: 500, techo: 80, rep: 12, premio: [6000, 4000, 3000], presion: 0.9, energia: 20, nacional: true },
   mundial: { n: 'Campeonato del Mundo', media: 73, sd: 5.5, N: 120, semi: 24, final: 8, ins: 120, viaje: 1200, techo: 95, rep: 18, premio: [10000, 8000, 6000, 4000, 3000, 2500, 2000, 1500], presion: 1, energia: 20, nacional: true },
-  clasif: { n: 'Clasificatorio olímpico', media: 77, sd: 4, N: 40, semi: 0, final: 8, ins: 0, viaje: 1200, techo: 85, rep: 10, premio: [], presion: 1, energia: 20, nacional: true, plazas: 10 },
-  jjoo: { n: 'Juegos Olímpicos', media: 79, sd: 3.5, N: 20, semi: 0, final: 8, ins: 0, viaje: 0, techo: 100, rep: 30, premio: [90000, 48000, 30000], presion: 1.3, energia: 20, nacional: true },
+  clasif: { n: 'Clasificatorio para los Juegos', media: 77, sd: 4, N: 40, semi: 0, final: 8, ins: 0, viaje: 1200, techo: 85, rep: 10, premio: [], presion: 1, energia: 20, nacional: true, plazas: 10 },
+  jjoo: { n: 'Juegos de Verano', media: 79, sd: 3.5, N: 20, semi: 0, final: 8, ins: 0, viaje: 0, techo: 100, rep: 30, premio: [90000, 48000, 30000], presion: 1.3, energia: 20, nacional: true },
 };
 const ORDEN_AMB = ['auto', 'esp', 'cesp', 'europa', 'master', 'mundo', 'europeo', 'mundial', 'clasif', 'jjoo'];
 // Calendario base de cada año: [semana del año (0-17), ámbito, modalidad, lugar]
@@ -3399,7 +3399,7 @@ const TX = {
   tipos: { via: ['🧗', 'Vía', 'vías'], bloque: ['🪨', 'Bloque', 'bloque'] },
   resumenNivel: s => `Roca: ${gV(s.esc.maxVia)} en vía · ${gB(s.esc.maxBloque)} en bloque · En el rocódromo: ${gV(idxVia(nivelMod(s, 'dificultad')))} / ${gB(idxBloque(nivelMod(s, 'bloque')))}`,
   rocaAyuda: 'Cambiar de proyecto empieza de cero. Encadenar un grado nuevo da reputación (más a partir de 7c), seguidores y, con algunos patrocinadores, primas.',
-  compAyuda: s => `Premios: Copa y Campeonato de España 500, 300 y 200 €; Copa del Mundo 8.000, 7.000 y 5.000 €; másters por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, del Mundo, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} con plaza en el clasificatorio (top 10).`,
+  compAyuda: s => `Premios: Copa y Campeonato de España 500, 300 y 200 €; Copa del Mundo 8.000, 7.000 y 5.000 €; másters por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, del Mundo, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos de Verano: ${SEDES_JJOO[2028] ? 'Los Ángeles, Brisbane…' : ''} con plaza en el clasificatorio (top 10).`,
   secGrados: 'Grados', gradosAyuda: () => `Vías (escala francesa): ${GRADOS_VIA.slice(2).join(' · ')}.<br>Bloque (escala de Fontainebleau): ${GRADOS_BLOQUE.slice(3).join(' · ')}.<br>Un 7c de vía es más o menos como un 7B de bloque. El primer 9c del mundo es Silence (Flatanger, 2017).`,
   finMax: ev => `⛰️ Máximo en roca: <b>${gV(ev.maxVia)}</b> en vía y <b>${gB(ev.maxBloque)}</b> en bloque.`,
   basta: 'los dedos y la espalda dicen basta.', diarioJuego: 'escalo en el rocódromo de', sueño: 'Mi sueño: competir por todo el mundo, encadenar vías durísimas en roca… y vivir de lo que me gusta.',
@@ -3627,14 +3627,14 @@ function calendarioEsc(s, año) {
   CFG.escalada.modsGrandes.forEach((m, k) => l.push({ id: `${año}-g${k}`, sem: 13, amb: gran, mod: m, lugar: sede }));
   if (añoOlimpico(año)) {
     CFG.escalada.modsJJOO.forEach((m, k) => l.push({ id: `${año}-q${k}`, sem: 5, amb: 'clasif', mod: m, lugar: CFG.escalada.clasifLugar }));
-    CFG.escalada.modsJJOO.forEach((m, k) => l.push({ id: `${año}-o${k}`, sem: 10, amb: 'jjoo', mod: m, lugar: SEDES_JJOO[año] || 'sede olímpica' }));
+    CFG.escalada.modsJJOO.forEach((m, k) => l.push({ id: `${año}-o${k}`, sem: 10, amb: 'jjoo', mod: m, lugar: SEDES_JJOO[año] || 'sede de los Juegos' }));
   }
   return l.sort((a, b) => a.sem - b.sem || ORDEN_AMB.indexOf(b.amb) - ORDEN_AMB.indexOf(a.amb));
 }
 function nombreComp(c, s) {
   const A = AMBITOS[c.amb], juv = s && s.edad < 20 && A.juvenil ? ` ${s.edad < 16 ? 'sub-16' : s.edad < 18 ? 'sub-18' : 'sub-20'}` : '';
   if (TX.nombreComp) return TX.nombreComp(c, juv);
-  if (c.amb === 'jjoo') return `Juegos Olímpicos · ${MODS[c.mod].n.toLowerCase()}`;
+  if (c.amb === 'jjoo') return `Juegos de Verano · ${MODS[c.mod].n.toLowerCase()}`;
   return `${A.n}${juv} de ${MODS[c.mod].n.toLowerCase()}`;
 }
 function mejorMundoReciente(s, mod) {
@@ -3652,7 +3652,7 @@ function reqComp(s, c) {
   if (A.nacional && E.nacional !== E.año) return 'Solo con el equipo nacional.';
   if ((c.amb === 'mundial' || c.amb === 'europeo') && !E.anual.cm) return 'La federación solo lleva a quien ha competido este año en la Copa del Mundo.';
   if (c.amb === 'clasif' && mejorMundoReciente(s, c.mod) > 24) return 'Necesitas un top 24 en una Copa del Mundo de esta modalidad este año o el anterior.';
-  if (c.amb === 'jjoo' && !(E.olimpico && E.olimpico.año === E.año && E.olimpico.mod === c.mod)) return 'Solo si te clasificas en el clasificatorio olímpico.';
+  if (c.amb === 'jjoo' && !(E.olimpico && E.olimpico.año === E.año && E.olimpico.mod === c.mod)) return 'Solo si te clasificas en el clasificatorio para los Juegos.';
   const coste = costeComp(s, c);
   if (coste > 0 && dineroEsc(s) < coste) return `Inscripción${coste > A.ins ? ' y viaje' : ''}: ${cr(coste)}.`;
   return null;
@@ -3721,7 +3721,7 @@ function competirEsc(s, R, c) {
   if (c.amb === 'esp' || c.amb === 'cesp') E.anual.mejorEsp = Math.min(E.anual.mejorEsp, pos);
   if (c.amb === 'mundo') { E.anual.cm = true; E.anual.mejorMundo = Math.min(E.anual.mejorMundo, pos); const m = E.mejorMundoMod[c.mod] = E.mejorMundoMod[c.mod] || {}; m[E.año] = Math.min(m[E.año] || 99, pos); if (ronda === 'final') E.finales += 1; }
   if (['mundial', 'europeo', 'jjoo'].includes(c.amb) && pos <= pod) E.medallas.push({ año: E.año, amb: c.amb, mod: c.mod, pos });
-  if (c.amb === 'clasif' && pos <= A.plazas) { E.olimpico = { año: E.año, mod: c.mod }; R.opo.push(['🏅', `¡Plaza para los Juegos Olímpicos de ${SEDES_JJOO[E.año] || E.año} (${MODS[c.mod].n.toLowerCase()})!`]); celebrar = true; }
+  if (c.amb === 'clasif' && pos <= A.plazas) { E.olimpico = { año: E.año, mod: c.mod }; R.opo.push(['🏅', `¡Plaza para los Juegos de Verano de ${SEDES_JJOO[E.año] || E.año} (${MODS[c.mod].n.toLowerCase()})!`]); celebrar = true; }
   const nombre = nombreComp(c, s);
   E.palmares.unshift({ año: E.año, mes: mesEsc(s), n: nombre, lugar: c.lugar, mod: c.mod, amb: c.amb, pos, N, ronda, marca }); E.palmares = E.palmares.slice(0, 40);
   const ic = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : MODS[c.mod].ic;
@@ -3733,8 +3733,8 @@ function competirEsc(s, R, c) {
   if (TX.trasComp) TX.trasComp(s, R, c, pos, z, marca);
   prepararMomentoEsc(s, c, pos, ronda, antes, nombre);
   if (c.amb === 'jjoo') {
-    if (pos === 1) { E.becaOlimpica = { hasta: E.año + 4, mod: c.mod }; R.opo.push(['🥇', `¡Campeón/a olímpico/a! Premio de ${cr(A.premio[0])} y beca de ${cr(K.becaOlimpica)} al año hasta los Juegos de ${E.año + 4}.`]); }
-    else if (E.becaOlimpica && E.becaOlimpica.hasta === E.año) { E.becaOlimpica = null; R.opo.push(['🎓', 'No repito el oro: pierdo la beca olímpica.']); }
+    if (pos === 1) { E.becaOlimpica = { hasta: E.año + 4, mod: c.mod }; R.opo.push(['🥇', `¡Campeón/a de los Juegos! Premio de ${cr(A.premio[0])} y beca de ${cr(K.becaOlimpica)} al año hasta los Juegos de ${E.año + 4}.`]); }
+    else if (E.becaOlimpica && E.becaOlimpica.hasta === E.año) { E.becaOlimpica = null; R.opo.push(['🎓', 'No repito el oro: pierdo la beca de los Juegos.']); }
   }
   if (['mundo', 'mundial', 'jjoo'].includes(c.amb) && pos <= K.becaEstado.puesto && E.becaHasta < E.año + 1) {
     E.becaHasta = E.año + 1;
@@ -3766,8 +3766,8 @@ function semanaEscalada(s, R) {
   const E = s.esc, K = CFG.escalada, energiaAntes = R.antes.energia;
   // Competición de la semana
   if (s.fase === 'escalador') { const c = compDeLaSemana(s); if (c) competirEsc(s, R, c); }
-  // La beca olímpica dura hasta los siguientes Juegos: si pasan sin un nuevo oro, se pierde
-  if (E.becaOlimpica && E.becaOlimpica.hasta <= E.año && s.semanasAño >= K.semanaJJOO) { E.becaOlimpica = null; R.opo.push(['🎓', 'Pasan los Juegos sin un nuevo oro: se acaba mi beca olímpica.']); }
+  // La beca de los Juegos dura hasta los siguientes Juegos: si pasan sin un nuevo oro, se pierde
+  if (E.becaOlimpica && E.becaOlimpica.hasta <= E.año && s.semanasAño >= K.semanaJJOO) { E.becaOlimpica = null; R.opo.push(['🎓', 'Pasan los Juegos sin un nuevo oro: se acaba mi beca de los Juegos.']); }
   // Lesión: riesgo si has entrenado con los dedos cargados o sin energía
   if (s.lesion > 0) {
     s.lesion -= 1;
@@ -3812,7 +3812,7 @@ function semanaEscalada(s, R) {
 function economiaEsc(s, R) {
   const E = s.esc, K = CFG.escalada;
   let bruto = 0;
-  if (E.becaOlimpica) { const v = Math.round(K.becaOlimpica / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Beca olímpica (${cr(K.becaOlimpica)}/año hasta ${E.becaOlimpica.hasta})`, v]); }
+  if (E.becaOlimpica) { const v = Math.round(K.becaOlimpica / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Beca de los Juegos (${cr(K.becaOlimpica)}/año hasta ${E.becaOlimpica.hasta})`, v]); }
   for (const pt of s.patros) if (pt.año) { const v = Math.round(pt.año / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Patrocinio de ${pt.marca} (${cr(pt.año)}/año)`, v]); }
   if (E.nacional === E.año && E.beca) { bruto += E.beca; R.eco.push(['Ayuda de la federación', E.beca]); }
   const colab = E.seg >= K.segColab ? Math.round(E.seg / 1000 * K.colabPorMil) : 0;
@@ -4245,7 +4245,7 @@ const PANTALLAS_ESC = [
   { n: 'Élite mundial', ic: '⭐', premio: [['€', 25000]], desbloquea: 'Hijos, tienda de deportes y restaurante',
     obj: [[`Final de Copa del Mundo, ${textoGrado(18)} en roca o 3 negocios`, s => (s.esc.mejor.mundo || 99) <= 8 || s.negocios.length >= 3 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 19, s.negocios.length / 3)],
           ['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0], ['Ten pareja o tu propio coche', s => rel(s, 'pareja') || s.coches.length ? 1 : 0]] },
-  { n: 'Sueño olímpico', ic: '🏅', premio: [['€', 50000]], desbloquea: 'Marca de presas, gimnasio y supermercado',
+  { n: 'El sueño de los Juegos', ic: '🏅', premio: [['€', 50000]], desbloquea: 'Marca de presas, gimnasio y supermercado',
     obj: [[`Clasifícate para unos Juegos, ${textoGrado(20)} en roca o 4 negocios`, s => s.esc.olimpico || s.negocios.length >= 4 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 21, s.negocios.length / 4)],
           ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
   { n: 'Leyenda de la roca', ic: '🏔️', premio: [['€', 100000]], desbloquea: 'Hotel con encanto',
@@ -4343,7 +4343,7 @@ function hojaCarreraEsc() {
     <div style="margin-top:8px">
       ${s.lesion ? `<span class="badge b">🤕 ${esc(E.lesTipo)} (${s.lesion} sem)</span>` : ''}
       ${E.nacional === E.año ? `<span class="badge g">🇪🇸 Equipo nacional · ${cr(E.beca)}/sem</span>` : ''}
-      ${E.becaOlimpica ? `<span class="badge g">🥇 Beca olímpica ${cr(CFG.escalada.becaOlimpica)}/año hasta los Juegos de ${E.becaOlimpica.hasta}</span>` : ''}
+      ${E.becaOlimpica ? `<span class="badge g">🥇 Beca de los Juegos ${cr(CFG.escalada.becaOlimpica)}/año hasta los Juegos de ${E.becaOlimpica.hasta}</span>` : ''}
       ${E.becaHasta >= E.año ? `<span class="badge g">🎓 Beca del Estado hasta ${E.becaHasta} · saldo ${cr(E.becaSaldo)}</span>` : ''}
       ${s.patros.length ? `<span class="badge g">💼 ${s.patros.length} ${s.patros.length === 1 ? 'patrocinador' : 'patrocinadores'} · ${cr(s.patros.reduce((a, p) => a + p.año, 0))}/año</span>` : ''}
       <span class="badge">${TX.gPiel[0]} ${TX.gPiel[1]} ${E.piel}</span><span class="badge ${E.carga > CFG.escalada.cargaRiesgo ? 'b' : ''}">${TX.gCarga[0]} ${TX.cargaLarga} ${E.carga}</span>
@@ -4385,7 +4385,7 @@ function hojaCarreraEsc() {
     // Patrocinadores y becas
     h += `<div class="sec">🛒 Tu equipo y material</div><div class="card lista">${resumenMejoras(s)}</div>`;
     h += `<div class="sec">💼 Patrocinadores y becas</div><div class="card lista">${resumenPatros(s)}
-      <p class="small">🥇 Oro olímpico: ${cr(AMBITOS.jjoo.premio[0])} de premio y una beca de ${cr(CFG.escalada.becaOlimpica)} al año hasta los siguientes Juegos; si allí no repites el oro, la pierdes.${E.becaOlimpica ? ` Ahora la cobras hasta ${E.becaOlimpica.hasta}.` : ''}</p>
+      <p class="small">🥇 Oro en los Juegos: ${cr(AMBITOS.jjoo.premio[0])} de premio y una beca de ${cr(CFG.escalada.becaOlimpica)} al año hasta los siguientes Juegos; si allí no repites el oro, la pierdes.${E.becaOlimpica ? ` Ahora la cobras hasta ${E.becaOlimpica.hasta}.` : ''}</p>
       <p class="small">🎓 Beca del Estado: ${E.becaHasta >= E.año ? `cobras ${cr(CFG.escalada.becaEstado.mes)} al mes hasta final de ${E.becaHasta}. Saldo para gastar en ${TX.deporte}: ${cr(E.becaSaldo)} (lo que sobre al acabar el año se pierde).` : `si llegas a una final de Copa del Mundo (las ${CFG.escalada.becaEstado.puesto} mejores), el Estado te da ${cr(CFG.escalada.becaEstado.mes)} al mes durante ese año y el siguiente, para gastar solo en ${TX.deporte}.`}</p>
 </div>`;
     // Equipo
@@ -6176,11 +6176,11 @@ const PAISES_BASKET = {
     tipos: ['CB #', 'Club Baloncesto #', 'Basket #', '# Basket', 'Básquet #', 'Bàsquet #'],
     estadio: (c, cap) => (cap < 1500 ? 'Polideportivo Municipal de ' : cap < 6000 ? 'Pabellón Municipal de ' : 'Palacio de los Deportes de ') + c,
     ligas: [
-      { n: 'Liga ACB', fuerza: 80, cap: [5000, 15000], sueldo: [4000, 25000] },
-      { n: 'Primera FEB', fuerza: 70, cap: [1500, 6000], sueldo: [800, 3500] },
-      { n: 'Segunda FEB', fuerza: 60, cap: [600, 3000], sueldo: [300, 1000] },
-      { n: 'Tercera FEB', fuerza: 52, cap: [300, 1500], sueldo: [120, 400] },
-      { n: 'Primera Nacional', fuerza: 45, cap: [100, 800], sueldo: [40, 150] },
+      { n: 'Superliga', fuerza: 80, cap: [5000, 15000], sueldo: [4000, 25000] },
+      { n: 'Primera Nacional', fuerza: 70, cap: [1500, 6000], sueldo: [800, 3500] },
+      { n: 'Segunda Nacional', fuerza: 60, cap: [600, 3000], sueldo: [300, 1000] },
+      { n: 'Tercera Nacional', fuerza: 52, cap: [300, 1500], sueldo: [120, 400] },
+      { n: 'Liga Regional', fuerza: 45, cap: [100, 800], sueldo: [40, 150] },
     ],
   },
   it: {
@@ -6188,35 +6188,35 @@ const PAISES_BASKET = {
     pre: CFG.paises.it.pre, suf: CFG.paises.it.suf,
     tipos: ['Pallacanestro #', 'Basket #', 'Virtus #', 'Fortitudo #', 'Victoria #'],
     estadio: (c, cap) => (cap < 3000 ? 'Palazzetto di ' : 'PalaSport di ') + c,
-    ligas: [{ n: 'Serie A', fuerza: 78, cap: [3500, 12000], sueldo: [3000, 18000] }, { n: 'Serie A2', fuerza: 66, cap: [1500, 5000], sueldo: [600, 2500] }],
+    ligas: [{ n: 'Prima Serie', fuerza: 78, cap: [3500, 12000], sueldo: [3000, 18000] }, { n: 'Seconda Serie', fuerza: 66, cap: [1500, 5000], sueldo: [600, 2500] }],
   },
   fr: {
     n: 'Francia', flag: '🇫🇷', vida: 160, vis: 1.0, extranjero: 12,
     pre: CFG.paises.fr.pre, suf: CFG.paises.fr.suf,
     tipos: ['BC #', 'Élan #', 'JL #', 'Basket #', 'SLUC #'],
     estadio: (c, cap) => (cap < 3000 ? 'Salle de ' : 'Palais des Sports de ') + c,
-    ligas: [{ n: 'Pro A', fuerza: 76, cap: [3000, 10000], sueldo: [2500, 15000] }, { n: 'Pro B', fuerza: 65, cap: [1200, 4000], sueldo: [500, 2000] }],
+    ligas: [{ n: 'Division Élite', fuerza: 76, cap: [3000, 10000], sueldo: [2500, 15000] }, { n: 'Division Deux', fuerza: 65, cap: [1200, 4000], sueldo: [500, 2000] }],
   },
   de: {
     n: 'Alemania', flag: '🇩🇪', vida: 170, vis: 1.0, extranjero: 12,
     pre: CFG.paises.de.pre, suf: CFG.paises.de.suf,
     tipos: ['# Baskets', '# Towers', '# Giants', 'BG #', 'Skyliners #'],
     estadio: (c, cap) => (cap < 3000 ? 'Sporthalle ' : '') + c + (cap < 3000 ? '' : ' Arena'),
-    ligas: [{ n: 'BBL', fuerza: 76, cap: [3000, 14000], sueldo: [2500, 15000] }, { n: 'ProA', fuerza: 64, cap: [1000, 4000], sueldo: [500, 2000] }],
+    ligas: [{ n: 'Erste Liga', fuerza: 76, cap: [3000, 14000], sueldo: [2500, 15000] }, { n: 'Zweite Liga', fuerza: 64, cap: [1000, 4000], sueldo: [500, 2000] }],
   },
   tr: {
     n: 'Turquía', flag: '🇹🇷', vida: 120, vis: 1.0, extranjero: 15,
     pre: ['Kara', 'Ak', 'Yeni', 'Eski', 'Bal', 'Göl', 'Kum', 'Taş', 'Gök', 'Dağ'], suf: ['köy', 'dere', 'tepe', 'su', 'kent', 'yaka', 'pınar', 'hisar', 'kale', 'ova'],
     tipos: ['# Spor', '# Basket', '# Belediyespor', '# Gençlik'],
     estadio: (c, cap) => c + (cap < 4000 ? ' Spor Salonu' : ' Arena'),
-    ligas: [{ n: 'Süper Lig', fuerza: 79, cap: [4000, 14000], sueldo: [4000, 22000] }],
+    ligas: [{ n: 'Birinci Lig', fuerza: 79, cap: [4000, 14000], sueldo: [4000, 22000] }],
   },
   us: {
     n: 'Estados Unidos', flag: '🇺🇸', vida: 260, vis: 1.6, extranjero: 25,
     pre: ['Spring', 'Lake', 'River', 'Oak', 'Red', 'Silver', 'Iron', 'Bay', 'Pine', 'Clear', 'Stone', 'Maple'], suf: ['field', 'ville', 'ton', 'port', 'wood', 'ford', 'dale', 'burg', 'view', 'haven'],
     tipos: ['# Comets', '# Storm', '# Cyclones', '# Mustangs', '# Titans', '# Pioneers', '# Hawkeyes', '# Rattlers', '# Blaze'],
     estadio: (c, cap) => c + (cap < 8000 ? ' Center' : ' Arena'),
-    ligas: [{ n: 'NBA', fuerza: 92, cap: [17000, 21000], sueldo: [30000, 160000] }, { n: 'G League', fuerza: 73, cap: [2000, 6000], sueldo: [700, 2500] }],
+    ligas: [{ n: 'Liga Americana', fuerza: 92, cap: [17000, 21000], sueldo: [30000, 160000] }, { n: 'Liga de Desarrollo', fuerza: 73, cap: [2000, 6000], sueldo: [700, 2500] }],
   },
 };
 const POSICIONES_BASKET = {
@@ -6224,40 +6224,40 @@ const POSICIONES_BASKET = {
   alero: { n: 'Alero', ic: '🎯', d: 'Anotador: más puntos y titulares, pero tu nota depende de meterlas.', pts: 18, ast: 3, reb: 5.5, repGol: 0.12, primaGol: 0.008, notaExtra: 0 },
   pivot: { n: 'Pívot', ic: '🛡️', d: 'Rebotes y tapones: menos puntos, pero notas más estables (+0,3).', pts: 13, ast: 2, reb: 10, repGol: 0.14, primaGol: 0.006, notaExtra: 0.3 },
 };
-// Marcas inventadas. tiers = [categoría más alta, más baja] en la que ficha (1 = Liga ACB … 5 = Primera Nacional)
+// Marcas inventadas. tiers = [categoría más alta, más baja] en la que ficha (1 = Superliga … 5 = Liga Regional)
 const MARCAS_BASKET = [
   { id: 'barPaco', marca: 'Bar Paco', cat: 'local', ic: '🍺', año: [200, 900], rep: 8, tiers: [3, 5], lema: 'El mejor bocata de calamares del barrio', d: 'Te invitan a comer y te pagan algo por llevar su nombre en el chándal.' },
   { id: 'fruteria', marca: 'Frutería Hermanos Gil', cat: 'local', ic: '🍊', año: [200, 800], rep: 8, tiers: [4, 5], lema: 'Vitaminas para el rebote', d: 'La frutería de la esquina quiere tu foto con una naranja gigante.' },
   { id: 'talleres', marca: 'Talleres Manolo', cat: 'local', ic: '🔧', año: [300, 1500], rep: 15, tiers: [3, 5], lema: 'Si hace ruido, lo arreglamos', d: 'El taller de toda la vida quiere salir en tus fotos.' },
   { id: 'autoescuela', marca: 'Autoescuela Rápida', cat: 'local', ic: '🚦', año: [500, 2500], rep: 22, tiers: [2, 4], lema: 'Aprobarás… a la tercera', d: 'Una autoescuela de la ciudad con muchas ganas de anunciarse.' },
   { id: 'inmobiliaria', marca: 'Inmobiliaria Tu Casa', cat: 'local', ic: '🏠', año: [1500, 8000], rep: 35, tiers: [1, 3], lema: 'Pisos con techos altos (para pívots)', d: 'La inmobiliaria más grande de la ciudad.' },
-  { id: 'yoma', marca: 'Yoma', cat: 'zapas', ic: '👟', año: [0, 1500], rep: 18, tiers: [2, 4], material: true, lema: 'Zapatillas de las de toda la vida', d: 'Zapatillas gratis y algo de dinero: viste a muchos equipos modestos.' },
-  { id: 'piqui', marca: 'Piqui', cat: 'zapas', ic: '👟', año: [0, 2500], rep: 25, tiers: [2, 4], material: true, lema: 'Hechas para botar', d: 'Zapatillas y un pequeño fijo.' },
-  { id: 'anda', marca: 'Anda', cat: 'zapas', ic: '👟', año: [1000, 8000], rep: 35, tiers: [2, 3], material: true, lema: 'Anda, ¡y salta!', d: 'Zapatillas de mucha calidad.' },
-  { id: 'pumba', marca: 'Pumba', cat: 'zapas', ic: '🐗', año: [3000, 30000], rep: 45, tiers: [1, 2], material: true, lema: 'Hakuna mate', d: 'Una de las grandes: solo ficha en la Liga ACB y la Primera FEB.' },
-  { id: 'adibas', marca: 'Adibas', cat: 'zapas', ic: '👟', año: [15000, 120000], rep: 60, tiers: [1, 1], material: true, lema: 'Tres rayas y ninguna excusa', d: 'Zapatillas, ropa y un buen fijo. Solo Liga ACB.' },
-  { id: 'jordaniano', marca: 'Air Jordaniano', cat: 'zapas', ic: '🦘', año: [80000, 500000], rep: 85, req: 'estrella', material: true, lema: 'Vuela (y aterriza con estilo)', d: 'Solo estrellas: tu propia zapatilla con tu nombre.' },
+  { id: 'yoma', marca: 'Toledo Sport', cat: 'zapas', ic: '👟', año: [0, 1500], rep: 18, tiers: [2, 4], material: true, lema: 'Zapatillas de las de toda la vida', d: 'Zapatillas gratis y algo de dinero: viste a muchos equipos modestos.' },
+  { id: 'piqui', marca: 'Cima', cat: 'zapas', ic: '👟', año: [0, 2500], rep: 25, tiers: [2, 4], material: true, lema: 'Hechas para botar', d: 'Zapatillas y un pequeño fijo.' },
+  { id: 'anda', marca: 'Ritmo', cat: 'zapas', ic: '👟', año: [1000, 8000], rep: 35, tiers: [2, 3], material: true, lema: 'Anda, ¡y salta!', d: 'Zapatillas de mucha calidad.' },
+  { id: 'pumba', marca: 'Felino', cat: 'zapas', ic: '🐆', año: [3000, 30000], rep: 45, tiers: [1, 2], material: true, lema: 'Salta como un gato', d: 'Una de las grandes: solo ficha en la Superliga y la Primera Nacional.' },
+  { id: 'adibas', marca: 'Trébol', cat: 'zapas', ic: '👟', año: [15000, 120000], rep: 60, tiers: [1, 1], material: true, lema: 'Corre, salta, repite', d: 'Zapatillas, ropa y un buen fijo. Solo Superliga.' },
+  { id: 'jordaniano', marca: 'Vuelo Alto', cat: 'zapas', ic: '🦘', año: [80000, 500000], rep: 85, req: 'estrella', material: true, lema: 'Vuela (y aterriza con estilo)', d: 'Solo estrellas: tu propia zapatilla con tu nombre.' },
   { id: 'aguaPueblo', marca: 'Agua Manantial del Pueblo', cat: 'bebida', ic: '💧', año: [200, 1200], rep: 10, tiers: [3, 5], lema: 'Directa de la fuente (de la plaza)', d: 'Un agua de la zona que patrocina a los chavales del pueblo.' },
   { id: 'refrescoSur', marca: 'Refrescos del Sur', cat: 'bebida', ic: '🥤', año: [800, 4000], rep: 28, tiers: [2, 3], lema: 'Con burbujas y con arte', d: 'Una marca de refrescos regional.' },
-  { id: 'aquarios', marca: 'Aquarios', cat: 'bebida', ic: '🧃', año: [5000, 25000], rep: 45, tiers: [1, 2], lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida.' },
-  { id: 'gatorrada', marca: 'Gatorrada', cat: 'bebida', ic: '⚡', año: [15000, 70000], rep: 62, tiers: [1, 1], lema: 'Suda la gota gorda', d: 'La bebida de los banquillos de la Liga ACB.' },
-  { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [60000, 250000], rep: 85, req: 'estrella', lema: 'Te da alitas… para machacar', d: 'Solo estrellas: vídeos imposibles, mates y fiestas.' },
-  { id: 'kapa', marca: 'Kapa', cat: 'ropa', ic: '🧢', año: [500, 3000], rep: 20, tiers: [2, 4], lema: 'Dos personas sentadas espalda con espalda', d: 'Chándales y algo de dinero.' },
-  { id: 'spaldon', marca: 'Spaldon', cat: 'ropa', ic: '🏀', año: [800, 5000], rep: 30, tiers: [2, 3], lema: 'Del balón a la sudadera', d: 'La marca de los balones también hace ropa.' },
-  { id: 'underamour', marca: 'Under Amour', cat: 'ropa', ic: '💘', año: [5000, 40000], rep: 50, tiers: [1, 2], lema: 'Entrena con el corazón', d: 'Ropa técnica y un buen fijo.' },
-  { id: 'hugobros', marca: 'Hugo Bros', cat: 'ropa', ic: '🕴️', año: [25000, 120000], rep: 75, tiers: [1, 1], lema: 'Elegancia de vestuario (talla XXL)', d: 'Trajes para las fotos oficiales. Solo Liga ACB.' },
+  { id: 'aquarios', marca: 'Isobar', cat: 'bebida', ic: '🧃', año: [5000, 25000], rep: 45, tiers: [1, 2], lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida.' },
+  { id: 'gatorrada', marca: 'Hidromax', cat: 'bebida', ic: '⚡', año: [15000, 70000], rep: 62, tiers: [1, 1], lema: 'Suda la gota gorda', d: 'La bebida de los banquillos de la Superliga.' },
+  { id: 'redtoro', marca: 'Rayo Energy', cat: 'bebida', ic: '⚡', año: [60000, 250000], rep: 85, req: 'estrella', lema: 'Te pone las pilas… para machacar', d: 'Solo estrellas: vídeos imposibles, mates y fiestas.' },
+  { id: 'kapa', marca: 'Delta Sport', cat: 'ropa', ic: '🧢', año: [500, 3000], rep: 20, tiers: [2, 4], lema: 'Chándales de los de antes', d: 'Chándales y algo de dinero.' },
+  { id: 'spaldon', marca: 'Bote Pro', cat: 'ropa', ic: '🏀', año: [800, 5000], rep: 30, tiers: [2, 3], lema: 'Del balón a la sudadera', d: 'La marca de los balones también hace ropa.' },
+  { id: 'underamour', marca: 'Coraza', cat: 'ropa', ic: '💘', año: [5000, 40000], rep: 50, tiers: [1, 2], lema: 'Entrena con el corazón', d: 'Ropa técnica y un buen fijo.' },
+  { id: 'hugobros', marca: 'Sastrería Bruno', cat: 'ropa', ic: '🕴️', año: [25000, 120000], rep: 75, tiers: [1, 1], lema: 'Elegancia de vestuario (talla XXL)', d: 'Trajes para las fotos oficiales. Solo Superliga.' },
   { id: 'pizzeria', marca: 'Pizzería Mamma Mía', cat: 'comida', ic: '🍕', año: [200, 1000], rep: 10, tiers: [3, 5], lema: 'Masa fina, corazón grande', d: 'Pizza gratis los lunes a cambio de una foto.' },
-  { id: 'telepizzo', marca: 'Telepizzo', cat: 'comida', ic: '🛵', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Llega antes que tu contraataque', d: 'Una cadena de pizzas que busca caras conocidas.' },
-  { id: 'burguerRey', marca: 'Burguer Rey', cat: 'comida', ic: '👑', año: [10000, 50000], rep: 58, tiers: [1, 2], lema: 'El rey de las hamburguesas (y del rebote)', d: 'Anuncios en la tele y menús con tu nombre.' },
-  { id: 'xiaomo', marca: 'Xiaomo', cat: 'tecno', ic: '📱', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Mucho móvil por poco dinero', d: 'Móviles y un pequeño fijo.' },
-  { id: 'sansong', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [10000, 80000], rep: 60, tiers: [1, 2], lema: 'La pantalla más grande del pabellón', d: 'Tecnología y anuncios con mucha luz.' },
-  { id: 'manzana', marca: 'Manzana', cat: 'tecno', ic: '🍎', año: [40000, 200000], rep: 82, req: 'estrella', lema: 'Piensa diferente (pero paga igual)', d: 'Solo trabaja con estrellas mundiales.' },
-  { id: 'casiyo', marca: 'Casiyo', cat: 'reloj', ic: '⌚', año: [800, 5000], rep: 32, tiers: [2, 3], lema: 'Hace pip, como la bocina', d: 'Relojes digitales de toda la vida.' },
-  { id: 'festinos', marca: 'Festinos', cat: 'reloj', ic: '⏱️', año: [5000, 30000], rep: 50, tiers: [1, 2], lema: 'Puntual como un triple sobre la bocina', d: 'Relojes de deporte de gama media-alta.' },
-  { id: 'rolecs', marca: 'Rolecs', cat: 'reloj', ic: '👑', año: [50000, 200000], rep: 85, req: 'estrella', lema: 'Para cuando el tiempo es oro (literalmente)', d: 'Solo ficha a lo más alto del baloncesto.' },
-  { id: 'kiya', marca: 'Kiya', cat: 'coche', ic: '🚙', año: [1500, 8000], rep: 38, tiers: [2, 3], lema: 'Siete años de garantía y uno de patrocinio', d: 'Un fijo y un coche para ir a entrenar (con el asiento muy atrás).' },
-  { id: 'siat', marca: 'Siat', cat: 'coche', ic: '🚗', año: [4000, 20000], rep: 48, tiers: [1, 2], lema: 'Auto emoción (o eso dicen)', d: 'Un fijo y un coche nuevo cada año.' },
-  { id: 'audy', marca: 'Audy', cat: 'coche', ic: '🏎️', año: [25000, 120000], rep: 70, tiers: [1, 1], lema: 'Cuatro aros y un sueldo', d: 'Coche de lujo y un fijo muy alto. Solo Liga ACB.' },
+  { id: 'telepizzo', marca: 'Pizzamóvil', cat: 'comida', ic: '🛵', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Llega antes que tu contraataque', d: 'Una cadena de pizzas que busca caras conocidas.' },
+  { id: 'burguerRey', marca: 'Burger Barón', cat: 'comida', ic: '👑', año: [10000, 50000], rep: 58, tiers: [1, 2], lema: 'El rey de las hamburguesas (y del rebote)', d: 'Anuncios en la tele y menús con tu nombre.' },
+  { id: 'xiaomo', marca: 'Dragonfón', cat: 'tecno', ic: '📱', año: [1500, 8000], rep: 35, tiers: [2, 3], lema: 'Mucho móvil por poco dinero', d: 'Móviles y un pequeño fijo.' },
+  { id: 'sansong', marca: 'Solaris', cat: 'tecno', ic: '📲', año: [10000, 80000], rep: 60, tiers: [1, 2], lema: 'La pantalla más grande del pabellón', d: 'Tecnología y anuncios con mucha luz.' },
+  { id: 'manzana', marca: 'Pera', cat: 'tecno', ic: '🍎', año: [40000, 200000], rep: 82, req: 'estrella', lema: 'Piensa en verde (pero paga igual)', d: 'Solo trabaja con estrellas mundiales.' },
+  { id: 'casiyo', marca: 'Tic-Tac', cat: 'reloj', ic: '⌚', año: [800, 5000], rep: 32, tiers: [2, 3], lema: 'Hace pip, como la bocina', d: 'Relojes digitales de toda la vida.' },
+  { id: 'festinos', marca: 'Puntual', cat: 'reloj', ic: '⏱️', año: [5000, 30000], rep: 50, tiers: [1, 2], lema: 'Puntual como un triple sobre la bocina', d: 'Relojes de deporte de gama media-alta.' },
+  { id: 'rolecs', marca: 'Aurum', cat: 'reloj', ic: '👑', año: [50000, 200000], rep: 85, req: 'estrella', lema: 'Para cuando el tiempo es oro (literalmente)', d: 'Solo ficha a lo más alto del baloncesto.' },
+  { id: 'kiya', marca: 'Hana Motors', cat: 'coche', ic: '🚙', año: [1500, 8000], rep: 38, tiers: [2, 3], lema: 'Muchos años de garantía y uno de patrocinio', d: 'Un fijo y un coche para ir a entrenar (con el asiento muy atrás).' },
+  { id: 'siat', marca: 'Ibérica Motors', cat: 'coche', ic: '🚗', año: [4000, 20000], rep: 48, tiers: [1, 2], lema: 'Motor con salero', d: 'Un fijo y un coche nuevo cada año.' },
+  { id: 'audy', marca: 'Lince Motors', cat: 'coche', ic: '🏎️', año: [25000, 120000], rep: 70, tiers: [1, 1], lema: 'Rápido como un lince', d: 'Coche de lujo y un fijo muy alto. Solo Superliga.' },
 ];
 CAT_PATRO.zapas = 'Zapatillas';
 // Estadísticas de un partido de baloncesto: puntos, rebotes y asistencias según tu posición, tus minutos y tu nota
@@ -6271,7 +6271,7 @@ function statsBasket(s, P, pos, titular) {
   P.nota = r1(clamp(P.notaBase + (P.goles + P.reb + P.asist - esperado) / 12, 3, 10));
 }
 const TXE_BASKET = {
-  introSub: 'Una vida: de la cancha del barrio a la Liga ACB y la NBA… y dueño/a de negocios, casas y hasta un club.',
+  introSub: 'Una vida: de la cancha del barrio a la Superliga y la Liga Americana… y dueño/a de negocios, casas y hasta un club.',
   introNota: 'Ligas reales, clubes ficticios.',
   deporte: 'baloncesto', deportista: 'jugador/a de baloncesto', exDeportista: 'Exjugador/a de baloncesto', icGol: '🏀', icPartido: '🏀', icEstadio: '🏟️',
   uGol: n => n === 1 ? 'punto' : 'puntos', uGolCorto: 'Puntos', verboGol: 'Anotar', golNoticia: 20,
@@ -6288,7 +6288,7 @@ const TXE_BASKET = {
   hazaña: P => [P.goles, P.reb, P.asist].filter(v => v >= 10).length >= 3,
   granPost: 25, postHazaña: P => `¡${P.goles} puntos esta noche! Gracias, afición 🙌`,
   resumenStats: P => P.min ? ` · ${P.goles} puntos, ${P.reb} rebotes y ${P.asist} asistencias en ${P.min} minutos` : '',
-  diarios: ['Gigantes del Basket', 'El Rebote', 'Deporte Local', 'La Bocina'],
+  diarios: ['Tiro Libre', 'El Rebote', 'Deporte Local', 'La Bocina'],
   gritos: ['¡Triple sobre la bocina! ¿Lo habéis visto?', '¿Alguien ha grabado ese mate?', 'Hoy la canasta parecía una piscina'],
   diarioJuego: 'juego al baloncesto en la cancha del barrio de', colgar: 'colgar las zapatillas', materialGratis: 'Zapatillas',
   catCalzado: 'zapas', objGoles: pos => ({ base: 120, alero: 220, pivot: 150 })[pos] || 150, primaGolPatro: 0.0006,
@@ -6304,7 +6304,7 @@ const PANTALLAS_BASKET = PANTALLAS.map((P, i) => Object.assign({}, P, {
   obj: P.obj.map(([t, f]) => [t.replace('Retírate del fútbol', 'Retírate del baloncesto').replace('club de fútbol', 'club de baloncesto'), f]),
 }));
 PAQ.basket = { PAISES: PAISES_BASKET, POSICIONES: POSICIONES_BASKET, MARCAS: MARCAS_BASKET, CATS: ['local', 'zapas', 'bebida', 'ropa', 'comida', 'tecno', 'reloj', 'coche'],
-  NOMBRE_TIER: ['Liga ACB', 'Primera FEB', 'Segunda FEB', 'Tercera FEB', 'Primera Nacional'], PANTALLAS: PANTALLAS_BASKET, TXE: TXE_BASKET };
+  NOMBRE_TIER: ['Superliga', 'Primera Nacional', 'Segunda Nacional', 'Tercera Nacional', 'Liga Regional'], PANTALLAS: PANTALLAS_BASKET, TXE: TXE_BASKET };
 Object.assign(TXE_BASKET, {
   enLaPlaza: 'la cancha', consejo: '«El balón no tiene la culpa: pásalo. Y flexiona las rodillas.»',
   mentorFinal: '«Ya estoy mayor. ¿Entrenarías a los críos del minibasket los sábados?»', academia: 'Academia de baloncesto',
@@ -6346,7 +6346,7 @@ function pantallasInd(T) {
     { n: 'Élite mundial', ic: '⭐', premio: [['€', 25000]], desbloquea: 'Hijos, tienda de deportes y restaurante',
       obj: [o(`Final en ${T.mundo}, ${T.grado(18)} ${T.enRoca} o 3 negocios`, `Final en ${T.mundo} o 3 negocios`, s => (s.esc.mejor.mundo || 99) <= 8 || s.negocios.length >= 3 ? 1 : Math.max(r(s) / 19, s.negocios.length / 3), s => (s.esc.mejor.mundo || 99) <= 8 || s.negocios.length >= 3 ? 1 : s.negocios.length / 3),
             ['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0], ['Ten pareja o tu propio coche', s => rel(s, 'pareja') || s.coches.length ? 1 : 0]] },
-    { n: 'Sueño olímpico', ic: '🏅', premio: [['€', 50000]], desbloquea: `${T.marca}, gimnasio y supermercado`,
+    { n: 'El sueño de los Juegos', ic: '🏅', premio: [['€', 50000]], desbloquea: `${T.marca}, gimnasio y supermercado`,
       obj: [o(`Clasifícate para unos Juegos, ${T.grado(20)} ${T.enRoca} o 4 negocios`, 'Clasifícate para unos Juegos o ten 4 negocios', s => s.esc.olimpico || s.negocios.length >= 4 ? 1 : Math.max(r(s) / 21, s.negocios.length / 4), s => s.esc.olimpico || s.negocios.length >= 4 ? 1 : s.negocios.length / 4),
             ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
     { n: T.leyenda, ic: T.icLeyenda, premio: [['€', 100000]], desbloquea: 'Hotel con encanto',
@@ -6424,7 +6424,7 @@ PAQ.skate = paqueteInd({
     street: { n: 'Street', ic: '🛹', pesos: { tecnica: 0.4, fuerza: 0.25, cabeza: 0.25, velocidad: 0.1 }, d: 'Escaleras, barandillas y bordillos: carreras de 45 segundos y trucos sueltos.', ultimo: 'Último truco', marca: MARCA_SKATE('mejor truco') },
     park: { n: 'Park', ic: '🌀', pesos: { velocidad: 0.35, resistencia: 0.25, tecnica: 0.25, cabeza: 0.15 }, d: 'Bowls y rampas: tres carreras de 45 segundos, cuenta la mejor.', ultimo: 'Última carrera', marca: MARCA_SKATE('mejor carrera:') },
   },
-  AMBITOS: nombresAmb(AMBITOS, { auto: 'Campeonato autonómico', master: 'Equis Games', mundo: 'Pro Tour mundial', clasif: 'Clasificatorio olímpico' }),
+  AMBITOS: nombresAmb(AMBITOS, { auto: 'Campeonato autonómico', master: 'Juegos Extremos', mundo: 'Pro Tour mundial', clasif: 'Clasificatorio para los Juegos' }),
   EQUIPOS: {
     club: { n: 'Asociación de skate del barrio', ic: '🏠', cuota: 10, calidad: 1.0, d: 'Un entrenador voluntario, el skatepark de siempre y los colegas cerca.' },
     centro: { n: 'Centro de tecnificación', ic: '🏛️', cuota: 40, calidad: 1.2, nivelMin: 30, d: 'Entrenadores de la federación y un skatepark cubierto, pero lejos de casa.' },
@@ -6449,28 +6449,28 @@ PAQ.skate = paqueteInd({
       { id: 'parqueLocal', marca: 'Skatepark cubierto de tu ciudad', cat: 'local', ic: '🏟️', año: [300, 2000], rep: 22, bono: true, repMax: 60, lema: 'Aquí se cae con estilo', d: 'Entrenas gratis allí y sales en sus redes.' },
       { id: 'fisioTobillo', marca: 'Fisioterapia Tobillo de Acero', cat: 'local', ic: '🩹', año: [500, 2500], rep: 30, req: 'esp', lema: 'Tobillos como nuevos', d: 'Una clínica especializada en skaters (y en sus tobillos).' },
       { id: 'tablasBarrio', marca: 'Tablas del Barrio', cat: 'tablas', ic: '🛹', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Hechas a mano (casi rectas)', d: 'Tablas gratis y algo de dinero si destacas.' },
-      { id: 'elemento', marca: 'Elemento', cat: 'tablas', ic: '🌳', año: [0, 3000], rep: 25, material: true, repMax: 65, lema: 'Patina con la naturaleza', d: 'Tablas gratis y un pequeño fijo.' },
-      { id: 'panadero', marca: 'Panadero Skateboards', cat: 'tablas', ic: '🥖', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Recién salidas del horno', d: 'Tablas y un fijo al año.' },
-      { id: 'santaCrus', marca: 'Santa Crus', cat: 'tablas', ic: '✋', año: [2000, 12000], rep: 50, req: 'nacional', material: true, lema: 'La mano que lo empezó todo', d: 'Tablas con tu nombre y un buen fijo.' },
-      { id: 'chica', marca: 'Chica Skateboards', cat: 'tablas', ic: '🚺', año: [4000, 20000], rep: 60, req: 'mundo', material: true, lema: 'Las del muñequito de baño', d: 'Equipo internacional y tabla con tu nombre.' },
-      { id: 'etniez', marca: 'Etniez', cat: 'zapas', ic: '👟', año: [500, 3000], rep: 25, repMax: 60, lema: 'Suela gorda, corazón grande', d: 'Zapatillas y algo de dinero.' },
-      { id: 'vanz', marca: 'Vanz', cat: 'zapas', ic: '👟', año: [1000, 6000], rep: 35, req: 'esp', lema: 'Fuera de la pared', d: 'Zapatillas de cuadros y un fijo.' },
-      { id: 'dece', marca: 'DeCe Shoes', cat: 'zapas', ic: '👟', año: [2000, 10000], rep: 45, req: 'nacional', lema: 'Zapatillas con hombros', d: 'Zapatillas y un buen fijo.' },
-      { id: 'naikSB', marca: 'Naik SB', cat: 'zapas', ic: '✔️', año: [8000, 40000], rep: 70, req: 'mundo', lema: 'Just du it (en el bordillo)', d: 'Tu propia zapatilla y anuncios por todo el mundo.' },
-      { id: 'espitfuego', marca: 'Espitfuego', cat: 'ruedas', ic: '🔥', año: [0, 2500], rep: 22, repMax: 55, lema: 'Ruedas que queman', d: 'Ruedas gratis y algo de dinero.' },
-      { id: 'huesos', marca: 'Huesos Wheels', cat: 'ruedas', ic: '🦴', año: [1000, 6000], rep: 40, req: 'esp', lema: 'Duras como un hueso', d: 'Ruedas y rodamientos y un fijo.' },
+      { id: 'elemento', marca: 'Raíz', cat: 'tablas', ic: '🌳', año: [0, 3000], rep: 25, material: true, repMax: 65, lema: 'Patina con la naturaleza', d: 'Tablas gratis y un pequeño fijo.' },
+      { id: 'panadero', marca: 'Masa Madre Skateboards', cat: 'tablas', ic: '🥖', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Recién salidas del horno', d: 'Tablas y un fijo al año.' },
+      { id: 'santaCrus', marca: 'Bahía Skateboards', cat: 'tablas', ic: '✋', año: [2000, 12000], rep: 50, req: 'nacional', material: true, lema: 'De la playa al asfalto', d: 'Tablas con tu nombre y un buen fijo.' },
+      { id: 'chica', marca: 'Pictograma Skateboards', cat: 'tablas', ic: '🚺', año: [4000, 20000], rep: 60, req: 'mundo', material: true, lema: 'Diseño limpio, trucos sucios', d: 'Equipo internacional y tabla con tu nombre.' },
+      { id: 'etniez', marca: 'Tribu', cat: 'zapas', ic: '👟', año: [500, 3000], rep: 25, repMax: 60, lema: 'Suela gorda, corazón grande', d: 'Zapatillas y algo de dinero.' },
+      { id: 'vanz', marca: 'Suela Gorda', cat: 'zapas', ic: '👟', año: [1000, 6000], rep: 35, req: 'esp', lema: 'Para patinar y para la foto', d: 'Zapatillas de cuadros y un fijo.' },
+      { id: 'dece', marca: 'Capital Shoes', cat: 'zapas', ic: '👟', año: [2000, 10000], rep: 45, req: 'nacional', lema: 'Zapatillas con hombros', d: 'Zapatillas y un buen fijo.' },
+      { id: 'naikSB', marca: 'Victoria SB', cat: 'zapas', ic: '🏅', año: [8000, 40000], rep: 70, req: 'mundo', lema: 'Hazlo y punto (en el bordillo)', d: 'Tu propia zapatilla y anuncios por todo el mundo.' },
+      { id: 'espitfuego', marca: 'Llamarada', cat: 'ruedas', ic: '🔥', año: [0, 2500], rep: 22, repMax: 55, lema: 'Ruedas que queman', d: 'Ruedas gratis y algo de dinero.' },
+      { id: 'huesos', marca: 'Esqueleto Wheels', cat: 'ruedas', ic: '🦴', año: [1000, 6000], rep: 40, req: 'esp', lema: 'Duras como un hueso', d: 'Ruedas y rodamientos y un fijo.' },
       { id: 'kombucha', marca: 'Kombucha Zen', cat: 'bebida', ic: '🍵', año: [300, 1500], rep: 18, repMax: 50, lema: 'Fermentada como tus calcetines', d: 'Una bebida pequeña que adora a los skaters.' },
-      { id: 'monstruo', marca: 'Monstruo Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Libera a la bestia (y al tobillo)', d: 'Pegatinas en tu casco y un buen fijo.' },
-      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te da alitas… para el 900', d: 'Solo estrellas: vídeos imposibles y viajes por todo el mundo.' },
-      { id: 'trasher', marca: 'Trasher', cat: 'ropa', ic: '🔥', año: [300, 2500], rep: 20, repMax: 55, lema: 'Patina y destruye (con cariño)', d: 'La revista de toda la vida también hace sudaderas.' },
-      { id: 'volcan', marca: 'Volcán', cat: 'ropa', ic: '🌋', año: [1000, 8000], rep: 40, req: 'esp', lema: 'Ropa en erupción', d: 'Ropa y un fijo; les encantan los vídeos.' },
-      { id: 'suprim', marca: 'Suprim', cat: 'ropa', ic: '🟥', año: [5000, 25000], rep: 65, req: 'mundo', lema: 'Una caja roja que vale oro', d: 'Colecciones con tu nombre que se agotan en minutos.' },
-      { id: 'gopru', marca: 'GoPru', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus caídas en 4K', d: 'Cámaras para tus partes de vídeo y un fijo.' },
-      { id: 'sansongSk', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del skatepark', d: 'Tecnología y anuncios por todo el mundo.' },
+      { id: 'monstruo', marca: 'Ogro Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Saca tu lado salvaje (y cuida el tobillo)', d: 'Pegatinas en tu casco y un buen fijo.' },
+      { id: 'redtoro', marca: 'Rayo Energy', cat: 'bebida', ic: '⚡', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te pone las pilas… para el 900', d: 'Solo estrellas: vídeos imposibles y viajes por todo el mundo.' },
+      { id: 'trasher', marca: 'Arrasa', cat: 'ropa', ic: '🔥', año: [300, 2500], rep: 20, repMax: 55, lema: 'Revista, sudadera y mucha actitud', d: 'La revista de toda la vida también hace sudaderas.' },
+      { id: 'volcan', marca: 'Magma', cat: 'ropa', ic: '🌋', año: [1000, 8000], rep: 40, req: 'esp', lema: 'Ropa en erupción', d: 'Ropa y un fijo; les encantan los vídeos.' },
+      { id: 'suprim', marca: 'Exclusivo', cat: 'ropa', ic: '🟥', año: [5000, 25000], rep: 65, req: 'mundo', lema: 'Se agota en minutos', d: 'Colecciones con tu nombre que se agotan en minutos.' },
+      { id: 'gopru', marca: 'Toma Extrema', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus caídas en 4K', d: 'Cámaras para tus partes de vídeo y un fijo.' },
+      { id: 'sansongSk', marca: 'Solaris', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del skatepark', d: 'Tecnología y anuncios por todo el mundo.' },
     ],
   },
   TX: {
-    introSub: 'Una vida: del skatepark del barrio al Pro Tour y los Juegos Olímpicos… y dueño/a de negocios y casas.',
+    introSub: 'Una vida: del skatepark del barrio al Pro Tour y los Juegos de Verano… y dueño/a de negocios y casas.',
     introInicio: 'Empiezas con 14 años en el skatepark del barrio y compites en street y park.',
     introNota: 'Spots y competiciones reales; marcas y rivales ficticios.',
     deporte: 'skate', materialGratis: 'Tablas', deportistas: 'skaters',
@@ -6489,8 +6489,8 @@ PAQ.skate = paqueteInd({
     tipos: { via: ['🛹', 'Street', 'street'], bloque: ['🌀', 'Bowl', 'bowl'] },
     resumenNivel: s => `En la calle: ${gV(s.esc.maxVia)} · En bowl: ${gB(s.esc.maxBloque)} · En el skatepark: ${gV(idxVia(nivelMod(s, 'street')))} / ${gB(idxBloque(nivelMod(s, 'park')))}`,
     rocaAyuda: 'Cambiar de truco empieza de cero. Sacar un truco nuevo en un spot da reputación (más a partir del 360 flip), seguidores y, con algunos patrocinadores, primas.',
-    compAyuda: s => `Premios: Copa y Campeonato de España 500, 300 y 200 €; Pro Tour mundial 8.000, 7.000 y 5.000 €; Equis Games por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, Pro Tour, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} en street y park, con plaza en el clasificatorio (top 10).`,
-    secGrados: 'Trucos', gradosAyuda: () => `Street: ${GRADOS_VIA.join(' · ')}.<br>Bowl: ${GRADOS_BLOQUE.join(' · ')}.<br>El skate es olímpico desde Tokio 2020.`,
+    compAyuda: s => `Premios: Copa y Campeonato de España 500, 300 y 200 €; Pro Tour mundial 8.000, 7.000 y 5.000 €; Juegos Extremos por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, Pro Tour, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos de Verano: ${SEDES_JJOO[2028] ? 'Los Ángeles, Brisbane…' : ''} en street y park, con plaza en el clasificatorio (top 10).`,
+    secGrados: 'Trucos', gradosAyuda: () => `Street: ${GRADOS_VIA.join(' · ')}.<br>Bowl: ${GRADOS_BLOQUE.join(' · ')}.<br>El skate entró en los Juegos en 2021.`,
     finMax: ev => `📍 Mejor truco en la calle: <b>${gV(ev.maxVia)}</b> · en bowl: <b>${gB(ev.maxBloque)}</b>.`,
     retiroChips: ev => `${chip('🛹', gV(ev.maxVia))}${chip('🌀', gB(ev.maxBloque))}`, retiroMax: E => `, mejor truco ${gV(E.maxVia)} en la calle y ${gB(E.maxBloque)} en bowl`,
     basta: 'los tobillos y las rodillas dicen basta.', diarioJuego: 'patino en el skatepark de', sueño: 'Mi sueño: competir por todo el mundo, sacar trucos que nadie ha hecho… y vivir de lo que me gusta.', tarjetaExtra: s => ['📍', s.esc.maxVia >= 0 ? gV(s.esc.maxVia) : '—', 'mejor truco'], salonTitulo: s => `Mejor truco: ${gV(s.esc.maxVia)} · `,
@@ -6615,7 +6615,7 @@ const ZONAS_SURF = {
   supertubos: { n: 'Supertubos', f: '🇵🇹', reg: 'Peniche', tipo: 'bloque', roca: 'arena', buenos: [8, 9, 10, 11, 0, 1, 2], coste: 300, d: 'Tubos rápidos y pesados sobre la arena.', clasicas: [] },
   hossegor: { n: 'Hossegor', f: '🇫🇷', reg: 'Las Landas', tipo: 'bloque', roca: 'arena', buenos: [8, 9, 10, 11], coste: 350, d: 'Tubos de playa potentes: la capital del surf en Francia.', clasicas: [] },
   pipeline: { n: 'Pipeline', f: '🇺🇸', reg: 'Hawái', tipo: 'bloque', roca: 'arrecife', buenos: [10, 11, 0, 1, 2], coste: 1600, d: 'El tubo más famoso del mundo, sobre un arrecife a pocos palmos.', clasicas: [[18, 'Doble tubo en Pipeline']] },
-  teahupoo: { n: "Teahupo'o", f: '🇵🇫', reg: 'Tahití', tipo: 'bloque', roca: 'arrecife', buenos: [4, 5, 6, 7, 8], coste: 1800, d: 'La ola más pesada del planeta; aquí fue el surf de París 2024.', clasicas: [[20, "Tubo perfecto en Teahupo'o"]] },
+  teahupoo: { n: "Teahupo'o", f: '🇵🇫', reg: 'Tahití', tipo: 'bloque', roca: 'arrecife', buenos: [4, 5, 6, 7, 8], coste: 1800, d: 'La ola más pesada del planeta; aquí fue el surf de los Juegos de 2024.', clasicas: [[20, "Tubo perfecto en Teahupo'o"]] },
   jbay: { n: 'Jeffreys Bay', f: '🇿🇦', reg: 'Sudáfrica', tipo: 'bloque', roca: 'roca y arena', buenos: [5, 6, 7], coste: 1400, d: 'Una derecha perfecta y larguísima.', clasicas: [] },
   puntaGalea: { n: 'Punta Galea', f: '🇪🇸', reg: 'Bizkaia', tipo: 'via', roca: 'roca', buenos: [10, 11, 0, 1, 2], coste: 50, d: 'Olas grandes sobre una losa de roca, bajo el acantilado.', clasicas: [] },
   belharra: { n: 'Belharra', f: '🇫🇷', reg: 'País Vasco francés', tipo: 'via', roca: 'arrecife', buenos: [10, 11, 0, 1], coste: 350, d: 'Rompe muy pocos días al año, a dos kilómetros de la costa.', clasicas: [] },
@@ -6640,7 +6640,7 @@ PAQ.surf = paqueteInd({
     shortboard: { n: 'Shortboard', ic: '🏄', pesos: { tecnica: 0.4, velocidad: 0.25, fuerza: 0.2, cabeza: 0.15 }, d: 'Mangas de 30 minutos: cuentan tus dos mejores olas.', ultimo: 'Última ola', marca: MARCA_HEAT },
     grandes: { n: 'Olas grandes', ic: '🌊', pesos: { cabeza: 0.45, fuerza: 0.3, resistencia: 0.25 }, suerte: 5, d: 'Olas de más de 10 metros, a remo o con moto de agua.', ultimo: 'Última ola', marca: MARCA_GRANDE },
   },
-  AMBITOS: nombresAmb(AMBITOS, { auto: 'Circuito autonómico', esp: 'Circuito español', europa: 'Qualifying Series', master: 'Desafío de olas grandes', mundo: 'Championship Tour', mundial: 'Campeonato del Mundo' }),
+  AMBITOS: nombresAmb(AMBITOS, { auto: 'Circuito autonómico', esp: 'Circuito español', europa: 'Circuito de Clasificación', master: 'Desafío de olas grandes', mundo: 'Circuito de Élite', mundial: 'Campeonato del Mundo' }),
   EQUIPOS: {
     club: { n: 'Club de surf del barrio', ic: '🏠', cuota: 12, calidad: 1.0, d: 'Un entrenador del club, la playa de siempre y los amigos en el agua.' },
     centro: { n: 'Centro de alto rendimiento', ic: '🏛️', cuota: 45, calidad: 1.2, nivelMin: 30, d: 'Entrenadores de la federación, vídeo-análisis y gimnasio, pero lejos de casa.' },
@@ -6666,23 +6666,23 @@ PAQ.surf = paqueteInd({
       { id: 'chiringuito', marca: 'Chiringuito El Pirata', cat: 'local', ic: '🏴‍☠️', año: [300, 2000], rep: 22, repMax: 60, lema: 'Bocadillos para después de la sesión', d: 'Comes gratis y sales en sus redes.' },
       { id: 'fisioHombro', marca: 'Fisio Hombro Fuerte', cat: 'local', ic: '🩹', año: [500, 2500], rep: 30, req: 'esp', lema: 'Hombros como nuevos', d: 'Una clínica especializada en surfistas (y en sus hombros).' },
       { id: 'tablasNorte', marca: 'Tablas del Norte', cat: 'tablas', ic: '🏄', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Hechas con cariño y resina', d: 'Tablas gratis y algo de dinero si destacas.' },
-      { id: 'pukus', marca: 'Pukus Surfboards', cat: 'tablas', ic: '🌊', año: [0, 3000], rep: 25, material: true, repMax: 65, lema: 'Tablas con acento del norte', d: 'Tablas gratis y un pequeño fijo.' },
-      { id: 'perdido', marca: 'Perdido Surfboards', cat: 'tablas', ic: '🧭', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Para cuando no sabes dónde están las olas', d: 'Tablas a medida y un fijo al año.' },
-      { id: 'channelIslas', marca: 'Channel Islas', cat: 'tablas', ic: '🏝️', año: [3000, 15000], rep: 55, req: 'mundo', material: true, lema: 'Las tablas de los campeones del mundo', d: 'Tablas hechas para ti y un buen fijo.' },
-      { id: 'onail', marca: "O'Nail", cat: 'neopreno', ic: '🥽', año: [500, 3000], rep: 25, repMax: 60, lema: 'Inventamos el neopreno (o eso dicen)', d: 'Neoprenos y algo de dinero.' },
-      { id: 'ripCurvas', marca: 'Rip Curvas', cat: 'neopreno', ic: '🌀', año: [2000, 12000], rep: 45, req: 'nacional', lema: 'La búsqueda continúa', d: 'Neoprenos, relojes de mareas y un buen fijo.' },
+      { id: 'pukus', marca: 'Txuri Surfboards', cat: 'tablas', ic: '🌊', año: [0, 3000], rep: 25, material: true, repMax: 65, lema: 'Tablas con acento del norte', d: 'Tablas gratis y un pequeño fijo.' },
+      { id: 'perdido', marca: 'Brújula Surfboards', cat: 'tablas', ic: '🧭', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Para cuando no sabes dónde están las olas', d: 'Tablas a medida y un fijo al año.' },
+      { id: 'channelIslas', marca: 'Archipiélago', cat: 'tablas', ic: '🏝️', año: [3000, 15000], rep: 55, req: 'mundo', material: true, lema: 'Las tablas de los campeones del mundo', d: 'Tablas hechas para ti y un buen fijo.' },
+      { id: 'onail', marca: 'Atlántico Wetsuits', cat: 'neopreno', ic: '🥽', año: [500, 3000], rep: 25, repMax: 60, lema: 'Calentito hasta en enero', d: 'Neoprenos y algo de dinero.' },
+      { id: 'ripCurvas', marca: 'Corriente', cat: 'neopreno', ic: '🌀', año: [2000, 12000], rep: 45, req: 'nacional', lema: 'Siempre detrás de la ola', d: 'Neoprenos, relojes de mareas y un buen fijo.' },
       { id: 'kombucha', marca: 'Kombucha Zen', cat: 'bebida', ic: '🍵', año: [300, 1500], rep: 18, repMax: 50, lema: 'Fermentada como tu neopreno', d: 'Una bebida pequeña que adora a los surfistas.' },
-      { id: 'monstruo', marca: 'Monstruo Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Libera a la bestia (y a la ola)', d: 'Pegatinas en tu tabla y un buen fijo.' },
-      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te da alitas… para el aéreo', d: 'Solo estrellas: viajes a olas secretas y vídeos imposibles.' },
-      { id: 'quicksilva', marca: 'Quicksilva', cat: 'ropa', ic: '🌊', año: [300, 2500], rep: 20, repMax: 55, lema: 'Ropa con ola (y con prisa)', d: 'Bañadores, sudaderas y algo de dinero.' },
-      { id: 'billabonk', marca: 'Billabonk', cat: 'ropa', ic: '🌴', año: [1000, 8000], rep: 40, req: 'esp', lema: 'Desde las antípodas', d: 'Ropa y un fijo; les encantan los viajes.' },
-      { id: 'patagonioSurf', marca: 'Patagonio', cat: 'ropa', ic: '🧥', año: [3000, 15000], rep: 60, req: 'mundo', lema: 'Ropa para salvar el planeta… y tu culo del frío', d: 'Ropa, neoprenos ecológicos y documentales.' },
-      { id: 'gopru', marca: 'GoPru', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus tubos en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
-      { id: 'sansongSurf', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande de la playa', d: 'Tecnología y anuncios por todo el mundo.' },
+      { id: 'monstruo', marca: 'Ogro Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Saca tu lado salvaje (y a por la ola)', d: 'Pegatinas en tu tabla y un buen fijo.' },
+      { id: 'redtoro', marca: 'Rayo Energy', cat: 'bebida', ic: '⚡', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te pone las pilas… para el aéreo', d: 'Solo estrellas: viajes a olas secretas y vídeos imposibles.' },
+      { id: 'quicksilva', marca: 'Mercurio', cat: 'ropa', ic: '🌊', año: [300, 2500], rep: 20, repMax: 55, lema: 'Ropa con ola (y con prisa)', d: 'Bañadores, sudaderas y algo de dinero.' },
+      { id: 'billabonk', marca: 'Canguro', cat: 'ropa', ic: '🌴', año: [1000, 8000], rep: 40, req: 'esp', lema: 'Desde las antípodas', d: 'Ropa y un fijo; les encantan los viajes.' },
+      { id: 'patagonioSurf', marca: 'Tierra del Fuego', cat: 'ropa', ic: '🧥', año: [3000, 15000], rep: 60, req: 'mundo', lema: 'Ropa para salvar el planeta… y tu culo del frío', d: 'Ropa, neoprenos ecológicos y documentales.' },
+      { id: 'gopru', marca: 'Toma Extrema', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus tubos en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
+      { id: 'sansongSurf', marca: 'Solaris', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande de la playa', d: 'Tecnología y anuncios por todo el mundo.' },
     ],
   },
   TX: {
-    introSub: 'Una vida: de la playa del barrio al Championship Tour, las olas gigantes y los Juegos… y dueño/a de negocios y casas.',
+    introSub: 'Una vida: de la playa del barrio al Circuito de Élite, las olas gigantes y los Juegos… y dueño/a de negocios y casas.',
     introInicio: 'Empiezas con 14 años en la playa del barrio y compites en shortboard y olas grandes.',
     introNota: 'Olas y campeonatos reales; marcas y rivales ficticios.',
     deporte: 'surf', materialGratis: 'Tablas', deportistas: 'surfistas',
@@ -6702,12 +6702,12 @@ PAQ.surf = paqueteInd({
     malas: () => 'malas (mar plano o tormenta)',
     resumenNivel: s => `Ola más grande: ${gV(s.esc.maxVia)} · Mejor maniobra: ${gB(s.esc.maxBloque)} · En tu playa: ${gV(idxVia(nivelMod(s, 'grandes')))} / ${gB(idxBloque(nivelMod(s, 'shortboard')))}`,
     rocaAyuda: 'Cambiar de ola empieza de cero. Surfear una ola más grande (o un tubo mejor) da reputación (más a partir de 9 m), seguidores y, con algunos patrocinadores, primas. Cada ola rompe en su temporada.',
-    compAyuda: s => `Premios: Circuito español y Campeonato de España 500, 300 y 200 €; Championship Tour 8.000, 7.000 y 5.000 €; desafíos de olas grandes por invitación hasta 4.000 €. Circuito y Campeonato de España: abiertos a quien tenga licencia. Qualifying Series, Championship Tour, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} en shortboard, con plaza en el clasificatorio (top 10).`,
+    compAyuda: s => `Premios: Circuito español y Campeonato de España 500, 300 y 200 €; Circuito de Élite 8.000, 7.000 y 5.000 €; desafíos de olas grandes por invitación hasta 4.000 €. Circuito y Campeonato de España: abiertos a quien tenga licencia. Circuito de Clasificación, Circuito de Élite, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos de Verano: ${SEDES_JJOO[2028] ? 'Los Ángeles, Brisbane…' : ''} en shortboard, con plaza en el clasificatorio (top 10).`,
     secGrados: 'Olas y maniobras', gradosAyuda: () => `Olas grandes: ${GRADOS_VIA.join(' · ')}.<br>Maniobras: ${GRADOS_BLOQUE.join(' · ')}.<br>La ola más grande surfeada mide unos 26 metros (Nazaré, 2020).`,
     finMax: ev => `🌊 Ola más grande: <b>${gV(ev.maxVia)}</b> · mejor maniobra: <b>${gB(ev.maxBloque)}</b>.`,
     retiroChips: ev => `${chip('🌊', gV(ev.maxVia))}${chip('🏄', gB(ev.maxBloque))}`, retiroMax: E => `, ola más grande de ${gV(E.maxVia)} y mejor maniobra ${gB(E.maxBloque)}`,
     basta: 'los hombros y la espalda dicen basta.', tarjetaExtra: s => ['🌊', s.esc.maxVia >= 0 ? gV(s.esc.maxVia) : '—', 'ola más grande'], salonTitulo: s => `Ola más grande ${gV(s.esc.maxVia)} · `,
-    sueño: 'Mi sueño: competir en el Championship Tour, surfear las olas más grandes del mundo… y vivir de lo que me gusta.', diarioJuego: 'surfeo en la playa de',
+    sueño: 'Mi sueño: competir en el Circuito de Élite, surfear las olas más grandes del mundo… y vivir de lo que me gusta.', diarioJuego: 'surfeo en la playa de',
     escenaInt: () => escenaPlaya(), escenaExt: (Z, c) => escenaOla(Z, c),
     final: { ic: '🏄', d: ev => `${ev.nombre}. ${ev.pos === 2 ? 'El oro está a una ola.' : 'El podio está en juego.'}`,
       ops: [{ id: 'todo', n: 'Ir a por un aéreo enorme', base: 0.35, sube: 1, baja: 1, ok: '¡Aéreo clavado! Los jueces sacan dieces. Subes un puesto.', mal: 'Te caes en la recepción y te machaca la espuma. Bajas un puesto.' },
@@ -6734,7 +6734,7 @@ PAQ.surf = paqueteInd({
   },
 });
 PAQ.surf.PANTALLAS_ESC = pantallasInd({ p1: 'La playa del barrio', ic: '🏄', obj1: `Haz un ${GRADOS_MANIOBRA[4].toLowerCase()} en tu playa`, f1: s => idxBloque(nivelMod(s, 'shortboard')) / 4,
-  verbo: 'Surfea una ola de', grado: iv => GRADOS_OLA[iv], enRoca: 'en olas grandes', mundo: 'Championship Tour', enMundo: 'en el Championship Tour', escuela: 'Escuela de surf', tienda: 'surf shop',
+  verbo: 'Surfea una ola de', grado: iv => GRADOS_OLA[iv], enRoca: 'en olas grandes', mundo: 'Circuito de Élite', enMundo: 'en el Circuito de Élite', escuela: 'Escuela de surf', tienda: 'surf shop',
   recinto: 'piscina de olas', marca: 'Marca de tablas de surf', leyenda: 'Leyenda del surf', icLeyenda: '🌊', huella: 'Deja huella: medalla, una ola virgen, una ola de 22 m o 6 negocios' });
 NOMBRES_NEG.surf = { academia: { n: 'Academia deportiva', ic: '🏅' }, escuelaEsc: { n: 'Escuela de surf', ic: '🏄' }, tiendaEsc: { n: 'Surf shop', ic: '🛍️' }, rocodromo: { n: 'Piscina de olas', ic: '🌊' }, marcaPresas: { n: 'Marca de tablas de surf', ic: '🏄' } };
 CAT_PATRO.neopreno = 'Neopreno';
@@ -6770,8 +6770,8 @@ Object.assign(SUCESOS, {
 LOGROS.push(
   ['diezMetros', '🌊', 'Surfear una ola de 10 metros', s => s.esc.maxVia >= 11, 'surf'],
   ['viajeSurf', '✈️', 'Surfear en el extranjero', s => Object.keys(s.esc.viajes).length > 0, 'surf'],
-  ['ct', '🌍', 'Competir en el Championship Tour', s => !!s.esc.mejor.mundo, 'surf'],
-  ['finalCT', '🔥', 'Final del Championship Tour', s => (s.esc.mejor.mundo || 99) <= 8, 'surf'],
+  ['ct', '🌍', 'Competir en el Circuito de Élite', s => !!s.esc.mejor.mundo, 'surf'],
+  ['finalCT', '🔥', 'Final del Circuito de Élite', s => (s.esc.mejor.mundo || 99) <= 8, 'surf'],
   ['olaVirgen', '🆕', 'Descubrir y surfear una ola virgen', s => s.esc.fa > 0, 'surf'],
   ['nazare', '🗻', 'Surfear Nazaré', s => s.esc.envios.some(x => x.zona === 'Nazaré'), 'surf'],
   ['veinte', '💎', 'Surfear una ola de 20 metros', s => s.esc.maxVia >= 20, 'surf', true],
@@ -6783,7 +6783,7 @@ CFG.mejoras.material.push(
   { id: 'surfskateCasa', dep: 'surf', ic: '🛹', n: 'Surfskate y balance board', p: 250, ef: { entreno: 0.03 }, d: 'Para entrenar giros sin mojarte.' },
 );
 // ---------------------------------------------------------------------
-// BOXEO (motor individual con combates 1 contra 1). Amateur (torneos olímpicos) y profesional (veladas y títulos).
+// BOXEO (motor individual con combates 1 contra 1). Amateur (torneos de los Juegos) y profesional (veladas y títulos).
 // En los combates hay dos «participantes»: puesto 1 = victoria, 2 = derrota. Rivales según tu nivel; bolsas según tu fama.
 // ---------------------------------------------------------------------
 function escenaGimnasioBox() {
@@ -6812,16 +6812,16 @@ PAQ.boxeo = paqueteInd({
   ATTRS: { fuerza: { n: 'Pegada', ic: '👊', corto: 'pegada' }, resistencia: { n: 'Resistencia', ic: '🔁', corto: 'resistencia' }, tecnica: { n: 'Técnica', ic: '🎯', corto: 'técnica' },
     cabeza: { n: 'Cabeza (frialdad y encajar)', ic: '🧠', corto: 'cabeza' }, velocidad: { n: 'Velocidad y reflejos', ic: '⚡', corto: 'velocidad' } },
   MODS: {
-    amateur: { n: 'Amateur', ic: '🥇', pesos: { tecnica: 0.4, velocidad: 0.3, resistencia: 0.15, cabeza: 0.15 }, d: 'Torneos olímpicos: tres asaltos, gana quien puntúa más.', ultimo: 'Último asalto', marca: MARCA_AMATEUR },
+    amateur: { n: 'Amateur', ic: '🥇', pesos: { tecnica: 0.4, velocidad: 0.3, resistencia: 0.15, cabeza: 0.15 }, d: 'Torneos de tres asaltos: gana quien puntúa más.', ultimo: 'Último asalto', marca: MARCA_AMATEUR },
     pro: { n: 'Profesional', ic: '🥊', pesos: { fuerza: 0.35, resistencia: 0.3, cabeza: 0.2, tecnica: 0.15 }, suerte: 5, d: 'Veladas a 8, 10 o 12 asaltos: pegada, aguante y cabeza.', ultimo: 'Último asalto', marca: MARCA_PRO },
   },
-  AMBITOS: Object.assign(nombresAmb(AMBITOS, { auto: 'Torneo autonómico', esp: 'Copa de España', cesp: 'Campeonato de España', mundo: 'Copa del Mundo', clasif: 'Preolímpico', jjoo: 'Juegos Olímpicos' }), {
+  AMBITOS: Object.assign(nombresAmb(AMBITOS, { auto: 'Torneo autonómico', esp: 'Copa de España', cesp: 'Campeonato de España', mundo: 'Copa del Mundo', clasif: 'Clasificatorio para los Juegos', jjoo: 'Juegos de Verano' }), {
     auto: Object.assign({}, AMBITOS.auto, { n: 'Torneo autonómico', N: 16, semi: 4, final: 2, podio: 4 }),
     esp: Object.assign({}, AMBITOS.esp, { n: 'Copa de España', N: 16, semi: 4, final: 2, podio: 4 }),
     cesp: Object.assign({}, AMBITOS.cesp, { n: 'Campeonato de España', N: 16, semi: 4, final: 2, podio: 4 }),
     mundo: Object.assign({}, AMBITOS.mundo, { n: 'Copa del Mundo', N: 32, semi: 4, final: 2, podio: 4 }),
-    clasif: Object.assign({}, AMBITOS.clasif, { n: 'Preolímpico', N: 32, semi: 4, final: 2, plazas: 4 }),
-    jjoo: Object.assign({}, AMBITOS.jjoo, { n: 'Juegos Olímpicos', N: 16, semi: 4, final: 2, podio: 4 }),
+    clasif: Object.assign({}, AMBITOS.clasif, { n: 'Clasificatorio para los Juegos', N: 32, semi: 4, final: 2, plazas: 4 }),
+    jjoo: Object.assign({}, AMBITOS.jjoo, { n: 'Juegos de Verano', N: 16, semi: 4, final: 2, podio: 4 }),
     europa: { n: 'Velada profesional', media: 50, sd: 6, N: 2, semi: 0, final: 2, podio: 1, ins: 0, viaje: 0, techo: 60, rep: 3, premio: [2500, 1000], presion: 0.5, energia: 22 },
     master: { n: 'Velada estelar', media: 78, sd: 5, N: 2, semi: 0, final: 2, podio: 1, ins: 0, viaje: 0, techo: 95, rep: 15, premio: [70000, 25000], presion: 1, energia: 25, invitacion: true },
     europeo: { n: 'Título de Europa', media: 72, sd: 5, N: 2, semi: 0, final: 2, podio: 1, ins: 0, viaje: 0, techo: 85, rep: 12, premio: [18000, 7000], presion: 0.9, energia: 25 },
@@ -6850,19 +6850,19 @@ PAQ.boxeo = paqueteInd({
       { id: 'barRing', marca: 'Bar El Ring', cat: 'local', ic: '🍺', año: [0, 600], rep: 10, repMax: 45, lema: 'Aquí se ven todas las veladas', d: 'Te invitan a comer y llevas su nombre en el pantalón.' },
       { id: 'carniceria', marca: 'Carnicería Pepe', cat: 'local', ic: '🥩', año: [300, 2000], rep: 22, repMax: 60, lema: 'Proteína del barrio', d: 'Filetes gratis y tu foto en el mostrador.' },
       { id: 'fisioPunos', marca: 'Fisio Puños de Acero', cat: 'local', ic: '🩹', año: [500, 2500], rep: 30, req: 'esp', lema: 'Manos como nuevas', d: 'Una clínica especializada en boxeadores.' },
-      { id: 'everlas', marca: 'Everlas', cat: 'guantes', ic: '🥊', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Los guantes de toda la vida', d: 'Guantes gratis y algo de dinero si ganas.' },
-      { id: 'ganador', marca: 'Ganador Gloves', cat: 'guantes', ic: '🥊', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Hechos a mano para pegar', d: 'Guantes a medida y un fijo al año.' },
-      { id: 'cletoReyos', marca: 'Cleto Reyos', cat: 'guantes', ic: '🥊', año: [4000, 20000], rep: 60, req: 'mundo', material: true, lema: 'Los guantes de los campeones', d: 'Guantes con tu nombre y un buen fijo.' },
-      { id: 'aquarios', marca: 'Aquarios', cat: 'bebida', ic: '🧃', año: [1000, 5000], rep: 40, req: 'nacional', lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida busca deportistas de la selección.' },
-      { id: 'monstruo', marca: 'Monstruo Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Libera a la bestia', d: 'Su logo en tu calzón y un buen fijo.' },
-      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te da alitas… para esquivar', d: 'Solo estrellas: entradas espectaculares y viajes por todo el mundo.' },
-      { id: 'kapa', marca: 'Kapa', cat: 'ropa', ic: '🧢', año: [300, 2500], rep: 20, repMax: 55, lema: 'Dos personas sentadas espalda con espalda', d: 'Chándales y algo de dinero.' },
-      { id: 'adibasBox', marca: 'Adibas', cat: 'ropa', ic: '👟', año: [2000, 12000], rep: 45, req: 'nacional', lema: 'Tres rayas y ninguna excusa', d: 'Botas de boxeo, ropa y un buen fijo.' },
-      { id: 'naikBox', marca: 'Naik', cat: 'ropa', ic: '✔️', año: [8000, 40000], rep: 72, req: 'mundo', lema: 'Just du it (y esquiva)', d: 'Solo estrellas: anuncios por todo el mundo.' },
-      { id: 'proteinasHulk', marca: 'Proteínas Hulk', cat: 'nutricion', ic: '💪', año: [300, 2000], rep: 18, repMax: 55, lema: 'Ponte verde de envidia', d: 'Batidos gratis y algo de dinero.' },
-      { id: 'myProteina', marca: 'MiProteína', cat: 'nutricion', ic: '🥤', año: [1500, 8000], rep: 45, req: 'nacional', lema: 'Cada gramo cuenta (sobre todo en el pesaje)', d: 'Nutrición deportiva y un fijo.' },
-      { id: 'gopru', marca: 'GoPru', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus combinaciones en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
-      { id: 'sansongBox', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del pabellón', d: 'Tecnología y anuncios por todo el mundo.' },
+      { id: 'everlas', marca: 'Campana Gloves', cat: 'guantes', ic: '🥊', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Los guantes de toda la vida', d: 'Guantes gratis y algo de dinero si ganas.' },
+      { id: 'ganador', marca: 'Púgil', cat: 'guantes', ic: '🥊', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Hechos a mano para pegar', d: 'Guantes a medida y un fijo al año.' },
+      { id: 'cletoReyos', marca: 'Hermanos Ring', cat: 'guantes', ic: '🥊', año: [4000, 20000], rep: 60, req: 'mundo', material: true, lema: 'Los guantes de los campeones', d: 'Guantes con tu nombre y un buen fijo.' },
+      { id: 'aquarios', marca: 'Isobar', cat: 'bebida', ic: '🧃', año: [1000, 5000], rep: 40, req: 'nacional', lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida busca deportistas de la selección.' },
+      { id: 'monstruo', marca: 'Ogro Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Saca tu lado salvaje', d: 'Su logo en tu calzón y un buen fijo.' },
+      { id: 'redtoro', marca: 'Rayo Energy', cat: 'bebida', ic: '⚡', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te pone las pilas… para esquivar', d: 'Solo estrellas: entradas espectaculares y viajes por todo el mundo.' },
+      { id: 'kapa', marca: 'Delta Sport', cat: 'ropa', ic: '🧢', año: [300, 2500], rep: 20, repMax: 55, lema: 'Chándales de los de antes', d: 'Chándales y algo de dinero.' },
+      { id: 'adibasBox', marca: 'Trébol', cat: 'ropa', ic: '👟', año: [2000, 12000], rep: 45, req: 'nacional', lema: 'Corre, salta, repite', d: 'Botas de boxeo, ropa y un buen fijo.' },
+      { id: 'naikBox', marca: 'Victoria', cat: 'ropa', ic: '🏅', año: [8000, 40000], rep: 72, req: 'mundo', lema: 'Hazlo y punto (y esquiva)', d: 'Solo estrellas: anuncios por todo el mundo.' },
+      { id: 'proteinasHulk', marca: 'Proteínas Titán', cat: 'nutricion', ic: '💪', año: [300, 2000], rep: 18, repMax: 55, lema: 'Fuerte como un titán', d: 'Batidos gratis y algo de dinero.' },
+      { id: 'myProteina', marca: 'ProteMax', cat: 'nutricion', ic: '🥤', año: [1500, 8000], rep: 45, req: 'nacional', lema: 'Cada gramo cuenta (sobre todo en el pesaje)', d: 'Nutrición deportiva y un fijo.' },
+      { id: 'gopru', marca: 'Toma Extrema', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus combinaciones en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
+      { id: 'sansongBox', marca: 'Solaris', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande del pabellón', d: 'Tecnología y anuncios por todo el mundo.' },
     ],
   },
   TX: {
@@ -6884,7 +6884,7 @@ PAQ.boxeo = paqueteInd({
     tipos: { via: ['🥊', 'Profesional', 'pro'], bloque: ['🥇', 'Amateur', 'amateur'] },
     resumenNivel: s => `Récord profesional: ${recordBox(s)} · Nivel amateur ${nf(nivelMod(s, 'amateur'))} · profesional ${nf(nivelMod(s, 'pro'))}`,
     ocupMax: s => (s.esc.box && s.esc.box.v + s.esc.box.d) ? `récord ${recordBox(s)}` : '',
-    compAyuda: s => `Amateur: Copa y Campeonato de España (desde los 15 años), Copa del Mundo y Juegos con el equipo nacional; oro, plata y dos bronces. Profesional (desde los 18): veladas cada pocas semanas contra rivales de tu nivel; la bolsa crece con tu fama. Con 5 victorias puedes pelear por el título de Europa; si lo ganas, por el mundial. Las Vegas: solo por invitación. Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''}, con plaza en el preolímpico (top 4).`,
+    compAyuda: s => `Amateur: Copa y Campeonato de España (desde los 15 años), Copa del Mundo y Juegos con el equipo nacional; oro, plata y dos bronces. Profesional (desde los 18): veladas cada pocas semanas contra rivales de tu nivel; la bolsa crece con tu fama. Con 5 victorias puedes pelear por el título de Europa; si lo ganas, por el mundial. Las Vegas: solo por invitación. Juegos de Verano: ${SEDES_JJOO[2028] ? 'Los Ángeles, Brisbane…' : ''}, con plaza en el clasificatorio para los Juegos (top 4).`,
     secGrados: '', gradosAyuda: '',
     finMax: ev => S && S.esc && S.esc.box && (S.esc.box.v + S.esc.box.d) ? `🥊 Récord profesional: <b>${recordBox(S)}</b>.` : '',
     retiroChips: () => S && S.esc ? chip('🥊', recordBox(S)) : '', retiroMax: () => S && S.esc ? `, récord profesional ${recordBox(S)}` : '',
@@ -7024,7 +7024,7 @@ Object.assign(SUCESOS, {
 LOGROS.push(
   ['canasta', '🏀', 'Primera canasta como profesional', s => s.stats.goles > 0, 'basket'],
   ['clubBasket', '🏟️', 'Dueño de un club de baloncesto', s => s.clubes.length > 0, 'basket'],
-  ['nba', '🇺🇸', 'Jugar en la NBA', s => s.fase === 'club' && miClub(s).pais === 'us' && ligaDe(s, s.contrato.clubId).tier === 1, 'basket'],
+  ['nba', '🇺🇸', 'Jugar en la Liga Americana', s => s.fase === 'club' && miClub(s).pais === 'us' && ligaDe(s, s.contrato.clubId).tier === 1, 'basket'],
   ['mil', '💯', '1.000 puntos como profesional', s => s.stats.goles >= 1000, 'basket'],
   ['retiradaBasket', '👋', 'Retirarse del baloncesto', s => s.fase === 'retirado', 'basket'],
   ['tripleDoble', '🎩', 'Triple-doble: 10 puntos, 10 rebotes y 10 asistencias', s => (s.hattrick || 0) > 0, 'basket', true],

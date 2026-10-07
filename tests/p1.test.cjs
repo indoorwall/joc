@@ -718,7 +718,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       semana('descansoEsc'); s = G.S; const oro = s.esc.palmares[0] || {};
       out.oroDbg = [oro.n, oro.pos, s.esc.becaOlimpica];
       out.oro = oro.amb === 'jjoo' && oro.pos === 1 && s.esc.becaOlimpica && s.esc.becaOlimpica.hasta === 2032 && G.S.ultimo.eco.some(([t, v]) => /Consejo|medalla/.test(t) && v === 90000);
-      semana('descansoEsc'); out.oroCobra = G.S.ultimo.eco.some(([t, v]) => /Beca olímpica/.test(t) && v === Math.round(60000 / 18));
+      semana('descansoEsc'); out.oroCobra = G.S.ultimo.eco.some(([t, v]) => /Beca de los Juegos/.test(t) && v === Math.round(60000 / 18));
       s = G.S; s.esc.año = 2032; s.esc.nacional = 2032; s.esc.olimpico = { año: 2032, mod: 'combinada' }; s.semanasAño = 10; for (const k of Object.keys(s.esc.at)) s.esc.at[k] = 40;
       semana('descansoEsc'); out.oroPierde = !G.S.esc.becaOlimpica && (G.S.esc.palmares[0] || {}).amb === 'jjoo';
       // Fin de año: cumpleaños, resumen y equipo nacional si haces podio en España
@@ -773,7 +773,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Escalada: con los dedos cargados la tabla lesiona; descansado, no', r.lesiones.alta > 5 && r.lesiones.baja === 0 && r.lesionBloquea, JSON.stringify(r.lesiones));
     check('Escalada: patrocinadores según tu fama, que se cobran cada semana', r.patroOferta && r.patroCobra, JSON.stringify([r.patroDbg, r.patroOferta, r.patroCobra]));
     check('Escalada: muchas marcas y varias a la vez (una por categoría)', r.marcas && r.variasMarcas);
-    check('Escalada: Red Toro solo para estrellas, de 30.000 a 50.000 € al año', r.redbull);
+    check('Escalada: Rayo Energy (la bebida de las estrellas) solo para estrellas, de 30.000 a 50.000 € al año', r.redbull);
     check('Escalada: premios de 500/300/200 € en España, 8.000/7.000/5.000 € en Copa del Mundo y 4.000 € en los másters', r.premios);
     check('Escalada: másters internacionales solo por invitación, con premio', r.masterSinInv && r.masterInv && r.master, JSON.stringify([r.masterDbg, r.masterSinInv, r.masterInv, r.master]));
 check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los siguientes Juegos, que se pierde si no repites', r.oro && r.oroCobra && r.oroPierde, JSON.stringify([r.oroDbg, r.oro, r.oroCobra, r.oroPierde]));
@@ -791,7 +791,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       const G = __P1, out = {}; G.CFG.club.probSuceso = 0;
       const todas = G.CFG.escalada.patrocinadores.concat(G.CFG.patrocinio.futbol);
       const reales = /red bull|nike|adidas|puma|rolex|\baudi\b|\bseat\b|north face|la sportiva|\bscarpa\b|petzl|mammut|\bpatagonia\b|black diamond|edelrid|tenaya|aquarius|under armour|kappa|\bcasio\b|\bjoma\b|kelme|mizuno|gatorade|\blotto\b|hugo boss|festina|xiaomi|samsung|\bapple\b|burger king|telepizza|\bocun\b|five ten|arc.?teryx|friction labs|gopro|\bcamp\b|\bkia\b|\bbeal\b/i;
-      out.guino = todas.every(P => !reales.test(P.marca) && P.lema) && todas.some(P => P.marca === 'Red Toro');
+      out.guino = todas.every(P => !reales.test(P.marca) && P.lema) && todas.some(P => P.marca === 'Rayo Energy');
       out.futbolMarcas = G.CFG.patrocinio.futbol.length >= 30 && new Set(G.CFG.patrocinio.futbol.map(P => P.cat)).size === 8 && G.CFG.escalada.patrocinadores.length >= 24;
       const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'eventoPatro' || e.tipo === 'nacional' || e.tipo === 'invitacion' ? 'si' : e.tipo === 'equipoEsc' ? 'club' : ['fin', 'pantalla', 'retiro', 'finEsc'].includes(e.tipo) ? 'ok' : e.tipo === 'mejora' ? 'aceptar' : e.tipo === 'ofertas' && G.S.contrato && G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0'); } };
       // Fútbol: al club, llega una oferta y se cobra
@@ -837,25 +837,25 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       G.firmarPatro('escarpa'); const pe = G.S.patros[0];
       out.escObjetivo = pe.obj.tipo === 'grado' && /\d/.test(pe.obj.t);
       G.render(); const m = document.querySelector('.escena .marcas');
-      out.escMarcaEnEscena = !!m && m.textContent.includes('Escarpa');
+      out.escMarcaEnEscena = !!m && m.textContent.includes('Andina');
       G.S.hoja = 'patros'; G.render(); const hh = document.getElementById('hoja').textContent;
-      out.hoja = hh.includes('Escarpa') && hh.includes('Relación') && hh.includes('Encadenar');
+      out.hoja = hh.includes('Andina') && hh.includes('Relación') && hh.includes('Encadenar');
       G.S.hoja = null; G.render();
       // Partidas guardadas antiguas
       const vieja = JSON.parse(JSON.stringify(G.S)); delete vieja.patros; delete vieja.patroOf; delete vieja.patrosHist;
       vieja.esc.patros = [{ id: 'redbull', marca: 'Red Bull', cat: 'bebida', ic: '🐂', año: 40000, temporadas: 2 }];
-      const mg = G.migrar(vieja); out.migra = mg.patros[0].id === 'redtoro' && mg.patros[0].marca === 'Red Toro' && mg.patros[0].rel === 60 && !!mg.patros[0].obj;
+      const mg = G.migrar(vieja); out.migra = mg.patros[0].id === 'redtoro' && mg.patros[0].marca === 'Rayo Energy' && mg.patros[0].rel === 60 && !!mg.patros[0].obj;
       return out;
     });
-    check('Patrocinadores: nombres de guiño (Red Toro, Adibas…), ninguna marca real, cada una con su lema', rp.guino);
+    check('Patrocinadores: nombres de guiño (Rayo Energy, Trébol…), ninguna marca real, cada una con su lema', rp.guino);
     check('Patrocinadores: más de 30 marcas de fútbol en 8 categorías y más de 24 de escalada', rp.futbolMarcas);
     check('Fútbol: en un club llegan ofertas con objetivo y se cobran cada semana', rp.futClub && rp.futOferta && rp.futCobra, JSON.stringify(rp));
-    check('Fútbol: las marcas top (Naik, Rolecs) solo para primera división', rp.futEstrella);
+    check('Fútbol: las marcas top (Victoria, Aurum) solo para primera división', rp.futEstrella);
     check('Patrocinadores: compromisos que ocupan la tarde; cumplir sube la relación', rp.evento && rp.cumplir && rp.tardeOcupada, JSON.stringify(rp));
     check('Patrocinadores: excusarse baja la relación y por debajo de 25 rompen el contrato', rp.excusa && rp.ruptura);
     check('Patrocinadores: objetivo de temporada con prima; si fallas y la relación es baja, no renuevan', rp.objetivoOk && rp.objetivoMal);
     check('Escalada: objetivos propios, logos en la escena y hoja de patrocinadores', rp.escObjetivo && rp.escMarcaEnEscena && rp.hoja, JSON.stringify(rp));
-    check('Partidas guardadas antiguas: las marcas se convierten (Red Bull → Red Toro)', rp.migra);
+    check('Partidas guardadas antiguas: las marcas se convierten (Red Bull → Rayo Energy)', rp.migra);
     // Marcas realistas y sin repeticiones
     const mr = await page.evaluate(() => {
       const G = __P1, out = {}, cats = G.CFG.patrocinio.cats.futbol;
@@ -1300,7 +1300,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       o.deportes = [...document.querySelectorAll('[data-act=deporte]')].map(b => b.dataset.v).join(',');
       o.posiciones = [...document.querySelectorAll('[data-act=posicion]')].map(b => b.dataset.v).join(',');
       const ligas = Object.keys(G.S.mundo.ligas).map(k => G.ligaDe(G.S.mundo.ligas[k][0]).L.n);
-      o.ligas = ligas.includes('Liga ACB') && ligas.includes('NBA') && ligas.includes('Primera Nacional');
+      o.ligas = ligas.includes('Superliga') && ligas.includes('Liga Americana') && ligas.includes('Liga Regional');
       G.S.intro = false; G.silencio = true;
       const L = () => { for (let g = 0; G.S.pendiente && g < 30; g++) G.resolver('si') || G.resolver('ok') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('0') || G.resolver('triple'); };
       G.S.p.rep = 45; G.S.p.nivel = 55; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
@@ -1322,7 +1322,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       G.S.hoja = 'carrera'; G.render(); o.carrera = document.getElementById('hoja').textContent.includes('Puntos'); G.S.hoja = null; G.render();
       return o; });
     check('Deportes: se puede elegir entre fútbol, baloncesto, escalada, skate, surf y boxeo', bq.deportes === 'futbol,basket,escalada,skate,surf,boxeo', JSON.stringify(bq));
-    check('Baloncesto: base, alero y pívot; Liga ACB, FEB y NBA; partidos con puntos (sin empates) y tabla de 2 por victoria y 1 por derrota', bq.posiciones === 'base,alero,pivot' && bq.ligas && bq.marcadores && bq.tabla, JSON.stringify(bq));
+    check('Baloncesto: base, alero y pívot; Superliga, ligas nacionales y Liga Americana; partidos con puntos (sin empates) y tabla de 2 por victoria y 1 por derrota', bq.posiciones === 'base,alero,pivot' && bq.ligas && bq.marcadores && bq.tabla, JSON.stringify(bq));
     check('Baloncesto: puntos, rebotes y asistencias; logros, marcas, imprevistos y textos propios (ni goles ni botas)', bq.stats && bq.sinFutbol && bq.logros && bq.marcas && bq.carrera && bq.sucesos[0] >= 8 && bq.sucesos[1] === 0, JSON.stringify(bq));
 
     // Deportes individuales nuevos (mismo motor que la escalada, con su propio paquete)
@@ -1417,6 +1417,12 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
   {
     const src = require('fs').readFileSync(path.resolve(__dirname, '..', 'p1', 'carrera_p1.html'), 'utf8');
     const bad = ['fetch(', 'XMLHttpRequest', 'WebSocket', 'https://', 'http://', '<iframe', 'sendBeacon', 'import('].filter(t => src.includes(t));
+    {
+      const fuente = require('fs').readFileSync(require('path').join(__dirname, '..', 'p1', 'carrera_p1.html'), 'utf8').split('\n').filter(l => !/^\s*(\/\/|\/\*|\*)/.test(l)).join('\n');
+      const prohibidos = /Juegos Olímpicos|olímpic|\bNBA\b|Liga ACB|\bFEB\b|Championship Tour|Qualifying Series|X Games|Equis Games|Red Toro|\bNaik\b|Adibas|Rolecs|Sansong|Pumba|Hakuna|Just du|da alitas|Piensa diferente|Tres rayas|Cuatro aros|Libera a la bestia|búsqueda continúa|Fuera de la pared|Serie A\b|\bBBL\b|Gigantes del Basket/;
+      const m = fuente.match(prohibidos);
+      check('Nombres protegidos: ni marcas reales imitadas, ni sus eslóganes, ni competiciones registradas (Juegos Olímpicos, NBA, ACB…)', !m, m ? m[0] : '');
+    }
     check('El código no contiene conexiones externas', bad.length === 0, bad.join(', '));
   }
 

@@ -10,7 +10,7 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 - Pruebas automáticas: `tests/p1.test.cjs` (solo para quien programa)
 - Sin anuncios, compras, cuentas de usuario ni servicios de IA externos.
 - Fútbol: clubes, ciudades y estadios **ficticios**. Escalada: **zonas, grados y competiciones reales**;
-  rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
+  rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Rayo Energy, Trébol, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
 **Novedades de la versión 0.10: para que enganche**
@@ -67,7 +67,7 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 - **Cada marca ficha en su nivel**. En fútbol, cada una tiene las divisiones en las que patrocina: en
   Tercera Federación solo te llaman negocios del barrio (Bar Paco, la panadería, el taller, la pizzería,
   el agua del pueblo); Yoma, Kelmi o Kapa, en Segunda Federación hacia arriba; Pumba, solo en Primera y
-  Segunda; Adibas, Gatorrada, Audy o Hugo Bros, solo en Primera; Naik, Red Toro, Rolecs y Manzana, solo
+  Segunda; Trébol, Gatorrada, Audy o Hugo Bros, solo en Primera; Victoria, Rayo Energy, Aurum y Manzana, solo
   estrellas de Primera. Las marcas de barrio dejan de buscarte cuando subes mucho. En escalada, las
   medianas y grandes piden nivel (top 10 en España, equipo nacional o Copa del Mundo, o grado en roca)
   y las pequeñas dejan de buscarte cuando eres muy famoso.
@@ -125,9 +125,9 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 
 **Novedades de la versión 0.10: patrocinadores con obligaciones (fútbol y escalada)**
 - Patrocinadores en los **dos deportes**, con nombres de guiño y su lema: en fútbol 32 marcas en 8
-  categorías (local, botas, bebida, ropa, comida, tecnología, reloj y coche), de **Bar Paco** a **Naik**, **Red Toro** o
-  **Rolecs** (solo para quien juega en primera); en escalada 25 marcas en 7 categorías, de la tienda de
-  montaña del barrio a **La Esportiva**, **The South Face** o **Red Toro** (solo estrellas).
+  categorías (local, botas, bebida, ropa, comida, tecnología, reloj y coche), de **Bar Paco** a **Victoria**, **Rayo Energy** o
+  **Aurum** (solo para quien juega en primera); en escalada 25 marcas en 7 categorías, de la tienda de
+  montaña del barrio a **La Esportiva**, **The South Face** o **Rayo Energy** (solo estrellas).
 - Cada contrato tiene **obligaciones**:
   - **Compromisos** (rodaje de un anuncio, fiesta de presentación, firma de autógrafos, probar un
     prototipo, viaje de rodaje…) que te **ocupan la tarde**. Puedes cumplir (+relación), excusarte
@@ -142,8 +142,8 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 - Los **logos** de tus marcas salen en la escena del inicio; al tocarlos se abre la hoja
   **💼 Patrocinadores** (también desde Carrera) con pago, relación, objetivo y próximo compromiso.
 - Ofertas fijas o variables (menos fijo con primas: en fútbol por gol y por ascenso o título).
-- Logros nuevos: primer patrocinador y «Te da alitas» (firmar con Red Toro).
-- Las partidas guardadas antes se convierten solas (por ejemplo, Red Bull pasa a Red Toro).
+- Logros nuevos: primer patrocinador y «Te da alitas» (firmar con Rayo Energy).
+- Las partidas guardadas antes se convierten solas (por ejemplo, Red Bull pasa a Rayo Energy).
 
 **Novedades de la versión 0.9: interfaz de juego**
 - Pantalla de inicio limpia, como un juego de móvil: **HUD** arriba (avatar con el número de pantalla,
@@ -182,14 +182,14 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 - **Grados reales**: escala francesa en vías (de 5 a 9c) y de Fontainebleau en bloque (de 4 a 9A).
 - **Competiciones** con calendario anual: liga autonómica, Copa y Campeonato de España (categorías
   sub-16, sub-18 y sub-20 hasta los 19 años), Copa de Europa, Copa del Mundo, Mundial (años impares),
-  Europeo (años pares) y **Juegos Olímpicos** (Los Ángeles 2028, Brisbane 2032…) con clasificatorio.
+  Europeo (años pares) y **Juegos de Verano** (Los Ángeles 2028, Brisbane 2032…) con clasificatorio.
   Resultado con tops y zonas en bloque, presa alcanzada en dificultad y tiempo en velocidad, explicado
   con tu nivel, energía, felicidad, cabeza y presión frente al nivel de los rivales.
 - **Equipo nacional**: si haces podio en España o un buen puesto en Copa del Mundo, la federación te
   convoca para el año siguiente (beca, viajes pagados, competiciones internacionales).
 - **Patrocinadores**: 25 marcas en 7 categorías (local, bebida, pies de gato, material, ropa, magnesio y tecnología), una
   por categoría a la vez. Te llaman cuando tu fama sube: de la tienda de montaña del barrio (material)
-  a La Esportiva, The South Face o **Red Toro** (de 30.000 a 50.000 € al año, solo para estrellas con una
+  a La Esportiva, The South Face o **Rayo Energy** (de 30.000 a 50.000 € al año, solo para estrellas con una
   final de Copa del Mundo, un 9a o una medalla). Puedes elegir dinero fijo o menos fijo con primas por
   podio y por encadenar 8b o más. Tienen compromisos, objetivo y relación (ver novedades de la 0.10)
   y renuevan si sigues cumpliendo lo que pide la marca y os lleváis bien. Marcas inventadas; importes de juego.
@@ -323,7 +323,7 @@ En vidas simuladas, las pantallas 1–8 se superan entre los 17 y los 25 años, 
 Siempre hay un camino de negocios por si tu techo no da para la élite mundial.
 
 **Dinero en la escalada (importes de juego; un año de juego son 18 semanas):** patrocinadores de 0
-(material) a 50.000 €/año cada uno (Red Toro), que se cobran repartidos por semanas; beca del Estado
+(material) a 50.000 €/año cada uno (Rayo Energy), que se cobran repartidos por semanas; beca del Estado
 1.400 €/mes (solo para escalada); ayuda del equipo nacional 120 €/semana; monitor 150 €/semana;
 equipador 260 €/semana; premios: autonómico 100/60/40 €, Copa y Campeonato de España 500/300/200 €,
 Copa de Europa 800/500/300 €, máster 4.000/2.500/1.500 €, Copa del Mundo 8.000/7.000/5.000 € (del 4º al
@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-174 de 174 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+175 de 175 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -540,29 +540,33 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    fútbol y baloncesto; el individual (competiciones, cualidades, retos al aire libre) para escalada y, pronto,
    skate, surf y boxeo. Cada deporte trae su paquete: ligas o competiciones, posiciones o modalidades, marcas,
    escenas, imprevistos, logros, retos, jugadas decisivas y textos.
-   **Baloncesto**: base, alero o pívot; Liga ACB, Primera, Segunda y Tercera FEB, Primera Nacional, Italia,
-   Francia, Alemania, Turquía y la NBA (con G League); marcadores de 70-100 puntos sin empates (prórroga) y
+   **Baloncesto**: base, alero o pívot; Superliga, Primera, Segunda y Tercera Nacional, Liga Regional, Italia,
+   Francia, Alemania, Turquía y la Liga Americana (con Liga de Desarrollo); marcadores de 70-100 puntos sin empates (prórroga) y
    tabla de 2 puntos por victoria y 1 por derrota; puntos, rebotes y asistencias según tu posición y minutos;
    jugadas finales (triple sobre la bocina, penetración, pase; falta, tapón o defensa); marcas propias
-   (Air Jordaniano, Spaldon, Piqui…); cancha del barrio y pabellones; triple-doble como logro secreto.
+   (Vuelo Alto, Bote Pro, Cima…); cancha del barrio y pabellones; triple-doble como logro secreto.
    **Skate**: street y park (las dos modalidades olímpicas); empiezas con 14 años en el skatepark del barrio;
    cualidades propias (pop, aguante, técnica, cabeza, fluidez); «Cuerpo» y «Tobillos» en vez de piel y dedos;
    spots reales (MACBA, Fòrum, Madrid Río, Southbank, Hubba Hideout, El Toro, Venice, Burnside, Bowl du Prado,
    Bryggeriet) con trucos de street y de bowl como «proyectos»; Copa y Campeonato de España, Pro Tour mundial,
-   Equis Games por invitación, Mundiales, Europeos y Juegos; marcas propias (Elemento, Panadero, Santa Crus,
-   Vanz, Naik SB, Espitfuego, Trasher, Suprim, Monstruo…); imprevistos, logros, tienda y mejoras propios.
+   Juegos Extremos por invitación, Mundiales, Europeos y Juegos; marcas propias (Raíz, Masa Madre, Bahía,
+   Suela Gorda, Victoria SB, Llamarada, Arrasa, Exclusivo, Ogro Energy…); imprevistos, logros, tienda y mejoras propios.
    **Surf**: shortboard (la modalidad olímpica) y olas grandes; empiezas en la playa del barrio; «Piel» (sol y
    sal) y «Hombros»; olas reales con su temporada (Mundaka, Rodiles, Pantín, Supertubos, Hossegor, Pipeline,
    Teahupo'o, Jeffreys Bay, Punta Galea, Belharra, Nazaré, Jaws, Mavericks); alturas de ola y maniobras como
-   «proyectos»; Circuito español, Qualifying Series, Championship Tour, desafíos de olas grandes por invitación
-   (Nazaré, Jaws), Mundiales y Juegos; mangas con las dos mejores olas; marcas propias (Pukus, Perdido, Channel
-   Islas, O'Nail, Rip Curvas, Quicksilva, Billabonk…); localismo, swell del año, delfines y gaviotas ladronas.
+   «proyectos»; Circuito español, Circuito de Clasificación, Circuito de Élite, desafíos de olas grandes por invitación
+   (Nazaré, Jaws), Mundiales y Juegos; mangas con las dos mejores olas; marcas propias (Txuri, Brújula, Archipiélago, Atlántico, Corriente, Mercurio, Canguro…); localismo, swell del año, delfines y gaviotas ladronas.
    **Boxeo**: amateur (torneos olímpicos con oro, plata y dos bronces: Copa y Campeonato de España, Copa del
    Mundo, preolímpico y Juegos) y profesional desde los 18 (veladas contra rivales de tu nivel cada pocas
    semanas, con bolsa según tu fama; título de Europa con 5 victorias; mundial tras ganar el europeo; velada
    estelar en Las Vegas por invitación); récord con victorias y KO; «Cara» y «Golpes» acumulados (los KO en
-   contra pueden dejarte de baja); sin retos al aire libre; marcas propias (Everlas, Ganador Gloves, Cleto Reyos,
-   Proteínas Hulk…); pesaje, rueda de prensa, promotor, sparring del campeón y hasta una película de tu vida.
+   contra pueden dejarte de baja); sin retos al aire libre; marcas propias (Campana Gloves, Púgil, Hermanos Ring,
+   Proteínas Titán…); pesaje, rueda de prensa, promotor, sparring del campeón y hasta una película de tu vida.
+6m. **Nombres seguros**: ninguna marca imita a una real con una letra cambiada, una traducción literal, su logotipo o
+   su eslogan; son guiños con otra palabra (Victoria, Trébol, Rayo Energy, Aurum…). Las competiciones registradas
+   tienen nombres propios (Superliga, Liga Americana, Circuito de Élite, Juegos Extremos, Juegos de Verano); se
+   mantienen los nombres descriptivos (Primera División, Copa del Mundo) y los lugares reales. Una prueba
+   automática vigila que no vuelvan a aparecer. (No sustituye una revisión de un abogado.)
    Las partidas creadas sin posición válida (por ejemplo, de otro deporte) toman la primera de su deporte.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
