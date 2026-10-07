@@ -130,6 +130,9 @@
   .carta p { margin: 6px 0; }
   textarea.codigo { width: 100%; min-height: 70px; margin: 8px 0; border-radius: 12px; border: 2px solid var(--line); padding: 8px; font-size: 11px; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
   .entry .mas { min-height: 44px; }
+  .retos { display: flex; align-items: center; gap: 8px; width: 100%; margin: 8px 0 0; padding: 8px 12px; min-height: 44px; border-radius: 14px; border: 2px solid rgba(255,255,255,.14); background: rgba(0,0,0,.3); color: #fff; font: inherit; font-weight: 900; font-size: 13px; cursor: pointer; text-align: left; }
+  .retos .rc { flex: 1; letter-spacing: 2px; }
+  .retos .rq { font-size: 11px; color: rgba(255,255,255,.7); font-weight: 800; white-space: nowrap; }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
   .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 68px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -564,6 +567,8 @@ const CFG = {
   // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
   // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
   humor: { probTitular: 0.2 },
+  // Retos: cuántos, cuántas semanas duran y premio (semanas de ingresos, con mínimo y máximo) + extra si cumples todos
+  retos: { cuantos: 3, semanas: 3, premioMin: 50, premioMax: 5000, premioSemanas: 1, bonusAnimo: 5, bonusFama: 2 },
   // Momentos clave: probabilidad de jugada decisiva en un partido igualado (más en partidos grandes) y en una final de escalada
   momentos: { prob: 0.22, probGrande: 0.45, probEsc: 0.6 },
   // Números rojos: el banco manda una carta y te da un plazo (en semanas de juego). Si sigues en
@@ -1136,7 +1141,7 @@ function nuevaPartida(seed) {
     historial: [],
     intro: true, nombre: '', avatar: CFG.avatares[0], posicion: 'delantero', deporte: 'futbol', fuerte: 'bloque',
     patros: [], patroOf: { ofrecida: {}, prox: 0, ultEv: -99, veto: {} }, patroTemp: { partidos: 0, pj: 0, tit: 0, goles: 0 }, patrosHist: [], tardePatro: null,
-    look: Object.assign({}, LOOK_INICIAL), armario: [], personal: [], materialCasa: [], usoCapricho: {},
+    look: Object.assign({}, LOOK_INICIAL), armario: [], personal: [], materialCasa: [], usoCapricho: {}, cont: { acts: 0, victorias: 0, titular: 0, nota7: 0, plan: {} }, retos: null,
   };
   s.potencial = Math.round(CFG.club.potencial[0] + rnd(s) * (CFG.club.potencial[1] - CFG.club.potencial[0]));
   s.mundo = generarMundo(s);
@@ -1180,6 +1185,7 @@ function migrar(s) {
   if (!s.personal) s.personal = [];
   if (!s.materialCasa) s.materialCasa = [];
   if (!s.usoCapricho) s.usoCapricho = {};
+  if (!s.cont) s.cont = { acts: 0, victorias: 0, titular: 0, nota7: 0, plan: {} };
   if (!s.patrosHist) s.patrosHist = s.patros.map(p => ren[p.id] || p.id);
   const cat = s.deporte === 'escalada' ? CFG.escalada.patrocinadores : CFG.patrocinio.futbol;
   for (const pt of s.patros) {
@@ -1384,6 +1390,7 @@ function avanzarSemana() {
   const R = { semana: s.semana, accion: a.t, accionId: id, fase: s.fase, dep: [], eco: [], neg: [], opo: [], prensa: [], negocios: [], partido: null, escLineas: [], felExtra: null, antes: foto(s) };
   const mods = modsSeleccion(s, id);
   a.aplicar(s, R);
+  s.cont.plan[id] = (s.cont.plan[id] || 0) + 1;
   s.p.energia = clamp(s.p.energia, 0, CFG.energiaMax);
 
   if (s.fase === 'barrio' || s.fase === 'prep') {
@@ -1424,6 +1431,7 @@ function avanzarSemana() {
   semanaVida(s, R);
   procesarAgenda(s, R);
   tickMods(s, R);
+  semanaRetos(s, R);
   semanaBanco(s, R);
   comprobarLogros(s, R);
   const ing = R.eco.filter(([, v]) => v > 0).reduce((x, [, v]) => x + v, 0) + R.eco.filter(([t]) => t.startsWith('Impuestos')).reduce((x, [, v]) => x + v, 0);
@@ -1536,7 +1544,8 @@ function semanaClub(s, R, mods) {
   T.jornada += 1;
 
   const pT = s.patroTemp; pT.partidos += 1;
-  if (juega) { pT.pj += 1; pT.goles += P.goles; if (titular) pT.tit += 1; if (P.goles >= 3) s.hattrick = (s.hattrick || 0) + 1; }
+  if (juega) { pT.pj += 1; pT.goles += P.goles; if (titular) pT.tit += 1; if (P.goles >= 3) s.hattrick = (s.hattrick || 0) + 1;
+    if (titular) s.cont.titular++; if (P.nota >= 7) s.cont.nota7++; if (P.resultado === 'victoria') s.cont.victorias++; }
   if (juega) {
     s.stats.jugados += 1; s.stats.goles += P.goles; s.stats.asist += P.asist;
     s.stats.notas.push(P.nota); if (s.stats.notas.length > 20) s.stats.notas.shift();
@@ -2642,6 +2651,7 @@ function realizarActividad(id) {
   aplicarFx(s, A.fx(s));
   const txt = A.hacer ? A.hacer(s) : '';
   s.semanaAct.acts.push(id);
+  s.cont.acts++;
   s.p.nivel = clamp(r1(s.p.nivel), 0, CFG.nivelMax);
   anotar(s, A.ic, `${A.n}. ${txt}`.trim());
   s.aviso = `${A.ic} ${A.n}${txt ? ': ' + txt : ''}`;
@@ -2771,6 +2781,7 @@ const LOGROS = [
   ['bancarrota', '🫠', 'Tocar fondo: −1.000 € en la cuenta', s => s.p.dinero <= -1000, null, true],
   ['quiebra', '📉', 'Quiebra… y vuelta a empezar', s => (s.quiebras || 0) > 0, null, true],
   ['biografia', '📖', 'Publicar tu biografía', s => !!s.libroPublicado],
+  ['retos10', '🔥', 'Cumplir 10 retos', s => !!s.retos && s.retos.completos >= 10],
   ['palomita', '🕊️', 'Elegido por una paloma', s => !!s.palomaSuerte, null, true],
   ['hattrick', '🎩', 'Hat-trick: 3 goles en un partido', s => (s.hattrick || 0) > 0, 'futbol', true],
 ];
@@ -4433,7 +4444,7 @@ function htmlResumen(e) {
 function pantallaSemana() {
   const s = S, a = ACCIONES[s.plan], fin = finDeSemana(s), pr = proximos(s).filter(([cu]) => !(fin && cu === 'Esta semana')).slice(0, 2), [svg, lugar] = escenaActual(s);
   const [emo, ...txt] = a ? a.t.split(' ') : ['❓', 'Elige', 'tu', 'plan'];
-  let h = htmlMision();
+  let h = htmlMision() + htmlRetos(s);
   const bo = bocadillo(s);
   h += `<section class="escena">${svg}<button class="yo ${bo && bo[1] ? 'salta' : ''}" data-act="hoja" data-v="avatar" aria-label="Tu personaje">${avatarSVG(s, null, 'cuerpo')}</button>${bo ? `<span class="bocata"><span>${esc(bo[0])}</span></span>` : ''}${marcasEscena(s)}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
   h += `<div class="gauges ${s.deporte === 'escalada' && s.fase !== 'retirado' ? 'g6' : ''}">${gauges(s)}</div>`;
@@ -5308,6 +5319,72 @@ function popupMomento(s, ev) {
     <p class="small" style="text-align:center">La probabilidad depende de tu nivel, energía y ánimo${ev.dep === 'futbol' ? ' frente al rival' : ', tu cabeza y tu técnica'}.</p>`;
 }
 
+/* =====================================================================
+   19. RETOS: tres retos cortos que cambian cada pocas semanas, con premio.
+   ===================================================================== */
+const cnt = (s, k) => (s.cont || {})[k] || 0;
+const cntPlan = (s, id) => ((s.cont || {}).plan || {})[id] || 0;
+// fases: en qué etapas sale; base(s) guarda el punto de partida; prog(s, b) = [lo que llevas, lo que piden]
+const RETOS = {
+  ahorro: { ic: '🐷', fases: ['barrio', 'prep', 'club', 'retirado', 'rocodromo', 'escalador'], t: (s, b) => `Ahorra ${cr(b.meta)}`, base: s => ({ v: s.p.dinero, meta: Math.max(100, red(ingresoSemanal(s) * 2, 50)) }), prog: (s, b) => [Math.max(0, s.p.dinero - b.v), b.meta] },
+  animo: { ic: '😊', fases: ['barrio', 'prep', 'club', 'retirado', 'rocodromo', 'escalador'], cond: s => s.p.fel < 68, t: () => 'Llega a 75 de ánimo', base: () => ({}), prog: s => [Math.round(s.p.fel), 75] },
+  familia: { ic: '👪', fases: ['barrio', 'prep', 'club', 'retirado', 'rocodromo', 'escalador'], cond: s => s.rel.some(r => ['madre', 'padre'].includes(r.tipo)), t: () => 'Pasa tiempo con mamá o con papá', base: s => ({ sem: s.semana }), prog: (s, b) => [s.rel.some(r => ['madre', 'padre'].includes(r.tipo) && r.semana >= b.sem) ? 1 : 0, 1] },
+  actividades: { ic: '🎯', fases: ['barrio', 'prep', 'club', 'retirado', 'rocodromo', 'escalador'], t: () => 'Haz 3 actividades por la tarde o la noche', base: s => ({ v: cnt(s, 'acts') }), prog: (s, b) => [cnt(s, 'acts') - b.v, 3] },
+  tienda: { ic: '🛍️', fases: ['club', 'retirado', 'escalador'], cond: s => s.p.dinero >= 300, t: () => 'Estrena algo en la tienda de tu personaje', base: s => ({ v: s.armario.length }), prog: (s, b) => [s.armario.length - b.v, 1] },
+  marca: { ic: '💼', fases: ['club', 'escalador'], cond: s => (s.patros || []).length > 0, t: () => 'Cumple un compromiso con una de tus marcas', base: s => ({ v: s.patros.reduce((a, p) => a + (p.eventos || 0), 0) }), prog: (s, b) => [s.patros.reduce((a, p) => a + (p.eventos || 0), 0) - b.v, 1] },
+  // Fútbol
+  rep: { ic: '⭐', fases: ['barrio'], t: () => 'Gana 10 de reputación', base: s => ({ v: s.p.rep }), prog: (s, b) => [s.p.rep - b.v, 10] },
+  nivel: { ic: '💪', fases: ['barrio', 'prep', 'rocodromo'], t: () => 'Sube 2 puntos de nivel', base: s => ({ v: s.p.nivel }), prog: (s, b) => [r1(s.p.nivel - b.v), 2] },
+  gol: { ic: '⚽', fases: ['club'], dep: 'futbol', t: () => 'Marca un gol', base: s => ({ v: s.stats.goles }), prog: (s, b) => [s.stats.goles - b.v, 1] },
+  victorias: { ic: '🏆', fases: ['club'], dep: 'futbol', t: () => 'Gana 2 partidos', base: s => ({ v: cnt(s, 'victorias') }), prog: (s, b) => [cnt(s, 'victorias') - b.v, 2] },
+  titular: { ic: '🎽', fases: ['club'], dep: 'futbol', t: () => 'Juega de titular 2 veces', base: s => ({ v: cnt(s, 'titular') }), prog: (s, b) => [cnt(s, 'titular') - b.v, 2] },
+  nota: { ic: '📝', fases: ['club'], dep: 'futbol', t: () => 'Saca un 7 o más en un partido', base: s => ({ v: cnt(s, 'nota7') }), prog: (s, b) => [cnt(s, 'nota7') - b.v, 1] },
+  // Escalada
+  competir: { ic: '🏅', fases: ['escalador'], dep: 'escalada', cond: s => calendarioEsc(s, s.esc.año).some(c => c.sem >= s.semanasAño && c.sem < s.semanasAño + 3 && !reqComp(s, c)), t: () => 'Compite en una prueba', base: s => ({ v: s.esc.comps }), prog: (s, b) => [s.esc.comps - b.v, 1] },
+  roca: { ic: '⛰️', fases: ['escalador'], dep: 'escalada', cond: s => !!s.esc.proy, t: () => 'Ve 2 semanas a la roca', base: s => ({ v: cntPlan(s, 'roca') }), prog: (s, b) => [cntPlan(s, 'roca') - b.v, 2] },
+  tabla: { ic: '🪵', fases: ['escalador'], dep: 'escalada', cond: s => s.edad >= 16, t: () => 'Entrena 2 semanas en la tabla', base: s => ({ v: cntPlan(s, 'tabla') }), prog: (s, b) => [cntPlan(s, 'tabla') - b.v, 2] },
+  seguidores: { ic: '📱', fases: ['escalador'], dep: 'escalada', t: () => 'Gana 1.000 seguidores', base: s => ({ v: s.esc.seg }), prog: (s, b) => [Math.max(0, s.esc.seg - b.v), 1000] },
+  amigos: { ic: '🤸', fases: ['rocodromo'], dep: 'escalada', t: () => 'Escala 2 semanas con tus amigos', base: s => ({ v: cntPlan(s, 'amigos') }), prog: (s, b) => [cntPlan(s, 'amigos') - b.v, 2] },
+  tele: { ic: '📺', fases: ['retirado'], cond: s => s.p.rep >= CFG.retiro.tvRepMin, t: () => 'Sal 2 semanas en la tele', base: s => ({ v: cntPlan(s, 'tele') }), prog: (s, b) => [cntPlan(s, 'tele') - b.v, 2] },
+};
+function ingresoSemanal(s) { const h = s.ingresosHist || []; return h.length ? h.reduce((a, b) => a + b, 0) / h.length : 0; }
+function premioReto(s) { return Math.max(CFG.retos.premioMin, Math.min(CFG.retos.premioMax, red(ingresoSemanal(s) * CFG.retos.premioSemanas, 10))); }
+function nuevosRetos(s, R) {
+  const K = CFG.retos, previos = s.retos ? s.retos.lista.map(r => r.id) : [];
+  const ok = Object.entries(RETOS).filter(([id, X]) => X.fases.includes(s.fase) && (!X.dep || X.dep === (s.deporte || 'futbol')) && (!X.cond || X.cond(s)) && !previos.includes(id)).map(([id]) => id);
+  const lista = [];
+  while (lista.length < K.cuantos && ok.length) { const id = ok.splice(Math.floor(rnd(s) * ok.length), 1)[0]; lista.push({ id, base: RETOS[id].base(s), hecho: false }); }
+  s.retos = { desde: s.semana + (R ? 1 : 0), hasta: s.semana + (R ? 1 : 0) + K.semanas, lista, premio: premioReto(s), completos: s.retos ? s.retos.completos : 0, bonus: false };
+  if (R && lista.length) R.opo.push(['🔥', `Nuevos retos: ${lista.map(r => RETOS[r.id].t(s, r.base).toLowerCase()).join(' · ')}.`]);
+}
+function semanaRetos(s, R) {
+  if (!s.retos) return nuevosRetos(s, null);
+  const K = CFG.retos, X = s.retos;
+  for (const r of X.lista) {
+    if (r.hecho || !RETOS[r.id]) continue;
+    const [a, b] = RETOS[r.id].prog(s, r.base);
+    if (a >= b) { r.hecho = true; X.completos = (X.completos || 0) + 1; s.p.dinero += X.premio; R.eco.push([`Reto cumplido: ${RETOS[r.id].t(s, r.base).toLowerCase()}`, X.premio]); R.opo.push(['✅', `Reto cumplido: ${RETOS[r.id].t(s, r.base).toLowerCase()} (+${cr(X.premio)}).`]); }
+  }
+  if (!X.bonus && X.lista.length && X.lista.every(r => r.hecho)) { X.bonus = true; s.p.fel = clamp(s.p.fel + K.bonusAnimo, 0, 100); s.p.rep = clamp(s.p.rep + K.bonusFama, 0, 100); R.opo.push(['🔥', `¡Los ${X.lista.length} retos cumplidos! +${K.bonusAnimo} de ánimo y +${K.bonusFama} de fama.`]); }
+  if (s.semana + 1 >= X.hasta) nuevosRetos(s, R);
+}
+function htmlRetos(s) {
+  const X = s.retos;
+  if (!X || !X.lista.length) return '';
+  const hechos = X.lista.filter(r => r.hecho).length, quedan = Math.max(1, X.hasta - s.semana);
+  return `<button class="retos" data-act="hoja" data-v="retos" id="retos"><span class="rt">🔥 Retos ${hechos}/${X.lista.length}</span><span class="rc">${X.lista.map(r => r.hecho ? '✅' : RETOS[r.id] ? RETOS[r.id].ic : '❔').join(' ')}</span><span class="rq">${quedan === 1 ? 'última semana' : `${quedan} semanas`} ›</span></button>`;
+}
+function hojaRetos() {
+  const s = S, X = s.retos;
+  if (!X) return hoja('🔥 Retos', '<p class="small">Pronto tendrás retos.</p>');
+  const quedan = Math.max(1, X.hasta - s.semana);
+  return hoja('🔥 Retos', `<p class="small">Tres retos cortos que cambian cada ${CFG.retos.semanas} semanas. Cada uno da ${cr(X.premio)} (según lo que ganas cada semana) y, si cumples los tres, +${CFG.retos.bonusAnimo} de ánimo y +${CFG.retos.bonusFama} de fama. ${quedan === 1 ? 'Es la última semana de estos retos.' : `Quedan ${quedan} semanas.`}</p>
+    <div class="card lista">${X.lista.map(r => { const R0 = RETOS[r.id]; if (!R0) return ''; const [a, b] = R0.prog(s, r.base), pc = r.hecho ? 100 : pct(Math.max(0, a), b);
+      return `<div class="row" style="flex-wrap:wrap"><div class="ic">${r.hecho ? '✅' : R0.ic}</div><div class="tx"><b>${esc(R0.t(s, r.base))}</b><span>${r.hecho ? '¡Cumplido!' : `${typeof a === 'number' && b > 50 && R0 === RETOS.ahorro ? cr(Math.max(0, a)) : nf(Math.max(0, a))} de ${R0 === RETOS.ahorro ? cr(b) : nf(b)}`} · premio ${cr(X.premio)}</span>
+        <div class="pbar"><i style="width:${pc}%;background:var(--green2)"></i></div></div></div>`; }).join('')}</div>
+    <p class="small">Retos cumplidos en toda tu vida: <b>${X.completos || 0}</b>.</p>`);
+}
+
 function render() {
   if (!S || silencio) return;
   syncEsc(S);
@@ -5316,10 +5393,11 @@ function render() {
   renderTop();
   renderDock();
   const main = $('main');
+  if (!S.intro && !S.retos) nuevosRetos(S, null);
   if (S.intro) { main.innerHTML = pantallaIntro(); $('hoja').innerHTML = ''; $('modal').innerHTML = ''; return; }
   main.innerHTML = pantallaSemana();
   const h = S.hoja;
-  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
+  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h === 'retos' ? hojaRetos() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
@@ -5402,7 +5480,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, JUGADAS, probJugada: (ev, o) => probJugada(S, ev, o), opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, JUGADAS, probJugada: (ev, o) => probJugada(S, ev, o), RETOS, nuevosRetos: () => nuevosRetos(S, null), opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,

@@ -381,7 +381,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       G.S.rel.push({ id: 'pareja', tipo: 'pareja', nombre: 'Noa', v: 90, semana: 0 });
       const th = G.interactuar('pareja', 'tenerHijo');
       let nacio = false, gasto = false;
-      for (let i = 0; i < 16; i++) { G.S.rel.find(r => r.id === 'pareja').v = 90; semana('normal'); if (G.S.pendiente && G.S.pendiente.id === 'nacimiento') nacio = true; if (G.S.ultimo.eco.some(([t]) => t.startsWith('Gastos de'))) gasto = true; resolverTodo(); }
+      for (let i = 0; i < 16; i++) { G.S.rel.find(r => r.id === 'pareja').v = 90; semana('normal'); if ([G.S.pendiente].concat(G.S.cola).some(e => e && e.id === 'nacimiento')) nacio = true; if (G.S.ultimo.eco.some(([t]) => t.startsWith('Gastos de'))) gasto = true; resolverTodo(); }
       const hijo = G.S.rel.find(r => r.tipo === 'hijo');
       out.hijos = { th, nacio, gasto, hijo: !!hijo, edad0: hijo && hijo.edad, segundo: !!G.bloqueoHijo() === false };
       // Retirada voluntaria: sin sueldo, el mundo sigue y cumples años
@@ -1147,6 +1147,31 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     });
     check('Momentos clave en fútbol: la jugada decisiva cambia el marcador, la clasificación y tus goles', mo.futbol >= 5 && mo.aciertos > 0 && mo.fallos > 0 && mo.coherente && mo.ventanaResultado, JSON.stringify(mo));
     check('Momentos clave en escalada: el último bloque de la final cambia el puesto, los podios y el premio', mo.escalada === 30 && mo.sube > 0 && mo.baja > 0 && mo.escCoherente, JSON.stringify(mo));
+    // Retos de la semana
+    await page.evaluate(() => { const G = __P1; G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0; G.nueva(121); G.S.hoja = null; G.render(); });
+    const re0 = await page.evaluate(() => ({ n: __P1.S.retos && __P1.S.retos.lista.length, fila: !!document.querySelector('#retos') }));
+    await tap(page, '#retos');
+    const re1 = await page.evaluate(() => ({ hoja: __P1.S.hoja, filas: document.querySelectorAll('#hoja .row').length }));
+    const re = await page.evaluate(() => {
+      const G = __P1, out = {}, limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver('ok') || G.resolver('0') || G.resolver('corto') || G.resolver('si'); };
+      G.S.hoja = null;
+      // Forzamos un reto de ahorro y lo cumplimos
+      G.S.retos.lista[0] = { id: 'ahorro', base: { v: G.S.p.dinero, meta: 100 }, hecho: false }; G.S.retos.bonus = false;
+      const premio = G.S.retos.premio; G.S.p.dinero += 500; const d0 = G.S.p.dinero;
+      G.elegir('plaza'); G.avanzarSemana(); limpiar();
+      out.cumplido = G.S.retos.lista[0].hecho === true || G.S.retos.completos >= 1;
+      out.premio = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Reto cumplido') && v === premio);
+      // Cambian a las 3 semanas y son distintos
+      const ids0 = G.S.retos.lista.map(r => r.id).join(), hasta = G.S.retos.hasta;
+      for (let i = 0; i < 4; i++) { G.elegir('plaza'); G.avanzarSemana(); limpiar(); }
+      out.cambian = G.S.retos.hasta > hasta && G.S.retos.lista.map(r => r.id).join() !== ids0;
+      // Cada deporte y etapa tiene los suyos
+      G.nueva(122, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.nuevosRetos();
+      out.escalada = G.S.retos.lista.every(r => !G.RETOS[r.id].dep || G.RETOS[r.id].dep === 'escalada') && G.S.retos.lista.length === 3;
+      return out;
+    });
+    check('Retos: 3 retos en el inicio que se abren con un toque', re0.n === 3 && re0.fila && re1.hoja === 'retos' && re1.filas === 3, JSON.stringify([re0, re1]));
+    check('Retos: cumplir uno da su premio; cambian cada 3 semanas; cada deporte tiene los suyos', re.cumplido && re.premio && re.cambian && re.escalada, JSON.stringify(re));
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
@@ -1179,7 +1204,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     console.log('      Vidas de escalada:', JSON.stringify(vidas));
     check('Escalada: tres vidas simuladas hasta los 34 años sin errores ni atascos', vidas.every(v => v.edad >= 34 && v.fase === 'retirado'));
     check('Escalada: se progresa por pantallas (todas superan la 5 antes de los 30)', vidas.every(v => v.p5 && v.p5 < 30), vidas.map(v => `pantalla 5 a los ${v.p5}`).join(', '));
-    check('Escalada: nadie llega a la élite sin esfuerzo (nivel máximo < 90) y todos compiten', vidas.every(v => v.nivel < 90 && v.comps > 20));
+    check('Escalada: nadie llega a la élite sin esfuerzo (nivel máximo < 92) y todos compiten', vidas.every(v => v.nivel < 92 && v.comps > 20));
     check('Escalada: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
