@@ -944,6 +944,30 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Mejoras: material para siempre y propio de cada deporte; caprichos con espera', mj.unaVez && mj.spa && mj.futbol, JSON.stringify(mj));
     check('Mejoras: fisio y crash pads bajan las lesiones; la furgo abarata los viajes; sin dinero, tu equipo se va', mj.lesion && mj.furgo && mj.seVa, JSON.stringify(mj));
 
+    // Números rojos: carta del banco, plazo, intereses y embargo
+    const bk = await page.evaluate(() => {
+      const G = __P1, out = {}, limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver('ok') || G.resolver('0') || G.resolver('si'); };
+      G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0; G.nueva(81); G.S.pantalla = 9; G.S.edad = 36; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal;
+      G.S.p.dinero = 200000; G.comprarCoche('utilitario'); G.comprarInmueble(G.S.anuncios[0].id, false); G.comprarNegocio('peluqueria', 6000);
+      const n = G.S.negocios[0]; n.caja = 500;
+      G.S.p.dinero = -3000; G.elegir('rentas'); G.avanzarSemana();
+      out.carta = G.S.pendiente && G.S.pendiente.tipo === 'cartaBanco' && !!G.banco();
+      G.render(); out.cartaVisible = document.getElementById('evento').textContent.includes('Banco del Barrio');
+      out.sinEmbargoAun = G.S.coches.length === 1 && !G.S.ultimo.eco.some(([t]) => t.startsWith('Intereses del banco')); limpiar();
+      G.S.p.dinero = -3000; G.elegir('rentas'); G.avanzarSemana();
+      out.intereses = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Intereses del banco') && v < 0);
+      out.embargo = G.S.pendiente && G.S.pendiente.tipo === 'embargo' && n.caja === 0 && G.S.coches.length === 0 && G.S.p.dinero >= 0 && !G.banco();
+      out.casaSigue = G.S.inmuebles.length === 1; limpiar();
+      // Si sales a tiempo, no pasa nada
+      G.nueva(82); G.S.p.dinero = -100; G.elegir('descansar'); G.avanzarSemana(); limpiar();
+      G.S.p.dinero = 5000; G.elegir('descansar'); G.avanzarSemana();
+      out.aTiempo = !G.banco() && !G.S.ultimo.eco.some(([t]) => t.startsWith('Intereses del banco')) && G.S.ultimo.opo.some(([, t]) => t.includes('Salgo de los números rojos'));
+      return out;
+    });
+    check('Números rojos: carta del banco con una semana de plazo', bk.carta && bk.cartaVisible && bk.sinEmbargoAun, JSON.stringify(bk));
+    check('Números rojos: pasado el plazo, intereses y embargo (caja del negocio, luego el coche) hasta cubrir la deuda', bk.intereses && bk.embargo && bk.casaSigue, JSON.stringify(bk));
+    check('Números rojos: si sales a tiempo, el banco te deja en paz', bk.aTiempo, JSON.stringify(bk));
+
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
       const G = __P1; G.silencio = true; G.CFG.club.probSuceso = 0.45;

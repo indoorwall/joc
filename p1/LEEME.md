@@ -13,6 +13,14 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
+**Novedades de la versión 0.10: números rojos y el banco**
+- Si acabas una semana con dinero negativo, llega una **carta del Banco del Barrio** y tienes **una
+  semana** (un turno) para volver a positivo. En «Lo próximo» se ve el aviso.
+- Si sigues en números rojos: **intereses del 2 % cada semana** (mínimo 20 €) y **embargo** hasta
+  cubrir la deuda, en este orden: dinero de las cajas de tus negocios y clubes, coches, casas (la tuya
+  la última), negocios y clubes. Los bienes se subastan por el 70 % de lo que valen.
+- Si no queda nada que embargar, la deuda y los intereses siguen. Al volver a positivo, el banco te deja en paz.
+
 **Novedades de la versión 0.10: el dinero sirve para algo (🛒 Mejoras)**
 - Se abre tocando tu dinero (arriba), desde Carrera o desde Vida. Tres tipos de gasto, en los dos deportes:
   - **Tu equipo** (se paga cada semana; si no puedes pagar, se va): entrenador personal (+15 % en lo que
@@ -385,7 +393,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-133 de 133 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+136 de 136 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -428,6 +436,8 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    mejora más entrenando (misma partida y misma suerte); el entrenador se paga cada semana; material para
    siempre y propio de cada deporte; caprichos con espera; fisio y crash pads bajan las lesiones; la furgo
    abarata los viajes; sin dinero, tu equipo se va.
+6f. **Números rojos**: carta del banco con una semana de plazo; pasado el plazo, intereses y embargo
+   (caja del negocio, luego el coche) hasta cubrir la deuda, sin tocar la casa si no hace falta; si sales a tiempo, nada.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
