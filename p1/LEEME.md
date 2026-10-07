@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-161 de 161 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+162 de 162 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -518,6 +518,11 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    escalada (puesto, podios y premio); retos (premio, cambio cada 3 semanas, propios de cada deporte); rival,
    mentor y periodista (capítulos que no salen al azar, duelos, sección en Vida); temporadas del año; tarjeta;
    sonido; siguiente generación con toques y salón de la fama.
+6i. **Segunda auditoría**: 8 vidas simuladas hasta los 70 años (con siguiente generación) sin fallos de
+   reglas, textos rotos ni desbordes; partida antigua (v0.9) que carga bien; los 171 avisos caben a 320 px.
+   Arreglos: el rival puede ser chico o chica y los textos concuerdan; empezar con tu hijo funciona también
+   en escalada; inicio más compacto (indicadores en una fila, 2 marcas y «+N», bocadillo que no tapa las
+   marcas) para que la agenda se vea entera encima de JUGAR en un iPhone 13.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

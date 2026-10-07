@@ -343,10 +343,10 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       out.sucesos = { total, errores, distintos: Object.keys(G.SUCESOS).length };
       // Préstamo con devolución a las 4 semanas
       alClub(6, 1); G.S.p.dinero = 1000; const p0 = G.S.p.dinero;
-      G.S.pendiente = { tipo: 'suceso', id: 'prestamo', data: {} }; G.resolver('0');
+      G.S.pendiente = { tipo: 'suceso', id: 'prestamo', data: {} }; G.resolver('0'); const p1 = G.S.p.dinero;
       const ag = G.S.agenda[0]; let devuelto = false;
       for (let i = 0; i < 5; i++) { semana('normal'); if (G.S.ultimo.eco.some(([t]) => t.includes('préstamo'))) devuelto = true; }
-      out.prestamo = G.S.p.dinero !== p0 && ag.importe === 200 && devuelto === ag.devuelve && G.S.agenda.length === 0;
+      out.prestamo = p1 === p0 - 200 && ag.importe === 200 && devuelto === ag.devuelve && G.S.agenda.length === 0;
       // Representante: más sueldo en ofertas y comisión semanal
       alClub(9, 1); G.S.p.nivel = 55; G.S.p.rep = 40; const sinAg = G.generarOfertas(1)[0];
       alClub(9, 1); G.S.p.nivel = 55; G.S.p.rep = 40; G.S.rel.push({ id: 'agente', tipo: 'agente', nombre: 'Sam', v: 60, semana: 0 }); const conAg = G.generarOfertas(1)[0];
@@ -1201,11 +1201,14 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       // Vida: tu gente del deporte
       G.S.hoja = 'relaciones'; G.render(); const t = document.getElementById('hoja').textContent;
       out.vida = t.includes(r.nombre) && t.includes('Paco') && t.includes('Marta Ríos');
+      // Concordancia: rival chica o chico
+      const rv = G.pjs().rival; rv.nombre = 'Lucía'; rv.g = 'a'; const dA = G.SUCESOS.rivalPresenta.d(G.S); rv.nombre = 'Iker'; rv.g = 'o'; const dO = G.SUCESOS.rivalPresenta.d(G.S);
+      out.genero = dA.includes('la crack') && dO.includes('el crack');
       G.S.hoja = null; G.CFG.momentos.prob = 0.1; G.CFG.momentos.probGrande = 0.3; G.CFG.personajes.activos = false;
       return out;
     });
     check('Personajes: tu mentor y tu rival aparecen al empezar; el rival ficha por un club igual o mejor', pj.inicio && pj.club, JSON.stringify(pj));
-    check('Personajes: duelos contra tu rival, entrevista de la periodista, capítulos que no salen al azar y su sección en Vida', pj.duelo && pj.entrevista && pj.noAzar && pj.vida, JSON.stringify(pj));
+    check('Personajes: duelos contra tu rival, entrevista de la periodista, capítulos que no salen al azar y su sección en Vida (rival chico o chica)', pj.duelo && pj.entrevista && pj.noAzar && pj.vida && pj.genero, JSON.stringify(pj));
     // Salón de la fama, siguiente generación, sonido, temporadas y tarjeta
     const ex1 = await page.evaluate(() => {
       const G = __P1, out = {}, limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver('ok') || G.resolver('0') || G.resolver('si') || G.resolver('club') || G.resolver('corto'); };
@@ -1240,6 +1243,20 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     await page.evaluate(() => { for (let g = 0; __P1.S.pendiente && g < 9; g++) __P1.resolver('0') || __P1.resolver('ok'); __P1.S.hoja = 'salon'; __P1.render(); });
     const gn2 = await page.evaluate(() => document.getElementById('hoja').textContent.includes('Abuela Rosa'));
     check('Siguiente generación: juegas con tu hijo, que hereda dinero y fama; tu vida entra en el salón de la fama', gn0.intro && gn0.nombre === 'Leo' && gn0.salon === 1 && gn1.dinero >= 20000 && gn1.gen === 2 && gn1.padre === 'Abuela Rosa' && gn2, JSON.stringify([gn0, gn1, gn2]));
+
+    // Inicio compacto: con marcas y retos, la agenda se ve entera encima de JUGAR en un iPhone 13
+    {
+      const { page: pv, ctx: cv } = await openPage(browser, { viewport: { width: 390, height: 664 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+      const ag = await pv.evaluate(() => { const G = __P1; G.nueva(808); G.S.nombre = 'Leo'; G.S.p.rep = 45; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
+        const L = () => { for (let g = 0; G.S.pendiente && g < 30; g++) G.resolver('si') || G.resolver('ok') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('0') || G.resolver('colocado'); };
+        for (let i = 0; i < 14; i++) { L(); G.S.p.energia = 80; G.elegir(G.S.fase === 'club' ? 'normal' : 'descansar'); G.avanzarSemana(); } L(); G.firmarPatro('kelmi'); G.render(); window.scrollTo(0, 0);
+        const b = q => document.querySelector(q).getBoundingClientRect(), tiles = [...document.querySelectorAll('#agenda .slot')].map(e => e.getBoundingClientRect().bottom);
+        const m = b('.escena .marcas'), bo = document.querySelector('.escena .bocata'), chips = [...document.querySelectorAll('.escena .marcas span')].map(e => e.getBoundingClientRect());
+        return { tiles: tiles.length, abajo: Math.max(...tiles), jugar: b('.jugar').top, toque: m.height, choque: bo ? chips.some(c => c.bottom > bo.getBoundingClientRect().top) : false };
+      });
+      check('Inicio: la agenda se ve entera encima de JUGAR (iPhone 13) y el bocadillo no tapa tus marcas', ag.tiles === 3 && ag.abajo <= ag.jugar && ag.toque >= 44 && !ag.choque, JSON.stringify(ag));
+      await cv.close();
+    }
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
