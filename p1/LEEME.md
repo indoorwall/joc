@@ -13,6 +13,20 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
+**Novedades de la versión 0.10: marcas más realistas y sin repetirse**
+- **Muchas más marcas**: 32 de fútbol en 8 categorías (local, botas, bebida, ropa, comida, tecnología,
+  reloj y coche) y 25 de escalada en 7 (local, bebida, pies de gato, material, ropa, magnesio y tecnología).
+- **Cada marca ficha en su nivel**. En fútbol, cada una tiene las divisiones en las que patrocina: en
+  Tercera Federación solo te llaman negocios del barrio (Bar Paco, la panadería, el taller, la pizzería,
+  el agua del pueblo); Yoma, Kelmi o Kapa, en Segunda Federación hacia arriba; Pumba, solo en Primera y
+  Segunda; Adibas, Gatorrada, Audy o Hugo Bros, solo en Primera; Naik, Red Toro, Rolecs y Manzana, solo
+  estrellas de Primera. Las marcas de barrio dejan de buscarte cuando subes mucho. En escalada, las
+  medianas y grandes piden nivel (top 10 en España, equipo nacional o Copa del Mundo, o grado en roca)
+  y las pequeñas dejan de buscarte cuando eres muy famoso.
+- **Sin repeticiones**: nunca te ofrecen una marca que ya tienes ni la misma marca dos veces en la
+  misma ventana; si rechazas una marca (o la cambias por otra) no vuelve en un año, y si rompe contigo
+  o no te renueva, no vuelve en dos. La hoja de patrocinadores dice por qué cada marca no te llama.
+
 **Novedades de la versión 0.10: números rojos y el banco**
 - Si acabas una semana con dinero negativo, llega una **carta del Banco del Barrio** y tienes **una
   semana** (un turno) para volver a positivo. En «Lo próximo» se ve el aviso.
@@ -62,9 +76,9 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   cansados sin energía y una tirita si estás lesionado. Tu personaje sale en el HUD y en la escena.
 
 **Novedades de la versión 0.10: patrocinadores con obligaciones (fútbol y escalada)**
-- Patrocinadores en los **dos deportes**, con nombres de guiño y su lema: en fútbol 13 marcas en 6
-  categorías (local, botas, bebida, ropa, reloj y coche), de **Bar Paco** a **Naik**, **Red Toro** o
-  **Rolecs** (solo para quien juega en primera); en escalada 13 marcas en 5 categorías, de la tienda de
+- Patrocinadores en los **dos deportes**, con nombres de guiño y su lema: en fútbol 32 marcas en 8
+  categorías (local, botas, bebida, ropa, comida, tecnología, reloj y coche), de **Bar Paco** a **Naik**, **Red Toro** o
+  **Rolecs** (solo para quien juega en primera); en escalada 25 marcas en 7 categorías, de la tienda de
   montaña del barrio a **La Esportiva**, **The South Face** o **Red Toro** (solo estrellas).
 - Cada contrato tiene **obligaciones**:
   - **Compromisos** (rodaje de un anuncio, fiesta de presentación, firma de autógrafos, probar un
@@ -125,7 +139,7 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   con tu nivel, energía, felicidad, cabeza y presión frente al nivel de los rivales.
 - **Equipo nacional**: si haces podio en España o un buen puesto en Copa del Mundo, la federación te
   convoca para el año siguiente (beca, viajes pagados, competiciones internacionales).
-- **Patrocinadores**: 13 marcas en 5 categorías (local, bebida, pies de gato, material y ropa), una
+- **Patrocinadores**: 25 marcas en 7 categorías (local, bebida, pies de gato, material, ropa, magnesio y tecnología), una
   por categoría a la vez. Te llaman cuando tu fama sube: de la tienda de montaña del barrio (material)
   a La Esportiva, The South Face o **Red Toro** (de 30.000 a 50.000 € al año, solo para estrellas con una
   final de Copa del Mundo, un 9a o una medalla). Puedes elegir dinero fijo o menos fijo con primas por
@@ -397,7 +411,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-138 de 138 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+141 de 141 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -426,8 +440,11 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    fin de año y equipo nacional; gastos según la edad; retirada desde los 28; pantallas y desbloqueos
    propios; logros propios; los 17 imprevistos de escalada (33 opciones); sin imprevistos de fútbol;
    y tres vidas simuladas hasta los 34 años (todas pasan la pantalla 5 antes de los 30).
-6b. **Patrocinadores**: nombres de guiño sin marcas reales y con lema; 13 marcas de fútbol en 6
-   categorías; ofertas en un club que se cobran cada semana; marcas top solo en primera; compromisos que
+6b. **Patrocinadores**: nombres de guiño sin marcas reales y con lema; más de 30 marcas de fútbol en 8
+   categorías y más de 24 de escalada; cada marca solo en su división o nivel (en Tercera Federación solo
+   negocios del barrio, Pumba desde Segunda, las top solo en Primera; en escalada, las pequeñas no buscan
+   estrellas y las grandes piden nivel); nunca la misma marca dos veces en una ventana ni una que ya tienes;
+   las rechazadas no vuelven en un año; ofertas en un club que se cobran cada semana; marcas top solo en primera; compromisos que
    ocupan la tarde (cumplir sube la relación, excusarse la baja, por debajo de 25 rompen); objetivo de
    temporada con prima y no renovación si fallas con mala relación; objetivos de escalada, logos en la
    escena y hoja propia; conversión de partidas antiguas.

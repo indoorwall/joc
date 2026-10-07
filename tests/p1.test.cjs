@@ -671,7 +671,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       out.patroOferta = s.patros.length === 1 && s.patros[0].año > 0;
       semana('descansoEsc');
       out.patroCobra = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Patrocinio') && v > 0);
-      s = escalador(31, 22); s.p.rep = 65; for (let i = 0; i < 16; i++) { s.p.rep = 65; s.semanasAño = 3; semana('descansoEsc'); }
+      s = escalador(31, 22); s.p.rep = 65; s.esc.mejor = { esp: 2 }; s.esc.nacional = s.esc.año; for (let i = 0; i < 16; i++) { s.p.rep = 65; s.semanasAño = 3; semana('descansoEsc'); }
       out.variasMarcas = new Set(G.S.patros.map(p => p.cat)).size >= 3;
       out.marcas = G.CFG.escalada.patrocinadores.length >= 12;
       // Red Bull: solo estrellas, 30.000-50.000 €/año
@@ -780,9 +780,9 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     const rp = await page.evaluate(() => {
       const G = __P1, out = {}; G.CFG.club.probSuceso = 0;
       const todas = G.CFG.escalada.patrocinadores.concat(G.CFG.patrocinio.futbol);
-      const reales = /red bull|nike|adidas|puma|rolex|\baudi\b|\bseat\b|north face|la sportiva|\bscarpa\b|petzl|mammut|\bpatagonia\b|black diamond|edelrid|tenaya|aquarius|under armour|kappa|\bcasio\b/i;
+      const reales = /red bull|nike|adidas|puma|rolex|\baudi\b|\bseat\b|north face|la sportiva|\bscarpa\b|petzl|mammut|\bpatagonia\b|black diamond|edelrid|tenaya|aquarius|under armour|kappa|\bcasio\b|\bjoma\b|kelme|mizuno|gatorade|\blotto\b|hugo boss|festina|xiaomi|samsung|\bapple\b|burger king|telepizza|\bocun\b|five ten|arc.?teryx|friction labs|gopro|\bcamp\b|\bkia\b|\bbeal\b/i;
       out.guino = todas.every(P => !reales.test(P.marca) && P.lema) && todas.some(P => P.marca === 'Red Toro');
-      out.futbolMarcas = G.CFG.patrocinio.futbol.length >= 12 && new Set(G.CFG.patrocinio.futbol.map(P => P.cat)).size === 6;
+      out.futbolMarcas = G.CFG.patrocinio.futbol.length >= 30 && new Set(G.CFG.patrocinio.futbol.map(P => P.cat)).size === 8 && G.CFG.escalada.patrocinadores.length >= 24;
       const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'eventoPatro' || e.tipo === 'nacional' || e.tipo === 'invitacion' ? 'si' : e.tipo === 'equipoEsc' ? 'club' : ['fin', 'pantalla', 'retiro', 'finEsc'].includes(e.tipo) ? 'ok' : e.tipo === 'mejora' ? 'aceptar' : e.tipo === 'ofertas' && G.S.contrato && G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0'); } };
       // Fútbol: al club, llega una oferta y se cobra
       G.nueva(41); G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
@@ -838,7 +838,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       return out;
     });
     check('Patrocinadores: nombres de guiño (Red Toro, Adibas…), ninguna marca real, cada una con su lema', rp.guino);
-    check('Patrocinadores de fútbol: al menos 12 marcas en 6 categorías', rp.futbolMarcas);
+    check('Patrocinadores: más de 30 marcas de fútbol en 8 categorías y más de 24 de escalada', rp.futbolMarcas);
     check('Fútbol: en un club llegan ofertas con objetivo y se cobran cada semana', rp.futClub && rp.futOferta && rp.futCobra, JSON.stringify(rp));
     check('Fútbol: las marcas top (Naik, Rolecs) solo para primera división', rp.futEstrella);
     check('Patrocinadores: compromisos que ocupan la tarde; cumplir sube la relación', rp.evento && rp.cumplir && rp.tardeOcupada, JSON.stringify(rp));
@@ -846,6 +846,37 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Patrocinadores: objetivo de temporada con prima; si fallas y la relación es baja, no renuevan', rp.objetivoOk && rp.objetivoMal);
     check('Escalada: objetivos propios, logos en la escena y hoja de patrocinadores', rp.escObjetivo && rp.escMarcaEnEscena && rp.hoja, JSON.stringify(rp));
     check('Partidas guardadas antiguas: las marcas se convierten (Red Bull → Red Toro)', rp.migra);
+    // Marcas realistas y sin repeticiones
+    const mr = await page.evaluate(() => {
+      const G = __P1, out = {}, cats = G.CFG.patrocinio.cats.futbol;
+      G.silencio = true;
+      const fut = (liga, rep) => { G.nueva(5); G.S.fase = 'club'; G.S.contrato = { clubId: G.S.mundo.ligas[liga][0], salario: 100, temporadasRestantes: 2 }; G.S.p.rep = rep; };
+      const todas = () => cats.flatMap(c => G.ofertasPatro(c));
+      fut('es-5', 60); const t5 = todas();
+      out.tercera = t5.length > 0 && t5.every(o => ['local', 'bebida', 'comida'].includes(o.cat)) && !t5.some(o => o.id === 'pumba');
+      fut('es-4', 60); out.segundaFed = !todas().some(o => ['pumba', 'adibas', 'naik', 'aquarios'].includes(o.id));
+      fut('es-2', 60); out.segunda = G.ofertasPatro('botas').some(o => o.id === 'pumba');
+      fut('es-1', 95); const t1 = todas(); out.primera = t1.some(o => o.id === 'naik') && !t1.some(o => ['barPaco', 'panaderia', 'yoma', 'kapa'].includes(o.id));
+      // Nunca dos veces la misma marca en una ventana, ni una que ya tienes
+      out.distintas = cats.every(c => { const l = G.ofertasPatro(c).map(o => o.id); return new Set(l).size === l.length; });
+      fut('es-2', 60); G.firmarPatro('pumba'); out.yaLaTengo = !G.ofertasPatro('botas').some(o => o.id === 'pumba');
+      // Rechazar: esas marcas no vuelven en un año
+      G.S.patros = []; const of = G.ofertasPatro('bebida'); G.S.pendiente = { tipo: 'patrocinio', cat: 'bebida', ofertas: of }; G.resolver('no');
+      out.rechazo = of.length > 0 && !G.ofertasPatro('bebida').some(o => of.some(x => x.id === o.id));
+      G.S.semana += 19; out.vuelve = G.ofertasPatro('bebida').some(o => of.some(x => x.id === o.id));
+      // Escalada: las marcas pequeñas no buscan estrellas y las grandes piden nivel
+      G.nueva(6, null, 'escalada', 'bloque'); G.S.fase = 'escalador'; G.S.esc.equipo = 'club'; G.S.p.rep = 90; G.S.esc.mejor = { mundo: 3 };
+      const ee = G.CFG.patrocinio.cats.escalada.flatMap(c => G.ofertasPatro(c)).map(o => o.id);
+      out.escEstrella = ee.includes('esportiva') && !ee.some(id => ['tiendaBarrio', 'tiza', 'kombucha', 'tenaja'].includes(id));
+      G.S.p.rep = 45; G.S.esc.mejor = {}; G.S.esc.maxVia = 8; G.S.esc.maxBloque = 5;
+      const ej = G.CFG.patrocinio.cats.escalada.flatMap(c => G.ofertasPatro(c)).map(o => o.id);
+      out.escNivel = !ej.some(id => ['escarpa', 'petzel', 'esportiva', 'aquarios', 'mamut'].includes(id)) && ej.includes('tenaja');
+      G.silencio = false; G.nueva(7);
+      return out;
+    });
+    check('Marcas realistas: en Tercera Federación solo negocios del barrio; Pumba desde Segunda; las top, solo en Primera', mr.tercera && mr.segundaFed && mr.segunda && mr.primera, JSON.stringify(mr));
+    check('Marcas sin repetir: nunca la misma dos veces en una ventana ni una que ya tienes; si la rechazas, no vuelve en un año', mr.distintas && mr.yaLaTengo && mr.rechazo && mr.vuelve, JSON.stringify(mr));
+    check('Escalada: las marcas pequeñas no buscan estrellas y las grandes piden nivel (España, selección, Copa del Mundo)', mr.escEstrella && mr.escNivel, JSON.stringify(mr));
 
     // Tu personaje y la tienda (con toques)
     await page.evaluate(() => { const G = __P1; G.CFG.club.probSuceso = 0; G.nueva(51); G.S.p.dinero = 1000; G.S.hoja = null; G.render(); });
