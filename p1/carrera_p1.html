@@ -551,7 +551,10 @@ const CFG = {
   humor: { probTitular: 0.2 },
   // Números rojos: el banco manda una carta y te da un plazo (en semanas de juego). Si sigues en
   // negativo, cobra intereses cada semana y embarga tus bienes hasta cubrir la deuda (venta forzosa).
-  banco: { plazo: 1, interes: 0.02, interesMin: 20, ventaForzosa: 0.7 },
+  banco: { plazo: 1, interes: 0.02, interesMin: 20, ventaForzosa: 0.7,
+    // Sin nada que embargar: puedes declararte en quiebra; si no, el banco lo hace por ti a las 4 semanas.
+    // La quiebra borra la deuda, pero cuesta fama y ánimo, se van tus marcas y tu equipo, y el banco no te da hipotecas en 2 años.
+    semanasQuiebra: 4, quiebraFama: 15, quiebraAnimo: 25, vetoSemanas: 36 },
   // Mejoras: en qué gastar el dinero. ef: entreno (+% de lo que mejoras), energia (+/semana),
   // animo (se suma a tu felicidad), lesion (−% de probabilidad), viajes (−% del viaje a la roca).
   mejorasMaxLesion: 0.6,
@@ -2060,7 +2063,11 @@ function resolver(opcion) {
     const r = resolverEsc(s, ev, opcion);
     if (!r) return false;
     [ic, msg] = r;
-  } else if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo') {
+  } else if (ev.tipo === 'quiebra') {
+    if (opcion === 'quiebra') { if (s.p.dinero < 0) quiebra(s, false, null); }
+    else if (['seguir', 'ok', '0'].includes(opcion)) { msg = 'Intento pagar la deuda sin declararme en quiebra.'; ic = '💪'; }
+    else return false;
+  } else if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo' || ev.tipo === 'quiebraForzada') {
     if (opcion === 'empresa') s.hoja = 'bienes';
     msg = ''; // ya está en el diario
   } else if (ev.tipo === 'fin' || ev.tipo === 'pantalla' || ev.tipo === 'retiro') {
@@ -2628,6 +2635,7 @@ const LOGROS = [
   ['chanclas', '🧦', 'Chanclas con calcetines… y traje', s => !!s.look && s.look.calzado === 'chanclas' && s.look.ropa === 'traje', null, true],
   ['arcoiris', '🌈', 'Pelo de colores', s => !!s.look && ['azul', 'rosa', 'verde'].includes(s.look.colorPelo), null, true],
   ['bancarrota', '🫠', 'Tocar fondo: −1.000 € en la cuenta', s => s.p.dinero <= -1000, null, true],
+  ['quiebra', '📉', 'Quiebra… y vuelta a empezar', s => (s.quiebras || 0) > 0, null, true],
   ['palomita', '🕊️', 'Elegido por una paloma', s => !!s.palomaSuerte, null, true],
   ['hattrick', '🎩', 'Hat-trick: 3 goles en un partido', s => (s.hattrick || 0) > 0, 'futbol', true],
 ];
@@ -2864,6 +2872,7 @@ function bloqueoInmueble(s, a, conHipoteca) {
   if (!desbloqueado(s, 'inmuebles')) return textoBloqueo(s, 'inmuebles');
   const gastos = red(a.precio * CFG.inmo.gastosCompra, 100);
   if (!conHipoteca) return s.p.dinero >= a.precio + gastos ? null : `Necesitas ${cr(a.precio + gastos)}.`;
+  if (s.vetoBanco && s.semana < s.vetoBanco) return `Después de la quiebra, el banco no te da hipotecas hasta la semana ${s.vetoBanco}.`;
   const h = condicionesHipoteca(s, a);
   if (s.p.dinero < h.entrada + h.gastos) return `Entrada + gastos: ${cr(h.entrada + h.gastos)}.`;
   if (h.cuota > capacidadHipoteca(s)) return `El banco no te la da: cuota ${cr(h.cuota)}/sem y solo puedes pagar ${cr(capacidadHipoteca(s))}/sem.`;
@@ -4099,7 +4108,25 @@ function semanaBanco(s, R) {
   for (const t of l) R.opo.push(['🏛️', t]);
   // La ventana sale si embargan algo (o la primera vez); si no, queda anotado en el parte
   if (l.some(t => t.startsWith('Embargo')) || !B.avisado) { B.avisado = true; encolar(s, { tipo: 'embargo', intereses: int, lineas: l, deuda: Math.max(0, -s.p.dinero) }); }
-  if (s.p.dinero >= 0) { s.banco = null; R.opo.push(['✅', 'Con lo embargado, la cuenta vuelve a estar en positivo.']); }
+  if (s.p.dinero >= 0) { s.banco = null; R.opo.push(['✅', 'Con lo embargado, la cuenta vuelve a estar en positivo.']); return; }
+  // Ya no queda nada que embargar
+  B.sinBienes = (B.sinBienes || 0) + 1;
+  if (B.sinBienes >= K.semanasQuiebra) { quiebra(s, true, R); encolar(s, { tipo: 'quiebraForzada', deuda: B.deudaQuiebra }); return; }
+  if (B.sinBienes === 1) encolar(s, { tipo: 'quiebra', deuda: -s.p.dinero });
+  R.opo.push(['⚠️', `No me queda nada que embargar. Si en ${K.semanasQuiebra - B.sinBienes} ${K.semanasQuiebra - B.sinBienes === 1 ? 'semana' : 'semanas'} sigo debiendo, el banco me declara en quiebra.`]);
+}
+// Quiebra personal: se borra la deuda, pero tiene consecuencias
+function quiebra(s, forzada, R) {
+  const K = CFG.banco, deuda = Math.max(0, -s.p.dinero), nota = (ic, t) => R ? R.opo.push([ic, t]) : anotar(s, ic, t);
+  s.p.dinero = 0;
+  s.p.rep = clamp(s.p.rep - K.quiebraFama, 0, 100); s.p.fel = clamp(s.p.fel - K.quiebraAnimo, 0, 100);
+  if ((s.patros || []).length) nota('💔', `Mis marcas no quieren saber nada de alguien en quiebra: ${s.patros.map(p => p.marca).join(', ')} rompen el contrato.`);
+  s.patros = []; s.personal = [];
+  s.vetoBanco = s.semana + K.vetoSemanas; s.quiebras = (s.quiebras || 0) + 1;
+  if (s.banco) s.banco.deudaQuiebra = deuda;
+  s.banco = null;
+  s.cola = s.cola.filter(e => e.tipo !== 'quiebra');
+  nota('📉', `${forzada ? 'El banco me declara en quiebra' : 'Me declaro en quiebra'}: se borra mi deuda de ${cr(deuda)}, pero pierdo ${K.quiebraFama} de fama y ${K.quiebraAnimo} de ánimo, mis marcas y mi equipo, y no me darán hipotecas hasta la semana ${s.vetoBanco}.`);
 }
 // El banco se cobra en este orden: cajas de tus negocios y clubes, coches, casas (la tuya la última),
 // negocios y clubes. Los bienes se venden deprisa y por menos de lo que valen.
@@ -4133,6 +4160,11 @@ function embargar(s) {
 }
 function popupBanco(s, ev) {
   const K = CFG.banco;
+  if (ev.tipo === 'quiebra') return `<div class="pi">📉</div><h2>No queda nada que embargar</h2><p class="pd">Debes ${cr(ev.deuda)} y los intereses siguen. Puedes declararte en quiebra (ley de segunda oportunidad) o intentar pagarlo; si en ${K.semanasQuiebra - 1} semanas más sigues debiendo, el banco te declara en quiebra.</p>
+    <button class="po" data-act="resolver" data-v="quiebra"><b>📉 Declararme en quiebra</b>${chips([['€', 'Deuda borrada'], ['⭐', -K.quiebraFama], ['😊', -K.quiebraAnimo], ['💔', 'Se van tus marcas y tu equipo'], ['🏦', `Sin hipotecas ${Math.round(K.vetoSemanas / CFG.hipoteca.semanasAño)} años`]])}</button>
+    <button class="po" data-act="resolver" data-v="seguir"><b>💪 Intentar pagarlo</b>${chips([['📈', `${Math.round(K.interes * 100)} % de intereses cada semana`], ['⏳', `${K.semanasQuiebra - 1} semanas de margen`]])}</button>`;
+  if (ev.tipo === 'quiebraForzada') return `<div class="pi">📉</div><h2>El banco te declara en quiebra</h2><p class="pd">Se borra tu deuda${ev.deuda ? ` de ${cr(ev.deuda)}` : ''}, pero pierdes ${K.quiebraFama} de fama y ${K.quiebraAnimo} de ánimo, tus marcas y tu equipo, y no te darán hipotecas en ${Math.round(K.vetoSemanas / CFG.hipoteca.semanasAño)} años. Empiezas de cero.</p>
+    <button class="po" data-act="resolver" data-v="ok"><b>Toca levantarse</b></button>`;
   if (ev.tipo === 'cartaBanco') return `<div class="pi">✉️</div><h2>Carta del banco</h2>
     <div class="card carta"><p><i>Estimado/a ${esc(s.nombre)}:</i></p><p>Su cuenta está en <b>números rojos: −${cr(ev.deuda)}</b>.</p>
       <p>Tiene <b>hasta el final de la semana que viene</b> para dejarla en positivo. Si no, le cobraremos <b>intereses del ${Math.round(K.interes * 100)} % cada semana</b> y <b>embargaremos sus bienes</b>: primero el dinero de las cajas de sus negocios, después coches, casas, negocios y clubes, que se subastan por el ${Math.round(K.ventaForzosa * 100)} % de lo que valen.</p>
@@ -4611,7 +4643,7 @@ function popup() {
     return `<div class="pi">${e.ic}</div><h2>${esc(textoSuceso(s, e, d, 't'))}</h2><p class="pd">${esc(textoSuceso(s, e, d, 'd'))}</p>
       ${e.ops.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${esc(o.n)}</b>${chips(o.fx(s, d))}</button>`).join('')}`;
   }
-  if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo') return popupBanco(s, ev);
+  if (['cartaBanco', 'embargo', 'quiebra', 'quiebraForzada'].includes(ev.tipo)) return popupBanco(s, ev);
   if (POPUPS_PATRO[ev.tipo]) return popupPatro(s, ev);
   if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
   if (ev.tipo === 'retiro' && ev.deporte === 'escalada') return popupRetiroEsc(s, ev);

@@ -19,7 +19,11 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 - Si sigues en números rojos: **intereses del 2 % cada semana** (mínimo 20 €) y **embargo** hasta
   cubrir la deuda, en este orden: dinero de las cajas de tus negocios y clubes, coches, casas (la tuya
   la última), negocios y clubes. Los bienes se subastan por el 70 % de lo que valen.
-- Si no queda nada que embargar, la deuda y los intereses siguen. Al volver a positivo, el banco te deja en paz.
+- Si no queda nada que embargar, el banco te ofrece **declararte en quiebra** (ley de segunda oportunidad)
+  o intentar pagarlo. Si a las 4 semanas sigues debiendo, **el banco te declara en quiebra**. La quiebra
+  borra la deuda, pero pierdes 15 de fama y 25 de ánimo, se van tus marcas y tu equipo, y no te dan
+  hipotecas en 2 años. Así la deuda nunca crece sin fin. Logro secreto: «Quiebra… y vuelta a empezar».
+- Al volver a positivo, el banco te deja en paz.
 
 **Novedades de la versión 0.10: el dinero sirve para algo (🛒 Mejoras)**
 - Se abre tocando tu dinero (arriba), desde Carrera o desde Vida. Tres tipos de gasto, en los dos deportes:
@@ -393,7 +397,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-136 de 136 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+138 de 138 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -438,6 +442,8 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    abarata los viajes; sin dinero, tu equipo se va.
 6f. **Números rojos**: carta del banco con una semana de plazo; pasado el plazo, intereses y embargo
    (caja del negocio, luego el coche) hasta cubrir la deuda, sin tocar la casa si no hace falta; si sales a tiempo, nada.
+   Sin nada que embargar: quiebra voluntaria (deuda borrada, menos fama, sin marcas, sin hipotecas) o
+   quiebra forzada a las 4 semanas.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

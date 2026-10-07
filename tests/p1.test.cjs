@@ -967,6 +967,27 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Números rojos: carta del banco con una semana de plazo', bk.carta && bk.cartaVisible && bk.sinEmbargoAun, JSON.stringify(bk));
     check('Números rojos: pasado el plazo, intereses y embargo (caja del negocio, luego el coche) hasta cubrir la deuda', bk.intereses && bk.embargo && bk.casaSigue, JSON.stringify(bk));
     check('Números rojos: si sales a tiempo, el banco te deja en paz', bk.aTiempo, JSON.stringify(bk));
+    const qb = await page.evaluate(() => {
+      const G = __P1, out = {}, sem = () => { G.elegir('rentas'); G.avanzarSemana(); };
+      const pasar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const t = G.S.pendiente.tipo; if (t === 'quiebra') { out.ventanaQuiebra = true; G.resolver(out.elegir); } else G.resolver('ok') || G.resolver('0') || G.resolver('si'); } };
+      // Sin nada que embargar: puedes declararte en quiebra
+      G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0;
+      G.nueva(83); G.S.edad = 36; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal; G.S.pantalla = 9; G.S.p.rep = 50;
+      G.S.patros = [{ id: 'barPaco', marca: 'Bar Paco', cat: 'local', ic: '🍺', año: 500, temporadas: 2, rel: 60, obj: null, proxEv: 999 }];
+      out.elegir = 'quiebra'; G.S.p.dinero = -5000;
+      for (let i = 0; i < 4 && !G.S.quiebras; i++) { sem(); pasar(); }
+      out.quiebra = !!out.ventanaQuiebra && G.S.quiebras === 1 && G.S.p.dinero >= 0 && G.S.patros.length === 0 && G.S.p.rep <= 35 && !G.banco();
+      out.veto = /hipotecas/.test(G.bloqueoInmueble(G.S.anuncios[0], true) || '');
+      // Si no te declaras, el banco lo hace a las 4 semanas
+      G.nueva(84); G.S.edad = 36; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal;
+      out.ventanaQuiebra = false; out.elegir = 'seguir'; G.S.p.dinero = -5000;
+      let semanas = 0;
+      for (let i = 0; i < 10 && !G.S.quiebras; i++) { G.S.p.dinero = Math.min(G.S.p.dinero, -5000); sem(); semanas++; pasar(); }
+      out.forzada = G.S.quiebras === 1 && G.S.p.dinero >= 0 && semanas <= 6 && G.S.log[G.S.log.length - 1].lineas.concat(G.S.log[G.S.log.length - 2].lineas).some(([, t]) => t.includes('me declara en quiebra'));
+      return out;
+    });
+    check('Números rojos: sin nada que embargar puedes declararte en quiebra (deuda borrada, pierdes fama y marcas, sin hipotecas)', qb.quiebra && qb.veto, JSON.stringify(qb));
+    check('Números rojos: si no te declaras, el banco te declara en quiebra a las pocas semanas: la deuda nunca crece sin fin', qb.forzada, JSON.stringify(qb));
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
