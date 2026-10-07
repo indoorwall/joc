@@ -13,6 +13,30 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
+**Novedades de la versión 0.10: para que enganche**
+- **Momentos clave**: en algunos partidos igualados (más en los grandes y al final de la liga) llega la
+  jugada decisiva del minuto 80-90: tirar colocado, reventarla o pasar (si empatáis o perdéis por uno)
+  o falta táctica, cruce o repliegue (si ganáis por uno). En escalada, el último bloque o los últimos
+  movimientos de una final si vas 2º, 3º o 4º. Cada opción dice su probabilidad (nivel, energía, ánimo,
+  cabeza, técnica) y cambia de verdad el marcador, la clasificación, tus goles y primas, o tu puesto,
+  podio y premio.
+- **Retos**: tres retos cortos que cambian cada 3 semanas, propios de tu deporte y tu etapa (marca un
+  gol, gana dos partidos, compite, ve a la roca, ahorra, pasa tiempo con tu familia…). Premio según lo
+  que ganas cada semana y extra de ánimo y fama si cumples los tres. Se ven en una fila del inicio.
+- **Personajes que vuelven**: un **rival** de tu edad que te pica en el barrio, ficha por un club mejor,
+  se cruza contigo en la liga o en las competiciones (duelos), puede lesionarse y te escribe al
+  retirarte (y puede acabar siendo tu amigo); tu **mentor** (Paco, el míster del barrio, o Lola, la
+  entrenadora del rocódromo) y una **periodista** (Marta Ríos, de Radio Patio) con entrevistas, la tele
+  y una «exclusiva». Su historia va por capítulos y se ve en Vida.
+- **Salón de la fama**: cada vida terminada se guarda con su puntuación (patrimonio, pantallas y logros).
+- **Siguiente generación**: de retirado, si tienes un hijo o hija de 14 años o más, sigues jugando con
+  él o ella: hereda el 5 % de tu patrimonio (hasta 20.000 €) y parte de tu fama.
+- **Sonido** (se apaga en ⚙️): gol, ovación, logros, compras y cartas del banco, generados en el juego.
+- **Temporadas del año**: Nochebuena, Lotería de Navidad, Reyes, vacaciones en el pueblo, ola de calor y
+  Halloween; gorro de Papá Noel y jersey navideño solo en diciembre.
+- **Tarjeta de temporada** al acabar cada temporada o año, para hacer captura y compartirla.
+- Menos imprevistos al azar (35 % de las semanas) para dejar sitio a la historia.
+
 **Novedades de la versión 0.10: arreglos tras el análisis de juego**
 - **Escalada**: las pantallas 2 y 3 se pueden pasar compitiendo o yendo a la roca (antes la roca era
   obligatoria y quien solo competía se quedaba atascado para siempre). Retirada obligatoria a los 40.
@@ -435,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-151 de 151 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+161 de 161 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -490,6 +514,10 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    espaciados; ánimo estable; ojeador desde la semana 4; marcas que esperan a verte jugar; retirada de escalada a
    los 40; embajador y biografía; pestañas de la tienda y zonas táctiles; sin desbordes a 320 px (la comprobación
    ahora mide el ancho real de la pantalla).
+6h. **Para que enganche**: momentos clave en fútbol (marcador, clasificación y goles coherentes) y en
+   escalada (puesto, podios y premio); retos (premio, cambio cada 3 semanas, propios de cada deporte); rival,
+   mentor y periodista (capítulos que no salen al azar, duelos, sección en Vida); temporadas del año; tarjeta;
+   sonido; siguiente generación con toques y salón de la fama.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

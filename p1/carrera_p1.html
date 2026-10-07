@@ -133,6 +133,22 @@
   .retos { display: flex; align-items: center; gap: 8px; width: 100%; margin: 8px 0 0; padding: 8px 12px; min-height: 44px; border-radius: 14px; border: 2px solid rgba(255,255,255,.14); background: rgba(0,0,0,.3); color: #fff; font: inherit; font-weight: 900; font-size: 13px; cursor: pointer; text-align: left; }
   .retos .rc { flex: 1; letter-spacing: 2px; }
   .retos .rq { font-size: 11px; color: rgba(255,255,255,.7); font-weight: 800; white-space: nowrap; }
+  .tarjeta { border-radius: 24px; padding: 18px; color: #fff; text-align: center; background: linear-gradient(160deg, #0f7a3a, #0b3d1f); box-shadow: 0 8px 0 rgba(0,0,0,.3); border: 3px solid rgba(255,255,255,.25); }
+  .tarjeta.esc { background: linear-gradient(160deg, #6a3fd0, #2b1a63); }
+  .tarjeta .tt1 { font-weight: 900; letter-spacing: .1em; text-transform: uppercase; font-size: 13px; color: var(--gold); }
+  .tarjeta .tav { width: 120px; height: 200px; margin: 6px auto 0; }
+  .tarjeta .tav svg { width: 100%; height: 100%; }
+  .tarjeta .tn { font-size: 26px; font-weight: 900; }
+  .tarjeta .ts { font-size: 13px; opacity: .85; margin-bottom: 12px; }
+  .tgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .td { background: rgba(255,255,255,.12); border-radius: 14px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+  .td span { font-size: 20px; }
+  .td b { font-size: 17px; font-weight: 900; }
+  .td i { font-style: normal; font-size: 10px; opacity: .85; text-transform: uppercase; letter-spacing: .03em; line-height: 1.2; }
+  .tarjeta .tpie { margin-top: 12px; font-size: 11px; opacity: .7; font-weight: 800; }
+  .ic.salon { font-size: 22px; }
+  .avs { width: 44px; height: 44px; flex: none; border-radius: 50%; overflow: hidden; }
+  .avs svg { width: 100%; height: 100%; display: block; }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
   .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 68px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -567,7 +583,9 @@ const CFG = {
   // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
   // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
   humor: { probTitular: 0.2 },
-  personajes: { activos: true },   // rival, mentor y periodista (sus capítulos)
+  personajes: { activos: true },
+  // Siguiente generación: desde qué edad del hijo o hija se puede seguir, herencia (% del patrimonio, con tope) y fama heredada (% de la tuya)
+  generacion: { edadMin: 14, herenciaPct: 0.05, herenciaMax: 20000, famaPct: 0.2 },   // rival, mentor y periodista (sus capítulos)
   // Retos: cuántos, cuántas semanas duran y premio (semanas de ingresos, con mínimo y máximo) + extra si cumples todos
   retos: { cuantos: 3, semanas: 3, premioMin: 50, premioMax: 5000, premioSemanas: 1, bonusAnimo: 5, bonusFama: 2 },
   // Momentos clave: probabilidad de jugada decisiva en un partido igualado (más en partidos grandes) y en una final de escalada
@@ -628,7 +646,7 @@ const CFG = {
         { id: 'perilla', n: 'Perilla', p: 40 }, { id: 'barba', n: 'Barba', p: 60 }],
       ropa: [{ id: 'camiseta', n: 'Camiseta', p: 0 }, { id: 'equipacion', n: 'Camiseta de tu equipo', p: 0, dep: 'futbol' }, { id: 'tirantes', n: 'Tirantes', p: 25 },
         { id: 'hawaiana', n: 'Camisa hawaiana', p: 35 }, { id: 'sudadera', n: 'Sudadera', p: 40 }, { id: 'chaqueta', n: 'Chaqueta', p: 120 }, { id: 'plumas', n: 'Plumas', p: 250 },
-        { id: 'marca', n: 'Camiseta de tu marca', p: 0, req: { patro: true } }, { id: 'traje', n: 'Traje de empresario', p: 1500, req: { pantalla: 4 } }],
+        { id: 'marca', n: 'Camiseta de tu marca', p: 0, req: { patro: true } }, { id: 'traje', n: 'Traje de empresario', p: 1500, req: { pantalla: 4 } }, { id: 'jerseyNavidad', n: 'Jersey navideño', p: 40, req: { mes: 11 } }],
       colorRopa: [['azul', 'Azul'], ['rojo', 'Rojo'], ['verde', 'Verde'], ['amarillo', 'Amarillo'], ['negro', 'Negro'], ['blanco', 'Blanco'], ['morado', 'Morado'], ['naranja', 'Naranja']].map(([id, n]) => ({ id, n, p: 0 })),
       pantalon: [{ id: 'chandal', n: 'Chándal', p: 0 }, { id: 'corto', n: 'Pantalón corto', p: 0 }, { id: 'vaquero', n: 'Vaqueros', p: 30 }, { id: 'falda', n: 'Falda', p: 30 },
         { id: 'traje', n: 'Pantalón de traje', p: 400, req: { pantalla: 4 } }],
@@ -637,7 +655,7 @@ const CFG = {
         { id: 'doradas', n: 'Zapatillas de oro', p: 25000 }],
       cabeza: [{ id: 'nada', n: 'Nada', p: 0 }, { id: 'fiesta', n: 'Gorro de fiesta', p: 5 }, { id: 'cinta', n: 'Cinta', p: 10 }, { id: 'gorra', n: 'Gorra', p: 20 },
         { id: 'gorro', n: 'Gorro de lana', p: 25 }, { id: 'casco', n: 'Casco', p: 70, dep: 'escalada' }, { id: 'vaquero', n: 'Sombrero vaquero', p: 90 },
-        { id: 'corona', n: 'Corona', p: 0, req: { logro: 'millon' } }],
+        { id: 'corona', n: 'Corona', p: 0, req: { logro: 'millon' } }, { id: 'papaNoel', n: 'Gorro de Papá Noel', p: 15, req: { mes: 11 } }],
       gafas: [{ id: 'nada', n: 'Sin gafas', p: 0 }, { id: 'corazon', n: 'Gafas de corazón', p: 15 }, { id: 'redondas', n: 'Gafas redondas', p: 60 }, { id: 'sol', n: 'Gafas de sol', p: 90 },
         { id: 'deportivas', n: 'Gafas deportivas', p: 120 }],
       extra: [{ id: 'nada', n: 'Nada', p: 0 }, { id: 'balon', n: 'Balón', p: 20, dep: 'futbol' }, { id: 'magnesio', n: 'Bolsa de magnesio', p: 25, dep: 'escalada' },
@@ -1198,6 +1216,7 @@ function migrar(s) {
   return s;
 }
 function reiniciar(seed) {
+  guardarEnSalon(S);
   try { localStorage.removeItem(CFG.guardado); } catch (_) {}
   S = nuevaPartida(seed);
   confirmarReinicio = false;
@@ -1462,6 +1481,7 @@ function avanzarSemana() {
   for (let k = 0; k < s.log.length - 8; k++) if (s.log[k].por) { s.log[k].por = null; s.log[k].prensa = null; }
   s.semanaAct = { acts: [], lineas: [] };
   s.semana += 1;
+  sonar(sonidoSemana(s, R));
   guardar();
   render();
   return true;
@@ -1714,6 +1734,7 @@ function finTemporada(s, R) {
   const info = { tipo: 'fin', clubId: yo, año: T.año, liga: T.liga, pos, zona: z, tabla: orden.map(id => [id, { ...T.tabla[id] }]), primas: [], tramo: { ...tramo } };
   balancePatros(s, R, z);
   s.patroTemp = { partidos: 0, pj: 0, tit: 0, goles: 0 };
+  guardarTarjeta(s, { tipo: 'futbol', titulo: `Temporada ${T.año}/${String(T.año + 1).slice(2)}`, sub: club(s, yo).nombre, pos, liga: infoLiga(T.liga).L.n, pj: tramo.pj, goles: tramo.goles, asist: tramo.asist, nota: tramo.pj ? nf(tramo.sumaNota / tramo.pj) : '—' });
   if (z === 'ascenso' || z === 'campeon') {
     s.ascensos += 1;
     if (c.primaAscenso) {
@@ -1871,6 +1892,24 @@ const SUCESOS = {
     d: s => s.deporte === 'escalada' ? '«Ya estoy mayor. ¿Darías un curso a los peques del rocódromo?»' : '«Ya estoy mayor. ¿Entrenarías a los chavales del barrio los sábados?»',
     ops: [{ n: 'Aceptar', fx: () => [['😊', 10], ['⭐', 2], ['⚡', -5]], txt: 'El primer sábado vienen 30 chavales. Uno se parece mucho a ti de pequeño.' },
           { n: 'No puedo', fx: () => [['😊', -2]], txt: '«Lo entiendo. Gracias por todo, de verdad.»' }] },
+  // ---- Temporadas del año (Navidad, Reyes, verano, Halloween) ----
+  nochebuena: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🎄', peso: 3, cond: s => mesActual(s) === 11, t: 'Cena de Nochebuena', d: 'Toda la familia, el turrón de siempre y tu tío contando la misma historia de todos los años.',
+    ops: [{ n: 'Ir y disfrutar', fx: () => [['😊', 6], ['👩', 5], ['👨', 5], ['⚡', -4]], txt: 'Te comes cuatro platos de langostinos. Mereció la pena.' },
+          { n: 'Quedarte entrenando', fx: () => [['💪', 1], ['😊', -4], ['👩', -6]], txt: 'Entrenas solo mientras suenan villancicos. Tu madre no te lo perdona.' }] },
+  loteriaNavidad: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🎟️', peso: 3, cond: s => mesActual(s) === 11 && s.p.dinero >= 20, t: 'Lotería de Navidad: el décimo del bar', d: 'El bar de siempre vende su décimo de cada año. «Este año toca, seguro».',
+    ops: [{ n: 'Comprar un décimo', fx: () => [['€', -20], ['🎲', '3 %: ¡pedrea gorda! (+2.000 €)']], hacer(s) { aplicarFx(s, [['€', -20]]); const u = rnd(s); if (u < 0.03) { s.p.dinero += 2000; return '¡Te toca una pedrea gorda! +2.000 €. El bar entero lo celebra.'; } if (u < 0.18) { s.p.dinero += 20; return 'Reintegro: recuperas los 20 €.'; } return 'No toca. «El año que viene, seguro».'; } },
+          { n: 'Pasar', fx: () => [], txt: 'Luego toca en el bar y te pasas el año oyéndolo.' }] },
+  reyes: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '👑', peso: 3, cond: s => mesActual(s) === 0, t: 'Los Reyes Magos te han dejado algo', d: 'Hay un paquete con tu nombre junto a los zapatos.',
+    ops: [{ n: 'Abrirlo', fx: () => [['🎁', '¿qué será?']], hacer(s) { const u = rnd(s); if (u < 0.3) { aplicarFx(s, [['😊', 2]]); return 'Carbón dulce. Se ve que este año no te has portado muy bien.'; } if (u < 0.7) { aplicarFx(s, [['😊', 5]]); return 'Unos calcetines con tu cara. Horribles. Te encantan.'; } s.p.dinero += 50; return 'Un sobre con 50 €. Los Reyes saben lo que se necesita.'; } }] },
+  pueblo: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🏡', peso: 2, cond: s => [6, 7].includes(mesActual(s)), t: 'Vacaciones en el pueblo', d: 'Tus abuelos te esperan con la piscina municipal y fiestas con orquesta.',
+    ops: [{ n: 'Ir una semana', fx: () => [['⚡', 20], ['😊', 6]], txt: 'Bailas «Paquito el chocolatero» con tu abuela. Recargas pilas.' },
+          { n: 'Quedarte a entrenar', fx: () => [['💪', 1], ['😊', -3]], txt: 'Mientras todos se bañan, tú haces series. Tu cuerpo lo agradece; tu ánimo, no tanto.' }] },
+  calor: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🥵', peso: 2, cond: s => mesActual(s) === 7, t: 'Ola de calor', d: '42 grados a la sombra. Hasta el asfalto suda.',
+    ops: [{ n: 'Entrenar a las 7 de la mañana', fx: () => [['⚡', -4], ['💪', 0.5]], txt: 'Madrugas, pero entrenas. Los gallos te miran con respeto.' },
+          { n: 'Siesta épica', fx: () => [['⚡', 8], ['😊', 2]], txt: 'Tres horas. Con ventilador y babas.' }] },
+  halloween: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🎃', peso: 2, cond: s => mesActual(s) === 9, t: 'Fiesta de disfraces', d: 'Tus amigos organizan una fiesta de Halloween. Hay concurso de disfraces.',
+    ops: [{ n: 'Disfrazarte de tu rival', fx: () => [['😊', 4], ['⭐', 1]], hacer(s) { aplicarFx(s, [['😊', 4], ['⭐', 1]]); return `Ganas el concurso imitando a ${RIV(s).nombre}. Alguien lo graba.`; } },
+          { n: 'No ir', fx: () => [['⚡', 4]], txt: 'Te quedas en casa repartiendo caramelos. Y comiéndote la mitad.' }] },
   // ---- Toques de humor (los dos deportes) ----
   paloma: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🕊️', peso: 0.6, t: 'Una paloma te ha elegido', d: 'En plena calle, una paloma te deja un «regalito» en el hombro. Dicen que da buena suerte.',
     ops: [{ n: 'Creer que da suerte', fx: () => [['😊', 4]], hacer(s) { aplicarFx(s, [['😊', 4]]); s.palomaSuerte = true; return 'Te convences de que es una señal. Esta semana te sientes imparable.'; } },
@@ -2157,6 +2196,8 @@ function opcionPosible(s, e, k, d) {
 function resolver(opcion) {
   const s = S, ev = s.pendiente;
   if (!ev) return false;
+  const verTarjeta = opcion === 'tarjeta' && (ev.tipo === 'fin' || ev.tipo === 'finEsc');
+  if (verTarjeta) opcion = 'ok';
   let msg = '', ic = '📝';
   if (ev.tipo === 'ojeador') {
     const largo = opcion === 'largo';
@@ -2226,6 +2267,7 @@ function resolver(opcion) {
   } else return false;
   s.pendiente = s.cola.shift() || null;
   if (msg) anotar(s, ic, msg, true);
+  if (verTarjeta) s.hoja = 'tarjeta';
   s.aviso = null;
   comprobarLogros(s, null);
   guardar(); render();
@@ -2834,6 +2876,7 @@ const LOGROS = [
   ['biografia', '📖', 'Publicar tu biografía', s => !!s.libroPublicado],
   ['retos10', '🔥', 'Cumplir 10 retos', s => !!s.retos && s.retos.completos >= 10],
   ['rivales', '🤝', 'Rivales para siempre: acabar siendo amigo de tu rival', s => !!s.pj && s.pj.rival.amigo],
+  ['dinastia', '👪', 'Dinastía: seguir con la siguiente generación', s => (s.generacion || 1) >= 2],
   ['palomita', '🕊️', 'Elegido por una paloma', s => !!s.palomaSuerte, null, true],
   ['hattrick', '🎩', 'Hat-trick: 3 goles en un partido', s => (s.hattrick || 0) > 0, 'futbol', true],
 ];
@@ -3651,6 +3694,7 @@ function nuevoAñoEsc(s, R) {
   const E = s.esc, K = CFG.escalada, A = E.anual;
   const resumen = { tipo: 'finEsc', año: E.año, comps: A.comps, podios: A.podios, mejorEsp: A.mejorEsp, mejorMundo: A.mejorMundo, premios: A.premios, maxVia: E.maxVia, maxBloque: E.maxBloque, edad: s.edad + 1, beca: E.becaHasta > E.año, perdida: Math.round(E.becaSaldo), patros: s.patros.reduce((a, p) => a + p.año, 0) };
   if (s.fase === 'escalador') balancePatros(s, R);
+  if (s.fase === 'escalador') guardarTarjeta(s, { tipo: 'escalada', titulo: `Temporada ${E.año}`, sub: E.equipo ? EQUIPOS[E.equipo].n : 'Por libre', comps: A.comps, podios: A.podios, esp: A.mejorEsp < 99 ? `${A.mejorEsp}º` : '—', mundo: A.mejorMundo < 99 ? `${A.mejorMundo}º` : '—', grado: E.maxVia >= 0 ? gV(E.maxVia) : '—' });
   if (E.becaSaldo > 0) R.opo.push(['🎓', `Se pierden ${cr(E.becaSaldo)} de la beca que no he gastado en escalada.`]);
   E.becaSaldo = 0;
   // Equipo nacional para el año que viene
@@ -4199,6 +4243,7 @@ function popupEsc(s, ev) {
   if (ev.tipo === 'finEsc') return `<div class="pi">🏁</div><h2>Resumen de ${ev.año}</h2><p class="pd">Cumples ${ev.edad} años.</p>
     <div class="chips" style="justify-content:center">${chip('🏆', `${ev.comps} competiciones`)}${chip('🥇', `${ev.podios} podios`)}${ev.mejorEsp < 99 ? chip('🇪🇸', `mejor puesto en España: ${ev.mejorEsp}º`) : ''}${ev.mejorMundo < 99 ? chip('🌍', `Copa del Mundo: ${ev.mejorMundo}º`) : ''}${ev.premios ? chip('€', ev.premios) : ''}${ev.patros ? chip('💼', `patrocinios ${cr(ev.patros)}/año`) : ''}${ev.beca ? chip('🎓', 'beca del Estado el año que viene') : ''}</div>${ev.perdida ? `<p class="small" style="text-align:center">Se pierden ${cr(ev.perdida)} de beca sin gastar.</p>` : ''}
     <div class="card" style="margin-top:10px">⛰️ Máximo en roca: <b>${gV(ev.maxVia)}</b> en vía y <b>${gB(ev.maxBloque)}</b> en bloque.</div>
+    <button class="btn w full" data-act="resolver" data-v="tarjeta">📸 Ver mi tarjeta de la temporada</button>
     <button class="btn g full" data-act="resolver" data-v="ok">Empezar ${ev.año + 1}</button>`;
   return '';
 }
@@ -4512,7 +4557,7 @@ function pantallaSemana() {
 function renderDock() {
   const s = S;
   if (s.intro) { $('dock').innerHTML = ''; return; }
-  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' || h === 'patros' || h === 'mejoras' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas', 'avatar'].includes(h) ? 3 : -1;
+  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' || h === 'patros' || h === 'mejoras' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas', 'avatar', 'salon', 'tarjeta'].includes(h) ? 3 : -1;
   const t = (k, v, ic, n) => `<button class="ab ${on === k ? 'on' : ''}" data-act="hoja" data-v="${v}"><span>${ic}</span>${n}</button>`;
   $('dock').innerHTML = `<nav class="tabs">${t(0, '', '🏠', 'Inicio')}${t(1, 'carrera', s.deporte === 'escalada' ? '🧗' : '⚽', 'Carrera')}${t(2, 'bienes', '🏢', 'Empresa')}${t(3, 'relaciones', '🧑‍🤝‍🧑', 'Vida')}</nav>`;
 }
@@ -4790,7 +4835,7 @@ function hojaRelaciones() {
     <div class="chips" style="margin-top:8px">${interaccionesDe(r).map(([k, x]) => `<button class="btn ${k === 'romper' || k === 'despedir' ? 'r' : k === 'tenerHijo' ? 'g' : 'w'}" style="min-height:38px;padding:6px 10px;font-size:13px" data-act="rel" data-id="${r.id}" data-v="${k}" ${r.semana === s.semana || (k === 'tenerHijo' && bh) ? 'disabled' : ''}>${x.ic} ${x.n}</button>`).join('')}</div>
     ${r.tipo === 'pareja' && bh ? `<p class="lock">👶 ${esc(bh)}</p>` : ''}
     ${r.semana === s.semana ? '<p class="lock">Ya habéis estado juntos esta semana.</p>' : ''}</div>`).join('');
-  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="avatar">🧍 Personaje y tienda</button><button data-act="hoja" data-v="mejoras">🛒 Mejoras</button><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div>${htmlPersonajes(s)}<div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
+  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="avatar">🧍 Personaje y tienda</button><button data-act="hoja" data-v="mejoras">🛒 Mejoras</button><button data-act="hoja" data-v="salon">🏆 Salón de la fama</button><button data-act="hoja" data-v="tarjeta">📸 Tarjeta de temporada</button><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div>${htmlGeneracion(s)}${htmlPersonajes(s)}<div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
     ${rel(s, 'pareja') ? '' : '<p class="note">💘 Sin pareja. Quizá conozcas a alguien…</p>'}${rel(s, 'agente') ? '' : `<p class="note">🕴️ Con reputación ${CFG.agente.repMin} o más, algún representante se fijará en ti.</p>`}`);
 }
 
@@ -4882,7 +4927,8 @@ function hojaAjustes() {
     ${codigoExport ? `<textarea class="codigo" readonly onclick="this.select()">${codigoExport}</textarea><p class="small">Si no se ha copiado solo, mantén pulsado el texto y cópialo.</p>` : ''}
     <textarea class="codigo" id="codigoImport" placeholder="Pega aquí un código para cargar esa partida"></textarea>
     <button class="btn w full" data-act="importar">📥 Cargar partida desde un código</button></div>
-    <div class="card"><p class="small">Empezar de cero borra la partida de este dispositivo.</p>
+    <div class="card"><div class="row"><div class="ic">${Sonido.on ? '🔊' : '🔇'}</div><div class="tx"><b>Sonido ${Sonido.on ? 'activado' : 'apagado'}</b><span>Gol, ovación, logros, compras y cartas del banco.</span></div><button class="btn" data-act="sonido">${Sonido.on ? 'Apagar' : 'Encender'}</button></div></div>
+    <div class="card"><p class="small">Empezar de cero borra la partida de este dispositivo; tu vida actual pasa al <button class="link" data-act="hoja" data-v="salon">salón de la fama</button>.</p>
     <button class="btn r full" data-act="reiniciar" id="btnReiniciar">${confirmarReinicio ? '⚠️ Toca otra vez para borrar la partida' : '🔄 Empezar una nueva vida'}</button>
     ${confirmarReinicio ? '<button class="btn w full" data-act="noReiniciar">Cancelar</button>' : ''}</div>
     ${hojaPruebas()}
@@ -4958,6 +5004,7 @@ function popup() {
       <div class="chips" style="justify-content:center">${chip('👕', `${t.pj} partidos`)}${chip('⚽', `${t.goles} goles`)}${chip('⭐', `nota ${t.pj ? nf(t.sumaNota / t.pj) : '—'}`)}${chip('🎂', `${s.edad} años`)}</div>
       ${ev.primas.map(p => `<p class="small">💰 ${esc(p)}</p>`).join('')}
       <div style="margin-top:10px">${tablaHTML(ev.liga, ev.tabla, ev.clubId)}</div>
+      <button class="btn w full" data-act="resolver" data-v="tarjeta">📸 Ver mi tarjeta de la temporada</button>
       <button class="btn g full" data-act="resolver" data-v="ok">Continuar</button>`;
   }
   return '';
@@ -4967,6 +5014,7 @@ function popup() {
 function pantallaIntro() {
   return `<div class="intro"><div class="logo">${S.deporte === 'escalada' ? '🧗' : '⚽'}</div><h1>Del barrio<br><em>al negocio</em></h1><div class="sub">${S.deporte === 'escalada' ? 'Una vida: del rocódromo del barrio a las Copas del Mundo y las grandes vías… y dueño/a de negocios y casas.' : 'Una vida: del fútbol de barrio a futbolista profesional… y dueño de negocios, casas y hasta un club.'}</div>
     <div class="card"><div class="sec" style="margin-top:0">Nombre</div><input id="nombre" maxlength="16" placeholder="Tu nombre" value="${esc(S.nombre)}" autocomplete="off">
+      ${S.herencia ? `<div class="card" style="background:var(--acc-soft)">👪 <b>Generación ${S.herencia.generacion}</b>: hijo/a de ${esc(S.herencia.de)}. Heredas ${cr(S.herencia.dinero)} y un apellido conocido (+${S.herencia.fama} de fama).</div>` : ''}
       <div class="sec">Personaje</div><div class="introLook"><div class="lookPrev">${avatarSVG(S, null, 'cuerpo')}</div><div class="introOps">
         <div class="sw">${PIEL.map((c, i) => `<button data-act="lookIntro" data-c="piel" data-v="${i}" class="${S.look.piel === String(i) ? 'sel' : ''}" style="background:${c}" aria-label="Piel, tono ${i + 1}"></button>`).join('')}</div>
         <div class="pelos">${['corto', 'largo', 'coleta', 'rizos', 'rapado'].map(k => `<button data-act="lookIntro" data-c="pelo" data-v="${k}" class="${S.look.pelo === k ? 'sel' : ''}">${itemLook('pelo', k).n}</button>`).join('')}</div>
@@ -5000,6 +5048,7 @@ function reqLook(s, it) {
   const r = it.req;
   if (!r) return null;
   if (r.pantalla && s.pantalla < r.pantalla) return `Supera la pantalla ${r.pantalla}`;
+  if (r.mes != null && mesActual(s) !== r.mes) return `Solo en ${MESES[r.mes]}`;
   if (r.logro) { const ids = [].concat(r.logro); if (!ids.some(id => s.logros[id])) { const l = LOGROS.find(x => ids.includes(x[0]) && (!x[4] || x[4] === (s.deporte || 'futbol'))); return `Logro «${l ? l[2] : ids[0]}»`; } }
   if (r.patro && !(s.patros || []).length) return 'Ten un patrocinador';
   return null;
@@ -5015,7 +5064,7 @@ function ponerLook(cap, id) {
     const pr = precioLook(s, it);
     if (s.p.dinero < pr) return false;
     s.p.dinero -= pr; s.armario.push(`${cap}:${id}`);
-    if (pr) { s.acum.gastosPers += pr; s.gastoLook = (s.gastoLook || 0) + pr; s.compras = (s.compras || 0) + 1; s.p.fel = clamp(s.p.fel + CFG.look.felEstreno, 0, 100); }
+    if (pr) { sonar('caja'); s.acum.gastosPers += pr; s.gastoLook = (s.gastoLook || 0) + pr; s.compras = (s.compras || 0) + 1; s.p.fel = clamp(s.p.fel + CFG.look.felEstreno, 0, 100); }
     const regalo = it.gratisCat && !pr ? (s.patros.find(p => p.cat === it.gratisCat) || {}).marca : null;
     anotar(s, '🛍️', pr ? `Me compro: ${it.n.toLowerCase()} (−${cr(pr)}). ¡Estreno! (+${CFG.look.felEstreno} ánimo)` : `Estreno: ${it.n.toLowerCase()}${regalo ? `, regalo de ${regalo}` : ''}.`);
   }
@@ -5069,8 +5118,8 @@ function avatarSVG(s, L, modo) {
   else if (L.calzado === 'montana') h += zap('#7a5230', '<path d="M36 141 l4 3 M40 141 l4 3 M56 141 l4 3 M60 141 l4 3" stroke="#f6c623" stroke-width="1.5"/><rect x="31" y="146" width="19" height="3" fill="#2a2d34"/><rect x="50" y="146" width="19" height="3" fill="#2a2d34"/>');
   else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
   // Brazos (piel) y mangas
-  const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
-  const tc = L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
+  const largas = ['sudadera', 'chaqueta', 'plumas', 'traje', 'jerseyNavidad'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
+  const tc = L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : L.ropa === 'jerseyNavidad' ? '#c62828' : rc;
   h += `<rect x="20" y="74" width="11" height="34" rx="5.5" fill="${sk}"/><rect x="69" y="74" width="11" height="34" rx="5.5" fill="${sk}"/>`;
   if (!sinMangas) h += `<rect x="20" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="69" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
   h += `<circle cx="25.5" cy="110" r="5.5" fill="${sk}"/><circle cx="74.5" cy="110" r="5.5" fill="${sk}"/>`;
@@ -5088,6 +5137,7 @@ function avatarSVG(s, L, modo) {
   if (L.ropa === 'chaqueta') h += `<line x1="50" y1="70" x2="50" y2="110" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M40 68 L50 78 L60 68" fill="none" stroke="${rd}" stroke-width="3"/>`;
   if (L.ropa === 'plumas') h += `<path d="M27 82 h46 M27 92 h46 M27 102 h46" stroke="rgba(0,0,0,.2)" stroke-width="2"/><path d="M42 68 Q50 74 58 68" fill="none" stroke="${rd}" stroke-width="4"/>`;
   if (L.ropa === 'hawaiana') h += `${[[38, 82], [60, 78], [46, 98], [64, 100], [34, 104]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff"/><circle cx="${x}" cy="${y}" r="1.4" fill="#f6c623"/>`).join('')}<path d="M42 68 L50 80 L58 68" fill="none" stroke="#fff" stroke-width="2"/>`;
+  if (L.ropa === 'jerseyNavidad') h += `<path d="M30 82 l5 -5 l5 5 l5 -5 l5 5 l5 -5 l5 5 l5 -5 l5 5" stroke="#fff" stroke-width="2.5" fill="none"/><path d="M50 88 l-7 12 h14Z" fill="#2e9d4f"/><circle cx="50" cy="87" r="2" fill="#f6c623"/><path d="M30 104 h40" stroke="#fff" stroke-width="2"/>`;
   if (L.ropa === 'traje') h += `<path d="M43 68 L50 86 L57 68Z" fill="#fff"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#d6283b"/><path d="M43 68 L48 92 M57 68 L52 92" stroke="#444b5c" stroke-width="2"/>`;
   // Delante del cuerpo
   if (L.extra === 'mochila') h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="#3b4a6b" stroke-width="4"/>`;
@@ -5136,6 +5186,7 @@ function avatarSVG(s, L, modo) {
   else if (L.cabeza === 'fiesta') h += `<path d="M38 18 L50 -14 L62 18Z" fill="#ff6fb5"/><path d="M41 10 L59 10 M44 2 L56 2" stroke="#f6c623" stroke-width="3"/><circle cx="50" cy="-14" r="4" fill="#f6c623"/>`;
   else if (L.cabeza === 'casco') h += `<path d="M22 38 Q22 7 50 7 Q78 7 78 38Z" fill="#ffcc00"/><rect x="44" y="12" width="12" height="4" rx="2" fill="#2a2d34"/><path d="M26 38 L34 62 M74 38 L66 62" stroke="#2a2d34" stroke-width="1.6"/>`;
   else if (L.cabeza === 'vaquero') h += `<path d="M32 22 Q32 2 50 5 Q68 2 68 22Z" fill="#8a5a2b"/><ellipse cx="50" cy="22" rx="38" ry="6" fill="#6b4422"/><rect x="32" y="16" width="36" height="4" fill="#2a2d34"/>`;
+  else if (L.cabeza === 'papaNoel') h += `<path d="M23 32 Q26 2 54 3 Q72 6 78 24 L74 30Z" fill="#d6283b"/><rect x="20" y="26" width="60" height="10" rx="5" fill="#fff"/><circle cx="78" cy="22" r="6" fill="#fff"/>`;
   else if (L.cabeza === 'corona') h += `<path d="M31 21 L33 1 L42 11 L50 -4 L58 11 L67 1 L69 21Z" fill="#f5c518" stroke="#b08a00" stroke-width="1"/><circle cx="50" cy="15" r="2.5" fill="#e23b3b"/><circle cx="40" cy="16" r="2" fill="#2f6fe0"/><circle cx="60" cy="16" r="2" fill="#22a35a"/>`;
   if (L.extra === 'auriculares') h += `<path d="M23 42 Q23 7 50 7 Q77 7 77 42" fill="none" stroke="#2a2d34" stroke-width="5"/><rect x="17" y="35" width="10" height="16" rx="4" fill="${rc}"/><rect x="73" y="35" width="10" height="16" rx="4" fill="${rc}"/>`;
   return `<svg viewBox="${VISTA_LOOK[modo] || VISTA_LOOK.cuerpo}" class="avatar" aria-hidden="true">${h}</svg>`;
@@ -5201,7 +5252,7 @@ function despedir(id) {
 function comprarMaterial(id) {
   const s = S, x = itemMejora('material', id);
   if (!x || (x.dep && x.dep !== (s.deporte || 'futbol')) || s.materialCasa.includes(id) || s.p.dinero < x.p) return false;
-  s.p.dinero -= x.p; s.acum.gastosPers += x.p; s.materialCasa.push(id);
+  s.p.dinero -= x.p; s.acum.gastosPers += x.p; s.materialCasa.push(id); sonar('caja');
   s.p.fel = clamp(s.p.fel + 2, 0, 100);
   anotar(s, x.ic, `Me compro: ${x.n.toLowerCase()} (−${cr(x.p)}).`);
   guardar(); render(); return true;
@@ -5215,7 +5266,7 @@ function bloqueoCapricho(s, x) {
 function usarCapricho(id) {
   const s = S, x = itemMejora('caprichos', id);
   if (!x || bloqueoCapricho(s, x)) return false;
-  s.p.dinero -= x.p; s.acum.gastosPers += x.p;
+  s.p.dinero -= x.p; s.acum.gastosPers += x.p; sonar('caja');
   aplicarFx(s, x.fx);
   s.usoCapricho = Object.assign({}, s.usoCapricho, { [id]: s.semana });
   anotar(s, x.ic, `${x.n} (−${cr(x.p)}). ${x.txt}`);
@@ -5338,6 +5389,7 @@ function resolverMomento(s, ev, op) {
     const e = s.log.find(x => x.semana === ev.semana);
     if (e) e.lineas.push([ok ? '⚡' : '😖', `${titulo}: ${o.n.toLowerCase()}. ${texto} ${marcador}.`]);
   }
+  sonar(ok ? (ev.dep === 'futbol' && ev.clase === 'ataque' ? 'gol' : 'ovacion') : 'fallo');
   if (ok) celebrar = true;
   s.cola.unshift({ tipo: 'momentoRes', ok, ic: J.ic, titulo, texto, marcador });
   return [ok ? '⚡' : '😖', `${titulo} → ${o.n}. ${texto} ${marcador}.`];
@@ -5515,6 +5567,122 @@ function htmlPersonajes(s) {
 }
 
 
+/* =====================================================================
+   21. SALÓN DE LA FAMA, SIGUIENTE GENERACIÓN, SONIDO, TEMPORADAS Y TARJETA
+   ===================================================================== */
+// ---- Salón de la fama: las vidas terminadas se guardan aparte de la partida ----
+const claveSalon = () => CFG.guardado + '_salon';
+function leerSalon() { try { return JSON.parse(localStorage.getItem(claveSalon()) || '[]'); } catch (_) { return []; } }
+function puntuacionVida(v) { return Math.round(Math.max(0, v.patrimonio) / 1000 + v.pantalla * 150 + v.logros * 25); }
+function resumenVida(s) {
+  const esc_ = s.deporte === 'escalada' && s.esc;
+  const v = { nombre: s.nombre, deporte: s.deporte || 'futbol', generacion: s.generacion || 1, edad: s.edad, semanas: s.semana, pantalla: Math.min(s.pantalla, pantallas(s).length),
+    patrimonio: Math.round(patrimonio(s)), logros: Object.keys(s.logros).length, look: Object.assign({}, s.look),
+    titulo: esc_ ? `Máximo ${gV(s.esc.maxVia)} · ${s.esc.podios} podios${s.esc.medallas.length ? ` · ${s.esc.medallas.length} medallas` : ''}` : `${s.stats.goles} goles · ${s.ascensos} ascensos${s.mejorTier < 9 ? ` · llegó a ${NOMBRE_TIER[s.mejorTier - 1] || 'la élite'}` : ''}` };
+  v.puntos = puntuacionVida(v);
+  return v;
+}
+function guardarEnSalon(s) {
+  if (silencio || !s || s.intro || s.semana < 6) return false;
+  const l = leerSalon().concat([resumenVida(s)]).sort((a, b) => b.puntos - a.puntos).slice(0, 30);
+  try { localStorage.setItem(claveSalon(), JSON.stringify(l)); } catch (_) { return false; }
+  return true;
+}
+function hojaSalon() {
+  const s = S, l = leerSalon(), yo = s.intro ? null : resumenVida(s), pos = yo ? l.filter(v => v.puntos > yo.puntos).length + 1 : 0;
+  const mini = L => avatarSVG({ p: { fel: 75, energia: 80 }, patros: [], fase: '' }, L, 'busto');
+  return hoja('🏆 Salón de la fama', `<p class="small">Tus vidas terminadas. Puntos = patrimonio (1 por cada 1.000 €) + 150 por pantalla + 25 por logro. Una vida entra al empezar otra nueva o al seguir con tu hijo o hija.</p>
+    ${yo ? `<div class="card"><b>Tu vida actual: ${nf(yo.puntos)} puntos</b><p class="small">Si terminara ahora, sería la ${pos}.ª del salón.</p></div>` : ''}
+    <div class="card lista">${l.length ? l.map((v, i) => `<div class="row"><div class="ic salon">${i < 3 ? ['🥇', '🥈', '🥉'][i] : `${i + 1}.`}</div><div class="avs">${mini(v.look)}</div><div class="tx"><b>${esc(v.nombre)}${v.generacion > 1 ? ` (generación ${v.generacion})` : ''} · ${nf(v.puntos)} pts</b><span>${v.deporte === 'escalada' ? '🧗' : '⚽'} ${esc(v.titulo)} · ${v.edad} años · pantalla ${v.pantalla} · ${cr(v.patrimonio)} · ${v.logros} logros</span></div></div>`).join('') : '<p class="small">Todavía no hay vidas en el salón.</p>'}</div>`);
+}
+
+// ---- Siguiente generación: sigue jugando con tu hijo o tu hija ----
+function hijosJugables(s) { return s.fase === 'retirado' ? s.rel.filter(r => r.tipo === 'hijo' && r.edad >= CFG.generacion.edadMin) : []; }
+function jugarComoHijo(id) {
+  const s = S, K = CFG.generacion, h = hijosJugables(s).find(r => r.id === id);
+  if (!h) return false;
+  guardarEnSalon(s);
+  const dinero = Math.min(K.herenciaMax, Math.max(0, red(patrimonio(s) * K.herenciaPct, 100))), fama = Math.round(s.p.rep * K.famaPct);
+  const n = nuevaPartida();
+  Object.assign(n, { nombre: h.nombre, deporte: s.deporte || 'futbol', fuerte: s.fuerte, posicion: s.posicion });
+  n.look = Object.assign({}, LOOK_INICIAL, { piel: s.look.piel, colorPelo: s.look.colorPelo });
+  n.herencia = { de: s.nombre, dinero, fama, generacion: (s.generacion || 1) + 1 };
+  S = n; guardar(); render();
+  return true;
+}
+function aplicarHerencia(s) {
+  const H = s.herencia;
+  if (!H) return;
+  s.p.dinero += H.dinero; s.p.rep = clamp(s.p.rep + H.fama, 0, 100); s.generacion = H.generacion;
+  const p = s.rel.find(r => r.id === 'padre'); if (p) { p.nombre = H.de; p.v = 90; }
+  anotar(s, '👪', `Soy hijo/a de ${H.de}. Herencia: ${cr(H.dinero)} y un apellido conocido (+${H.fama} de fama). Generación ${H.generacion}.`);
+  s.herencia = null;
+}
+function htmlGeneracion(s) {
+  const l = hijosJugables(s), K = CFG.generacion;
+  if (!l.length) return '';
+  const dinero = Math.min(K.herenciaMax, Math.max(0, red(patrimonio(s) * K.herenciaPct, 100)));
+  return `<div class="sec">👪 Siguiente generación</div><div class="card"><p class="small">Tu vida entra en el salón de la fama y sigues jugando con tu hijo o hija desde el principio: hereda ${cr(dinero)} y un apellido conocido (+${Math.round(s.p.rep * K.famaPct)} de fama).</p>
+    ${l.map(h => `<button class="btn g full" data-act="generacion" data-id="${h.id}">▶ Jugar como ${esc(h.nombre)} (${h.edad} años)</button>`).join('')}</div>`;
+}
+
+// ---- Sonido (generado en el propio juego, sin archivos) ----
+const Sonido = { ctx: null, on: (() => { try { return localStorage.getItem(CFG.guardado + '_sonido') !== 'no'; } catch (_) { return true; } })() };
+function ponerSonido(on) { Sonido.on = on; try { localStorage.setItem(CFG.guardado + '_sonido', on ? 'si' : 'no'); } catch (_) {} render(); return true; }
+function sonar(tipo) {
+  if (silencio || !Sonido.on || !tipo) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const c = Sonido.ctx || (Sonido.ctx = new AC());
+    if (c.state === 'suspended') c.resume();
+    const t0 = c.currentTime;
+    const nota = (f, t, d, onda, vol) => { const o = c.createOscillator(), g = c.createGain(); o.type = onda || 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t0 + t); g.gain.exponentialRampToValueAtTime(vol || 0.12, t0 + t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + t + d); o.connect(g); g.connect(c.destination); o.start(t0 + t); o.stop(t0 + t + d + 0.05); };
+    const ruido = (t, d, vol, fr) => { const b = c.createBuffer(1, Math.floor(c.sampleRate * d), c.sampleRate), x = b.getChannelData(0); for (let i = 0; i < x.length; i++) x[i] = (Math.random() * 2 - 1) * (1 - i / x.length); const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); src.buffer = b; f.type = 'bandpass'; f.frequency.value = fr; g.gain.value = vol; src.connect(f); f.connect(g); g.connect(c.destination); src.start(t0 + t); };
+    if (tipo === 'gol') { [523, 659, 784, 1047].forEach((f, i) => nota(f, i * 0.09, 0.25)); ruido(0.3, 1.2, 0.12, 900); }
+    else if (tipo === 'ovacion') ruido(0, 1, 0.14, 1000);
+    else if (tipo === 'logro') { nota(880, 0, 0.3, 'sine', 0.1); nota(1320, 0.12, 0.45, 'sine', 0.1); }
+    else if (tipo === 'caja') { nota(1568, 0, 0.12, 'square', 0.04); nota(2093, 0.08, 0.2, 'square', 0.04); }
+    else if (tipo === 'carta') { nota(196, 0, 0.35, 'sine', 0.18); nota(147, 0.12, 0.4, 'sine', 0.15); }
+    else if (tipo === 'fallo') { nota(392, 0, 0.2); nota(330, 0.15, 0.2); nota(262, 0.3, 0.35); }
+  } catch (_) {}
+}
+function sonidoSemana(s, R) {
+  const P = R.partido, juega = P && (P.rol === 'titular' || P.rol === 'suplente');
+  if (juega && P.goles) return 'gol';
+  if ((juega && P.resultado === 'victoria') || (R.comp && R.comp.pos <= 3)) return 'ovacion';
+  if (R.opo.some(([i]) => i === '🏅' || i === '🎮')) return 'logro';
+  if ([s.pendiente].concat(s.cola).some(e => e && ['cartaBanco', 'embargo', 'concurso'].includes(e.tipo))) return 'carta';
+  return null;
+}
+
+// ---- Temporadas del año: Navidad, Reyes, verano, Halloween ----
+function mesActual(s) {
+  if (s.deporte === 'escalada' && s.esc) return mesEsc(s);
+  if (s.fase === 'club' && s.temporada) return (7 + Math.floor(s.temporada.jornada * 10 / CFG.temporada.jornadas)) % 12;
+  if (s.fase === 'retirado') return Math.floor((s.semanasAño || 0) * 12 / CFG.hipoteca.semanasAño) % 12;
+  return Math.floor(((s.semana - 1) % CFG.hipoteca.semanasAño) * 12 / CFG.hipoteca.semanasAño);
+}
+
+// ---- Tarjeta de fin de temporada (para hacer captura) ----
+function guardarTarjeta(s, t) {
+  t.ganado = Math.round(s.acum.ingresosPers - (s.ingresosTemp || 0)); s.ingresosTemp = s.acum.ingresosPers;
+  t.logros = Object.keys(s.logros).length; t.look = Object.assign({}, s.look); t.nombre = s.nombre; t.edad = s.edad;
+  s.tarjetas = (s.tarjetas || []).concat([t]).slice(-10);
+}
+function hojaTarjeta() {
+  const s = S, t = (s.tarjetas || [])[(s.tarjetas || []).length - 1];
+  if (!t) return hoja('📸 Tarjeta de temporada', '<p class="small">Al acabar tu primera temporada tendrás aquí tu tarjeta.</p>');
+  const fut = t.tipo === 'futbol', dato = (ic, v, n) => `<div class="td"><span>${ic}</span><b>${v}</b><i>${n}</i></div>`;
+  const datos = fut
+    ? dato('🏟️', `${t.pos}º`, esc(t.liga)) + dato('👕', t.pj, 'partidos') + dato('⚽', t.goles, 'goles') + dato('👟', t.asist, 'asistencias') + dato('⭐', t.nota, 'nota media') + dato('💰', cr(t.ganado), 'ganado')
+    : dato('🏆', t.comps, 'competiciones') + dato('🥇', t.podios, 'podios') + dato('🇪🇸', t.esp, 'mejor en España') + dato('🌍', t.mundo, 'Copa del Mundo') + dato('⛰️', t.grado, 'máx. en roca') + dato('💰', cr(t.ganado), 'ganado');
+  return hoja('📸 Tarjeta de temporada', `<div class="tarjeta ${fut ? 'fut' : 'esc'}"><div class="tt1">${esc(t.titulo)}</div><div class="tav">${avatarSVG(s, t.look, 'cuerpo')}</div>
+    <div class="tn">${esc(t.nombre)}</div><div class="ts">${esc(t.sub)} · ${t.edad} años</div><div class="tgrid">${datos}</div>
+    <div class="tpie">Del barrio al negocio · ${t.logros} logros</div></div>
+    <p class="small" style="text-align:center">Haz una captura de pantalla y compártela.</p>`);
+}
+
 function render() {
   if (!S || silencio) return;
   syncEsc(S);
@@ -5527,7 +5695,7 @@ function render() {
   if (S.intro) { main.innerHTML = pantallaIntro(); $('hoja').innerHTML = ''; $('modal').innerHTML = ''; return; }
   main.innerHTML = pantallaSemana();
   const h = S.hoja;
-  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h === 'retos' ? hojaRetos() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
+  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h === 'retos' ? hojaRetos() : h === 'salon' ? hojaSalon() : h === 'tarjeta' ? hojaTarjeta() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
@@ -5550,6 +5718,8 @@ document.addEventListener('click', e => {
     case 'capaLook': S.capaLook = v; render(); break;
     case 'contratar': contratar(id); break;
     case 'gerente': ponerGerente(v); break;
+    case 'generacion': jugarComoHijo(id); break;
+    case 'sonido': ponerSonido(!Sonido.on); break;
     case 'exportar': exportarPartida(); break;
     case 'importar': importarPartida(); break;
     case 'despedir': despedir(id); break;
@@ -5562,7 +5732,7 @@ document.addEventListener('click', e => {
     case 'escIns': inscribir(id, v); break;
     case 'escModo': modoCompeticion(v); break;
     case 'escEquipo': cambiarEquipoEsc(v); break;
-    case 'empezar': S.nombre = ($('nombre').value || '').trim().slice(0, 16) || 'Crack'; if (S.deporte === 'escalada' && !S.esc) initEscalada(S, S.fuerte); S.intro = false; bajarDiario = true; guardar(); render(); break;
+    case 'empezar': S.nombre = ($('nombre').value || '').trim().slice(0, 16) || 'Crack'; if (S.deporte === 'escalada' && !S.esc) initEscalada(S, S.fuerte); aplicarHerencia(S); S.intro = false; bajarDiario = true; guardar(); render(); break;
     case 'avanzar': bajarDiario = true; S.hoja = null; cerrarSemana(); break;
     case 'slotSet': ponerSlot(b.dataset.c, v); break;
     case 'elegir': if (elegir(b.dataset.id) && S.hoja === 'plan') { S.hoja = null; render(); } break;
@@ -5610,7 +5780,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, JUGADAS, probJugada: (ev, o) => probJugada(S, ev, o), RETOS, nuevosRetos: () => nuevosRetos(S, null), pjs: () => pjs(S), opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, JUGADAS, probJugada: (ev, o) => probJugada(S, ev, o), RETOS, nuevosRetos: () => nuevosRetos(S, null), pjs: () => pjs(S), leerSalon, guardarEnSalon: () => guardarEnSalon(S), jugarComoHijo, mesActual: () => mesActual(S), Sonido, sonidoSemana: R => sonidoSemana(S, R), opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,

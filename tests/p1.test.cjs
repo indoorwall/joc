@@ -1206,6 +1206,40 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     });
     check('Personajes: tu mentor y tu rival aparecen al empezar; el rival ficha por un club igual o mejor', pj.inicio && pj.club, JSON.stringify(pj));
     check('Personajes: duelos contra tu rival, entrevista de la periodista, capítulos que no salen al azar y su sección en Vida', pj.duelo && pj.entrevista && pj.noAzar && pj.vida, JSON.stringify(pj));
+    // Salón de la fama, siguiente generación, sonido, temporadas y tarjeta
+    const ex1 = await page.evaluate(() => {
+      const G = __P1, out = {}, limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver('ok') || G.resolver('0') || G.resolver('si') || G.resolver('club') || G.resolver('corto'); };
+      G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0;
+      // Temporadas: diciembre en escalada trae Nochebuena y el gorro de Papá Noel
+      G.nueva(141, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.S.edad = 20; G.S.p.dinero = 500;
+      G.S.semanasAño = 3; out.noNavidad = !G.ponerLook('cabeza', 'papaNoel') && !G.SUCESOS.nochebuena.cond(G.S);
+      G.S.semanasAño = 17; out.mes = G.mesActual(); out.navidad = G.SUCESOS.nochebuena.cond(G.S) && G.ponerLook('cabeza', 'papaNoel');
+      // Tarjeta de la temporada al acabar el año
+      G.elegir('descansoEsc'); G.avanzarSemana();
+      const cola = [G.S.pendiente].concat(G.S.cola).filter(Boolean); out.tarjetaGuardada = (G.S.tarjetas || []).length === 1;
+      while (G.S.pendiente && G.S.pendiente.tipo !== 'finEsc') G.resolver('ok') || G.resolver('0') || G.resolver('si');
+      out.botonTarjeta = !!G.S.pendiente && (G.render(), !!document.querySelector('#evento [data-v=tarjeta]'));
+      G.resolver('tarjeta'); G.render(); out.hojaTarjeta = G.S.hoja === 'tarjeta' && !!document.querySelector('#hoja .tarjeta .tgrid');
+      G.S.hoja = null; limpiar();
+      // Sonido: se apaga y se enciende, y cada semana elige su sonido
+      out.sonidoGol = G.sonidoSemana({ partido: { rol: 'titular', goles: 1 }, opo: [] }) === 'gol' && G.sonidoSemana({ partido: null, comp: { pos: 2 }, opo: [] }) === 'ovacion';
+      const on0 = G.Sonido.on; G.S.hoja = 'ajustes'; G.render(); document.querySelector('[data-act=sonido]').click(); out.sonidoToggle = G.Sonido.on === !on0; document.querySelector('[data-act=sonido]').click();
+      G.S.hoja = null; G.render();
+      return out;
+    });
+    check('Temporadas: Navidad, Reyes, verano y Halloween; el gorro de Papá Noel solo se vende en diciembre', ex1.noNavidad && ex1.navidad && ex1.mes === 11, JSON.stringify(ex1));
+    check('Tarjeta de la temporada al acabar el año, con botón para verla', ex1.tarjetaGuardada && ex1.botonTarjeta && ex1.hojaTarjeta, JSON.stringify(ex1));
+    check('Sonido: se puede apagar y encender; gol y ovación según la semana', ex1.sonidoGol && ex1.sonidoToggle, JSON.stringify(ex1));
+    // Siguiente generación (con toques) y salón de la fama
+    await page.evaluate(() => { const G = __P1; G.nueva(142); G.S.nombre = 'Abuela Rosa'; G.S.edad = 60; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal; G.S.semana = 300; G.S.p.dinero = 400000; G.S.p.rep = 60;
+      G.S.rel.push({ id: 'h9', tipo: 'hijo', nombre: 'Leo', v: 80, semana: 0, edad: 16, privado: false }); G.S.hoja = 'relaciones'; G.render(); });
+    await tap(page, '[data-act=generacion][data-id=h9]');
+    const gn0 = await page.evaluate(() => ({ intro: __P1.S.intro, nombre: __P1.S.nombre, herencia: __P1.S.herencia, salon: __P1.leerSalon().length }));
+    await tap(page, '#btnEmpezar');
+    const gn1 = await page.evaluate(() => ({ dinero: __P1.S.p.dinero, rep: __P1.S.p.rep, gen: __P1.S.generacion, padre: __P1.S.rel.find(r => r.id === 'padre').nombre }));
+    await page.evaluate(() => { for (let g = 0; __P1.S.pendiente && g < 9; g++) __P1.resolver('0') || __P1.resolver('ok'); __P1.S.hoja = 'salon'; __P1.render(); });
+    const gn2 = await page.evaluate(() => document.getElementById('hoja').textContent.includes('Abuela Rosa'));
+    check('Siguiente generación: juegas con tu hijo, que hereda dinero y fama; tu vida entra en el salón de la fama', gn0.intro && gn0.nombre === 'Leo' && gn0.salon === 1 && gn1.dinero >= 20000 && gn1.gen === 2 && gn1.padre === 'Abuela Rosa' && gn2, JSON.stringify([gn0, gn1, gn2]));
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
