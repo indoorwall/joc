@@ -178,6 +178,14 @@
   /* Panel de la semana */
   .panel { background: var(--card); border-radius: 22px; padding: 12px; box-shadow: 0 6px 0 rgba(0,0,0,.28); margin-top: 4px; }
   .panel .ph { font-size: 13px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 0 2px 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px; white-space: nowrap; }
+  button.gauge { font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
+  .perfil { display: flex; align-items: center; gap: 12px; } .perfil .avs { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: var(--acc-soft); flex: none; }
+  .perfil .avs svg { width: 100%; height: 100%; } .perfil .tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .perfil .tx > span { font-size: 13px; color: var(--dim); }
+  .seg.tipos-post { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); } .seg.tipos-post button { font-size: 12px; line-height: 1.25; min-height: 52px; }
+  .mas-fama summary { cursor: pointer; font-weight: 800; color: var(--acc); padding: 10px 2px; min-height: 44px; }
+  .post { background: var(--card); color: var(--ink); border-radius: 16px; padding: 10px 12px; margin: 8px 0; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+  .post .ph2 { font-size: 13px; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; } .post .ph2 span { color: var(--dim); font-size: 12px; margin-left: auto; }
+  .post p { margin: 6px 0; font-size: 15px; } .post .pl { font-size: 13px; font-weight: 800; color: #d64570; } .post .pc { font-size: 12px; color: var(--dim); margin-top: 3px; }
   .panel .ph .fz { font: inherit; letter-spacing: .02em; border: 0; border-radius: 999px; padding: 3px 9px; margin: -4px 0; min-height: 26px; white-space: nowrap; font-size: 12px; color: #fff; background: #d98a1f; cursor: pointer; }
   .panel .ph .fz.agotado { background: #d64545; } .panel .ph .fz.justo { background: #8a97a8; }
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -368,6 +376,18 @@ const CFG = {
   guardado: 'del_barrio_al_negocio_p1_v5',
   inicio: { edad: 17, nivel: 30, energia: 70, rep: 5, dinero: 60 },
   energiaMax: 100, nivelMax: 99,
+  // Redes sociales (fútbol y escalada)
+  redes: { segInicial: 60, deriva: 0.05, famaSi: 1.6, segColab: 10000, colabPorMil: 2.5, postPorMil: 4, probViral: 0.12, probPolemica: 0.35, feedMax: 12,
+    comentarios: {
+      siempre: ['{madre}: ¡Qué orgullo! ❤️', '@vecino_del_3o: Te recuerdo jugando en la plaza 😅', '@fan_numero1: ¡Saluda!'],
+      bien: ['@fan_numero1: CRACK 🔥🔥', '@el_entrenador: Así se hace.', '@cuenta_de_memes: Esto se va a nuestra cuenta 😂'],
+      viral: ['@cuenta_de_memes: 3 millones de reproducciones 🤯', '@periodista_deportiva: ¿Hablamos?', '@fan_numero1: ¡Te lo dije!'],
+      mal: ['@hater_88: Jajajaja vaya ridículo', '@cuenta_de_memes: Ya tenemos meme del año', '@fan_numero1: Bueno… lo importante es intentarlo'],
+      polemica: ['@hater_88: Mucho ruido y pocas nueces', '@periodista_deportiva: Esto va a dar que hablar…', '@club_rival: Respeto, por favor.'],
+      publi: ['@hater_88: #publi 🙄', '@fan_numero1: ¡Me lo compro!'],
+      rosa: ['@revista_corazon: ¡Exclusiva!', '@hater_88: Esto no es deporte'],
+      animo: ['@fan_numero1: ¡Ánimo! Te esperamos 💪', '@el_entrenador: Paciencia.'],
+    } },
   // Estado de forma según la energía: cuánto aprovechas el entreno y cómo rindes.
   forma: {
     tramos: [{ hasta: 25, id: 'agotado', ic: '😫', n: 'Agotado', entreno: 0.3 }, { hasta: 40, id: 'cansado', ic: '😓', n: 'Cansado', entreno: 0.6 },
@@ -1223,6 +1243,7 @@ function migrar(s) {
   if (!s.materialCasa) s.materialCasa = [];
   if (!s.usoCapricho) s.usoCapricho = {};
   if (!s.cont) s.cont = { acts: 0, victorias: 0, titular: 0, nota7: 0, plan: {} };
+  redes(s);
   if (!s.patrosHist) s.patrosHist = s.patros.map(p => ren[p.id] || p.id);
   const cat = s.deporte === 'escalada' ? CFG.escalada.patrocinadores : CFG.patrocinio.futbol;
   for (const pt of s.patros) {
@@ -1485,6 +1506,7 @@ function avanzarSemana() {
   procesarAgenda(s, R);
   tickMods(s, R);
   semanaRetos(s, R);
+  semanaRedes(s, R);
   semanaBanco(s, R);
   comprobarLogros(s, R);
   const ing = R.eco.filter(([, v]) => v > 0).reduce((x, [, v]) => x + v, 0) + R.eco.filter(([t]) => t.startsWith('Impuestos')).reduce((x, [, v]) => x + v, 0);
@@ -2754,8 +2776,8 @@ const ACTIVIDADES = {
     bloqueo: s => s.semana - (s.ultimasVacaciones || -99) < 6 ? `Disponible en ${6 - (s.semana - s.ultimasVacaciones)} semanas.` : null,
     hacer(s) { s.ultimasVacaciones = s.semana; if (s.fase === 'club') s.mods.push({ tipo: 'sel', v: -4, sem: 1, motivo: 'te fuiste de vacaciones' }); return 'Desconectas unos días.'; } },
   meditar: { ic: '🧘', n: 'Meditar', fx: () => [['😊', 6], ['⚡', 3]] },
-  redes: { ic: '📱', n: 'Publicar en redes', fx: () => [['⭐', 2], ['😊', 2], ['💬', '10 %: polémica']],
-    hacer(s) { if (rnd(s) < 0.1) { aplicarFx(s, [['⭐', -6]]); return 'Tu publicación se malinterpreta: polémica (−4 reputación en total).'; } return 'Buena publicación.'; } },
+  redes: { ic: '📱', n: 'Publicar en redes', fx: s => { const P = POSTS[tipoPost(s)]; return [[P.ic, P.n]].concat(P.fx(s)); },
+    hacer(s) { return POSTS[tipoPost(s)].hacer(s); } },
   visitarNegocios: { ic: '🏪', n: 'Visitar tus negocios', fx: s => [['✨', `Fama +${CFG.negocioComun.visitaFama} en todos`], ['⚡', -5]].concat(!enEspaña(s) ? [['€', -CFG.club.viajeNegocio]] : []),
     bloqueo: s => !s.negocios.length ? 'No tienes negocios.' : null, coste: s => enEspaña(s) ? 0 : CFG.club.viajeNegocio,
     hacer(s) { for (const n of s.negocios) n.fama = clamp(n.fama + CFG.negocioComun.visitaFama, 0, 100); return 'Tus clientes se alegran de verte.'; } },
@@ -4385,9 +4407,10 @@ function proximos(s) {
   return l.sort((a, b) => a[0] - b[0]).slice(0, 4).map(([n, t]) => [n <= 0 ? 'Esta semana' : n === 1 ? 'En 1 sem.' : `En ${n} sem.`, t]);
 }
 function gauges(s) {
-  const g = (ic, n, v, inv) => { const c = inv ? (v > 60 ? 'var(--red)' : v > 45 ? 'var(--amber)' : 'var(--green2)') : (v < 30 ? 'var(--red)' : v < 50 ? 'var(--amber)' : 'var(--green2)');
-    return `<div class="gauge st"><span class="ic">${ic}</span><span class="n">${n}<b class="num">${Math.round(v)}</b></span><span class="bar"><i style="width:${pct(v, 100)}%;background:${c}"></i></span></div>`; };
-  const l = [g('⚡', 'Energía', s.p.energia), g('😊', 'Ánimo', s.p.fel), g('💪', 'Nivel', s.p.nivel), g('⭐', 'Fama', s.p.rep)];
+  const g = (ic, n, v, inv, hj) => { const c = inv ? (v > 60 ? 'var(--red)' : v > 45 ? 'var(--amber)' : 'var(--green2)') : (v < 30 ? 'var(--red)' : v < 50 ? 'var(--amber)' : 'var(--green2)');
+    const tag = hj ? 'button' : 'div', at = hj ? ` data-act="hoja" data-v="${hj}" aria-label="${n}"` : '';
+    return `<${tag} class="gauge st"${at}><span class="ic">${ic}</span><span class="n">${n}<b class="num">${Math.round(v)}</b></span><span class="bar"><i style="width:${pct(v, 100)}%;background:${c}"></i></span></${tag}>`; };
+  const l = [g('⚡', 'Energía', s.p.energia, false, 'forma'), g('😊', 'Ánimo', s.p.fel), g('💪', 'Nivel', s.p.nivel), g('⭐', 'Fama', s.p.rep, false, 'fama')];
   if (s.deporte === 'escalada' && s.esc && s.fase !== 'retirado') l.push(g('🖐️', 'Piel', s.esc.piel), g('🦴', 'Dedos', s.esc.carga, true));
   return l.join('');
 }
@@ -5466,6 +5489,103 @@ function popupMomento(s, ev) {
 }
 
 /* =====================================================================
+   22. FAMA Y REDES SOCIALES: seguidores, publicaciones con riesgo y para qué sirve la fama.
+   ===================================================================== */
+function redes(s) { if (!s.redes) s.redes = { seg: CFG.redes.segInicial, feed: [], tipo: 'entreno', virales: 0, polemicas: 0 }; return s.redes; }
+// En escalada los seguidores ya existían (s.esc.seg); en fútbol viven en s.redes.seg
+function seguidores(s) { return s.deporte === 'escalada' && s.esc ? s.esc.seg : redes(s).seg; }
+function sumarSeg(s, v) { v = Math.round(v); if (s.deporte === 'escalada' && s.esc) s.esc.seg = Math.max(0, s.esc.seg + v); else redes(s).seg = Math.max(0, redes(s).seg + v); return v; }
+const fmtSeg = n => n >= 1e6 ? `${nf(r1(n / 1e6))} M` : n >= 1000 ? `${nf(r1(n / 1000))} mil` : `${n}`;
+const arroba = s => '@' + String(s.nombre || 'tu').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '') + (s.deporte === 'escalada' ? '_climb' : '_' + (s.dorsal || 10));
+function alcance(s) { return 150 + s.p.rep * 25 + seguidores(s) * 0.012; }
+function comentarios(s, tono) {
+  const C = CFG.redes.comentarios, l = [].concat(C[tono] || [], C.siempre), out = [];
+  while (out.length < 2 && l.length) { const c = l.splice(Math.floor(rnd(s) * l.length), 1)[0]; out.push(c.replace('{n}', s.nombre).replace('{madre}', `@mama_de_${String(s.nombre).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')}`)); }
+  return out;
+}
+function postear(s, ic, txt, seg, tono, auto) {
+  const R0 = redes(s), g = sumarSeg(s, seg), likes = Math.max(3, Math.round((seguidores(s) * (0.03 + rnd(s) * 0.05) + g * 0.4) * (tono === 'viral' ? 4 : 1)));
+  R0.feed.unshift({ sem: s.semana, ic, txt, likes, seg: g, coms: comentarios(s, tono), tono, auto: !!auto });
+  R0.feed = R0.feed.slice(0, CFG.redes.feedMax);
+  return g;
+}
+// Publicar (actividad de tarde o noche): cada tipo tiene su riesgo
+const POSTS = {
+  entreno: { ic: '📸', n: 'Foto entrenando', d: 'Seguro: pocos seguidores pero nunca falla.', fx: () => [['📱', '+'], ['⭐', '+1']],
+    hacer(s) { const g = postear(s, '📸', azar(s, ['Hoy toca sufrir 💪', 'Entreno de los duros. Mañana más.', 'Sin excusas.']), alcance(s), 'bien'); aplicarFx(s, [['⭐', s.p.rep < 60 ? 1 : 0]]); return `Foto entrenando: +${fmtSeg(g)} seguidores.`; } },
+  reto: { ic: '😂', n: 'Reto viral', d: '12 % de hacerse viral (muchos seguidores y fama); 15 % de hacer el ridículo.', fx: () => [['🚀', '12 %: viral'], ['🤡', '15 %: ridículo']],
+    hacer(s) { const u = rnd(s), R0 = redes(s);
+      if (u < CFG.redes.probViral) { R0.virales++; const g = postear(s, '🚀', azar(s, ['El reto del balón en la papelera 🗑️⚽', 'Intentando el reto del momento… ¡a la primera!', 'Mi abuela y yo hacemos el baile de moda']), alcance(s) * 8, 'viral'); aplicarFx(s, [['⭐', 3], ['😊', 5]]); return `¡Se hace viral! +${fmtSeg(g)} seguidores, +3 de fama.`; }
+      if (u < CFG.redes.probViral + 0.15) { const g = postear(s, '🤡', azar(s, ['Intentando el reto… y me como la pared', 'El baile de moda (no sale como esperaba)']), alcance(s) * 0.3, 'mal'); aplicarFx(s, [['⭐', -2], ['😊', -4]]); return `Haces el ridículo: −2 de fama y −4 de ánimo (+${fmtSeg(g)} seguidores, eso sí).`; }
+      const g = postear(s, '😂', azar(s, ['Reto aceptado ✅', 'Probando el reto que me pasasteis']), alcance(s) * 1.5, 'bien'); aplicarFx(s, [['⭐', 1]]); return `Reto cumplido: +${fmtSeg(g)} seguidores.`; } },
+  picar: { ic: '🔥', n: 'Picar a tu rival', d: 'Mucho alcance, pero 35 % de polémica (−4 fama, −5 ánimo).', fx: () => [['📈', 'mucho alcance'], ['💥', '35 %: polémica']],
+    hacer(s) { const r = s.pj ? s.pj.rival : null, quien = r ? r.nombre : 'mi rival';
+      if (rnd(s) < CFG.redes.probPolemica) { redes(s).polemicas++; const g = postear(s, '💥', `${quien}, sigue soñando 😴`, alcance(s) * 2, 'polemica'); aplicarFx(s, [['⭐', -4], ['😊', -5]]); if (r) r.amigo = false; return `Se monta una polémica: −4 de fama y −5 de ánimo (+${fmtSeg(g)} seguidores de curiosos).`; }
+      const g = postear(s, '🔥', `A ver si este año ${quien} me alcanza 😏`, alcance(s) * 2.5, 'bien'); aplicarFx(s, [['⭐', 2], ['😊', 2]]); return `Tu pique triunfa: +${fmtSeg(g)} seguidores y +2 de fama.`; } },
+  marca: { ic: '🤝', n: 'Publi de tu marca', d: 'Cobras y tu marca te quiere más; da menos seguidores.', bloqueo: s => (s.patros || []).length ? null : 'Necesitas un patrocinador.', fx: s => [['€', pagoPost(s)], ['🤝', '+6 relación']],
+    hacer(s) { const pt = s.patros[0], v = pagoPost(s); for (const p of s.patros) p.rel = Math.min(100, p.rel + 6); s.p.dinero += v; const g = postear(s, '🤝', `Con ${pt.marca} todo sale mejor ${pt.ic} #publi`, alcance(s) * 0.7, 'publi'); return `Publi de ${pt.marca}: +${cr(v)} y tus marcas, contentas (+${fmtSeg(g)} seguidores).`; } },
+  personal: { ic: '🏡', n: 'Tu vida personal', d: '+4 de ánimo; 10 % de salir en la prensa rosa.', fx: () => [['😊', 4], ['📰', '10 %: prensa rosa']],
+    hacer(s) { const pa = rel(s, 'pareja'), txt = pa ? `Domingo con ${pa.nombre} ❤️` : azar(s, ['Comida de domingo con la familia 🥘', 'Con los de siempre 🍻', 'Mi perro manda en casa 🐶']);
+      aplicarFx(s, [['😊', 4]]);
+      if (rnd(s) < 0.1) { const g = postear(s, '📰', txt, alcance(s) * 1.6, 'rosa'); aplicarFx(s, [['⭐', 1], ['😊', -3]]); return `La prensa rosa se hace eco: +1 de fama, pero te agobia (+${fmtSeg(g)} seguidores).`; }
+      const g = postear(s, '🏡', txt, alcance(s) * 1.2, 'bien'); return `Publicas un momento personal: +4 de ánimo y +${fmtSeg(g)} seguidores.`; } },
+};
+function pagoPost(s) { return red(20 + seguidores(s) / 1000 * CFG.redes.postPorMil, 5); }
+function tipoPost(s) { const t = redes(s).tipo; return POSTS[t] && !(POSTS[t].bloqueo && POSTS[t].bloqueo(s)) ? t : 'entreno'; }
+function ponerTipoPost(t) { if (!POSTS[t] || (POSTS[t].bloqueo && POSTS[t].bloqueo(S))) return false; redes(S).tipo = t; guardar(); render(); return true; }
+
+// Cada semana: los seguidores se mueven hacia lo que corresponde a tu fama, tus hazañas se publican solas,
+// muchos seguidores suben tu fama y, desde 10.000, las marcas te pagan colaboraciones (en fútbol; en escalada ya existía).
+function semanaRedes(s, R) {
+  const K = CFG.redes, esc_ = s.deporte === 'escalada' && s.esc;
+  redes(s);
+  if (!esc_) redes(s).seg = Math.max(0, Math.round(redes(s).seg + (segObjetivo(s) - redes(s).seg) * K.deriva));
+  const P = R.partido, C = R.comp;
+  if (P && (P.rol === 'titular' || P.rol === 'suplente') && (P.goles >= 2 || P.nota >= 8)) postear(s, '⚽', P.goles >= 2 ? `¡${P.goles === 2 ? 'Doblete' : 'Hat-trick'}! Gracias, afición 🙌` : `Partidazo. Nota ${nf(P.nota)} y a seguir.`, alcance(s) * 1.5, 'bien', true);
+  else if (P && P.lesion) postear(s, '🤕', 'Toca parar un tiempo. Volveré más fuerte.', alcance(s) * 0.6, 'animo', true);
+  else if (C && C.pos <= 3) postear(s, '🏅', `¡Podio! ${C.pos}º puesto 🧗`, alcance(s) * 1.5, 'bien', true);
+  const seg = seguidores(s), obj = segObjetivo(s);
+  if (seg > obj * K.famaSi && s.semana % 2 === 0 && s.p.rep < 95) { s.p.rep = clamp(s.p.rep + 1, 0, 100); R.dep.push(['Reputación +1 por tus redes', '', `Tienes ${fmtSeg(seg)} seguidores, más de lo que corresponde a tu fama (${fmtSeg(obj)}).`]); }
+  if (!esc_ && seg >= K.segColab && s.fase !== 'barrio' && s.edad >= 16) { const b = Math.round(seg / 1000 * K.colabPorMil), imp = Math.round(b * tipoImpuesto(b)); s.p.dinero += b - imp; s.acum.impuestos += imp; R.eco.push([`Colaboraciones en redes (${fmtSeg(seg)} seguidores, neto)`, b - imp]); }
+}
+
+// Lo que te da la fama: umbrales que se desbloquean (✅) o no (🔒)
+function usosFama(s) {
+  const esc_ = s.deporte === 'escalada', RR = CFG.retiro, l = [], u = (v, t) => l.push([v, t]);
+  if (!esc_) {
+    if (s.fase === 'barrio') u(CFG.barrio.repOjeador, 'Un ojeador viene a verte');
+    u(0, 'Los clubes piden fama para ficharte y renovarte (cada club, la suya)');
+    u(0, `Negociar el sueldo: tu fama es la probabilidad de que acepten (entre ${CFG.negociacion.probMin} y ${CFG.negociacion.probMax} %)`);
+    u(30, 'Un representante quiere llevar tu carrera'); u(40, 'Te pueden nombrar capitán'); u(45, 'Selección sub-21 (hasta los 21 años)'); u(60, 'Anuncios de televisión');
+  } else {
+    if (s.fase === 'rocodromo') u(CFG.escalada.repEquipo, 'Un equipo de competición te ficha');
+    u(30, 'El seleccionador te llama'); u(50, 'Expediciones pagadas'); u(65, 'Invitación a los Másteres internacionales'); u(70, 'Documental sobre tu vida');
+  }
+  const cat = esc_ ? CFG.escalada.patrocinadores : CFG.patrocinio.futbol, sig = cat.filter(P => P.rep > s.p.rep).sort((a, b) => a.rep - b.rep)[0];
+  u(0, `Marcas: cuanta más fama, más pagan${sig ? ` (${sig.ic} ${sig.marca} pide ${sig.rep})` : ''}`);
+  u(0, 'Tus negocios tienen más clientes');
+  u(RR.embajadorRepMin, 'Al retirarte: embajador de marcas'); u(RR.tvRepMin, 'Al retirarte: comentarista de televisión'); u(RR.homenajeRep, 'Partido u homenaje de despedida');
+  return l.sort((a, b) => a[0] - b[0]);
+}
+function hojaFama() {
+  const s = S, R0 = redes(s), seg = seguidores(s), t = tipoPost(s);
+  const perfil = `<div class="card perfil"><div class="avs">${avatarSVG(s, null, 'busto')}</div><div class="tx"><b>${esc(arroba(s))}</b><span><b>${fmtSeg(seg)}</b> seguidores · ⭐ fama <b>${s.p.rep}</b>${R0.virales ? ` · 🚀 ${R0.virales} virales` : ''}</span></div></div>`;
+  const fila = ([v, txt]) => `<div class="row"><div class="ic">${!v || s.p.rep >= v ? '✅' : '🔒'}</div><div class="tx"><b>${v ? `${v} · ` : ''}${esc(txt)}</b></div></div>`;
+  const U = usosFama(s), prox = U.filter(([v]) => v > s.p.rep).slice(0, 3);
+  const usos = `<div class="card lista">${prox.length ? prox.map(fila).join('') : '<p class="small">¡Ya tienes todo lo que da la fama!</p>'}</div>
+    <details class="mas-fama"><summary>Ver todo lo que te da la fama (tienes ${U.filter(([v]) => v <= s.p.rep).length} de ${U.length})</summary><div class="card lista">${U.map(fila).join('')}</div></details>`;
+  const tipos = Object.entries(POSTS).map(([id, P]) => { const b = P.bloqueo ? P.bloqueo(s) : null; return `<button class="${id === t ? 'sel' : ''}" data-act="post" data-v="${id}" ${b ? 'disabled' : ''}>${P.ic}<br>${esc(P.n)}</button>`; }).join('');
+  const feed = R0.feed.slice(0, 6).map(p => `<div class="post"><div class="ph2">${p.ic} <b>${esc(arroba(s))}</b><span>semana ${p.sem}${p.auto ? ' · automático' : ''}</span></div><p>${esc(p.txt)}</p>
+    <div class="pl">❤️ ${fmtSeg(p.likes)}${p.seg ? ` · +${fmtSeg(p.seg)} seguidores` : ''}</div>${p.coms.map(c => `<div class="pc">${esc(c)}</div>`).join('')}</div>`).join('');
+  return hoja('⭐ Fama y redes', `${perfil}
+    <div class="sec">⭐ Lo próximo que te da la fama</div>${usos}
+    <div class="sec">📱 ¿Qué publicas?</div><p class="small">Se publica cuando eliges «📱 Publicar en redes» por la tarde o la noche. ${esc(POSTS[t].d)}</p>
+    <div class="seg tipos-post">${tipos}</div>
+    <p class="small">Si tienes más seguidores de los que corresponden a tu fama, tu fama sube sola. Desde ${fmtSeg(CFG.redes.segColab)} seguidores, las marcas te pagan colaboraciones cada semana.</p>
+    <div class="sec">Tu muro</div>${feed || '<p class="small">Todavía no has publicado nada.</p>'}`);
+}
+
+/* =====================================================================
    19. RETOS: tres retos cortos que cambian cada pocas semanas, con premio.
    ===================================================================== */
 const cnt = (s, k) => (s.cont || {})[k] || 0;
@@ -5489,7 +5609,7 @@ const RETOS = {
   competir: { ic: '🏅', fases: ['escalador'], dep: 'escalada', cond: s => calendarioEsc(s, s.esc.año).some(c => c.sem >= s.semanasAño && c.sem < s.semanasAño + 3 && !reqComp(s, c)), t: () => 'Compite en una prueba', base: s => ({ v: s.esc.comps }), prog: (s, b) => [s.esc.comps - b.v, 1] },
   roca: { ic: '⛰️', fases: ['escalador'], dep: 'escalada', cond: s => !!s.esc.proy, t: () => 'Ve 2 semanas a la roca', base: s => ({ v: cntPlan(s, 'roca') }), prog: (s, b) => [cntPlan(s, 'roca') - b.v, 2] },
   tabla: { ic: '🪵', fases: ['escalador'], dep: 'escalada', cond: s => s.edad >= 16, t: () => 'Entrena 2 semanas en la tabla', base: s => ({ v: cntPlan(s, 'tabla') }), prog: (s, b) => [cntPlan(s, 'tabla') - b.v, 2] },
-  seguidores: { ic: '📱', fases: ['escalador'], dep: 'escalada', t: () => 'Gana 1.000 seguidores', base: s => ({ v: s.esc.seg }), prog: (s, b) => [Math.max(0, s.esc.seg - b.v), 1000] },
+  seguidores: { ic: '📱', fases: ['escalador', 'club'], t: () => 'Gana 1.000 seguidores', base: s => ({ v: seguidores(s) }), prog: (s, b) => [Math.max(0, seguidores(s) - b.v), 1000] },
   amigos: { ic: '🤸', fases: ['rocodromo'], dep: 'escalada', t: () => 'Escala 2 semanas con tus amigos', base: s => ({ v: cntPlan(s, 'amigos') }), prog: (s, b) => [cntPlan(s, 'amigos') - b.v, 2] },
   tele: { ic: '📺', fases: ['retirado'], cond: s => s.p.rep >= CFG.retiro.tvRepMin, t: () => 'Sal 2 semanas en la tele', base: s => ({ v: cntPlan(s, 'tele') }), prog: (s, b) => [cntPlan(s, 'tele') - b.v, 2] },
 };
@@ -5762,7 +5882,7 @@ function render() {
   if (S.intro) { main.innerHTML = pantallaIntro(); $('hoja').innerHTML = ''; $('modal').innerHTML = ''; return; }
   main.innerHTML = pantallaSemana();
   const h = S.hoja;
-  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h === 'retos' ? hojaRetos() : h === 'forma' ? hojaForma() : h === 'salon' ? hojaSalon() : h === 'tarjeta' ? hojaTarjeta() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
+  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h === 'retos' ? hojaRetos() : h === 'forma' ? hojaForma() : h === 'fama' ? hojaFama() : h === 'salon' ? hojaSalon() : h === 'tarjeta' ? hojaTarjeta() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
@@ -5786,6 +5906,7 @@ document.addEventListener('click', e => {
     case 'contratar': contratar(id); break;
     case 'gerente': ponerGerente(v); break;
     case 'generacion': jugarComoHijo(id); break;
+    case 'post': ponerTipoPost(v); break;
     case 'sonido': ponerSonido(!Sonido.on); break;
     case 'exportar': exportarPartida(); break;
     case 'importar': importarPartida(); break;
@@ -5843,7 +5964,7 @@ render();
    13. GANCHOS DE PRUEBA (no afectan al juego)
    ===================================================================== */
 window.__P1 = {
-  CFG, ACCIONES, SUCESOS, ACTIVIDADES, LOGROS, forma, tiradaEntreno, riesgoGym,
+  CFG, ACCIONES, SUCESOS, ACTIVIDADES, LOGROS, forma, tiradaEntreno, riesgoGym, POSTS, seguidores, semanaRedes, ponerTipoPost, usosFama, segObjetivo,
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),

@@ -1271,6 +1271,28 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       return { malas, malasF, buenas, gym, fx }; });
     check('Forma: las semanas de entreno pueden salir mal (más si vas cansado/a) o redondas; gimnasio y fiesta tienen riesgos', sm.malas > 120 && sm.malasF < 60 && sm.buenas > 40 && sm.gym >= 40 && sm.fx, JSON.stringify(sm));
 
+    // Redes sociales y para qué sirve la fama
+    const rd = await page.evaluate(() => {
+      const G = __P1, o = {};
+      G.nueva(77); G.S.nombre = 'Leo'; G.S.intro = false; G.render();
+      o.gaugeFama = !!document.querySelector('.gauges [data-v=fama]') && !!document.querySelector('.gauges [data-v=forma]');
+      o.seg0 = G.seguidores(G.S);
+      G.S.p.rep = 30; let viral = 0, ridiculo = 0, polem = 0; const f0 = G.S.p.rep;
+      for (let i = 0; i < 300; i++) { G.S.p.rep = 30; G.S.p.fel = 60; const t = G.POSTS.reto.hacer(G.S); if (t.includes('viral')) viral++; if (t.includes('ridículo')) ridiculo++; }
+      for (let i = 0; i < 300; i++) { G.S.p.rep = 30; if (G.POSTS.picar.hacer(G.S).includes('polémica')) polem++; }
+      o.viral = viral; o.ridiculo = ridiculo; o.polem = polem; o.muro = G.S.redes.feed.length;
+      o.marcaBloq = G.ponerTipoPost('marca') === false;
+      // Muchos seguidores suben la fama; desde 10.000 hay colaboraciones (fútbol)
+      G.S.p.rep = 20; G.S.redes.seg = 200000; G.S.fase = 'club'; G.S.edad = 20; G.S.semana = 10; const R = { opo: [], dep: [], eco: [] }; G.semanaRedes(G.S, R);
+      o.famaSube = G.S.p.rep === 21; o.colab = R.eco.some(([t]) => t.startsWith('Colaboraciones')); G.S.fase = 'barrio';
+      G.S.p.rep = 30; G.S.hoja = 'fama'; G.render(); const h = document.getElementById('hoja').textContent;
+      o.hoja = h.includes('@leo') && h.includes('Lo próximo que te da la fama') && h.includes('🔒') && h.includes('Tu muro');
+      G.S.hoja = null; G.render();
+      return o; });
+    check('Redes: seguidores también en fútbol; la ⭐ abre «Fama y redes» con lo que te da la fama, tu perfil y tu muro', rd.gaugeFama && rd.seg0 > 0 && rd.hoja && rd.muro > 0, JSON.stringify(rd));
+    check('Redes: publicar tiene riesgo (viral ~12 %, ridículo ~15 %, polémica ~35 %) y la publi exige patrocinador', rd.viral > 15 && rd.viral < 60 && rd.ridiculo > 20 && rd.ridiculo < 75 && rd.polem > 70 && rd.polem < 140 && rd.marcaBloq, JSON.stringify(rd));
+    check('Redes: con muchos seguidores sube tu fama y las marcas pagan colaboraciones', rd.famaSube && rd.colab, JSON.stringify(rd));
+
     // Inicio compacto: con marcas y retos, la agenda se ve entera encima de JUGAR en un iPhone 13
     {
       const { page: pv, ctx: cv } = await openPage(browser, { viewport: { width: 390, height: 664 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });

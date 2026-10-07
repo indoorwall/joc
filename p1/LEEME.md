@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-165 de 165 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+168 de 168 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -530,6 +530,12 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    nota. Reposo baja la selección (−4), el gimnasio cansado/a puede sobrecargarte, la fiesta puede dar resaca
    y meditar recupera menos. Medido en una temporada: entrenando extra agotado/a se sube unos 4 de nivel
    frente a 10 con semanas normales.
+6k. **Fama y redes**: tocar ⭐ abre «Fama y redes»: lo próximo que te da la fama (y la lista completa),
+   tu perfil, qué publicas y tu muro con «me gusta» y comentarios. Seguidores también en fútbol. Publicar
+   (actividad de tarde o noche) tiene 5 tipos: foto entrenando (seguro), reto viral (12 % viral, 15 %
+   ridículo), picar a tu rival (35 % polémica), publi de tu marca (cobras y sube la relación) y vida personal
+   (ánimo, 10 % prensa rosa). Tus hazañas se publican solas. Con más seguidores de los que corresponden a tu
+   fama, la fama sube; desde 10.000 seguidores, colaboraciones pagadas. Tocar ⚡ abre tu forma.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
