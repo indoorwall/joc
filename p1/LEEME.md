@@ -570,7 +570,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    Las partidas creadas sin posición válida (por ejemplo, de otro deporte) toman la primera de su deporte.
 6n. **Estadios y escenarios que crecen contigo** (galería en `p1/maquetas/escenarios.png`): cada deporte tiene
    5 escenarios. Fútbol y baloncesto suben con la división del club (en España, Tercera Federación = 1 … Primera = 5;
-   fuera, por la fuerza de la liga): campo de barrio → municipal → estadio pequeño → gran estadio → estadio de élite
+   fuera, por la fuerza de la liga): campo modesto → municipal → estadio pequeño → gran estadio → estadio de élite
    (polideportivo → pabellón municipal → pabellón grande → arena → arena de élite). Los individuales suben con la
    competición más grande a la que has llegado: rocódromo/skatepark/playa/gimnasio del barrio → competición nacional →
    europea → Copa del Mundo o título → Juegos de Verano (en boxeo, Las Vegas). Se personalizan con tu partida: gradas
@@ -579,6 +579,9 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    lluvia en invierno, la corona si el club es tuyo; en los individuales, tu color de ropa y tu nombre en la pantalla.
    Cuando llegas a un escenario más grande que nunca sale la ventana «¡Nuevo escenario!» con la escena en grande y los
    5 niveles; las partidas antiguas guardan su nivel actual sin ventana. En Carrera la escena es más grande.
+   El marcador de las pantallas solo muestra un partido jugado con ese club, y en los deportes individuales el pie de la
+   escena dice a qué escenario has llegado (los nombres siguen las competiciones del juego: Pro Tour mundial, Circuito de
+   Clasificación, Circuito de Élite…).
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

@@ -4696,12 +4696,12 @@ function bocadillo(s) {
    tus marcas en las vallas, tu nombre en la pantalla, la pancarta de la afición, noche o lluvia…
    ===================================================================== */
 const NIVELES_ESCENARIO = {
-  futbol: ['Campo de barrio', 'Campo municipal', 'Estadio pequeño', 'Gran estadio', 'Estadio de élite'],
+  futbol: ['Campo modesto', 'Campo municipal', 'Estadio pequeño', 'Gran estadio', 'Estadio de élite'],
   basket: ['Polideportivo', 'Pabellón municipal', 'Pabellón grande', 'Arena', 'Arena de élite'],
   escalada: ['Rocódromo del barrio', 'Muro de competición', 'Copa de Europa', 'Copa del Mundo', 'Los Juegos'],
-  skate: ['Skatepark del barrio', 'Parque de competición', 'Skatepark con gradas', 'Pro Tour', 'Los Juegos'],
-  surf: ['Playa del barrio', 'Campeonato en la playa', 'Gran campeonato', 'Circuito de Élite', 'Los Juegos'],
-  boxeo: ['Gimnasio del barrio', 'Velada en un pabellón', 'Gran velada', 'Noche de título', 'Las Vegas'],
+  skate: ['Skatepark del barrio', 'Parque de competición', 'Copa de Europa', 'Pro Tour mundial', 'Los Juegos'],
+  surf: ['Playa del barrio', 'Campeonato en la playa', 'Circuito de Clasificación', 'Circuito de Élite', 'Los Juegos'],
+  boxeo: ['Gimnasio del barrio', 'Velada en un pabellón', 'Gran combate', 'Noche de título', 'Las Vegas'],
 };
 // Azar fijo por escenario, para que el dibujo no cambie en cada render
 function semilla(t) { let h = 2166136261; for (const ch of String(t)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; }; }
@@ -4777,7 +4777,7 @@ const dorsalDe = s => ({ delantero: 9, medio: 8, defensa: 4, base: 7, alero: 23,
 function personaliza(s, c) {
   const mio = !!(s && s.contrato && c && s.contrato.clubId === c.id && s.fase === 'club'), u = s && s.ultimo && s.ultimo.partido;
   let marcador = null;
-  if (mio && u && u.gf != null && s.mundo && club(s, u.rivalId)) { const rv = club(s, u.rivalId); marcador = u.casa ? `${c.siglas} ${u.gf}-${u.gc} ${rv.siglas}` : `${rv.siglas} ${u.gc}-${u.gf} ${c.siglas}`; }
+  if (mio && u && u.gf != null && s.ultimo.clubId === c.id && s.mundo && club(s, u.rivalId)) { const rv = club(s, u.rivalId); marcador = u.casa ? `${c.siglas} ${u.gf}-${u.gc} ${rv.siglas}` : `${rv.siglas} ${u.gc}-${u.gf} ${c.siglas}`; }
   return {
     mio, marcador, fam: s ? s.p.rep : 0, nom: s && s.nombre ? s.nombre.toUpperCase() : 'CRACK', dorsal: dorsalDe(s),
     noche: s ? s.semana % 3 !== 0 : true, lluvia: !!(s && s.semana % 7 === 3 && [10, 11, 0, 1, 2].includes(mesActual(s))),
@@ -4970,7 +4970,8 @@ function escenaActual(s) {
     if (s.fase === 'escalador' && P && s.plan === 'roca') { const Z = ZONAS[P.zona]; return [escenaExt(Z, condicionesZona(s, Z)), `${TX.icRoca} ${Z.n} · ${TX.proyecto} ${P.tipo === 'via' ? gV(P.grado) : gB(P.grado)} (${Math.min(100, P.prog)} %)`]; }
     const Z0 = ZONAS[Object.keys(ZONAS)[0]];
     if (s.fase === 'retirado') return [Z0 ? escenaExt(Z0, condicionesZona(s, Z0)) : escenaInt(), TX.retiroLugar];
-    return [escenaIndividual(s), s.fase === 'rocodromo' ? `${TX.icLugar} ${TX.lugar} de ${s.ciudad}` : `${TX.icLugar} ${EQUIPOS[s.esc.equipo].n}`];
+    const nE = nivelIndividual(s);
+    return [escenaIndividual(s), s.fase === 'rocodromo' ? `${TX.icLugar} ${TX.lugar} de ${s.ciudad}` : nE >= 2 ? `🏟️ Has llegado a: ${nombreEscenario(s, nE)}` : `${TX.icLugar} ${EQUIPOS[s.esc.equipo].n}`];
   }
   if (s.fase === 'club') { const c = miClub(s); return [escenaEstadio(c), `${TXE.icEstadio} ${c.estadio} · ${posicion(s, c.id)}º en la liga`]; }
   if (s.fase === 'retirado' && s.ultimoClub) return [escenaEstadio(club(s, s.ultimoClub)), `👋 Retirado/a del ${TXE.deporte}`];
@@ -5435,7 +5436,7 @@ function popup() {
     const lugar = ind ? nombreEscenario(s, ev.n) : c.estadio;
     return `<div class="pi">${ind ? '🏟️' : TXE.icEstadio}</div><h2>¡Nuevo escenario!</h2><p class="pd">De <b>${esc(nombreEscenario(s, ev.antes).toLowerCase())}</b> a <b>${esc(nombreEscenario(s, ev.n).toLowerCase())}</b>.</p>
       <div class="scene grande">${escenaNivel(s)}<div class="chap">${esc(lugar)}${c ? ` · ${cr(c.cap).replace(' €', '')} plazas` : ''}</div></div>
-      <div class="chips" style="justify-content:center">${NIVELES_ESCENARIO[depDe(s)].map((x, i) => `<span class="chip${i + 1 === ev.n ? ' g' : ''}">${i + 1 <= ev.n ? '⭐' : '☆'} ${esc(x)}</span>`).join('')}</div>
+      <div class="chips" style="justify-content:center">${NIVELES_ESCENARIO[depDe(s)].map((x, i) => `<span class="chip${i + 1 === ev.n ? ' g' : ''}">${i + 1 <= ev.n ? '⭐' : '☆'} ${esc(nombreEscenario(s, i + 1))}</span>`).join('')}</div>
       <button class="btn g full" data-act="resolver" data-v="ok">¡A por todas! ▶</button>`;
   }
   if (ev.tipo === 'pantalla') {
