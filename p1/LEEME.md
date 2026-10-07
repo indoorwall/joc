@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-168 de 168 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+171 de 171 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -536,6 +536,15 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    ridículo), picar a tu rival (35 % polémica), publi de tu marca (cobras y sube la relación) y vida personal
    (ánimo, 10 % prensa rosa). Tus hazañas se publican solas. Con más seguidores de los que corresponden a tu
    fama, la fama sube; desde 10.000 seguidores, colaboraciones pagadas. Tocar ⚡ abre tu forma.
+6l. **Varios deportes**: el juego tiene dos motores. El de equipo (ligas, partidos, posiciones) sirve para
+   fútbol y baloncesto; el individual (competiciones, cualidades, retos al aire libre) para escalada y, pronto,
+   skate, surf y boxeo. Cada deporte trae su paquete: ligas o competiciones, posiciones o modalidades, marcas,
+   escenas, imprevistos, logros, retos, jugadas decisivas y textos.
+   **Baloncesto**: base, alero o pívot; Liga ACB, Primera, Segunda y Tercera FEB, Primera Nacional, Italia,
+   Francia, Alemania, Turquía y la NBA (con G League); marcadores de 70-100 puntos sin empates (prórroga) y
+   tabla de 2 puntos por victoria y 1 por derrota; puntos, rebotes y asistencias según tu posición y minutos;
+   jugadas finales (triple sobre la bocina, penetración, pase; falta, tapón o defensa); marcas propias
+   (Air Jordaniano, Spaldon, Piqui…); cancha del barrio y pabellones; triple-doble como logro secreto.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

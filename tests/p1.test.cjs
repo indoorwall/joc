@@ -1293,6 +1293,33 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Redes: publicar tiene riesgo (viral ~12 %, ridículo ~15 %, polémica ~35 %) y la publi exige patrocinador', rd.viral > 15 && rd.viral < 60 && rd.ridiculo > 20 && rd.ridiculo < 75 && rd.polem > 70 && rd.polem < 140 && rd.marcaBloq, JSON.stringify(rd));
     check('Redes: con muchos seguidores sube tu fama y las marcas pagan colaboraciones', rd.famaSube && rd.colab, JSON.stringify(rd));
 
+    // Baloncesto (motor de equipo)
+    const bq = await page.evaluate(() => {
+      const G = __P1, o = {}, was = G.silencio;
+      G.nueva(31, 'alero', 'basket'); G.S.intro = true; G.render();
+      o.deportes = [...document.querySelectorAll('[data-act=deporte]')].map(b => b.dataset.v).join(',');
+      o.posiciones = [...document.querySelectorAll('[data-act=posicion]')].map(b => b.dataset.v).join(',');
+      const ligas = Object.keys(G.S.mundo.ligas).map(k => G.ligaDe(G.S.mundo.ligas[k][0]).L.n);
+      o.ligas = ligas.includes('Liga ACB') && ligas.includes('NBA') && ligas.includes('Primera Nacional');
+      G.S.intro = false; G.silencio = true;
+      const L = () => { for (let g = 0; G.S.pendiente && g < 30; g++) G.resolver('si') || G.resolver('ok') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('0') || G.resolver('triple'); };
+      G.S.p.rep = 45; G.S.p.nivel = 55; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
+      const marcadores = []; let empates = 0;
+      for (let i = 0; i < 40; i++) { L(); G.S.p.energia = 80; G.elegir(G.S.fase === 'club' ? 'normal' : 'descansar'); G.avanzarSemana(); const P = G.S.ultimo && G.S.ultimo.partido; if (P && P.gf != null) { marcadores.push(P.gf, P.gc); if (P.gf === P.gc) empates++; } }
+      const T = G.S.temporada, tb = Object.values(T.tabla);
+      o.marcadores = marcadores.length > 20 && Math.min(...marcadores) >= 45 && Math.max(...marcadores) <= 140 && empates === 0;
+      o.tabla = tb.every(x => x.e === 0 && x.pts === 2 * x.g + x.p);
+      o.stats = G.S.stats.goles > 50 && (G.S.stats.reb || 0) > 10 && G.S.stats.asist > 5;
+      G.silencio = was; G.render();
+      const txt = document.body.innerText; o.sinFutbol = !/\b(goles|fútbol|botas)\b/i.test(txt.replace(/⚽ Fútbol/g, ''));
+      o.logros = G.logrosDe().some(l => l[0] === 'tripleDoble') && !G.logrosDe().some(l => l[0] === 'hattrick');
+      o.marcas = G.S.patros !== undefined && G.CFG.patrocinio.futbol.some(m => m.id === 'jordaniano');
+      G.S.hoja = 'carrera'; G.render(); o.carrera = document.getElementById('hoja').textContent.includes('Puntos'); G.S.hoja = null; G.render();
+      return o; });
+    check('Deportes: se puede elegir entre fútbol, baloncesto, escalada, skate, surf y boxeo', bq.deportes === 'futbol,basket,escalada,skate,surf,boxeo', JSON.stringify(bq));
+    check('Baloncesto: base, alero y pívot; Liga ACB, FEB y NBA; partidos con puntos (sin empates) y tabla de 2 por victoria y 1 por derrota', bq.posiciones === 'base,alero,pivot' && bq.ligas && bq.marcadores && bq.tabla, JSON.stringify(bq));
+    check('Baloncesto: puntos, rebotes y asistencias; logros, marcas y textos propios (ni goles ni botas)', bq.stats && bq.sinFutbol && bq.logros && bq.marcas && bq.carrera, JSON.stringify(bq));
+
     // Inicio compacto: con marcas y retos, la agenda se ve entera encima de JUGAR en un iPhone 13
     {
       const { page: pv, ctx: cv } = await openPage(browser, { viewport: { width: 390, height: 664 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
