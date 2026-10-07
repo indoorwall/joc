@@ -38,11 +38,12 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await shot(page, '00_intro');
     check('Primera vez: aparece «Empezar una nueva vida»', (await page.locator('#btnEmpezar').count()) === 1 && (await st(page)).intro === true);
     await page.locator('#nombre').fill('Leo');
-    await tap(page, '[data-act=avatar][data-v="🧑🏾"]');
+    await tap(page, '[data-act=lookIntro][data-c=piel][data-v="3"]');
+    await tap(page, '[data-act=lookIntro][data-c=pelo][data-v=rizos]');
     await tap(page, '[data-act=posicion][data-v=medio]');
     await tap(page, '#btnEmpezar');
     const si = await st(page);
-    check('Se guardan nombre, personaje y posición', !si.intro && si.nombre === 'Leo' && si.avatar === '🧑🏾' && si.posicion === 'medio' && (await page.locator('#top').textContent()).includes('Leo'));
+    check('Se guardan nombre, personaje y posición', !si.intro && si.nombre === 'Leo' && si.look.piel === '3' && si.look.pelo === 'rizos' && si.posicion === 'medio' && (await page.locator('#top').textContent()).includes('Leo'));
     await page.evaluate(() => { __P1.nueva(7); __P1.CFG.club.probSuceso = 0; });
     await shot(page, '01_diario_inicio');
     check('Pantalla principal: agenda (mañana, tarde, noche), lo que viene, indicadores, parte y «Cerrar la semana»', (await page.locator('.entry').count()) === 1 && (await page.locator('#objetivo').count()) === 1 && (await page.locator('#agenda .slot').count()) >= 3 && (await page.locator('.gauge').count()) >= 4 && (await page.locator('.prox li').count()) >= 1 && (await page.locator('#btnAvanzar').isEnabled()));
@@ -845,6 +846,44 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Patrocinadores: objetivo de temporada con prima; si fallas y la relación es baja, no renuevan', rp.objetivoOk && rp.objetivoMal);
     check('Escalada: objetivos propios, logos en la escena y hoja de patrocinadores', rp.escObjetivo && rp.escMarcaEnEscena && rp.hoja, JSON.stringify(rp));
     check('Partidas guardadas antiguas: las marcas se convierten (Red Bull → Red Toro)', rp.migra);
+
+    // Tu personaje y la tienda (con toques)
+    await page.evaluate(() => { const G = __P1; G.CFG.club.probSuceso = 0; G.nueva(51); G.S.p.dinero = 1000; G.S.hoja = null; G.render(); });
+    await tap(page, '#top .hava');
+    const lk1 = await page.evaluate(() => ({ hoja: __P1.S.hoja, items: document.querySelectorAll('#tienda .lk').length, prev: !!document.querySelector('.lookPrev svg') }));
+    await tap(page, '[data-act=capaLook][data-v=pelo]');
+    await tap(page, '[data-act=look][data-c=pelo][data-v=cresta]');
+    const lk2 = await page.evaluate(() => ({ d: __P1.S.p.dinero, pelo: __P1.S.look.pelo, arm: __P1.S.armario.slice() }));
+    await tap(page, '[data-act=look][data-c=pelo][data-v=corto]');
+    await tap(page, '[data-act=look][data-c=pelo][data-v=cresta]');
+    const lk3 = await page.evaluate(() => ({ d: __P1.S.p.dinero, pelo: __P1.S.look.pelo }));
+    for (const w of [320, 390]) {
+      await page.setViewportSize({ width: w, height: 700 });
+      if (await page.evaluate(() => Math.max(document.documentElement.scrollWidth, document.getElementById('hoja').scrollWidth) > window.innerWidth)) check(`Tienda sin desplazamiento horizontal a ${w} px`, false);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    const lk4 = await page.evaluate(() => {
+      const G = __P1, out = {};
+      G.S.capaLook = 'cabeza'; G.render();
+      out.corona = document.querySelector('[data-act=look][data-c=cabeza][data-v=corona]').disabled && !G.ponerLook('cabeza', 'corona');
+      G.S.p.dinero = 5000; out.traje = !G.ponerLook('ropa', 'traje'); G.S.pantalla = 4; out.traje2 = G.ponerLook('ropa', 'traje') && G.S.look.ropa === 'traje';
+      G.S.p.dinero = 5; out.caro = !G.ponerLook('calzado', 'doradas');
+      G.S.p.fel = 90; const feliz = G.avatarSVG(null, 'busto'); G.S.p.fel = 10; out.cambiaCara = feliz !== G.avatarSVG(null, 'busto');
+      G.S.lesion = 3; out.tirita = G.avatarSVG(null, 'busto').includes('rotate(-20'); G.S.lesion = 0;
+      G.S.hoja = null; G.render(); out.escena = !!document.querySelector('.escena .yo svg');
+      out.botasPrecio = G.precioLook('calzado', 'botas');
+      G.nueva(52, null, 'escalada', 'bloque'); G.S.p.rep = 40; G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club');
+      for (let g = 0; G.S.pendiente && g < 10; g++) G.resolver('ok') || G.resolver('0') || G.resolver('si');
+      out.piesAntes = G.precioLook('calzado', 'pies'); G.firmarPatro('tenaja'); out.piesDespues = G.precioLook('calzado', 'pies');
+      out.piesGratis = G.ponerLook('calzado', 'pies') && G.S.p.dinero >= 0 && G.S.armario.includes('calzado:pies');
+      out.sinBotasEsc = !G.ponerLook('calzado', 'botas');
+      return out;
+    });
+    check('Tu personaje: se abre tocando tu cara arriba, con vista previa y tienda', lk1.hoja === 'avatar' && lk1.items >= 6 && lk1.prev, JSON.stringify(lk1));
+    check('Tienda: comprar cobra una vez y lo que compras es tuyo para siempre', lk2.d === 880 && lk2.pelo === 'cresta' && lk2.arm.includes('pelo:cresta') && lk3.d === 880 && lk3.pelo === 'cresta', JSON.stringify([lk2, lk3]));
+    check('Tienda: cosas bloqueadas por logros y pantallas, y sin dinero no se compra', lk4.corona && lk4.traje && lk4.traje2 && lk4.caro, JSON.stringify(lk4));
+    check('Tu cara cambia con el ánimo y con las lesiones; tu personaje sale en la escena', lk4.cambiaCara && lk4.tirita && lk4.escena);
+    check('Las marcas regalan sus productos (pies de gato gratis con patrocinador) y cada deporte tiene lo suyo', lk4.piesAntes === 90 && lk4.piesDespues === 0 && lk4.piesGratis && lk4.sinBotasEsc && lk4.botasPrecio === 80, JSON.stringify(lk4));
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {

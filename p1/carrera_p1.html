@@ -77,15 +77,48 @@
   /* Escena */
   .escena { position: relative; height: 118px; border-radius: 20px; overflow: hidden; border: 3px solid rgba(255,255,255,.22); box-shadow: 0 6px 0 rgba(0,0,0,.3); }
   .escena svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .escena .marcas { position: absolute; left: 10px; right: 10px; top: 44px; display: flex; flex-wrap: nowrap; overflow: hidden; justify-content: flex-start; gap: 4px; background: none; border: 0; padding: 0; min-height: 0; box-shadow: none; }
+  .escena .marcas { position: absolute; left: 10px; right: 70px; top: 44px; display: flex; flex-wrap: nowrap; overflow: hidden; justify-content: flex-start; gap: 4px; background: none; border: 0; padding: 0; min-height: 0; box-shadow: none; }
   .escena .marcas span { background: rgba(255,255,255,.94); color: #15202b; font-weight: 900; font-size: 11px; border-radius: 6px; padding: 2px 6px; box-shadow: 0 2px 0 rgba(0,0,0,.35); white-space: nowrap; }
   .relp { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; font-size: 13px; font-weight: 800; }
   .relp .pb { flex: 1; height: 10px; border-radius: 99px; background: rgba(0,0,0,.12); overflow: hidden; }
   .relp .pb i { display: block; height: 100%; border-radius: 99px; }
   .patro .ob { font-size: 13px; margin-top: 4px; }
   .patro .lema { display: block; font-style: italic; color: var(--muted, #667); font-size: 12px; }
+  .hava { padding: 0; cursor: pointer; }
+  .hava .hcara { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }
+  .hava .hcara svg { width: 100%; height: 100%; display: block; }
+  .escena .yo { position: absolute; right: 4px; bottom: 0; width: 60px; height: 104px; padding: 0; border: 0; background: none; box-shadow: none; min-height: 0; cursor: pointer; }
+  .escena .yo svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+  .lookTop { display: flex; gap: 12px; align-items: center; background: #fff; color: #15202b; border-radius: 18px; padding: 10px; }
+  .lookPrev { width: 96px; height: 168px; flex: none; border-radius: 14px; background: radial-gradient(circle at 50% 35%, var(--acc-soft), #fff 75%); }
+  .lookPrev svg { width: 100%; height: 100%; display: block; }
+  .lookInfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-weight: 700; }
+  .lookInfo b { font-size: 18px; font-weight: 900; }
+  .lookInfo .small { color: #5b6475; }
+  .lookTabs { display: flex; gap: 6px; overflow-x: auto; padding: 12px 2px 8px; scrollbar-width: none; }
+  .lookTabs::-webkit-scrollbar { display: none; }
+  .lookTabs button { flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 64px; min-height: 54px; border-radius: 14px; border: 2px solid var(--line); background: #fff; color: #15202b; font-weight: 800; font-size: 11px; box-shadow: 0 3px 0 var(--line); cursor: pointer; }
+  .lookTabs button span { font-size: 20px; }
+  .lookTabs button.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
+  .lookGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .lk { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 4px 8px; border-radius: 14px; border: 2px solid var(--line); background: #fff; color: #15202b; box-shadow: 0 3px 0 var(--line); min-width: 0; cursor: pointer; }
+  .lk svg { width: 100%; height: 74px; display: block; background: #eef2f8; border-radius: 10px; }
+  .lk b { font-size: 12px; line-height: 1.15; text-align: center; }
+  .lk .pr { font-size: 11px; font-weight: 800; color: #5b6475; text-align: center; line-height: 1.2; }
+  .lk.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
+  .lk:disabled { opacity: .6; cursor: default; }
+  .lk.caro .pr { color: var(--red); }
+  .introLook { display: flex; gap: 10px; align-items: center; }
+  .introLook .lookPrev { width: 84px; height: 148px; }
+  .introOps { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .sw { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sw button { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--line); cursor: pointer; padding: 0; }
+  .sw button.sel { box-shadow: 0 0 0 3px var(--acc); }
+  .pelos { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pelos button { flex: 1 0 auto; min-height: 36px; padding: 4px 8px; border-radius: 10px; border: 2px solid var(--line); background: #fff; color: #15202b; font-weight: 800; font-size: 12px; cursor: pointer; }
+  .pelos button.sel { border-color: var(--acc); background: var(--acc-soft); }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
-  .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 10px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
+  .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 68px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Indicadores */
@@ -502,6 +535,43 @@ const CFG = {
     ['#8d0801', '#f4d58d'], ['#2b2d42', '#ef233c']],
 
   // ---- Escalada ----
+  // Tu personaje: capas del avatar y tienda. p = precio en € (de juego); req = qué hace falta
+  // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
+  // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
+  look: {
+    felEstreno: 2,
+    capas: [['pelo', '💇', 'Pelo'], ['colorPelo', '🎨', 'Tinte'], ['piel', '✋', 'Piel'], ['cara', '🧔', 'Cara'], ['ropa', '👕', 'Ropa'], ['colorRopa', '🖌️', 'Color'],
+      ['pantalon', '👖', 'Pantalón'], ['calzado', '👟', 'Calzado'], ['cabeza', '🧢', 'Cabeza'], ['gafas', '🕶️', 'Gafas'], ['extra', '🎒', 'Extras'], ['fondo', '🖼️', 'Fondo']],
+    items: {
+      piel: [0, 1, 2, 3, 4, 5].map(i => ({ id: String(i), n: `Tono ${i + 1}`, p: 0 })),
+      pelo: [{ id: 'corto', n: 'Corto', p: 0 }, { id: 'largo', n: 'Largo', p: 0 }, { id: 'coleta', n: 'Coleta', p: 0 }, { id: 'rizos', n: 'Rizos', p: 0 },
+        { id: 'rapado', n: 'Rapado', p: 0 }, { id: 'calvo', n: 'Sin pelo', p: 0 }, { id: 'mono', n: 'Moño', p: 30 }, { id: 'tupe', n: 'Tupé', p: 60 },
+        { id: 'trenzas', n: 'Trenzas', p: 80 }, { id: 'afro', n: 'Afro', p: 80 }, { id: 'cresta', n: 'Cresta punk', p: 120 }],
+      colorPelo: [{ id: 'negro', n: 'Negro', p: 0 }, { id: 'castano', n: 'Castaño', p: 0 }, { id: 'rubio', n: 'Rubio', p: 0 }, { id: 'pelirrojo', n: 'Pelirrojo', p: 0 },
+        { id: 'canoso', n: 'Canoso', p: 0 }, { id: 'azul', n: 'Azul eléctrico', p: 50 }, { id: 'rosa', n: 'Rosa chicle', p: 50 }, { id: 'verde', n: 'Verde moco', p: 50 }],
+      cara: [{ id: 'nada', n: 'Nada', p: 0 }, { id: 'pecas', n: 'Pecas', p: 0 }, { id: 'pintura', n: 'Pintura de guerra', p: 25 }, { id: 'bigote', n: 'Bigote', p: 40 },
+        { id: 'perilla', n: 'Perilla', p: 40 }, { id: 'barba', n: 'Barba', p: 60 }],
+      ropa: [{ id: 'camiseta', n: 'Camiseta', p: 0 }, { id: 'equipacion', n: 'Camiseta de tu equipo', p: 0, dep: 'futbol' }, { id: 'tirantes', n: 'Tirantes', p: 25 },
+        { id: 'hawaiana', n: 'Camisa hawaiana', p: 35 }, { id: 'sudadera', n: 'Sudadera', p: 40 }, { id: 'chaqueta', n: 'Chaqueta', p: 120 }, { id: 'plumas', n: 'Plumas', p: 250 },
+        { id: 'marca', n: 'Camiseta de tu marca', p: 0, req: { patro: true } }, { id: 'traje', n: 'Traje de empresario', p: 1500, req: { pantalla: 4 } }],
+      colorRopa: [['azul', 'Azul'], ['rojo', 'Rojo'], ['verde', 'Verde'], ['amarillo', 'Amarillo'], ['negro', 'Negro'], ['blanco', 'Blanco'], ['morado', 'Morado'], ['naranja', 'Naranja']].map(([id, n]) => ({ id, n, p: 0 })),
+      pantalon: [{ id: 'chandal', n: 'Chándal', p: 0 }, { id: 'corto', n: 'Pantalón corto', p: 0 }, { id: 'vaquero', n: 'Vaqueros', p: 30 }, { id: 'falda', n: 'Falda', p: 30 },
+        { id: 'traje', n: 'Pantalón de traje', p: 400, req: { pantalla: 4 } }],
+      calzado: [{ id: 'deportivas', n: 'Deportivas', p: 0 }, { id: 'chanclas', n: 'Chanclas con calcetines', p: 10 }, { id: 'botas', n: 'Botas de fútbol', p: 80, dep: 'futbol', gratisCat: 'botas' },
+        { id: 'pies', n: 'Pies de gato', p: 90, dep: 'escalada', gratisCat: 'pies' }, { id: 'montana', n: 'Botas de montaña', p: 120 }, { id: 'zapatos', n: 'Zapatos buenos', p: 150 },
+        { id: 'doradas', n: 'Zapatillas de oro', p: 25000 }],
+      cabeza: [{ id: 'nada', n: 'Nada', p: 0 }, { id: 'fiesta', n: 'Gorro de fiesta', p: 5 }, { id: 'cinta', n: 'Cinta', p: 10 }, { id: 'gorra', n: 'Gorra', p: 20 },
+        { id: 'gorro', n: 'Gorro de lana', p: 25 }, { id: 'casco', n: 'Casco', p: 70, dep: 'escalada' }, { id: 'vaquero', n: 'Sombrero vaquero', p: 90 },
+        { id: 'corona', n: 'Corona', p: 0, req: { logro: 'millon' } }],
+      gafas: [{ id: 'nada', n: 'Sin gafas', p: 0 }, { id: 'corazon', n: 'Gafas de corazón', p: 15 }, { id: 'redondas', n: 'Gafas redondas', p: 60 }, { id: 'sol', n: 'Gafas de sol', p: 90 },
+        { id: 'deportivas', n: 'Gafas deportivas', p: 120 }],
+      extra: [{ id: 'nada', n: 'Nada', p: 0 }, { id: 'balon', n: 'Balón', p: 20, dep: 'futbol' }, { id: 'magnesio', n: 'Bolsa de magnesio', p: 25, dep: 'escalada' },
+        { id: 'mochila', n: 'Mochila', p: 60 }, { id: 'auriculares', n: 'Auriculares', p: 150 }, { id: 'capa', n: 'Capa de superhéroe', p: 300 },
+        { id: 'medalla', n: 'Medalla', p: 0, req: { logro: ['ascenso', 'podioEsc'] } }, { id: 'cadena', n: 'Cadena de oro', p: 5000 }, { id: 'reloj', n: 'Reloj de lujo', p: 12000, gratisCat: 'reloj' }],
+      fondo: [['azul', 'Azul'], ['verde', 'Verde'], ['naranja', 'Naranja'], ['morado', 'Morado'], ['rosa', 'Rosa']].map(([id, n]) => ({ id, n, p: 0 }))
+        .concat([{ id: 'noche', n: 'Noche estrellada', p: 0, req: { pantalla: 3 } }, { id: 'dorado', n: 'Fondo de oro', p: 50000 }]),
+    },
+  },
   // Patrocinadores (fútbol y escalada). Cada contrato tiene obligaciones: compromisos que te
   // ocupan una tarde, un objetivo de temporada y una relación con la marca (0-100).
   patrocinio: {
@@ -959,6 +1029,7 @@ function nuevaPartida(seed) {
     historial: [],
     intro: true, nombre: '', avatar: CFG.avatares[0], posicion: 'delantero', deporte: 'futbol', fuerte: 'bloque',
     patros: [], patroOf: { ofrecida: {}, prox: 0, ultEv: -99 }, patroTemp: { partidos: 0, pj: 0, tit: 0, goles: 0 }, patrosHist: [], tardePatro: null,
+    look: Object.assign({}, LOOK_INICIAL), armario: [],
   };
   s.potencial = Math.round(CFG.club.potencial[0] + rnd(s) * (CFG.club.potencial[1] - CFG.club.potencial[0]));
   s.mundo = generarMundo(s);
@@ -996,6 +1067,8 @@ function migrar(s) {
   if (!s.patroOf) s.patroOf = { ofrecida: (s.esc && s.esc.ofrecida) || {}, prox: (s.esc && s.esc.proxOferta) || 0, ultEv: -99 };
   if (s.esc) { delete s.esc['patros']; delete s.esc.ofrecida; delete s.esc.proxOferta; }
   if (!s.patroTemp) s.patroTemp = { partidos: 0, pj: 0, tit: 0, goles: 0 };
+  if (!s.look) s.look = Object.assign({}, LOOK_INICIAL);
+  if (!s.armario) s.armario = [];
   if (!s.patrosHist) s.patrosHist = s.patros.map(p => ren[p.id] || p.id);
   const cat = s.deporte === 'escalada' ? CFG.escalada.patrocinadores : CFG.patrocinio.futbol;
   for (const pt of s.patros) {
@@ -2410,6 +2483,8 @@ const LOGROS = [
   ['gol', '⚽', 'Primer gol como profesional', s => s.stats.goles > 0, 'futbol'],
   ['patro1', '💼', 'Primer patrocinador', s => (s.patrosHist || []).length > 0],
   ['alitas', '🐂', 'Te da alitas: firma con Red Toro', s => (s.patrosHist || []).includes('redtoro')],
+  ['compras', '🛍️', 'Primera compra en la tienda', s => (s.compras || 0) > 0],
+  ['oro', '✨', 'Zapatillas de oro', s => (s.armario || []).includes('calzado:doradas')],
   ['ascenso', '⬆️', 'Primer ascenso', s => s.ascensos > 0, 'futbol'],
   ['extranjero', '✈️', 'Jugar en el extranjero', s => s.fase === 'club' && miClub(s).pais !== 'es', 'futbol'],
   ['primera', '🏆', 'Jugar en primera división', s => s.fase === 'club' && ligaDe(s, s.contrato.clubId).tier === 1, 'futbol'],
@@ -3802,7 +3877,7 @@ function etiquetaSemana(s) {
 function renderTop() {
   const s = S;
   if (s.intro) { $('top').innerHTML = ''; return; }
-  $('top').innerHTML = `<div class="hava" title="Pantalla ${s.pantalla + 1}">${s.avatar}<i>${Math.min(s.pantalla + 1, pantallas(s).length)}</i></div>
+  $('top').innerHTML = `<button class="hava" data-act="hoja" data-v="avatar" aria-label="Tu personaje (pantalla ${s.pantalla + 1})"><span class="hcara">${avatarSVG(s, null, 'busto')}</span><i>${Math.min(s.pantalla + 1, pantallas(s).length)}</i></button>
     <div class="hwho"><b>${esc(s.nombre)} · ${s.edad} años</b><span>${esc(ocupacion(s))}</span></div>
     <div class="hres"><span class="pill oro num ${s.p.dinero < 0 ? 'down' : ''}" id="dinero">💰 ${cr(s.p.dinero)}</span>
       <div class="hbtns"><button data-act="hoja" data-v="logros">🏅 ${logrosDe(s).filter(l => s.logros[l[0]]).length}/${logrosDe(s).length}</button><button data-act="hoja" data-v="ajustes" aria-label="Ajustes">⚙️</button></div></div>`;
@@ -3913,7 +3988,7 @@ function pantallaSemana() {
   const s = S, a = ACCIONES[s.plan], fin = finDeSemana(s), pr = proximos(s).filter(([cu]) => !(fin && cu === 'Esta semana')).slice(0, 2), [svg, lugar] = escenaActual(s);
   const [emo, ...txt] = a ? a.t.split(' ') : ['❓', 'Elige', 'tu', 'plan'];
   let h = htmlMision();
-  h += `<section class="escena">${svg}${marcasEscena(s)}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
+  h += `<section class="escena">${svg}<button class="yo" data-act="hoja" data-v="avatar" aria-label="Tu personaje">${avatarSVG(s, null, 'cuerpo')}</button>${marcasEscena(s)}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
   h += `<div class="gauges ${s.deporte === 'escalada' && s.fase !== 'retirado' ? 'g6' : ''}">${gauges(s)}</div>`;
   h += `<section class="panel" id="agenda"><div class="ph"><span>Tu semana</span><span>se repite sola</span></div>
     <div class="tiles"><button class="slot principal" data-act="hoja" data-v="plan"><span class="tt">☀️ Mañana</span><span class="te">${emo}</span><b>${esc(txt.join(' '))}</b></button>${Object.keys(SLOTS).map(k => slotHtml(s, k)).join('')}</div>
@@ -3927,7 +4002,7 @@ function pantallaSemana() {
 function renderDock() {
   const s = S;
   if (s.intro) { $('dock').innerHTML = ''; return; }
-  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' || h === 'patros' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas'].includes(h) ? 3 : -1;
+  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' || h === 'patros' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas', 'avatar'].includes(h) ? 3 : -1;
   const t = (k, v, ic, n) => `<button class="ab ${on === k ? 'on' : ''}" data-act="hoja" data-v="${v}"><span>${ic}</span>${n}</button>`;
   $('dock').innerHTML = `<nav class="tabs">${t(0, '', '🏠', 'Inicio')}${t(1, 'carrera', s.deporte === 'escalada' ? '🧗' : '⚽', 'Carrera')}${t(2, 'bienes', '🏢', 'Empresa')}${t(3, 'relaciones', '🧑‍🤝‍🧑', 'Vida')}</nav>`;
 }
@@ -4199,7 +4274,7 @@ function hojaRelaciones() {
     <div class="chips" style="margin-top:8px">${interaccionesDe(r).map(([k, x]) => `<button class="btn ${k === 'romper' || k === 'despedir' ? 'r' : k === 'tenerHijo' ? 'g' : 'w'}" style="min-height:38px;padding:6px 10px;font-size:13px" data-act="rel" data-id="${r.id}" data-v="${k}" ${r.semana === s.semana || (k === 'tenerHijo' && bh) ? 'disabled' : ''}>${x.ic} ${x.n}</button>`).join('')}</div>
     ${r.tipo === 'pareja' && bh ? `<p class="lock">👶 ${esc(bh)}</p>` : ''}
     ${r.semana === s.semana ? '<p class="lock">Ya habéis estado juntos esta semana.</p>' : ''}</div>`).join('');
-  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div><div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
+  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="avatar">🧍 Personaje y tienda</button><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div><div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
     ${rel(s, 'pareja') ? '' : '<p class="note">💘 Sin pareja. Quizá conozcas a alguien…</p>'}${rel(s, 'agente') ? '' : `<p class="note">🕴️ Con reputación ${CFG.agente.repMin} o más, algún representante se fijará en ti.</p>`}`);
 }
 
@@ -4341,7 +4416,12 @@ function popup() {
 function pantallaIntro() {
   return `<div class="intro"><div class="logo">${S.deporte === 'escalada' ? '🧗' : '⚽'}</div><h1>Del barrio<br><em>al negocio</em></h1><div class="sub">${S.deporte === 'escalada' ? 'Una vida: del rocódromo del barrio a las Copas del Mundo y las grandes vías… y dueño/a de negocios y casas.' : 'Una vida: del fútbol de barrio a futbolista profesional… y dueño de negocios, casas y hasta un club.'}</div>
     <div class="card"><div class="sec" style="margin-top:0">Nombre</div><input id="nombre" maxlength="16" placeholder="Tu nombre" value="${esc(S.nombre)}" autocomplete="off">
-      <div class="sec">Personaje</div><div class="avas">${CFG.avatares.map(a => `<button data-act="avatar" data-v="${a}" class="${S.avatar === a ? 'sel' : ''}">${a}</button>`).join('')}</div>
+      <div class="sec">Personaje</div><div class="introLook"><div class="lookPrev">${avatarSVG(S, null, 'cuerpo')}</div><div class="introOps">
+        <div class="sw">${PIEL.map((c, i) => `<button data-act="lookIntro" data-c="piel" data-v="${i}" class="${S.look.piel === String(i) ? 'sel' : ''}" style="background:${c}" aria-label="Piel, tono ${i + 1}"></button>`).join('')}</div>
+        <div class="pelos">${['corto', 'largo', 'coleta', 'rizos', 'rapado'].map(k => `<button data-act="lookIntro" data-c="pelo" data-v="${k}" class="${S.look.pelo === k ? 'sel' : ''}">${itemLook('pelo', k).n}</button>`).join('')}</div>
+        <div class="sw">${['negro', 'castano', 'rubio', 'pelirrojo'].map(k => `<button data-act="lookIntro" data-c="colorPelo" data-v="${k}" class="${S.look.colorPelo === k ? 'sel' : ''}" style="background:${COLOR_PELO[k]}" aria-label="Pelo ${itemLook('colorPelo', k).n}"></button>`).join('')}</div>
+        <div class="sw">${['azul', 'rojo', 'verde', 'amarillo', 'negro', 'morado'].map(k => `<button data-act="lookIntro" data-c="colorRopa" data-v="${k}" class="${S.look.colorRopa === k ? 'sel' : ''}" style="background:${COLOR_ROPA[k]}" aria-label="Ropa ${k}"></button>`).join('')}</div>
+      </div></div><p class="small">Luego podrás cambiarlo y comprar más cosas en la tienda tocando tu cara, arriba.</p>
       <div class="sec">Deporte</div><div class="seg">${[['futbol', '⚽<br>Fútbol'], ['escalada', '🧗<br>Escalada']].map(([k, t]) => `<button data-act="deporte" data-v="${k}" class="${S.deporte === k ? 'sel' : ''}">${t}</button>`).join('')}</div>
       ${S.deporte === 'escalada' ? `<div class="sec">Punto fuerte</div><div class="seg">${Object.entries(CFG.escalada.fuertes).map(([k, p]) => `<button data-act="fuerte" data-v="${k}" class="${S.fuerte === k ? 'sel' : ''}">${p.ic}<br>${p.n}</button>`).join('')}</div>
       <p class="small">${esc(CFG.escalada.fuertes[S.fuerte].d)} Empiezas con 14 años en el rocódromo del barrio y compites en las tres modalidades.</p></div>`
@@ -4349,6 +4429,181 @@ function pantallaIntro() {
       <p class="small">${S.posicion === 'delantero' ? 'Más goles y titulares, pero tu nota depende de marcar.' : S.posicion === 'medio' ? 'Más asistencias y notas regulares.' : 'Pocos goles, pero notas más estables (+0,3).'}</p></div>`}
     <button class="btn g full" data-act="empezar" id="btnEmpezar">Empezar una nueva vida</button>
     <p class="note">${S.deporte === 'escalada' ? 'Zonas y grados reales; marcas y rivales ficticios.' : 'Clubes ficticios.'} Importes de juego.</p></div>`;
+}
+
+/* =====================================================================
+   16. TU PERSONAJE: avatar dibujado por capas y tienda
+   La cara cambia sola con tu ánimo, tu energía y las lesiones.
+   ===================================================================== */
+const PIEL = ['#ffe3c8', '#f6c9a0', '#e2a877', '#c48650', '#8f5b35', '#5e3b22'];
+const COLOR_PELO = { negro: '#22201f', castano: '#6b4226', rubio: '#e8c36a', pelirrojo: '#c4512b', canoso: '#cfcfcf', azul: '#2f7bf5', rosa: '#ff6fb5', verde: '#3ccf6e' };
+const COLOR_ROPA = { rojo: '#e23b3b', azul: '#2f6fe0', verde: '#22a35a', amarillo: '#f6c623', negro: '#2a2d34', blanco: '#f4f4f4', morado: '#7b4bd6', naranja: '#ff8a2a' };
+const FONDO_LOOK = { azul: '#bfe0ff', verde: '#c6f0d2', naranja: '#ffd9b3', morado: '#dccbff', rosa: '#ffd0e6' };
+const LOOK_INICIAL = { piel: '1', pelo: 'corto', colorPelo: 'castano', cara: 'nada', ropa: 'camiseta', colorRopa: 'azul', pantalon: 'chandal', calzado: 'deportivas', cabeza: 'nada', gafas: 'nada', extra: 'nada', fondo: 'azul' };
+const VISTA_LOOK = { busto: '6 -12 88 88', cuerpo: '0 -16 100 176', torso: '8 52 84 64', piernas: '14 92 72 64' };
+const CAPA_VISTA = { ropa: 'torso', colorRopa: 'torso', pantalon: 'piernas', calzado: 'piernas', extra: 'cuerpo' };
+
+function itemLook(cap, id) { return (CFG.look.items[cap] || []).find(x => x.id === id); }
+function itemsLook(s, cap) { return (CFG.look.items[cap] || []).filter(it => !it.dep || it.dep === (s.deporte || 'futbol')); }
+function reqLook(s, it) {
+  const r = it.req;
+  if (!r) return null;
+  if (r.pantalla && s.pantalla < r.pantalla) return `Supera la pantalla ${r.pantalla}`;
+  if (r.logro) { const ids = [].concat(r.logro); if (!ids.some(id => s.logros[id])) { const l = LOGROS.find(x => ids.includes(x[0]) && (!x[4] || x[4] === (s.deporte || 'futbol'))); return `Logro «${l ? l[2] : ids[0]}»`; } }
+  if (r.patro && !(s.patros || []).length) return 'Ten un patrocinador';
+  return null;
+}
+function precioLook(s, it) { return it.gratisCat && (s.patros || []).some(p => p.cat === it.gratisCat) ? 0 : it.p || 0; }
+function tieneLook(s, cap, it) { return s.armario.includes(`${cap}:${it.id}`) || (!it.p && !it.req); }
+// Ponerte algo: si no es tuyo, se compra (o se desbloquea) primero
+function ponerLook(cap, id) {
+  const s = S, it = itemLook(cap, id);
+  if (!it || (it.dep && it.dep !== (s.deporte || 'futbol'))) return false;
+  if (!tieneLook(s, cap, it)) {
+    if (reqLook(s, it)) return false;
+    const pr = precioLook(s, it);
+    if (s.p.dinero < pr) return false;
+    s.p.dinero -= pr; s.armario.push(`${cap}:${id}`);
+    if (pr) { s.acum.gastosPers += pr; s.gastoLook = (s.gastoLook || 0) + pr; s.compras = (s.compras || 0) + 1; s.p.fel = clamp(s.p.fel + CFG.look.felEstreno, 0, 100); }
+    const regalo = it.gratisCat && !pr ? (s.patros.find(p => p.cat === it.gratisCat) || {}).marca : null;
+    anotar(s, '🛍️', pr ? `Me compro: ${it.n.toLowerCase()} (−${cr(pr)}). ¡Estreno! (+${CFG.look.felEstreno} ánimo)` : `Estreno: ${it.n.toLowerCase()}${regalo ? `, regalo de ${regalo}` : ''}.`);
+  }
+  s.look[cap] = id;
+  guardar(); render();
+  return true;
+}
+
+// ---- Dibujo ----
+function oscurecer(hex, f) { const n = parseInt(hex.slice(1), 16), c = k => Math.round(((n >> k) & 255) * f); return `rgb(${c(16)},${c(8)},${c(0)})`; }
+function avatarSVG(s, L, modo) {
+  L = Object.assign({}, LOOK_INICIAL, L || s.look || {});
+  modo = modo || 'cuerpo';
+  // Con gorra, gorro o casco, el pelo alto queda aplastado
+  if (['gorra', 'gorro', 'casco'].includes(L.cabeza) && ['cresta', 'mono', 'tupe', 'afro'].includes(L.pelo)) L.pelo = 'corto';
+  const sk = PIEL[+L.piel] || PIEL[1], hc = COLOR_PELO[L.colorPelo] || COLOR_PELO.castano, rc = COLOR_ROPA[L.colorRopa] || COLOR_ROPA.azul, rd = oscurecer(rc, 0.75);
+  const p = s.p || { fel: 60, energia: 80 }, fel = p.fel, ene = p.energia;
+  const club = s.fase === 'club' && s.contrato ? miClub(s) : null, c1 = club ? club.c1 : '#2e9d4f', c2 = club ? club.c2 : '#ffffff';
+  const marca = (s.patros || []).slice().sort((a, b) => b.año - a.año)[0];
+  let h = '';
+  // Fondo (solo en el retrato)
+  if (modo === 'busto') {
+    if (L.fondo === 'noche') h += `<rect x="-20" y="-30" width="140" height="140" fill="#1d2552"/>${[[18, 0], [80, 6], [30, 60], [86, 52], [62, -6], [12, 34]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff"/>`).join('')}`;
+    else if (L.fondo === 'dorado') h += `<rect x="-20" y="-30" width="140" height="140" fill="#f5c518"/><circle cx="50" cy="34" r="44" fill="#ffe27a"/>`;
+    else h += `<rect x="-20" y="-30" width="140" height="140" fill="${FONDO_LOOK[L.fondo] || FONDO_LOOK.azul}"/>`;
+  } else h += `<ellipse cx="50" cy="153" rx="28" ry="4" fill="rgba(0,0,0,.25)"/>`;
+  // Detrás del cuerpo: capa y pelo largo
+  if (L.extra === 'capa') h += `<path d="M31 74 L14 146 L86 146 L69 74Z" fill="#d6283b"/>`;
+  if (L.extra === 'mochila') h += `<rect x="30" y="72" width="40" height="34" rx="8" fill="#3b4a6b"/>`;
+  if (L.pelo === 'largo') h += `<path d="M23 40 Q23 12 50 12 Q77 12 77 40 L79 84 Q50 92 21 84Z" fill="${hc}"/>`;
+  if (L.pelo === 'afro') h += `<circle cx="50" cy="34" r="33" fill="${hc}"/>`;
+  if (L.pelo === 'coleta') h += `<path d="M70 24 Q94 28 86 64 Q80 44 68 36Z" fill="${hc}"/>`;
+  if (L.pelo === 'trenzas') h += `<path d="M25 46 L21 92 M75 46 L79 92" stroke="${hc}" stroke-width="9" stroke-linecap="round"/><circle cx="21" cy="92" r="3" fill="#e23b3b"/><circle cx="79" cy="92" r="3" fill="#e23b3b"/>`;
+  if (L.pelo === 'mono') h += `<circle cx="50" cy="11" r="9" fill="${hc}"/>`;
+  // Piernas y pantalón
+  const pc = { chandal: '#4a5260', vaquero: '#3d5f9e', traje: '#2b2f3a', corto: rc, falda: rc }[L.pantalon] || '#4a5260';
+  if (L.pantalon === 'corto') h += `<rect x="38" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="53" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="34" y="104" width="32" height="18" rx="4" fill="${pc}"/><line x1="50" y1="110" x2="50" y2="122" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>`;
+  else if (L.pantalon === 'falda') h += `<rect x="38" y="122" width="9" height="20" rx="4" fill="${sk}"/><rect x="53" y="122" width="9" height="20" rx="4" fill="${sk}"/><path d="M34 104 L66 104 L72 128 L28 128Z" fill="${pc}"/>`;
+  else {
+    h += `<rect x="36" y="104" width="13" height="38" rx="4" fill="${pc}"/><rect x="51" y="104" width="13" height="38" rx="4" fill="${pc}"/>`;
+    if (L.pantalon === 'chandal') h += `<rect x="37" y="108" width="2" height="32" fill="#fff" opacity=".8"/><rect x="61" y="108" width="2" height="32" fill="#fff" opacity=".8"/>`;
+    if (L.pantalon === 'vaquero') h += `<path d="M42 108 v30 M58 108 v30" stroke="#f0c040" stroke-width="1" stroke-dasharray="2 2"/>`;
+  }
+  // Calzado
+  const zap = (col, extra) => `<rect x="31" y="139" width="19" height="10" rx="5" fill="${col}"/><rect x="50" y="139" width="19" height="10" rx="5" fill="${col}"/>${extra || ''}`;
+  if (L.calzado === 'deportivas') h += zap('#ffffff', `<path d="M35 144 h10 M54 144 h10" stroke="${rc}" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#ccc"/><rect x="50" y="146" width="19" height="3" fill="#ccc"/>`);
+  else if (L.calzado === 'botas') h += zap('#1d1d1f', `<path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#999" stroke-width="2"/><path d="M36 143 h8 M55 143 h8" stroke="${c1}" stroke-width="2"/>`);
+  else if (L.calzado === 'pies') h += `<path d="M31 140 h18 v9 h-22 q-1 -5 4 -9Z M51 140 h18 q5 4 4 9 h-22Z" fill="#ff7a1a"/><path d="M33 145 h14 M53 145 h14" stroke="#2a2d34" stroke-width="2"/>`;
+  else if (L.calzado === 'chanclas') h += `<rect x="38" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="53" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="31" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/><rect x="50" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/>`;
+  else if (L.calzado === 'zapatos') h += zap('#5b3a1e', '<path d="M35 142 h6 M55 142 h6" stroke="#fff" stroke-width="1.5" opacity=".5"/>');
+  else if (L.calzado === 'montana') h += zap('#7a5230', '<path d="M36 141 l4 3 M40 141 l4 3 M56 141 l4 3 M60 141 l4 3" stroke="#f6c623" stroke-width="1.5"/><rect x="31" y="146" width="19" height="3" fill="#2a2d34"/><rect x="50" y="146" width="19" height="3" fill="#2a2d34"/>');
+  else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
+  // Brazos (piel) y mangas
+  const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
+  const tc = L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
+  h += `<rect x="20" y="74" width="11" height="34" rx="5.5" fill="${sk}"/><rect x="69" y="74" width="11" height="34" rx="5.5" fill="${sk}"/>`;
+  if (!sinMangas) h += `<rect x="20" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="69" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
+  h += `<circle cx="25.5" cy="110" r="5.5" fill="${sk}"/><circle cx="74.5" cy="110" r="5.5" fill="${sk}"/>`;
+  if (L.extra === 'reloj') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/>`;
+  // Cuello y torso
+  h += `<rect x="44" y="58" width="12" height="16" rx="4" fill="${sk}"/>`;
+  if (L.ropa === 'sudadera') h += `<path d="M34 72 Q50 56 66 72Z" fill="${rd}"/>`;
+  const ancho = L.ropa === 'plumas' ? 3 : 0;
+  h += `<path d="M${30 - ancho} 78 Q${30 - ancho} 68 40 68 L60 68 Q${70 + ancho} 68 ${70 + ancho} 78 L${70 + ancho} 110 L${30 - ancho} 110Z" fill="${tc}"/>`;
+  if (L.ropa === 'camiseta' || L.ropa === 'marca' || L.ropa === 'equipacion' || L.ropa === 'tirantes') h += `<path d="M43 68 Q50 ${L.ropa === 'tirantes' ? 80 : 75} 57 68Z" fill="${sk}"/>`;
+  if (L.ropa === 'tirantes') h += `<path d="M30 70 h6 M64 70 h6" stroke="${sk}" stroke-width="5"/>`;
+  if (L.ropa === 'equipacion') h += `<rect x="38" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><rect x="57" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><text x="50" y="100" text-anchor="middle" font-size="15" font-weight="900" fill="${c2}" stroke="${c1}" stroke-width=".6" font-family="Arial,sans-serif">10</text>`;
+  if (L.ropa === 'marca') { const t = marca ? marca.marca.toUpperCase() : '★'; h += `<text x="50" y="94" text-anchor="middle" font-size="${t.length > 9 ? 5.5 : t.length > 6 ? 7 : 9}" font-weight="900" fill="${rc === '#f4f4f4' ? '#e23b3b' : rc}" font-family="Arial,sans-serif">${esc(t)}</text>`; }
+  if (L.ropa === 'sudadera') h += `<rect x="40" y="94" width="20" height="10" rx="3" fill="${rd}"/><path d="M46 72 v10 M54 72 v10" stroke="#fff" stroke-width="1.2"/>`;
+  if (L.ropa === 'chaqueta') h += `<line x1="50" y1="70" x2="50" y2="110" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M40 68 L50 78 L60 68" fill="none" stroke="${rd}" stroke-width="3"/>`;
+  if (L.ropa === 'plumas') h += `<path d="M27 82 h46 M27 92 h46 M27 102 h46" stroke="rgba(0,0,0,.2)" stroke-width="2"/><path d="M42 68 Q50 74 58 68" fill="none" stroke="${rd}" stroke-width="4"/>`;
+  if (L.ropa === 'hawaiana') h += `${[[38, 82], [60, 78], [46, 98], [64, 100], [34, 104]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff"/><circle cx="${x}" cy="${y}" r="1.4" fill="#f6c623"/>`).join('')}<path d="M42 68 L50 80 L58 68" fill="none" stroke="#fff" stroke-width="2"/>`;
+  if (L.ropa === 'traje') h += `<path d="M43 68 L50 86 L57 68Z" fill="#fff"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#d6283b"/><path d="M43 68 L48 92 M57 68 L52 92" stroke="#444b5c" stroke-width="2"/>`;
+  // Delante del cuerpo
+  if (L.extra === 'mochila') h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="#3b4a6b" stroke-width="4"/>`;
+  if (L.extra === 'cadena') h += `<path d="M41 70 Q50 88 59 70" fill="none" stroke="#f5c518" stroke-width="2.5"/><circle cx="50" cy="83" r="3.2" fill="#f5c518"/>`;
+  if (L.extra === 'medalla') h += `<path d="M42 68 L50 86 L58 68" fill="none" stroke="#2f6fe0" stroke-width="3.5"/><circle cx="50" cy="90" r="6.5" fill="#f5c518" stroke="#b08a00"/><text x="50" y="93" text-anchor="middle" font-size="8" font-weight="900" fill="#b08a00">1</text>`;
+  if (L.extra === 'magnesio') h += `<rect x="62" y="100" width="13" height="14" rx="4" fill="#f2f2f2" stroke="#9aa" stroke-width="1"/><circle cx="66" cy="102" r="1" fill="#fff"/>`;
+  if (L.extra === 'balon') h += `<circle cx="84" cy="141" r="9" fill="#fff" stroke="#333" stroke-width="1"/><path d="M84 137 l3.5 2.5 -1.3 4 h-4.4 l-1.3 -4Z" fill="#333"/>`;
+  // Cabeza
+  h += `<circle cx="25" cy="42" r="5" fill="${sk}"/><circle cx="75" cy="42" r="5" fill="${sk}"/><circle cx="50" cy="40" r="25" fill="${sk}"/>`;
+  // Cara: barba, mejillas, ojos, cejas y boca según el ánimo y la energía
+  if (L.cara === 'barba') h += `<path d="M27 44 Q30 70 50 70 Q70 70 73 44 Q70 58 60 56 Q50 62 40 56 Q30 58 27 44Z" fill="${hc}"/>`;
+  h += `<circle cx="35" cy="50" r="4" fill="#ff7b7b" opacity=".3"/><circle cx="65" cy="50" r="4" fill="#ff7b7b" opacity=".3"/>`;
+  if (L.cara === 'pecas') h += [[40, 49], [43, 51], [38, 52], [60, 49], [57, 51], [62, 52]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#b5651d"/>`).join('');
+  if (L.cara === 'pintura') h += `<path d="M30 47 h9 M30 51 h9 M61 47 h9 M61 51 h9" stroke="${club ? c1 : rc}" stroke-width="2.2" stroke-linecap="round"/>`;
+  const ojo = (x) => ene < 25 ? `<path d="M${x - 4} 44 h8" stroke="#222" stroke-width="2.4" stroke-linecap="round"/>`
+    : fel > 75 ? `<path d="M${x - 4} 45 Q${x} 39 ${x + 4} 45" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+    : `<circle cx="${x}" cy="43" r="3.3" fill="#222"/><circle cx="${x + 1}" cy="42" r="1" fill="#fff"/>`;
+  h += ojo(39) + ojo(61);
+  h += fel < 40 ? `<path d="M34 35 l7 -2 M66 35 l-7 -2" stroke="${hc}" stroke-width="2" stroke-linecap="round"/>` : `<path d="M34 34 q5 -3 9 0 M57 34 q5 -3 9 0" stroke="${hc}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  if (ene < 25) h += `<path d="M34 48 q5 3 9 0 M57 48 q5 3 9 0" stroke="#7a6a9a" stroke-width="1.2" fill="none" opacity=".7"/>`;
+  h += fel > 65 ? `<path d="M41 52 Q50 63 59 52Z" fill="#7a2a2a"/><path d="M44 57 Q50 61 56 57" fill="#ff7b8a"/>`
+    : fel >= 40 ? `<path d="M43 54 Q50 59 57 54" stroke="#5a2a2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+    : `<path d="M43 58 Q50 52 57 58" stroke="#5a2a2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  if (fel < 25) h += `<path d="M65 47 q2 4 0 6 q-2 -2 0 -6Z" fill="#59b7ff"/>`;
+  if (L.cara === 'bigote') h += `<path d="M41 51 Q50 46 59 51 Q50 54 41 51Z" fill="${hc}"/>`;
+  if (L.cara === 'perilla') h += `<path d="M46 61 L54 61 L50 69Z" fill="${hc}"/>`;
+  if (s.lesion > 0) h += `<g transform="rotate(-20 60 28)"><rect x="52" y="25" width="17" height="6" rx="3" fill="#f3c89a" stroke="#c99a6a" stroke-width=".8"/><path d="M58 26 v4 M62 26 v4" stroke="#c99a6a" stroke-width=".6"/></g>`;
+  // Pelo de delante
+  const flequillo = `<path d="M24 42 Q22 14 50 13 Q78 14 76 42 Q72 28 62 26 Q50 32 36 26 Q28 30 24 42Z" fill="${hc}"/>`;
+  if (['corto', 'coleta', 'trenzas', 'mono', 'largo'].includes(L.pelo)) h += flequillo;
+  else if (L.pelo === 'rizos') h += [[28, 30], [36, 20], [46, 16], [56, 16], [65, 20], [72, 30], [25, 40], [75, 40]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${hc}"/>`).join('');
+  else if (L.pelo === 'rapado') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".55"/>`;
+  else if (L.pelo === 'calvo') h += `<ellipse cx="40" cy="24" rx="6" ry="3" fill="#fff" opacity=".35"/>`;
+  else if (L.pelo === 'tupe') h += `<path d="M24 42 Q22 18 46 15 Q40 2 62 3 Q82 6 76 24 Q78 32 76 42 Q70 26 50 26 Q32 28 24 42Z" fill="${hc}"/>`;
+  else if (L.pelo === 'afro') h += `<path d="M26 34 Q50 16 74 34 Q50 26 26 34Z" fill="${hc}"/>`;
+  else if (L.pelo === 'cresta') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".5"/><path d="M42 26 L38 -2 L48 10 L50 -8 L54 10 L64 -2 L58 26Z" fill="${hc}"/>`;
+  // Gafas
+  if (L.gafas === 'redondas') h += `<circle cx="39" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><circle cx="61" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><path d="M46 43 h8 M32 42 l-6 -2 M68 42 l6 -2" stroke="#222" stroke-width="2"/>`;
+  else if (L.gafas === 'sol') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#111"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#111"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#111" stroke-width="2"/><path d="M33 40 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
+  else if (L.gafas === 'deportivas') h += `<path d="M26 39 Q50 32 74 39 L72 48 Q50 43 28 48Z" fill="#ff5a1f"/><path d="M30 41 Q50 36 70 41" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/>`;
+  else if (L.gafas === 'corazon') { const co = x => `<path d="M${x} 49 l-7 -7 a4 4 0 0 1 7 -4 a4 4 0 0 1 7 4Z" fill="#ff2d6f"/>`; h += co(39) + co(61) + `<path d="M46 42 h8" stroke="#ff2d6f" stroke-width="1.5"/>`; }
+  // Cabeza
+  if (L.cabeza === 'gorra') h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${rc}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${rd}"/><circle cx="50" cy="10" r="2.5" fill="${rd}"/>`;
+  else if (L.cabeza === 'gorro') h += `<path d="M23 36 Q23 5 50 5 Q77 5 77 36Z" fill="${rc}"/><rect x="22" y="29" width="56" height="9" rx="4" fill="${rd}"/><circle cx="50" cy="4" r="6" fill="#fff"/>`;
+  else if (L.cabeza === 'cinta') h += `<path d="M25 30 Q50 22 75 30 L75 36 Q50 28 25 36Z" fill="${rc}"/>`;
+  else if (L.cabeza === 'fiesta') h += `<path d="M38 18 L50 -14 L62 18Z" fill="#ff6fb5"/><path d="M41 10 L59 10 M44 2 L56 2" stroke="#f6c623" stroke-width="3"/><circle cx="50" cy="-14" r="4" fill="#f6c623"/>`;
+  else if (L.cabeza === 'casco') h += `<path d="M22 38 Q22 7 50 7 Q78 7 78 38Z" fill="#ffcc00"/><rect x="44" y="12" width="12" height="4" rx="2" fill="#2a2d34"/><path d="M26 38 L34 62 M74 38 L66 62" stroke="#2a2d34" stroke-width="1.6"/>`;
+  else if (L.cabeza === 'vaquero') h += `<path d="M32 22 Q32 2 50 5 Q68 2 68 22Z" fill="#8a5a2b"/><ellipse cx="50" cy="22" rx="38" ry="6" fill="#6b4422"/><rect x="32" y="16" width="36" height="4" fill="#2a2d34"/>`;
+  else if (L.cabeza === 'corona') h += `<path d="M31 21 L33 1 L42 11 L50 -4 L58 11 L67 1 L69 21Z" fill="#f5c518" stroke="#b08a00" stroke-width="1"/><circle cx="50" cy="15" r="2.5" fill="#e23b3b"/><circle cx="40" cy="16" r="2" fill="#2f6fe0"/><circle cx="60" cy="16" r="2" fill="#22a35a"/>`;
+  if (L.extra === 'auriculares') h += `<path d="M23 42 Q23 7 50 7 Q77 7 77 42" fill="none" stroke="#2a2d34" stroke-width="5"/><rect x="17" y="35" width="10" height="16" rx="4" fill="${rc}"/><rect x="73" y="35" width="10" height="16" rx="4" fill="${rc}"/>`;
+  return `<svg viewBox="${VISTA_LOOK[modo] || VISTA_LOOK.cuerpo}" class="avatar" aria-hidden="true">${h}</svg>`;
+}
+
+// ---- Hoja del personaje y la tienda ----
+function hojaAvatar() {
+  const s = S, cap = s.capaLook || 'pelo', vista = CAPA_VISTA[cap] || 'busto';
+  const items = itemsLook(s, cap);
+  return hoja('🧍 Tu personaje', `<div class="lookTop"><div class="lookPrev">${avatarSVG(s, null, 'cuerpo')}</div>
+      <div class="lookInfo"><b>${esc(s.nombre)}</b><span>💰 ${cr(s.p.dinero)}</span><span>🛍️ ${s.armario.length} ${s.armario.length === 1 ? 'cosa' : 'cosas'} en tu armario</span><span class="small">Tu cara cambia sola con tu ánimo, tu energía y las lesiones.</span></div></div>
+    <div class="lookTabs">${CFG.look.capas.map(([k, ic, n]) => `<button data-act="capaLook" data-v="${k}" class="${k === cap ? 'sel' : ''}"><span>${ic}</span>${n}</button>`).join('')}</div>
+    <div class="lookGrid" id="tienda">${items.map(it => {
+      const puesto = s.look[cap] === it.id, tiene = tieneLook(s, cap, it), req = tiene ? null : reqLook(s, it), pr = precioLook(s, it), caro = !tiene && !req && s.p.dinero < pr;
+      const L = Object.assign({}, s.look, { [cap]: it.id });
+      return `<button class="lk ${puesto ? 'sel' : ''} ${caro ? 'caro' : ''}" data-act="look" data-c="${cap}" data-v="${it.id}" ${!tiene && (req || caro) ? 'disabled' : ''}>${avatarSVG(s, L, vista)}
+        <b>${esc(it.n)}</b><span class="pr">${puesto ? '✓ Puesto' : tiene ? 'Ponerte' : req ? `🔒 ${esc(req)}` : pr ? `💰 ${cr(pr)}` : it.gratisCat ? '🎁 Gratis' : 'Gratis'}</span></button>`;
+    }).join('')}</div>
+    <p class="small">Lo que compras es tuyo para siempre y te lo puedes cambiar cuando quieras. Estrenar algo comprado sube el ánimo (+${CFG.look.felEstreno}). Algunas cosas se desbloquean con pantallas, logros o patrocinadores, y tus marcas te regalan sus productos (botas, pies de gato, relojes…).</p>`);
 }
 
 function render() {
@@ -4362,7 +4617,7 @@ function render() {
   if (S.intro) { main.innerHTML = pantallaIntro(); $('hoja').innerHTML = ''; $('modal').innerHTML = ''; return; }
   main.innerHTML = pantallaSemana();
   const h = S.hoja;
-  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
+  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
@@ -4380,6 +4635,9 @@ document.addEventListener('click', e => {
   const hojaAntes = S.hoja;
   switch (act) {
     case 'avatar': S.nombre = $('nombre').value; S.avatar = v; render(); break;
+    case 'lookIntro': S.nombre = $('nombre').value; if (itemLook(b.dataset.c, v) && !itemLook(b.dataset.c, v).p) S.look[b.dataset.c] = v; render(); break;
+    case 'look': ponerLook(b.dataset.c, v); break;
+    case 'capaLook': S.capaLook = v; render(); break;
     case 'posicion': S.nombre = $('nombre').value; S.posicion = v; render(); break;
     case 'deporte': S.nombre = $('nombre').value; S.deporte = v; render(); break;
     case 'fuerte': S.nombre = $('nombre').value; S.fuerte = v; render(); break;
@@ -4435,7 +4693,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar,
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)),
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,

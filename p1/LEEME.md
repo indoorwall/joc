@@ -13,6 +13,18 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
 
+**Novedades de la versión 0.10: tu personaje con tienda**
+- Avatar **dibujado por capas** (ya no es un emoji): pelo (11 peinados), tinte, piel (6 tonos), cara
+  (pecas, bigote, barba…), ropa (camiseta, la de tu equipo con sus colores, sudadera, hawaiana, traje
+  de empresario, la camiseta de tu marca con su nombre…), color, pantalón, calzado, cabeza, gafas,
+  extras y fondo. Se elige al empezar y se cambia cuando quieras tocando tu cara arriba (o en Vida).
+- **Tienda**: casi todo cuesta dinero de juego (de 5 € el gorro de fiesta a 25.000 € las zapatillas
+  de oro o 50.000 € el fondo de oro). Lo comprado es tuyo para siempre; estrenar sube +2 el ánimo.
+  Algunas cosas se desbloquean con pantallas (traje en la 4), logros (corona del millonario, medalla)
+  o patrocinadores, y tus marcas te **regalan** sus productos (botas, pies de gato, relojes).
+- La **cara reacciona**: sonríe con el ánimo alto, se pone triste (y llora) si está bajo, ojos
+  cansados sin energía y una tirita si estás lesionado. Tu personaje sale en el HUD y en la escena.
+
 **Novedades de la versión 0.10: patrocinadores con obligaciones (fútbol y escalada)**
 - Patrocinadores en los **dos deportes**, con nombres de guiño y su lema: en fútbol 13 marcas en 6
   categorías (local, botas, bebida, ropa, reloj y coche), de **Bar Paco** a **Naik**, **Red Toro** o
@@ -349,7 +361,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-121 de 121 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+126 de 126 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -383,6 +395,9 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    ocupan la tarde (cumplir sube la relación, excusarse la baja, por debajo de 25 rompen); objetivo de
    temporada con prima y no renovación si fallas con mala relación; objetivos de escalada, logos en la
    escena y hoja propia; conversión de partidas antiguas.
+6c. **Tu personaje**: se abre tocando tu cara, tienda con toques (comprar cobra una vez y es para
+   siempre), bloqueos por logros, pantallas y dinero, la cara cambia con el ánimo y las lesiones, sale en
+   la escena, regalos de las marcas y cosas propias de cada deporte; sin desplazamiento horizontal.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
