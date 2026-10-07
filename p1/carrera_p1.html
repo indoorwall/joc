@@ -294,6 +294,7 @@
   .badge.g { background: #dcf5e6; color: #156b3a; } .badge.b { background: #fde2df; color: #9b2216; } .badge.n { background: #fff4d6; color: #8a5a00; }
   .scene { height: 150px; border-radius: 18px; overflow: hidden; position: relative; margin-bottom: 10px; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
   .scene svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .scene.grande { height: 190px; }
   .scene .chap { position: absolute; left: 8px; bottom: 8px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 999px; max-width: calc(100% - 16px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .opt { position: relative; background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 10px 8px; text-align: center; cursor: pointer;
@@ -1573,6 +1574,7 @@ function avanzarSemana() {
   if (s.historial.length > 26) s.historial.shift();
   R.despues = foto(s);
   s.ultimo = R;
+  revisarEscenario(s);
   s.semanaAct.lineas = nota.concat(s.semanaAct.lineas);
   s.log.push(entradaDiario(s, R));
   if (s.log.length > 40) s.log.shift();
@@ -2321,6 +2323,7 @@ function resolver(opcion) {
       if (o.renovacion) s.mejoras += 1;
       const msgs = firmar(s, o, ev.ventana);
       if (!ACCIONES[s.plan] || !ACCIONES[s.plan].fases.includes('club')) s.plan = 'normal';
+      revisarEscenario(s);
       msg = `${o.renovacion ? 'Renuevo con' : 'Firmo por'} el ${club(s, o.clubId).nombre}: ${cr(o.salario)}/semana. ${msgs.join(' ')}`; ic = '✍️';
     }
   } else if (ev.tipo === 'mejora') {
@@ -2365,6 +2368,8 @@ function resolver(opcion) {
   } else if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo' || ev.tipo === 'quiebraForzada' || ev.tipo === 'concurso') {
     if (opcion === 'empresa') s.hoja = 'bienes';
     msg = ''; // ya está en el diario
+  } else if (ev.tipo === 'escenario') {
+    msg = `Estreno escenario: ${nombreEscenario(s, ev.n).toLowerCase()}.`; ic = '🏟️';
   } else if (ev.tipo === 'fin' || ev.tipo === 'pantalla' || ev.tipo === 'retiro') {
     msg = ''; // ya está en el diario
   } else return false;
@@ -3091,7 +3096,7 @@ function escenaBarrioFutbol(dia) {
     <rect x="236" y="124" width="12" height="16" rx="3" fill="#1d6fd1" stroke="#2a2340" stroke-width="2.5"/>
     <circle cx="214" cy="156" r="7" fill="#fff" stroke="#2a2340" stroke-width="2.5"/>${conos}</svg>`;
 }
-function escenaEstadio(c) { return TXE.escenaEstadio ? TXE.escenaEstadio(c) : escenaEstadioFutbol(c); }
+function escenaEstadio(c) { return TXE.escenaEstadio ? TXE.escenaEstadio(c) : estadioFutbol(S, c); }
 function escenaEstadioFutbol(c) {
   const t = tipoEstadio(c.cap);
   const gente = (n, y0, filas, x0, x1) => { let g = ''; for (let i = 0; i < n; i++) g += `<circle cx="${x0 + (i % Math.ceil(n / filas)) * ((x1 - x0) / Math.ceil(n / filas))}" cy="${y0 + Math.floor(i / Math.ceil(n / filas)) * 7}" r="3.3" fill="${[c.c1, c.c2, '#ffd23f', '#ffffff', '#ff7eb6'][i % 5]}"/>`; return g; };
@@ -4335,8 +4340,8 @@ function ocupacionEsc(s) {
 }
 function hojaCarreraEsc() {
   const s = S, E = s.esc, P = E.proy, Z = P ? ZONAS[P.zona] : null, cond = Z ? condicionesZona(s, Z) : null;
-  const fondo = s.fase === 'escalador' && P && s.plan === 'roca' ? escenaExt(Z, cond) : escenaInt();
-  let h = `<div class="scene">${fondo}<div class="chap">${s.fase === 'retirado' ? 'Retirado/a de la competición' : `${MESES[mesEsc(s)][0].toUpperCase() + MESES[mesEsc(s)].slice(1)} de ${E.año}`}${s.fase === 'escalador' && P && s.plan === 'roca' ? ` · ${Z.n}` : ''}</div></div>`;
+  const fondo = s.fase === 'escalador' && P && s.plan === 'roca' ? escenaExt(Z, cond) : escenaIndividual(s);
+  let h = `<div class="scene grande">${fondo}<div class="chap">${s.fase === 'retirado' ? 'Retirado/a de la competición' : `${MESES[mesEsc(s)][0].toUpperCase() + MESES[mesEsc(s)].slice(1)} de ${E.año}`}${s.fase === 'escalador' && P && s.plan === 'roca' ? ` · ${Z.n}` : ''}</div></div>`;
   // Resumen
   h += `<div class="card"><div class="row"><div class="ic">${DEPORTES[depDe(s)].ic}</div><div class="tx"><b>${s.fase === 'rocodromo' ? TX.lugarBarrio : s.fase === 'retirado' ? 'Retirado/a' : EQUIPOS[E.equipo].n}</b>
       <span>${TX.resumenNivel(s)}</span></div></div>
@@ -4683,6 +4688,281 @@ function bocadillo(s) {
   if (s.p.fel > 80) return [pick(['¡Hoy me siento imparable!', 'Nadie me puede parar', '¿Habéis visto qué estilazo?']), 1];
   return null;
 }
+/* =====================================================================
+   24. ESTADIOS Y ESCENARIOS QUE CRECEN CONTIGO
+   Cada deporte tiene 5 niveles de escenario. El nivel sube con tu división (fútbol y baloncesto)
+   o con la competición más importante a la que has llegado (deportes individuales).
+   Se personalizan con tu partida: colores y siglas del club en las gradas, nombre del estadio,
+   tus marcas en las vallas, tu nombre en la pantalla, la pancarta de la afición, noche o lluvia…
+   ===================================================================== */
+const NIVELES_ESCENARIO = {
+  futbol: ['Campo de barrio', 'Campo municipal', 'Estadio pequeño', 'Gran estadio', 'Estadio de élite'],
+  basket: ['Polideportivo', 'Pabellón municipal', 'Pabellón grande', 'Arena', 'Arena de élite'],
+  escalada: ['Rocódromo del barrio', 'Muro de competición', 'Copa de Europa', 'Copa del Mundo', 'Los Juegos'],
+  skate: ['Skatepark del barrio', 'Parque de competición', 'Skatepark con gradas', 'Pro Tour', 'Los Juegos'],
+  surf: ['Playa del barrio', 'Campeonato en la playa', 'Gran campeonato', 'Circuito de Élite', 'Los Juegos'],
+  boxeo: ['Gimnasio del barrio', 'Velada en un pabellón', 'Gran velada', 'Noche de título', 'Las Vegas'],
+};
+// Azar fijo por escenario, para que el dibujo no cambie en cada render
+function semilla(t) { let h = 2166136261; for (const ch of String(t)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 10000) / 10000; }; }
+const sv = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const FNT = 'font-family="system-ui,sans-serif" font-weight="900"';
+const SVG = body => `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${body}</svg>`;
+const cieloG = (id, a, b) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="360" height="170" fill="url(#${id})"/>`;
+// Texto que siempre cabe en su ancho
+const txt = (x, y, w, size, color, t, extra = '') => `<text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" fill="${color}" ${FNT} ${String(t).length * size * 0.62 > w ? `textLength="${w}" lengthAdjust="spacingAndGlyphs"` : ''} ${extra}>${sv(t)}</text>`;
+// Público suelto (estadios pequeños)
+function publico(R, n, x0, x1, y0, y1, cols, r = 3) {
+  let g = ''; const filas = Math.max(1, Math.round((y1 - y0) / (r * 2.4)));
+  for (let i = 0; i < n; i++) {
+    const f = Math.floor(R() * filas), x = x0 + R() * (x1 - x0), y = y0 + (f + 0.5) * (y1 - y0) / filas;
+    g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" fill="${cols[Math.floor(R() * cols.length)]}"/>`;
+  }
+  return g;
+}
+// Grada llena en mosaico con los colores del club (franjas), con algún aficionado de otro color
+function mosaico(R, x0, x1, y0, y1, c1, c2, celda = 4.5) {
+  let g = '';
+  for (let y = y0, f = 0; y < y1 - 1; y += celda, f++) for (let x = x0; x < x1; x += celda) {
+    const r = R(), col = r < 0.06 ? '#ffffff' : r < 0.1 ? '#ffd23f' : (Math.floor(f / 2) % 2 ? c2 : c1);
+    g += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${celda - 1}" height="${celda - 1}" rx="1" fill="${col}"/>`;
+  }
+  return g;
+}
+const flashes = (R, n, x0, x1, y0, y1) => Array.from({ length: n }, () => `<circle cx="${(x0 + R() * (x1 - x0)).toFixed(1)}" cy="${(y0 + R() * (y1 - y0)).toFixed(1)}" r="1.5" fill="#fff"/>`).join('');
+const torreFocos = (x, y, h) => `<path d="M${x} ${y} V${y - h}" stroke="#4a4a5a" stroke-width="3"/><rect x="${x - 12}" y="${y - h - 10}" width="24" height="12" rx="2" fill="#fffde0" stroke="#2a2340" stroke-width="2"/><circle cx="${x}" cy="${y - h - 4}" r="28" fill="#fffde0" opacity=".16"/>`;
+const haces = (xs, y1, op = 0.07) => xs.map(x => `<path d="M${x} 0 L${x - 34} ${y1} L${x + 34} ${y1} Z" fill="#fffbe0" opacity="${op}"/>`).join('');
+const bandera = (x, y, c1, c2) => `<path d="M${x} ${y} V${y - 16}" stroke="#2a2340" stroke-width="1.5"/><path d="M${x} ${y - 16} h11 v4 h-11 Z" fill="${c1}"/><path d="M${x} ${y - 12} h11 v4 h-11 Z" fill="${c2}"/>`;
+const fuegos = (xs, y) => xs.map((x, i) => `<g stroke="${['#ffd23f', '#ff7eb6', '#7cf2ff', '#9dff8a'][i % 4]}" stroke-width="2" stroke-linecap="round">${Array.from({ length: 8 }, (_, k) => `<path d="M${x + Math.cos(k * 0.785) * 4} ${y + (i % 2) * 10 + Math.sin(k * 0.785) * 4} l${(Math.cos(k * 0.785) * 10).toFixed(1)} ${(Math.sin(k * 0.785) * 10).toFixed(1)}"/>`).join('')}</g>`).join('');
+// Vallas publicitarias: tus marcas (o el nombre del juego si aún no tienes)
+function vallas(marcas, y, x0, x1, h = 9, fondo = '#1b1b2b') {
+  const l = marcas.length ? marcas : ['DEL BARRIO', 'AL NEGOCIO'], n = Math.max(4, l.length * 2), w = (x1 - x0) / n;
+  let g = '';
+  for (let i = 0; i < n; i++) { const x = x0 + i * w; g += `<rect x="${x.toFixed(1)}" y="${y}" width="${(w - 1).toFixed(1)}" height="${h}" fill="${fondo}"/>${txt((x + w / 2).toFixed(1), y + h - 2.4, w - 8, h - 3, ['#ffd23f', '#7cf2ff', '#ff8fb1', '#9dff8a'][i % 4], String(l[i % l.length]).toUpperCase().slice(0, 16))}`; }
+  return g;
+}
+const pantalla = (x, y, w, h, l1, l2, borde = '#2a2340') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="#111522" stroke="${borde}" stroke-width="2.5"/>${txt(x + w / 2, y + h * (l2 ? 0.48 : 0.66), w - 8, h * (l2 ? 0.34 : 0.45), '#ffd23f', l1)}${l2 ? txt(x + w / 2, y + h * 0.84, w - 8, h * 0.24, '#7cf2ff', l2) : ''}`;
+const pancarta = (x, y, w, t, c1, c2) => `<rect x="${x}" y="${y}" width="${w}" height="13" fill="${c1}" stroke="${c2}" stroke-width="2"/>${txt(x + w / 2, y + 10, w - 8, 9, c2, t)}`;
+// Muñeco del deportista (la camiseta es de tu color o del club)
+function figura(x, y, col, pose = 'de pie', esc2 = 1) {
+  const P = {
+    'de pie': 'M0 -6 L0 8 M0 -2 L-9 4 M0 -2 L9 4 M0 8 L-6 18 M0 8 L6 18',
+    correr: 'M0 -6 L1 8 M0 -2 L-10 -6 M0 -2 L10 3 M1 8 L-8 16 M1 8 L9 15',
+    escalar: 'M0 -6 L0 8 M0 -2 L-10 -12 M0 -2 L11 -8 M0 8 L-9 14 M0 8 L8 17',
+    tirar: 'M0 -6 L0 8 M0 -2 L-3 -16 M0 -2 L4 -16 M0 8 L-5 18 M0 8 L5 18',
+    guardia: 'M0 -6 L0 8 M0 -2 L9 -4 M0 -2 L6 2 M0 8 L-7 18 M0 8 L7 18',
+  }[pose];
+  return `<g transform="translate(${x} ${y}) scale(${esc2})"><path d="${P}" stroke="#2a2340" stroke-width="3.6" stroke-linecap="round"/><path d="M-4 -5 H4 L3 8 H-3 Z" fill="${col}" stroke="#2a2340" stroke-width="1.6"/><circle cx="0" cy="-11" r="5.5" fill="#ffd9b0" stroke="#2a2340" stroke-width="2.2"/>${pose === 'guardia' ? `<circle cx="10" cy="-4" r="3.6" fill="#e63946" stroke="#2a2340" stroke-width="1.4"/><circle cx="7" cy="2" r="3.6" fill="#e63946" stroke="#2a2340" stroke-width="1.4"/>` : ''}</g>`;
+}
+const lluviaSVG = R => `<g opacity=".55">${Array.from({ length: 40 }, () => { const x = R() * 360, y = R() * 160; return `<path d="M${x.toFixed(0)} ${y.toFixed(0)} l-3 9" stroke="#cfe6ff" stroke-width="1.2"/>`; }).join('')}</g>`;
+
+// ---------- Nivel del escenario ----------
+// Equipos: por la fuerza de la liga del club (en España, Tercera Federación = 1 … Primera = 5)
+function nivelEquipo(c) {
+  const f = c && S && S.mundo && S.mundo.de[c.id] ? ligaDe(S, c.id).L.fuerza : 45;
+  return f >= 78 ? 5 : f >= 65 ? 4 : f >= 57 ? 3 : f >= 50 ? 2 : 1;
+}
+// Individuales: por la competición más grande en la que has estado
+const NIVEL_AMB = { auto: 2, esp: 2, cesp: 2, europa: 3, master: 3, mundo: 4, europeo: 4, mundial: 4, clasif: 4, jjoo: 5 };
+// Boxeo: «europa» son las veladas profesionales, los títulos son europeo y mundial, y «master» es Las Vegas
+const NIVEL_AMB_BOX = { auto: 2, esp: 2, cesp: 2, europa: 2, mundo: 3, clasif: 3, europeo: 4, mundial: 4, master: 5, jjoo: 5 };
+function nivelIndividual(s) {
+  if (!s || !s.esc || s.fase === 'rocodromo') return 1;
+  const tabla = depDe(s) === 'boxeo' ? NIVEL_AMB_BOX : NIVEL_AMB;
+  return Object.keys(s.esc.mejor || {}).reduce((n, k) => Math.max(n, tabla[k] || 2), 2);
+}
+const marcasDe = s => (s && s.patros || []).map(p => p.marca);
+const dorsalDe = s => ({ delantero: 9, medio: 8, defensa: 4, base: 7, alero: 23, pivot: 15 })[s && s.posicion] || 10;
+// Lo que cambia según tu partida
+function personaliza(s, c) {
+  const mio = !!(s && s.contrato && c && s.contrato.clubId === c.id && s.fase === 'club'), u = s && s.ultimo && s.ultimo.partido;
+  let marcador = null;
+  if (mio && u && u.gf != null && s.mundo && club(s, u.rivalId)) { const rv = club(s, u.rivalId); marcador = u.casa ? `${c.siglas} ${u.gf}-${u.gc} ${rv.siglas}` : `${rv.siglas} ${u.gc}-${u.gf} ${c.siglas}`; }
+  return {
+    mio, marcador, fam: s ? s.p.rep : 0, nom: s && s.nombre ? s.nombre.toUpperCase() : 'CRACK', dorsal: dorsalDe(s),
+    noche: s ? s.semana % 3 !== 0 : true, lluvia: !!(s && s.semana % 7 === 3 && [10, 11, 0, 1, 2].includes(mesActual(s))),
+    dueño: !!(s && c && (s.clubes || []).some(o => o.clubId === c.id)), marcas: mio ? marcasDe(s) : [],
+  };
+}
+
+// ---------- FÚTBOL ----------
+function estadioFutbol(s, c) {
+  const n = nivelEquipo(c), P = personaliza(s, c), R = semilla(c.id + n), c1 = c.c1, c2 = c.c2, cols = [c1, c2, c1, '#ffffff', '#ffd23f'];
+  const noche = P.noche && n >= 3, tierra = n === 1;
+  let cesped = ''; for (let i = 0; i < 9; i++) cesped += `<rect x="${i * 40}" y="122" width="40" height="48" fill="${tierra ? (i % 2 ? '#7fae4c' : '#8cbb57') : (i % 2 ? '#3fae4a' : '#4cc157')}"/>`;
+  cesped += `<path d="M0 122 H360 M180 122 V170 M120 170 Q180 132 240 170" stroke="#fff" stroke-width="2.5" fill="none" opacity="${tierra ? '.5' : '.85'}"/>`;
+  if (tierra) cesped += `<path d="M40 150 q20 -6 40 0 M220 162 q25 -5 50 0" stroke="#b8925a" stroke-width="6" opacity=".6" fill="none"/>`;
+  const jugador = figura(214, 142, c1, 'correr', 1.1) + `<circle cx="230" cy="158" r="5" fill="#fff" stroke="#2a2340" stroke-width="2"/>`;
+  const marc = P.marcador || c.siglas, sub = P.marcador ? 'FINAL' : P.mio ? `¡VAMOS ${P.nom}!` : 'BIENVENIDOS';
+  let b = '';
+  if (n === 1) {
+    b += cieloG('fA', '#8fd3ff', '#dff4ff') + edificios(['#c9b6e4', '#a8c6ec', '#f0b3b8', '#b7e0da', '#f6d1a8']);
+    b += `<path d="M0 108 H360 M0 116 H360" stroke="#6b6b7e" stroke-width="1.2"/>${Array.from({ length: 25 }, (_, i) => `<path d="M${i * 15} 104 V122" stroke="#6b6b7e" stroke-width="1.5"/>`).join('')}`;
+    b += `<rect x="20" y="86" width="84" height="15" rx="2" fill="#fff" stroke="#2a2340" stroke-width="2"/>${txt(62, 97, 76, 8, '#2a2340', c.nombre)}`;
+    b += `<rect x="150" y="104" width="66" height="14" fill="#9a97ab" stroke="#2a2340" stroke-width="2"/>${publico(R, 9, 156, 210, 106, 116, cols, 2.8)}` + cesped + jugador;
+  } else if (n === 2) {
+    b += cieloG('fB', '#7cc7ff', '#d7f0ff') + edificios(['#c9b6e4', '#a8c6ec', '#f0b3b8', '#b7e0da', '#f6d1a8']);
+    b += `<circle cx="30" cy="96" r="16" fill="#3e8e41" stroke="#2a2340" stroke-width="2.5"/><circle cx="332" cy="94" r="18" fill="#3e8e41" stroke="#2a2340" stroke-width="2.5"/>`;
+    b += `<path d="M86 68 L274 68 L264 78 L96 78 Z" fill="${c1}" stroke="#2a2340" stroke-width="2.5"/>${txt(180, 76, 150, 7, c2, c.estadio.toUpperCase())}<rect x="96" y="78" width="168" height="34" fill="#a7a3bc" stroke="#2a2340" stroke-width="2.5"/>`;
+    b += publico(R, 50, 102, 258, 82, 110, cols) + torreFocos(66, 112, 40) + torreFocos(294, 112, 40);
+    b += vallas(P.marcas, 112, 0, 360, 10) + cesped + jugador;
+  } else if (n === 3) {
+    b += noche ? cieloG('fC', '#16204a', '#3a4f8a') : cieloG('fCd', '#ffa46b', '#ffe0a8');
+    b += `<path d="M0 78 H90 V112 H0 Z M270 78 H360 V112 H270 Z" fill="#7a7697" stroke="#2a2340" stroke-width="2.5"/>${publico(R, 40, 2, 88, 82, 110, cols, 2.6)}${publico(R, 40, 272, 358, 82, 110, cols, 2.6)}`;
+    b += `<path d="M70 40 H290 L300 112 H60 Z" fill="#605c80" stroke="#2a2340" stroke-width="3"/><path d="M56 32 H304 L296 44 H64 Z" fill="${c1}" stroke="#2a2340" stroke-width="2.5"/>${txt(180, 41, 220, 8, c2, c.estadio.toUpperCase())}`;
+    b += mosaico(R, 72, 288, 50, 110, c1, c2, 5);
+    if (P.mio && P.fam >= 40) b += pancarta(110, 76, 140, `${P.nom} ${P.dorsal}`, c2, c1);
+    b += pantalla(292, 52, 62, 24, marc, P.marcador ? 'FINAL' : '') + torreFocos(30, 76, 40) + (noche ? flashes(R, 12, 75, 285, 52, 108) : '');
+    b += vallas(P.marcas, 112, 0, 360, 10) + cesped + jugador;
+  } else if (n === 4) {
+    b += noche ? cieloG('fD', '#0a0f2c', '#2b3a78') : cieloG('fDd', '#5ab0ff', '#cfeaff');
+    b += `<path d="M0 30 Q180 2 360 30 L360 112 H0 Z" fill="#3b3766" stroke="#2a2340" stroke-width="3"/>`;
+    b += `<g clip-path="url(#cF4)"><defs><clipPath id="cF4"><path d="M0 40 Q180 14 360 40 L360 110 H0 Z"/></clipPath></defs>${mosaico(R, 0, 360, 14, 110, c1, c2, 4.5)}</g>`;
+    b += `<path d="M0 30 Q180 2 360 30" stroke="#d9dde8" stroke-width="7" fill="none"/><path d="M0 68 Q180 50 360 68" stroke="#2a2340" stroke-width="3" fill="none"/>`;
+    b += `<rect x="100" y="78" width="160" height="26" fill="${c2}" stroke="${c1}" stroke-width="3"/>${txt(180, 97, 144, 17, c1, P.mio && P.fam >= 50 ? `${P.nom} ${P.dorsal}` : c.nombre.toUpperCase())}`;
+    b += pantalla(8, 10, 64, 28, marc, sub) + pantalla(288, 10, 64, 28, marc, sub);
+    b += (noche ? haces([100, 260], 112, 0.06) + flashes(R, 24, 10, 350, 40, 108) : '') + vallas(P.marcas, 112, 0, 360, 10) + cesped + jugador;
+  } else {
+    b += noche ? cieloG('fE', '#05081f', '#22306a') : cieloG('fEd', '#4aa6ff', '#cfeaff');
+    if (noche) b += fuegos([60, 300], 14);
+    // tres anillos de gradas, la de abajo con el tifo
+    b += `<path d="M0 20 Q180 -10 360 20 L360 112 H0 Z" fill="#2c2850" stroke="#2a2340" stroke-width="3"/>`;
+    b += `<g clip-path="url(#cF5)"><defs><clipPath id="cF5"><path d="M0 26 Q180 -2 360 26 L360 110 H0 Z"/></clipPath></defs>${mosaico(R, 0, 360, 0, 110, c1, c2, 4)}</g>`;
+    b += `<path d="M0 50 Q180 26 360 50 M0 78 Q180 60 360 78" stroke="#1a1730" stroke-width="3.5" fill="none"/>`;
+    b += `<rect x="70" y="80" width="220" height="30" fill="${c1}"/><rect x="70" y="80" width="220" height="30" fill="none" stroke="${c2}" stroke-width="3"/>${txt(180, 102, 200, 20, c2, P.mio && P.fam >= 60 ? `${P.nom} ${P.dorsal} ★` : c.nombre.toUpperCase())}`;
+    // cubierta: arco de acero con tirantes
+    b += `<path d="M-10 22 Q180 -26 370 22" stroke="#e8ecf4" stroke-width="9" fill="none"/><path d="M-10 22 Q180 -26 370 22" stroke="#2a2340" stroke-width="2" fill="none"/>${Array.from({ length: 11 }, (_, i) => { const x = 10 + i * 34; return `<path d="M${x} ${(22 - 48 * (1 - ((x - 180) / 190) ** 2) / 2 + 1).toFixed(0)} V${(30 - 26 * (1 - ((x - 180) / 190) ** 2)).toFixed(0)}" stroke="#e8ecf4" stroke-width="1.5"/>`; }).join('')}`;
+    b += pantalla(6, 26, 74, 32, marc, sub, c1) + pantalla(280, 26, 74, 32, marc, sub, c1);
+    for (let i = 0; i < 6; i++) b += bandera(98 + i * 32, 18 - Math.round(10 * (1 - ((98 + i * 32 - 180) / 190) ** 2)), c1, c2);
+    if (P.dueño) b += txt(180, 76, 180, 7, '#ffd23f', `👑 ${c.estadio.toUpperCase()}`);
+    b += (noche ? haces([60, 180, 300], 116, 0.06) + flashes(R, 45, 10, 350, 30, 108) : '') + vallas(P.marcas, 112, 0, 360, 10) + cesped + jugador;
+  }
+  if (P.lluvia && n >= 2) b += lluviaSVG(R);
+  return SVG(b);
+}
+
+// ---------- BALONCESTO ----------
+function pabellonBasket(s, c) {
+  const n = nivelEquipo(c), P = personaliza(s, c), R = semilla(c.id + 'b' + n), c1 = c.c1, c2 = c.c2, cols = [c1, c2, c1, '#ffffff', '#ffd23f'];
+  let pista = ''; for (let i = 0; i < 12; i++) pista += `<rect x="${i * 30}" y="122" width="30" height="48" fill="${i % 2 ? '#d9a35b' : '#e4b26c'}"/>`;
+  pista += `<path d="M0 122 H360" stroke="#2a2340" stroke-width="3"/><path d="M180 122 V170 M150 170 Q180 140 210 170 M0 134 Q60 136 70 170 M360 134 Q300 136 290 170" stroke="#fff" stroke-width="2.5" fill="none"/>`;
+  if (n >= 2) pista += `<rect x="0" y="138" width="38" height="32" fill="${c1}" opacity=".6"/><rect x="322" y="138" width="38" height="32" fill="${c1}" opacity=".6"/>`;
+  if (n >= 3) pista += `<circle cx="180" cy="154" r="${n >= 4 ? 15 : 12}" fill="${c1}" stroke="${c2}" stroke-width="2"/>${txt(180, 158, 22, 9, c2, c.siglas)}`;
+  const aro = x => `<rect x="${x - 3}" y="78" width="6" height="44" fill="#5a5a6e"/><rect x="${x - 16}" y="70" width="32" height="22" fill="#fff" stroke="#2a2340" stroke-width="2.5"/><rect x="${x - 7}" y="78" width="14" height="10" fill="none" stroke="#e63946" stroke-width="1.5"/><ellipse cx="${x}" cy="95" rx="9" ry="2.6" fill="none" stroke="#ff5a1f" stroke-width="2.6"/>`;
+  const jugador = figura(300, 140, c1, 'tirar', 1.1) + `<circle cx="304" cy="118" r="5" fill="#ff8a2a" stroke="#2a2340" stroke-width="1.8"/>`;
+  const marc = P.marcador || `${c.siglas} 0-0`, sub = P.mio ? `${P.nom} #${P.dorsal}` : 'BIENVENIDOS';
+  let b = '';
+  if (n === 1) {
+    b += `<rect width="360" height="170" fill="#d9e2ec"/><rect width="360" height="44" fill="#b7c3d1"/>${Array.from({ length: 6 }, (_, i) => `<rect x="${20 + i * 58}" y="8" width="36" height="22" fill="#eaf4ff" stroke="#2a2340" stroke-width="2"/>`).join('')}`;
+    b += `<rect x="40" y="56" width="80" height="16" rx="2" fill="#fff" stroke="#2a2340" stroke-width="2"/>${txt(80, 67, 72, 7.5, '#2a2340', c.nombre)}`;
+    b += `<rect x="130" y="104" width="100" height="14" fill="#a7a3bc" stroke="#2a2340" stroke-width="2"/>${publico(R, 10, 136, 224, 106, 116, cols, 2.6)}` + aro(22) + aro(338) + pista + jugador;
+  } else if (n === 2) {
+    b += `<rect width="360" height="170" fill="#c9d3e0"/><rect width="360" height="36" fill="#a9b5c4"/>${Array.from({ length: 4 }, (_, i) => `<rect x="${30 + i * 90}" y="0" width="30" height="8" fill="#fffde0"/>`).join('')}`;
+    b += `<path d="M30 66 H330 L340 116 H20 Z" fill="#8f8aa8" stroke="#2a2340" stroke-width="2.5"/>${publico(R, 70, 32, 328, 70, 112, cols)}`;
+    b += pantalla(140, 8, 80, 26, marc, 'LOCAL · VISITANTE') + vallas(P.marcas, 114, 0, 360, 8) + aro(22) + aro(338) + pista + jugador;
+  } else {
+    const top = n === 5;
+    b += top ? cieloG('bE', '#05060f', '#1d2148') : n === 4 ? cieloG('bD', '#101030', '#34346a') : cieloG('bC', '#3a3a62', '#5a5a86');
+    b += `<path d="M0 ${n === 3 ? 44 : 26} H360 V118 H0 Z" fill="#2c2850"/>`;
+    b += mosaico(R, 0, 360, n === 3 ? 48 : 30, 114, c1, c2, n === 3 ? 5 : 4.2);
+    b += `<path d="M0 ${n === 3 ? 80 : 66} H360" stroke="#1a1730" stroke-width="3"/>${n === 5 ? '<path d="M0 92 H360" stroke="#1a1730" stroke-width="3"/>' : ''}`;
+    if (P.mio && P.fam >= 45) b += pancarta(20, n === 3 ? 92 : 96, 110, `MVP ${P.nom}`, c1, c2);
+    if (n >= 4) b += haces([50, 180, 310], 120, top ? 0.08 : 0.05);
+    // pancartas de títulos colgadas del techo
+    if (top) b += Array.from({ length: 4 }, (_, i) => `<path d="M${40 + i * 30} 0 V20 L${52 + i * 30} 26 L${64 + i * 30} 20 V0 Z" fill="${c1}" stroke="${c2}" stroke-width="1.5"/>${txt(52 + i * 30, 14, 20, 7, c2, '★')}`).join('');
+    // marcador cúbico
+    const w = n === 3 ? 76 : n === 4 ? 104 : 124, h = n === 3 ? 30 : n === 4 ? 40 : 46;
+    b += `<path d="M180 0 V8" stroke="#888" stroke-width="2"/>${pantalla(180 - w / 2, 8, w, h, marc, sub, c1)}`;
+    b += (top ? flashes(R, 40, 10, 350, 30, 112) : '') + vallas(P.marcas, 114, 0, 360, 8, '#05060f') + aro(22) + aro(338) + pista + jugador;
+    if (P.dueño) b += txt(180, h + 20, 160, 7, '#ffd23f', `👑 ${c.estadio.toUpperCase()}`);
+  }
+  return SVG(b);
+}
+
+// ---------- DEPORTES INDIVIDUALES ----------
+const COL_TU = s => (s && s.look && COLOR_ROPA[s.look.colorRopa]) || '#2f6fe0';
+function escenarioInd(s, dep, n) {
+  const R = semilla(dep + n + (s ? s.nombre : '')), tu = COL_TU(s), oro = '#ffd23f', c2 = tu === '#f4f4f4' ? '#2f6fe0' : '#ffffff';
+  const cols = [tu, oro, '#ffffff', '#ff7eb6', '#48a9ff'], mar = marcasDe(s), nom = s && s.nombre ? s.nombre.toUpperCase() : 'CRACK';
+  const vegas = dep === 'boxeo' && n === 5 && !!(s && s.esc && s.esc.mejor && s.esc.mejor.master);
+  const evento = vegas ? 'LAS VEGAS' : n === 5 ? 'JUEGOS DE VERANO' : NIVELES_ESCENARIO[dep][n - 1].toUpperCase(), juegos = n === 5;
+  const grada = (y0, y1) => n >= 4 ? mosaico(R, 0, 360, y0, y1, tu, '#3d3a6e', 4.2) : publico(R, n === 3 ? 140 : 50, 0, 360, y0, y1, cols, 2.7);
+  const arcoJuegos = juegos ? `<path d="M40 60 Q180 -30 320 60" stroke="${oro}" stroke-width="10" fill="none"/><path d="M40 60 Q180 -30 320 60" stroke="#2a2340" stroke-width="2" fill="none"/>${txt(180, 22, 150, 11, oro, 'JUEGOS DE VERANO', 'stroke="#2a2340" stroke-width=".8"')}` + fuegos([28, 332, 90, 270], 10) : '';
+  let b = '';
+  if (dep === 'escalada') {
+    const w = [0, 0, 150, 190, 220, 240][n], h = [0, 0, 100, 108, 114, 116][n], x = 180 - w / 2;
+    b += n >= 4 ? cieloG('eN', '#0a0f2c', '#2b3a78') : `<rect width="360" height="170" fill="#e9e4f5"/>`;
+    if (n >= 4) b += haces([60, 300], 120, 0.08);
+    b += `<path d="M${x} 4 H${x + w} L${x + w - 14} ${4 + h} H${x + 14} Z" fill="#c8bfe6" stroke="#2a2340" stroke-width="3"/><path d="M${x + w * 0.34} 4 L${x + w * 0.44} ${4 + h} M${x + w * 0.67} 4 L${x + w * 0.59} ${4 + h}" stroke="#2a2340" stroke-width="2" opacity=".45"/>`;
+    b += Array.from({ length: 12 + n * 5 }, (_, i) => `<ellipse cx="${(x + 20 + R() * (w - 40)).toFixed(0)}" cy="${(12 + R() * (h - 14)).toFixed(0)}" rx="${4 + i % 4}" ry="${3 + i % 3}" fill="${['#ff5d73', '#ffd23f', '#4fd36a', '#48a9ff', '#b07cff'][i % 5]}" stroke="#2a2340" stroke-width="1.5"/>`).join('');
+    if (n >= 3) b += `<rect x="${x + w / 2 - 22}" y="0" width="44" height="9" fill="${oro}" stroke="#2a2340" stroke-width="1.5"/>${txt(180, 7.5, 38, 6.5, '#2a2340', 'TOP')}`;
+    b += figura(x + w * 0.55, 54, tu, 'escalar', 1.15) + arcoJuegos;
+    b += `<rect x="0" y="${8 + h}" width="360" height="${162 - h}" fill="#2c2850"/>` + grada(10 + h + 8, 168) + vallas(mar, 6 + h, 0, 360, 9);
+    if (n >= 3) b += pantalla(4, 12, 68, 30, nom, evento) + pantalla(288, 12, 68, 30, mar[0] || 'EN DIRECTO', n >= 4 ? 'TV' : '');
+  } else if (dep === 'skate') {
+    b += n >= 4 ? cieloG('sN', '#0a0f2c', '#2b3a78') : cieloG('sD', '#7cc7ff', '#e6f5ff');
+    const yG = n === 2 ? 80 : n === 3 ? 48 : 30;
+    b += `<path d="M0 ${yG - 6} H360 V100 H0 Z" fill="#3b3766" stroke="#2a2340" stroke-width="2.5"/>` + grada(yG, 96) + arcoJuegos;
+    b += `<rect x="0" y="100" width="360" height="70" fill="#b8bcc6" stroke="#2a2340" stroke-width="3"/>`;
+    b += `<path d="M0 170 Q40 170 60 112 L80 112 L80 170 Z" fill="#cfd3dc" stroke="#2a2340" stroke-width="2.5"/><path d="M360 170 Q320 170 300 112 L280 112 L280 170 Z" fill="#cfd3dc" stroke="#2a2340" stroke-width="2.5"/>`;
+    b += `<rect x="130" y="138" width="100" height="16" fill="#9aa0ad" stroke="#2a2340" stroke-width="2.5"/><path d="M118 132 H242" stroke="#2a2340" stroke-width="4"/>`;
+    if (n >= 3) b += `<text x="180" y="166" text-anchor="middle" font-size="10" fill="${tu}" ${FNT} opacity=".8">${sv(nom)}</text>`;
+    b += `<g transform="translate(70 104) rotate(-24)">${figura(0, 0, tu, 'de pie', 1.1)}<rect x="-16" y="21" width="32" height="5" rx="2.5" fill="#e8ff3d" stroke="#2a2340" stroke-width="2"/></g>`;
+    b += vallas(mar, 100, 0, 360, 8);
+    if (n >= 3) b += pantalla(juegos ? 6 : 140, juegos ? 66 : 4, 80, 26, nom, evento);
+    if (n >= 4) b += torreFocos(20, 64, 24) + torreFocos(340, 64, 24) + flashes(R, 25, 10, 350, 32, 96);
+  } else if (dep === 'surf') {
+    b += cieloG('pS' + n, '#59b8ff', '#d7f2ff') + `<circle cx="306" cy="24" r="14" fill="#fff3a6" stroke="#2a2340" stroke-width="2.5"/>`;
+    b += olaSVG(70, 18 + n * 3, '#1d6f9c') + olaSVG(96, 10, '#2e9bc6') + arcoJuegos;
+    b += `<path d="M0 118 Q180 108 360 120 V170 H0 Z" fill="#f2d49b" stroke="#2a2340" stroke-width="2.5"/>`;
+    b += n >= 4 ? `<path d="M0 132 H360 V170 H0 Z" fill="#3b3766"/>${mosaico(R, 0, 360, 134, 170, tu, '#3d3a6e', 4.2)}` : publico(R, n === 3 ? 110 : 30, 0, 360, 130, 166, cols, 2.6);
+    // torre de jueces y arco hinchable con tu marca
+    const tw = n >= 3 ? 66 : 46, tx = 360 - tw - 10, ty = n >= 3 ? 70 : 88;
+    b += `<rect x="${tx}" y="${ty}" width="${tw}" height="${120 - ty}" fill="#fff" stroke="#2a2340" stroke-width="2.5"/><path d="M${tx - 4} ${ty} l${tw / 2 + 4} -14 l${tw / 2 + 4} 14 Z" fill="${tu}" stroke="#2a2340" stroke-width="2"/>${txt(tx + tw / 2, ty + 14, tw - 8, 8, '#2a2340', 'JUECES')}`;
+    if (n >= 3) b += `<rect x="${tx + 6}" y="${ty + 20}" width="${tw - 12}" height="22" fill="#111522"/>${txt(tx + tw / 2, ty + 35, tw - 16, 10, oro, n >= 4 ? '9,40' : '8,10')}`;
+    b += Array.from({ length: n >= 3 ? 8 : 4 }, (_, i) => bandera(16 + i * 30, 126, ['#ff5d73', oro, tu, '#4fd36a'][i % 4], '#fff')).join('');
+    if (n >= 3) b += `<path d="M96 128 Q140 74 184 128" stroke="${tu}" stroke-width="12" fill="none"/><path d="M96 128 Q140 74 184 128" stroke="#2a2340" stroke-width="1.5" fill="none"/>${txt(140, 92, 50, 7, c2, mar[0] || 'SURF')}`;
+    if (n >= 4) b += pantalla(6, 8, 84, 30, nom, evento);
+    b += surfista(200, 58, -10).replace('#ffd166', tu);
+  } else {
+    // boxeo (nivel 5: Las Vegas o, si llegas por la vía amateur, los Juegos)
+    b += `<rect width="360" height="170" fill="${n >= 3 ? '#07070f' : '#2a2238'}"/>`;
+    b += `<path d="M0 ${n === 2 ? 46 : 20} H360 V104 H0 Z" fill="#221f3d"/>` + grada(n === 2 ? 50 : 22, 102);
+    if (vegas) b += `<rect x="0" y="0" width="360" height="22" fill="#14061e"/><text x="12" y="16" font-size="13" fill="#ff4fd8" ${FNT}>★ LAS VEGAS</text><text x="348" y="16" text-anchor="end" font-size="13" fill="#4ff0ff" ${FNT}>NOCHE DE GALA ★</text>`;
+    else if (juegos) b += `<rect x="0" y="0" width="360" height="22" fill="#2a2340"/>${txt(180, 16, 200, 12, oro, '★ JUEGOS DE VERANO ★')}`;
+    if (n >= 3) b += haces([80, 180, 280], 110, 0.07);
+    b += `<path d="M60 104 H300 L330 150 H30 Z" fill="${tu}" stroke="#2a2340" stroke-width="3"/>${n >= 3 ? txt(180, 134, 120, 16, c2, nom, 'opacity=".5"') : ''}`;
+    b += `<path d="M64 84 H296 M58 92 H302 M52 100 H308" stroke="${n >= 3 ? '#e63946' : '#ddd'}" stroke-width="2.5"/>` + [62, 298].map(x => `<rect x="${x - 3}" y="78" width="6" height="28" fill="#e6e6e6" stroke="#2a2340" stroke-width="1.5"/>`).join('');
+    b += figura(150, 98, tu, 'guardia', 1.15) + `<g transform="translate(210 0) scale(-1 1) translate(-210 0)">${figura(210, 98, '#3a3a3a', 'guardia', 1.15)}</g>`;
+    b += `<rect x="30" y="150" width="300" height="20" fill="#20202c"/>` + vallas(mar, 152, 30, 330, 9, '#20202c');
+    if (n >= 3) b += pantalla(140, vegas ? 26 : 4, 80, 26, nom, evento);
+    if (n >= 4) b += flashes(R, vegas ? 50 : 25, 10, 350, 24, 100);
+    if (n >= 4) b += `<g transform="translate(330 66)"><rect x="-22" y="-8" width="44" height="16" rx="8" fill="${oro}" stroke="#2a2340" stroke-width="2"/><circle r="6" fill="#fff6c2" stroke="#2a2340" stroke-width="1.5"/></g>`;
+  }
+  return SVG(b);
+}
+// Escena de un deporte individual: nivel 1 es el lugar de entrenamiento de siempre
+function escenaIndividual(s) {
+  const dep = depDe(s), n = nivelIndividual(s);
+  if (n <= 1) return dep === 'skate' ? escenaSkatepark() : dep === 'surf' ? escenaPlaya() : dep === 'boxeo' ? escenaGimnasioBox() : escenaRocodromo();
+  return escenarioInd(s, dep, n);
+}
+
+// Nivel del escenario en el que juegas ahora (0 si aún no compites)
+function nivelEscenario(s) {
+  if (esInd(s)) return s.esc && s.fase !== 'retirado' ? nivelIndividual(s) : 0;
+  return s.fase === 'club' && s.contrato ? nivelEquipo(miClub(s)) : 0;
+}
+function escenaNivel(s) { return esInd(s) ? escenaIndividual(s) : escenaEstadio(miClub(s)); }
+function nombreEscenario(s, n) { return depDe(s) === 'boxeo' && n === 5 && !(s.esc && s.esc.mejor && s.esc.mejor.master) ? 'Los Juegos' : NIVELES_ESCENARIO[depDe(s)][n - 1]; }
+// Si subes de escenario (ascenso, fichaje o competición más grande), lo enseñamos en grande
+function revisarEscenario(s) {
+  const n = nivelEscenario(s);
+  if (!n) return;
+  const antes = s.nivelEsc || 0;
+  s.nivelEsc = Math.max(antes, n);
+  if (antes && n > antes) encolar(s, { tipo: 'escenario', n, antes });
+}
 // La escena del lugar donde estás ahora
 function escenaActual(s) {
   if (esInd(s) && s.esc) {
@@ -4690,7 +4970,7 @@ function escenaActual(s) {
     if (s.fase === 'escalador' && P && s.plan === 'roca') { const Z = ZONAS[P.zona]; return [escenaExt(Z, condicionesZona(s, Z)), `${TX.icRoca} ${Z.n} · ${TX.proyecto} ${P.tipo === 'via' ? gV(P.grado) : gB(P.grado)} (${Math.min(100, P.prog)} %)`]; }
     const Z0 = ZONAS[Object.keys(ZONAS)[0]];
     if (s.fase === 'retirado') return [Z0 ? escenaExt(Z0, condicionesZona(s, Z0)) : escenaInt(), TX.retiroLugar];
-    return [escenaInt(), s.fase === 'rocodromo' ? `${TX.icLugar} ${TX.lugar} de ${s.ciudad}` : `${TX.icLugar} ${EQUIPOS[s.esc.equipo].n}`];
+    return [escenaIndividual(s), s.fase === 'rocodromo' ? `${TX.icLugar} ${TX.lugar} de ${s.ciudad}` : `${TX.icLugar} ${EQUIPOS[s.esc.equipo].n}`];
   }
   if (s.fase === 'club') { const c = miClub(s); return [escenaEstadio(c), `${TXE.icEstadio} ${c.estadio} · ${posicion(s, c.id)}º en la liga`]; }
   if (s.fase === 'retirado' && s.ultimoClub) return [escenaEstadio(club(s, s.ultimoClub)), `👋 Retirado/a del ${TXE.deporte}`];
@@ -4845,7 +5125,7 @@ function hojaCarrera() {
       ${s.trayectoria.slice().reverse().map(x => `<tr><td>${x.año}/${String(x.año + 1).slice(2)}</td><td>${esc(club(s, x.clubId).nombre)}<div class="small">${esc(nombreLiga(x.liga))}</div></td><td class="n">${x.pj}</td><td class="n">${x.goles}</td><td class="n">${x.pj ? nf(x.sumaNota / x.pj) : '—'}</td></tr>`).join('')}</table></div>`;
   } else if (s.fase === 'club') {
     const c = s.contrato, mi = miClub(s), i = ligaDe(s, mi.id), sel = puntSeleccion(s, null), u = umbralTitular(s), t = tramoActual(s), T = s.temporada;
-    h += `<div class="scene">${escenaEstadio(mi)}<div class="chap">${i.P.flag} ${esc(i.L.n)} · ${esc(mi.estadio)} · ${cr(mi.cap).replace(' €', '')} plazas</div></div>
+    h += `<div class="scene grande">${escenaEstadio(mi)}<div class="chap">${i.P.flag} ${esc(i.L.n)} · ${esc(mi.estadio)} · ${cr(mi.cap).replace(' €', '')} plazas</div></div>
       <div class="card"><div class="row"><div class="ic">${escudoClub(mi, 40)}</div><div class="tx"><b>${esc(mi.nombre)}${clubPropio(s, mi.id) ? ' 👑' : ''}</b><span>${i.tier}ª categoría · fuerza ${nf(mi.fuerza)} · vas ${posicion(s, mi.id)}º</span></div></div>
       <div style="margin-top:8px">
         <span class="badge ${s.lesion ? 'b' : sel >= u ? 'g' : 'n'}">${s.lesion ? `🤕 Lesión (${s.lesion} sem)` : sel >= u ? '✅ Titular' : '🪑 Suplente'} · selección ${nf(sel)}/${u}</span>
@@ -4984,7 +5264,7 @@ function hojaClub(id) {
   const s = S, o = clubPropio(s, id), c = club(s, id), K = CFG.clubCompra;
   if (!o) return hoja('Club', '<p>Ya no es tuyo.</p>');
   const u = o.ultimo, t = CFG.negocioComun.traspaso * 10;
-  return hoja(`🏟️ ${esc(c.nombre)}`, `<div class="scene">${escenaEstadio(c)}<div class="chap">${esc(c.estadio)} · ${cr(c.cap).replace(' €', '')} plazas</div></div>
+  return hoja(`🏟️ ${esc(c.nombre)}`, `<div class="scene grande">${escenaEstadio(c)}<div class="chap">${esc(c.estadio)} · ${cr(c.cap).replace(' €', '')} plazas</div></div>
     <div class="card"><div class="row"><div class="ic">${escudoClub(c, 40)}</div><div class="tx"><b>Vale ${cr(valorClub(s, id))}</b><span>${esc(nombreLiga(s.mundo.de[id]))} · fuerza ${nf(c.fuerza)} · caja ${cr(o.caja)}</span></div></div>
     ${u ? `<p class="small">Última semana: ingresos ${cr(u.ingresos)}, gastos ${cr(u.gastos)} → ${u.resultado >= 0 ? '+' : ''}${cr(u.resultado)}</p>` : ''}</div>
     <div class="sec">Precio de las entradas</div><div class="card"><div class="seg">${Object.entries(K.entradas).map(([k, e]) => `<button data-act="clubSet" data-id="${id}" data-c="entradas" data-v="${k}" class="${o.entradas === k ? 'sel' : ''}">${e.n}</button>`).join('')}</div>
@@ -5150,6 +5430,14 @@ function popup() {
   if (POPUPS_PATRO[ev.tipo]) return popupPatro(s, ev);
   if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
   if (ev.tipo === 'retiro' && ev.motor === 'individual') return popupRetiroEsc(s, ev);
+  if (ev.tipo === 'escenario') {
+    const ind = esInd(s), c = ind ? null : miClub(s);
+    const lugar = ind ? nombreEscenario(s, ev.n) : c.estadio;
+    return `<div class="pi">${ind ? '🏟️' : TXE.icEstadio}</div><h2>¡Nuevo escenario!</h2><p class="pd">De <b>${esc(nombreEscenario(s, ev.antes).toLowerCase())}</b> a <b>${esc(nombreEscenario(s, ev.n).toLowerCase())}</b>.</p>
+      <div class="scene grande">${escenaNivel(s)}<div class="chap">${esc(lugar)}${c ? ` · ${cr(c.cap).replace(' €', '')} plazas` : ''}</div></div>
+      <div class="chips" style="justify-content:center">${NIVELES_ESCENARIO[depDe(s)].map((x, i) => `<span class="chip${i + 1 === ev.n ? ' g' : ''}">${i + 1 <= ev.n ? '⭐' : '☆'} ${esc(x)}</span>`).join('')}</div>
+      <button class="btn g full" data-act="resolver" data-v="ok">¡A por todas! ▶</button>`;
+  }
   if (ev.tipo === 'pantalla') {
     const P = pantallas(s)[ev.n], N = pantallas(s)[ev.n + 1];
     return `<div class="pi">🎮</div><h2>¡Pantalla ${ev.n + 1} superada!</h2><p class="pd"><b>${P.ic} ${esc(P.n)}</b></p>
@@ -6293,7 +6581,7 @@ const TXE_BASKET = {
   diarioJuego: 'juego al baloncesto en la cancha del barrio de', colgar: 'colgar las zapatillas', materialGratis: 'Zapatillas',
   catCalzado: 'zapas', objGoles: pos => ({ base: 120, alero: 220, pivot: 150 })[pos] || 150, primaGolPatro: 0.0006,
   plaza: { ic: '🏀', n: 'Pachanga en la cancha' }, lugarBarrio: c => `🏀 Cancha del barrio de ${c}`,
-  escenaEstadio: c => escenaPabellon(c), escenaBarrio: d => escenaCancha(d),
+  escenaEstadio: c => pabellonBasket(S, c), escenaBarrio: d => escenaCancha(d),
   mentor: { nombre: 'Charo', rol: 'la entrenadora del barrio' }, sub: 'sub-20', once: 'el quinteto', viral: 'Un mate tuyo circula por todas las redes.',
   hijo: 'quiere jugar al baloncesto como tú', escuela: 'un equipo de minibasket', icHijo: '🏀', calzado: 'zapatillas',
 };

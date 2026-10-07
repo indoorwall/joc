@@ -1413,6 +1413,55 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     await ctx.close();
   }
 
+  /* ---------- Estadios y escenarios que crecen contigo ---------- */
+  {
+    const { ctx, page, errors } = await openPage(browser, { viewport: { width: 390, height: 760 } });
+    const r = await page.evaluate(() => {
+      const G = __P1, out = {};
+      // Fútbol: un nivel por división (Tercera Federación = 1 … Primera = 5) y el estadio cambia
+      G.nueva(31, null, 'futbol'); const S = G.S;
+      const porNivel = [1, 2, 3, 4, 5].map(n => Object.keys(S.mundo.clubs).find(k => S.mundo.de[k].startsWith('es') && nivelEquipo(S.mundo.clubs[k]) === n));
+      out.cinco = porNivel.every(Boolean);
+      out.divisiones = porNivel.map(id => S.mundo.de[id]).join(',');
+      const svgs = porNivel.map(id => estadioFutbol(S, S.mundo.clubs[id]));
+      out.distintos = new Set(svgs.map(x => x.length)).size === 5 && svgs[4].length > svgs[0].length * 3;
+      // Personalizado: colores del club, nombre del estadio y tus marcas en las vallas
+      const top = S.mundo.clubs[porNivel[4]];
+      S.fase = 'club'; S.contrato = S.contrato || {}; S.contrato.clubId = top.id; S.patros = [{ marca: 'Marca De Prueba' }]; S.nombre = 'Zoe'; S.p.rep = 80;
+      const e5 = estadioFutbol(S, top);
+      out.custom = e5.includes(top.c1) && e5.includes(top.c2) && e5.includes('MARCA DE PRUEBA') && e5.includes('ZOE');
+      // Subir de escenario lanza la ventana «¡Nuevo escenario!» una sola vez
+      S.pendiente = null; S.cola = []; S.nivelEsc = 2; revisarEscenario(S);
+      out.popup = S.pendiente && S.pendiente.tipo === 'escenario' && S.pendiente.n === 5;
+      out.popupHtml = popup().includes('¡Nuevo escenario!');
+      const fase = S.fase; S.fase = 'barrio'; // sin temporada de club en esta prueba: así el render no la necesita
+      out.resuelve = G.resolver('ok') && (!S.pendiente || S.pendiente.tipo !== 'escenario') && S.nivelEsc === 5;
+      S.fase = fase; S.pendiente = null; S.cola = []; revisarEscenario(S); out.unaVez = !S.pendiente;
+      // Partida antigua sin nivel guardado: no salta la ventana
+      delete S.nivelEsc; revisarEscenario(S); out.antigua = !S.pendiente && S.nivelEsc === 5;
+      // Baloncesto: pabellón con 5 niveles
+      G.nueva(32, null, 'basket'); const B = G.S;
+      const bn = [1, 2, 3, 4, 5].map(n => Object.keys(B.mundo.clubs).find(k => nivelEquipo(B.mundo.clubs[k]) === n));
+      out.basket = bn.every(Boolean) && new Set(bn.map(id => escenaEstadio(B.mundo.clubs[id]).length)).size === 5;
+      // Individuales: 5 escenarios por deporte según la competición más grande
+      out.ind = ['escalada', 'skate', 'surf', 'boxeo'].map(dep => {
+        G.nueva(33, null, dep); const I = G.S; I.nombre = 'Zoe';
+        const l = [escenaIndividual(I)]; I.fase = 'escalador';
+        for (const amb of dep === 'boxeo' ? ['europa', 'mundo', 'europeo', 'master'] : ['esp', 'europa', 'mundo', 'jjoo']) { I.esc.mejor[amb] = 3; l.push(escenaIndividual(I)); }
+        return new Set(l).size === 5 && nivelIndividual(I) === 5 && l[4].includes('ZOE');
+      });
+      out.vegas = nombreEscenario(G.S, 5) === 'Las Vegas';
+      return out;
+    });
+    check('Escenarios: el fútbol tiene un estadio distinto por división, de 1 (barrio) a 5 (élite)', r.cinco && r.distintos, r.divisiones);
+    check('Escenarios: el estadio se personaliza (colores del club, tus marcas en las vallas, tu nombre en la grada)', r.custom);
+    check('Escenarios: al subir de escenario sale «¡Nuevo escenario!» una vez (y no en partidas antiguas)', r.popup && r.popupHtml && r.resuelve && r.unaVez && r.antigua);
+    check('Escenarios: el baloncesto tiene 5 pabellones distintos', r.basket);
+    check('Escenarios: escalada, skate, surf y boxeo tienen 5 escenarios que crecen con la competición (Las Vegas en boxeo)', r.ind.every(Boolean) && r.vegas, r.ind.join(','));
+    check('Escenarios: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
   /* ---------- 5. Código: sin anuncios, compras, cuentas ni servicios externos ---------- */
   {
     const src = require('fs').readFileSync(path.resolve(__dirname, '..', 'p1', 'carrera_p1.html'), 'utf8');

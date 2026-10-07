@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-175 de 175 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+181 de 181 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -568,6 +568,17 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    mantienen los nombres descriptivos (Primera División, Copa del Mundo) y los lugares reales. Una prueba
    automática vigila que no vuelvan a aparecer. (No sustituye una revisión de un abogado.)
    Las partidas creadas sin posición válida (por ejemplo, de otro deporte) toman la primera de su deporte.
+6n. **Estadios y escenarios que crecen contigo** (galería en `p1/maquetas/escenarios.png`): cada deporte tiene
+   5 escenarios. Fútbol y baloncesto suben con la división del club (en España, Tercera Federación = 1 … Primera = 5;
+   fuera, por la fuerza de la liga): campo de barrio → municipal → estadio pequeño → gran estadio → estadio de élite
+   (polideportivo → pabellón municipal → pabellón grande → arena → arena de élite). Los individuales suben con la
+   competición más grande a la que has llegado: rocódromo/skatepark/playa/gimnasio del barrio → competición nacional →
+   europea → Copa del Mundo o título → Juegos de Verano (en boxeo, Las Vegas). Se personalizan con tu partida: gradas
+   en mosaico con los colores del club, siglas y nombre del estadio, tus marcas en las vallas, tu nombre y dorsal en la
+   pancarta de la afición (con fama), el último resultado en las pantallas, partidos de noche con focos y flashes,
+   lluvia en invierno, la corona si el club es tuyo; en los individuales, tu color de ropa y tu nombre en la pantalla.
+   Cuando llegas a un escenario más grande que nunca sale la ventana «¡Nuevo escenario!» con la escena en grande y los
+   5 niveles; las partidas antiguas guardan su nivel actual sin ventana. En Carrera la escena es más grande.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
