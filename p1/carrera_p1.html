@@ -361,12 +361,21 @@
 <body>
 <div id="app">
   <header id="top"></header>
-  <main id="main"></main>
+  <main id="main"><div id="arranque" style="margin:40px 16px;padding:18px;border-radius:16px;background:#fff;color:#1d2b24;font:16px/1.45 system-ui,sans-serif">
+    <b>Cargando el juego…</b><br>Si este mensaje no desaparece, el visor donde lo has abierto no deja funcionar el juego.
+    Ábrelo con <b>Safari</b> o <b>Chrome</b> (guarda el archivo y ábrelo desde ahí, o abre el enlace en el navegador).</div></main>
   <div id="dock"></div>
 </div>
 <div id="hoja"></div>
 <div id="modal"></div>
 <div id="toast" aria-live="polite"></div>
+<script>
+// Si algo falla al arrancar, se dice en pantalla (en vez de dejarla vacía)
+window.addEventListener('error', e => {
+  const m = document.getElementById('arranque');
+  if (m) m.innerHTML = '<b>El juego no ha podido arrancar en este navegador.</b><br>Error: ' + String(e.message || e).replace(/[<>&]/g, '') + '<br>Prueba a abrirlo con Safari o Chrome actualizados y envía este mensaje si sigue igual.';
+});
+</script>
 <script>
 
 'use strict';
