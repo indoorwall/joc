@@ -564,6 +564,8 @@ const CFG = {
   // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
   // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
   humor: { probTitular: 0.2 },
+  // Momentos clave: probabilidad de jugada decisiva en un partido igualado (más en partidos grandes) y en una final de escalada
+  momentos: { prob: 0.22, probGrande: 0.45, probEsc: 0.6 },
   // Números rojos: el banco manda una carta y te da un plazo (en semanas de juego). Si sigues en
   // negativo, cobra intereses cada semana y embarga tus bienes hasta cubrir la deuda (venta forzosa).
   banco: { plazo: 1, interes: 0.02, interesMin: 20, ventaForzosa: 0.7,
@@ -1569,6 +1571,7 @@ function semanaClub(s, R, mods) {
   s.p.energia = clamp(s.p.energia + K.recuperacion, 0, CFG.energiaMax);
   R.dep.push(['Recuperación semanal', `+${K.recuperacion} energía`, `Partido: titular −${K.energiaTitular}, suplente −${K.energiaSuplente}.`]);
   R.partido = P;
+  if (juega) prepararMomento(s, P, yo);
 
   // Economía personal
   let bruto = c.salario;
@@ -2139,6 +2142,10 @@ function resolver(opcion) {
     msg = `${textoSuceso(s, e, ev.data || {}, 't')} → ${op.n}. ${msg}`;
     ic = e.ic;
     s.p.nivel = clamp(r1(s.p.nivel), 0, CFG.nivelMax); s.p.rep = clamp(Math.round(s.p.rep), 0, 100);
+  } else if (ev.tipo === 'momento' || ev.tipo === 'momentoRes') {
+    const r = resolverMomento(s, ev, opcion);
+    if (!r) return false;
+    [ic, msg] = r;
   } else if (POPUPS_PATRO[ev.tipo]) {
     const r = resolverPatro(s, ev, opcion);
     if (!r) return false;
@@ -3429,6 +3436,7 @@ function phi(z) { // distribución normal acumulada
 }
 function competirEsc(s, R, c) {
   const E = s.esc, K = CFG.escalada, A = AMBITOS[c.amb], juv = s.edad < 20 && A.juvenil;
+  const antes = { mejor: E.mejor[c.amb], esp: E.anual.mejorEsp, mundo: E.anual.mejorMundo, mm: (E.mejorMundoMod[c.mod] || {})[E.año] };
   const media = A.media - (juv ? K.juvenilMenos : 0), L = nivelMod(s, c.mod);
   const forma = (s.p.energia - 60) / 8, animo = (s.p.fel - 50) / 25, cab = (E.at.cabeza - 50) / 10 * A.presion, piel = E.piel < 30 ? -(30 - E.piel) / 5 : 0;
   const suerte = gauss(s) * (c.mod === 'velocidad' ? 3 : 4), resbalon = c.mod === 'velocidad' && rnd(s) < K.resbalon;
@@ -3469,6 +3477,7 @@ function competirEsc(s, R, c) {
   R.dep.push([`${nombre}: ${pos}º de ${N}`, marca,
     `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(forma))} por energía ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
   R.comp = { pos, N, ronda, amb: c.amb };
+  prepararMomentoEsc(s, c, pos, ronda, antes, nombre);
   if (c.amb === 'jjoo') {
     if (pos === 1) { E.becaOlimpica = { hasta: E.año + 4, mod: c.mod }; R.opo.push(['🥇', `¡Campeón/a olímpico/a! Premio de ${cr(A.premio[0])} y beca de ${cr(K.becaOlimpica)} al año hasta los Juegos de ${E.año + 4}.`]); }
     else if (E.becaOlimpica && E.becaOlimpica.hasta === E.año) { E.becaOlimpica = null; R.opo.push(['🎓', 'No repito el oro: pierdo la beca olímpica.']); }
@@ -4858,6 +4867,7 @@ function popup() {
       ${e.ops.map((o, i) => { const ok = opcionPosible(s, e, i, d); return `<button class="po" data-act="resolver" data-v="${i}" ${ok ? '' : 'disabled'}><b>${esc(o.n)}</b>${chips(o.fx(s, d))}${ok ? '' : `<span class="lock">🔒 No tienes ${cr(costeOpcion(s, o, d))}</span>`}</button>`; }).join('')}`;
   }
   if (['cartaBanco', 'embargo', 'quiebra', 'quiebraForzada', 'concurso'].includes(ev.tipo)) return popupBanco(s, ev);
+  if (ev.tipo === 'momento' || ev.tipo === 'momentoRes') return popupMomento(s, ev);
   if (POPUPS_PATRO[ev.tipo]) return popupPatro(s, ev);
   if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
   if (ev.tipo === 'retiro' && ev.deporte === 'escalada') return popupRetiroEsc(s, ev);
@@ -5187,6 +5197,117 @@ function hojaMejoras() {
   return hoja('🛒 Mejoras', h);
 }
 
+/* =====================================================================
+   18. MOMENTOS CLAVE: una jugada decisiva en partidos igualados y en finales.
+   Cada opción dice su probabilidad (según tu nivel, energía y ánimo) y el resultado cambia de verdad.
+   ===================================================================== */
+const JUGADAS = {
+  ataque: { ic: '⚽', t: ev => `Minuto ${ev.min}: ${ev.gf === ev.gc ? 'empate' : 'perdéis por uno'} y el balón te cae a ti`, d: () => 'El estadio se levanta. Tienes medio segundo para decidir.',
+    ops: [{ id: 'colocado', n: 'Tirar colocado', base: 0.42, gol: true, ok: 'La pones en la escuadra. ¡GOOOOL!', mal: 'El portero la saca con la punta de los dedos.' },
+          { id: 'fuerte', n: 'Reventarla', base: 0.32, gol: true, rep: 2, ok: '¡Un misil! El portero ni la ve.', mal: 'La mandas a la grada. Un señor de la fila 20 la caza al vuelo.' },
+          { id: 'pase', n: 'Pase al compañero solo', base: 0.5, asist: true, ok: 'Pase de la muerte y tu compañero la empuja. ¡Gol!', mal: 'Tu compañero estaba en fuera de juego. Por un pelo.' }] },
+  defensa: { ic: '🛡️', t: ev => `Minuto ${ev.min}: ganáis por uno y el rival sale a la contra`, d: () => 'Tres contra dos. Si marcan, se acaba la victoria.',
+    ops: [{ id: 'tactica', n: 'Falta táctica', base: 0.85, amarilla: true, ok: 'Cortas la jugada. Amarilla, pero los tres puntos se quedan.', mal: 'El árbitro da ventaja… y marcan igual.' },
+          { id: 'cruce', n: 'Ir al cruce a muerte', base: 0.55, rep: 2, ok: '¡Cruce perfecto! El estadio corea tu nombre.', mal: 'Te regatean y marcan. Silencio en la grada.' },
+          { id: 'repliegue', n: 'Correr hacia atrás y aguantar', base: 0.45, ok: 'Llegas a tiempo, tapas el tiro y sale fuera. ¡Final!', mal: 'No llegas: gol del rival.' }] },
+  final: { ic: '🧗', t: ev => `${ev.mod === 'bloque' ? 'Último bloque' : ev.mod === 'dificultad' ? 'Últimos movimientos de la vía' : 'Última carrera'} de la final: vas ${ev.pos}º`,
+    d: ev => `${ev.nombre}. ${ev.pos === 2 ? 'El oro está a un movimiento.' : 'El podio está en juego.'}`,
+    ops: [{ id: 'todo', n: 'Ir a por todas', base: 0.35, sube: 1, baja: 1, ok: '¡Lo das todo y sale! Subes un puesto.', mal: 'Te sale el pie en el último movimiento. Bajas un puesto.' },
+          { id: 'leer', n: 'Leerlo con calma', base: 0.42, tecnica: true, sube: 1, baja: 0, ok: 'Ves el paso que nadie había visto. Subes un puesto.', mal: 'No encuentras el método, pero aguantas tu puesto.' },
+          { id: 'seguro', n: 'Asegurar', base: 0.8, sube: 0, baja: 1, ok: 'Sin riesgos: mantienes tu puesto.', mal: 'Hasta lo fácil se complica: bajas un puesto.' }] },
+};
+function probJugada(s, ev, o) {
+  let adj = (s.p.energia - 50) / 400 + (s.p.fel - 50) / 400;
+  if (ev.dep === 'futbol') adj += (s.p.nivel - (ev.fuerzaRival || s.p.nivel)) / 120;
+  else { const E = s.esc; adj += (E.at.cabeza - 50) / 200 + (o.tecnica ? (E.at.tecnica - 50) / 150 : 0); }
+  return clamp(o.base + adj, 0.08, 0.92);
+}
+// Fútbol: tras un partido igualado (no en la última jornada), a veces llega la jugada decisiva
+function prepararMomento(s, P, yo) {
+  const K = CFG.momentos, T = s.temporada, dif = P.gf - P.gc;
+  if (Math.abs(dif) > 1 || T.jornada >= CFG.temporada.jornadas) return;
+  const grande = T.jornada >= CFG.temporada.jornadas - 4 || posicion(s, P.rivalId) <= 3;
+  if (rnd(s) >= (grande ? K.probGrande : K.prob)) return;
+  encolar(s, { tipo: 'momento', dep: 'futbol', clase: dif === 1 ? 'defensa' : 'ataque', casa: P.casa, rival: P.rivalId, fuerzaRival: club(s, P.rivalId).fuerza, yo, gf: P.gf, gc: P.gc, min: 80 + Math.floor(rnd(s) * 10), semana: s.semana, año: T.año });
+}
+// Escalada: en una final, si vas 2º, 3º o 4º (no en Mundiales, Europeos ni Juegos)
+function prepararMomentoEsc(s, c, pos, ronda, antes, nombre) {
+  if (ronda !== 'final' || pos < 2 || pos > 4 || !['auto', 'esp', 'cesp', 'europa', 'mundo', 'master'].includes(c.amb) || rnd(s) >= CFG.momentos.probEsc) return;
+  encolar(s, { tipo: 'momento', dep: 'escalada', clase: 'final', amb: c.amb, mod: c.mod, pos, nombre, semana: s.semana, año: s.esc.año, antes });
+}
+function corregirPartido(T, h, a, gh, ga, nh, na) {
+  const A = T.tabla[h], B = T.tabla[a];
+  A.pj--; B.pj--; A.gf -= gh; A.gc -= ga; B.gf -= ga; B.gc -= gh;
+  const r = gh > ga ? ['V', 'D'] : gh < ga ? ['D', 'V'] : ['E', 'E'];
+  for (const [x, k] of [[A, r[0]], [B, r[1]]]) { if (k === 'V') { x.g--; x.pts -= 3; } else if (k === 'E') { x.e--; x.pts -= 1; } else x.p--; x.forma.pop(); }
+  apuntar(T, h, a, nh, na);
+}
+const resultadoDe = (gf, gc) => gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
+function resolverMomento(s, ev, op) {
+  if (ev.tipo === 'momentoRes') return op === 'ok' || op === '0' ? ['', ''] : null;
+  const J = JUGADAS[ev.clase], o = J.ops.find(x => x.id === op) || ((op === 'ok' || op === '0') ? J.ops[0] : null);
+  if (!o) return null;
+  const ok = rnd(s) < probJugada(s, ev, o), titulo = J.t(ev);
+  let texto = ok ? o.ok : o.mal, marcador = '';
+  if (ev.dep === 'futbol') {
+    let gf = ev.gf, gc = ev.gc;
+    if (ev.clase === 'ataque' && ok) gf++;
+    if (ev.clase === 'defensa' && !ok) gc++;
+    const T = s.temporada, h = ev.casa ? ev.yo : ev.rival, a = ev.casa ? ev.rival : ev.yo, c = s.contrato;
+    if (T && T.año === ev.año && T.tabla[h] && T.tabla[a] && (gf !== ev.gf || gc !== ev.gc)) corregirPartido(T, h, a, ev.casa ? ev.gf : ev.gc, ev.casa ? ev.gc : ev.gf, ev.casa ? gf : gc, ev.casa ? gc : gf);
+    const antes = resultadoDe(ev.gf, ev.gc), despues = resultadoDe(gf, gc), tramo = tramoActual(s);
+    if (ok && o.gol) { s.stats.goles++; if (tramo) tramo.goles++; s.patroTemp.goles++; const pg = (c && c.primaGol) || 0; if (pg) { s.p.dinero += pg; texto += ` Prima por gol: +${cr(pg)}.`; } }
+    if (ok && o.asist) { s.stats.asist++; if (tramo) tramo.asist++; }
+    if (o.amarilla) s.mods.push({ tipo: 'sel', v: -2, sem: 1, motivo: 'amarilla por la falta táctica' });
+    const pv = (c && c.primaVictoria) || 0;
+    if (pv && despues === 'victoria' && antes !== 'victoria') { s.p.dinero += pv; texto += ` Prima por victoria: +${cr(pv)}.`; }
+    if (pv && antes === 'victoria' && despues !== 'victoria') { s.p.dinero -= pv; texto += ` Adiós a la prima por victoria (−${cr(pv)}).`; }
+    s.p.rep = clamp(s.p.rep + (ok ? 2 + (o.rep || 0) : -1), 0, 100); s.p.fel = clamp(s.p.fel + (ok ? 5 : -3), 0, 100);
+    const yoN = club(s, ev.yo).nombre, rv = club(s, ev.rival).nombre;
+    marcador = ev.casa ? `${yoN} ${gf}-${gc} ${rv}` : `${rv} ${gc}-${gf} ${yoN}`;
+    const e = s.log.find(x => x.semana === ev.semana);
+    if (e && e.partido) { Object.assign(e.partido, { gf, gc, resultado: despues }); e.lineas.push([ok ? '⚡' : '😖', `Jugada final: ${o.n.toLowerCase()}. ${ok ? o.ok : o.mal} Resultado final: ${marcador}.`]); }
+  } else {
+    const A = AMBITOS[ev.amb], nuevo = clamp(ev.pos + (ok ? -o.sube : o.baja), 1, A.final || ev.pos + 1);
+    if (nuevo !== ev.pos) cambiarPuestoEsc(s, ev, nuevo);
+    s.p.rep = clamp(s.p.rep + (nuevo < ev.pos ? 3 : nuevo > ev.pos ? -1 : 0), 0, 100); s.p.fel = clamp(s.p.fel + (ok ? 4 : -3), 0, 100);
+    marcador = `Puesto final: ${nuevo}º${nuevo <= 3 ? ` ${['🥇', '🥈', '🥉'][nuevo - 1]}` : ''}${(A.premio[nuevo - 1] || 0) !== (A.premio[ev.pos - 1] || 0) ? ` · premio ${cr(A.premio[nuevo - 1] || 0)}` : ''}`;
+    const e = s.log.find(x => x.semana === ev.semana);
+    if (e) e.lineas.push([ok ? '⚡' : '😖', `${titulo}: ${o.n.toLowerCase()}. ${texto} ${marcador}.`]);
+  }
+  if (ok) celebrar = true;
+  s.cola.unshift({ tipo: 'momentoRes', ok, ic: J.ic, titulo, texto, marcador });
+  return [ok ? '⚡' : '😖', `${titulo} → ${o.n}. ${texto} ${marcador}.`];
+}
+function cambiarPuestoEsc(s, ev, nuevo) {
+  const E = s.esc, A = AMBITOS[ev.amb], K = CFG.escalada, mismoAño = ev.año === E.año;
+  const dPremio = (A.premio[nuevo - 1] || 0) - (A.premio[ev.pos - 1] || 0);
+  if (dPremio > 0) { const imp = Math.round(dPremio * tipoImpuesto(dPremio)); s.p.dinero += dPremio - imp; s.acum.impuestos += imp; } else s.p.dinero += dPremio;
+  if (mismoAño) E.anual.premios += dPremio;
+  if (nuevo <= 3 && ev.pos > 3) {
+    E.podios++; if (mismoAño) E.anual.podios++;
+    if (ORDEN_AMB.indexOf(ev.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) s.p.dinero += Math.round(pt.primaPodio * K.factorPrima[ev.amb]);
+  }
+  if (nuevo > 3 && ev.pos <= 3) { E.podios--; if (mismoAño) E.anual.podios--; }
+  E.mejor[ev.amb] = Math.min(ev.antes.mejor || 99, nuevo);
+  if (mismoAño && (ev.amb === 'esp' || ev.amb === 'cesp')) E.anual.mejorEsp = Math.min(ev.antes.esp || 99, nuevo);
+  if (mismoAño && ev.amb === 'mundo') { E.anual.mejorMundo = Math.min(ev.antes.mundo || 99, nuevo); const m = E.mejorMundoMod[ev.mod] = E.mejorMundoMod[ev.mod] || {}; m[ev.año] = Math.min(ev.antes.mm || 99, nuevo); }
+  const pm = E.palmares.find(x => x.año === ev.año && x.n === ev.nombre && x.pos === ev.pos);
+  if (pm) pm.pos = nuevo;
+}
+function popupMomento(s, ev) {
+  if (ev.tipo === 'momentoRes') return `<div class="pi">${ev.ok ? '🎉' : '😖'}</div><h2>${ev.ok ? '¡Sí!' : 'Casi…'}</h2><p class="pd"><b>${esc(ev.texto)}</b></p>${ev.marcador ? `<div class="card" style="text-align:center"><b>${esc(ev.marcador)}</b></div>` : ''}
+    <button class="po" data-act="resolver" data-v="ok"><b>${ev.ok ? '¡A celebrarlo!' : 'Otra vez será'}</b></button>`;
+  const J = JUGADAS[ev.clase];
+  const marc = ev.dep === 'futbol' ? `${ev.casa ? club(s, ev.yo).nombre : club(s, ev.rival).nombre} ${ev.casa ? ev.gf : ev.gc}-${ev.casa ? ev.gc : ev.gf} ${ev.casa ? club(s, ev.rival).nombre : club(s, ev.yo).nombre}` : `Vas ${ev.pos}º`;
+  return `<div class="pi">${J.ic}</div><h2>${esc(J.t(ev))}</h2><p class="pd">${esc(J.d(ev))}</p><div class="card" style="text-align:center"><b>${esc(marc)}</b></div>
+    ${J.ops.map(o => { const p = Math.round(probJugada(s, ev, o) * 100);
+      const premio = ev.dep === 'futbol' ? (ev.clase === 'ataque' ? (o.gol ? '⚽ gol tuyo' : '👟 asistencia') : '🛡️ mantener la victoria') : (o.sube ? '⬆️ subir un puesto' : '✅ mantener el puesto');
+      const riesgo = ev.dep === 'futbol' ? (ev.clase === 'defensa' ? '😬 si falla, empate' : '') : (o.baja ? '⬇️ si falla, bajas un puesto' : '');
+      return `<button class="po" data-act="resolver" data-v="${o.id}"><b>${esc(o.n)}</b>${chips([['🎯', `${p} % de que salga`], ['✨', premio]].concat(riesgo ? [['⚠️', riesgo]] : []).concat(o.amarilla ? [['🟨', 'amarilla: −2 selección 1 semana']] : []))}</button>`; }).join('')}
+    <p class="small" style="text-align:center">La probabilidad depende de tu nivel, energía y ánimo${ev.dep === 'futbol' ? ' frente al rival' : ', tu cabeza y tu técnica'}.</p>`;
+}
+
 function render() {
   if (!S || silencio) return;
   syncEsc(S);
@@ -5281,7 +5402,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, JUGADAS, probJugada: (ev, o) => probJugada(S, ev, o), opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,

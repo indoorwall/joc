@@ -1106,6 +1106,47 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Ritmo: ánimo estable al empezar, ojeador no antes de la semana 4 y marcas que esperan a verte jugar', nj.animo && nj.barrio && nj.noPronto, JSON.stringify(nj));
     check('Escalada: retirada a los 40; de retirado, embajador de marcas y biografía', nj.retiro40 && nj.embajador && nj.biografia, JSON.stringify(nj));
     check('Interfaz: todas las pestañas de la tienda se ven a 320 px y los logos de la escena se tocan bien (≥ 44 px)', nj.pestanas && nj.marcas, JSON.stringify(nj));
+    // Momentos clave: la jugada decisiva cambia el resultado de verdad
+    const mo = await page.evaluate(() => {
+      const G = __P1, out = { futbol: 0, aciertos: 0, fallos: 0, coherente: true, escalada: 0, sube: 0, baja: 0, escCoherente: true };
+      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver('si') || G.resolver('ok') || G.resolver('0') || G.resolver('corto') || G.resolver('quedarse'); };
+      G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0; G.CFG.momentos.prob = 1; G.CFG.momentos.probGrande = 1;
+      G.nueva(111); G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
+      for (let i = 0; i < 4; i++) { limpiar(); G.elegir('descansar'); G.avanzarSemana(); } limpiar();
+      for (let w = 0; w < 80 && out.futbol < 12; w++) {
+        G.S.p.energia = 90; G.S.p.nivel = Math.max(G.S.p.nivel, 85); G.S.lesion = 0; G.elegir('normal'); G.avanzarSemana();
+        for (let g = 0; G.S.pendiente && g < 20; g++) {
+          const ev = G.S.pendiente;
+          if (ev.tipo === 'momento') {
+            out.futbol++; const T = G.S.temporada, yo = G.S.contrato.clubId, g0 = G.S.stats.goles, pts0 = T.tabla[yo].pts;
+            G.resolver(ev.clase === 'ataque' ? 'colocado' : 'cruce');
+            const res = G.S.pendiente; out.ventanaResultado = out.ventanaResultado || (res && res.tipo === 'momentoRes');
+            const x = T.tabla[yo]; if (x.pts !== 3 * x.g + x.e || x.pj !== x.g + x.e + x.p) out.coherente = false;
+            const tot = Object.values(T.tabla); if (tot.reduce((a, t) => a + t.gf, 0) !== tot.reduce((a, t) => a + t.gc, 0)) out.coherente = false;
+            if (ev.clase === 'ataque') { if (G.S.stats.goles === g0 + 1) { out.aciertos++; if (x.pts <= pts0) out.coherente = false; } else { out.fallos++; if (x.pts !== pts0) out.coherente = false; } }
+            else { if (x.pts === pts0) out.aciertos++; else { out.fallos++; if (x.pts !== pts0 - 2) out.coherente = false; } }
+            const e = G.S.log.find(l => l.semana === ev.semana); if (!e || !e.lineas.some(([, t]) => t.includes('Jugada final'))) out.coherente = false;
+          } else G.resolver('si') || G.resolver('ok') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('0');
+        }
+      }
+      // Escalada: final con la opción arriesgada; puesto, podios y premio cambian juntos
+      G.nueva(112, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.S.edad = 22;
+      for (let i = 0; i < 30; i++) {
+        const E = G.S.esc, pod0 = E.podios, d0 = G.S.p.dinero;
+        E.palmares.unshift({ año: E.año, n: 'Copa de España de prueba', amb: 'esp', mod: 'bloque', pos: 3, N: 60, ronda: 'final' });
+        G.S.pendiente = { tipo: 'momento', dep: 'escalada', clase: 'final', amb: 'esp', mod: 'bloque', pos: 3, nombre: 'Copa de España de prueba', semana: G.S.semana, año: E.año, antes: {} };
+        G.resolver('todo'); out.escalada++;
+        const p = E.palmares[0].pos;
+        if (p === 2) { out.sube++; if (E.podios !== pod0 || G.S.p.dinero <= d0) out.escCoherente = false; }
+        else if (p === 4) { out.baja++; if (E.podios !== pod0 - 1 || G.S.p.dinero >= d0) out.escCoherente = false; }
+        else out.escCoherente = false;
+        limpiar();
+      }
+      G.CFG.momentos.prob = 0.22; G.CFG.momentos.probGrande = 0.45;
+      return out;
+    });
+    check('Momentos clave en fútbol: la jugada decisiva cambia el marcador, la clasificación y tus goles', mo.futbol >= 5 && mo.aciertos > 0 && mo.fallos > 0 && mo.coherente && mo.ventanaResultado, JSON.stringify(mo));
+    check('Momentos clave en escalada: el último bloque de la final cambia el puesto, los podios y el premio', mo.escalada === 30 && mo.sube > 0 && mo.baja > 0 && mo.escCoherente, JSON.stringify(mo));
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
