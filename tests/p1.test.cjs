@@ -118,7 +118,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
         } else if (t === 'mejora') await tap(page, '#modal [data-v=aceptar]');
         else if (t === 'fin') { log.finInfo = log.finInfo || s.pendiente.zona || s.pendiente.pos; await tap(page, '#modal [data-v=ok]'); }
         else if (t === 'eventoPatro') await tap(page, '#modal [data-v=si]');
-        else if (t === 'pantalla' || t === 'retiro') { log.pantallas = (log.pantallas || 0) + (t === 'pantalla' ? 1 : 0); await tap(page, '#modal [data-v=ok]'); }
+        else if (t === 'pantalla' || t === 'retiro' || t === 'escenario') { log.pantallas = (log.pantallas || 0) + (t === 'pantalla' ? 1 : 0); await tap(page, '#modal [data-v=ok]'); }
         else {
           const antes = JSON.stringify([s.p, s.mods, s.agenda, s.rel, s.negocios]);
           await tap(page, '#modal .po:not([disabled])');
@@ -1459,6 +1459,41 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Escenarios: el baloncesto tiene 5 pabellones distintos', r.basket);
     check('Escenarios: escalada, skate, surf y boxeo tienen 5 escenarios que crecen con la competición (Las Vegas en boxeo)', r.ind.every(Boolean) && r.vegas, r.ind.join(','));
     check('Escenarios: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  /* ---------- Revisión de una vida jugada: negocios, fama, sueldos, cansancio y variedad ---------- */
+  {
+    const { ctx, page, errors } = await openPage(browser, { viewport: { width: 390, height: 760 } });
+    const r = await page.evaluate(() => {
+      const G = __P1, out = {}; G.silencio = true;
+      // Negocio con gerente y mucha fama: no se hunde (el gerente sube sueldos y la fama no baja de 30)
+      G.nueva(7, 'medio', 'futbol'); let S = G.S; S.pantalla = 9; S.p.rep = 80; S.p.dinero = 5e6; S.edad = 36; S.fase = 'retirado';
+      G.comprarNegocio('cafeteria', 10000); G.ponerGerente('cafeteria');
+      let suma = 0; for (let w = 0; w < 60; w++) { for (let g = 0; S.pendiente && g < 20; g++) G.resolver('0') || G.resolver('ok') || G.resolver('1'); S.p.rep = 80; G.elegir('rentas'); G.avanzarSemana(); const n = S.negocios[0]; if (n && w >= 20) suma += n.ultimo.resultado; }
+      out.negocio = S.negocios.length === 1 && suma > 0 && S.negocios[0].fama >= 30;
+      // Techo de fama según la liga y tope de sueldo según la liga
+      G.nueva(8, 'medio', 'futbol'); S = G.S;
+      const ids = Object.keys(S.mundo.clubs), baja = ids.find(k => S.mundo.de[k] === 'es-5'), alta = ids.find(k => S.mundo.de[k] === 'es-1');
+      out.techos = [techoFama(S, baja), techoFama(S, alta)];
+      out.topes = [topeSueldo(S, baja), topeSueldo(S, alta)];
+      S.contrato = { clubId: baja, salario: 99999, temporadasRestantes: 1, semanas: 20 }; out.mejoraTope = ofertaMejora(S).salario === topeSueldo(S, baja);
+      // Semana normal de titular: la energía se mantiene (−5 del plan, −15 del partido, +20 de recuperación)
+      out.normal = G.ACCIONES.normal.fx(S).find(([ic]) => ic === '⚡')[1] === -5;
+      // Imprevistos con memoria: el mismo no sale dos veces en un año
+      G.nueva(9, 'medio', 'futbol'); S = G.S; S.fase = 'club'; S.contrato = { clubId: alta, salario: 1000, temporadasRestantes: 1, semanas: 0 };
+      const vistos = {}; let repetido = false;
+      for (let i = 0; i < 40; i++) { S.semana++; const e = G.elegirSuceso(); if (!e) continue; if (vistos[e.id] && S.semana - vistos[e.id] < 52) repetido = true; vistos[e.id] = S.semana; }
+      out.memoria = !repetido && Object.keys(vistos).length >= 20;
+      G.silencio = false;
+      return out;
+    });
+    check('Vida jugada: un negocio con gerente y mucha fama da beneficios (ya no se hunde por el sueldo básico)', r.negocio);
+    check('Vida jugada: la fama tiene techo según la liga (Tercera Federación ≈ 43, Primera ≈ 89)', r.techos[0] < 50 && r.techos[1] > 85, r.techos.join(' / '));
+    check('Vida jugada: los sueldos tienen tope según la liga y la mejora de contrato no lo supera', r.topes[0] < r.topes[1] && r.mejoraTope, r.topes.join(' / '));
+    check('Vida jugada: la semana normal de un titular no gasta más energía de la que recupera', r.normal);
+    check('Vida jugada: un imprevisto no se repite antes de un año', r.memoria);
+    check('Vida jugada: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 

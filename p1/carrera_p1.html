@@ -425,6 +425,10 @@ const CFG = {
     mejoraNormal: 0.3, mejoraExtra: 0.6,   // nivel por semana antes de multiplicadores
     potencial: [75, 92], margenTecho: 15,  // cerca de tu techo mejoras más despacio
     probSuceso: 0.35,
+    // Techo de fama por liga = fuerza de la liga × 1,3 − 15 (Tercera Federación ≈ 43, Primera ≈ 89); la subida se frena en los últimos puntos
+    // Sueldo máximo que pagará un club = sueldo más alto de su liga × topeSueldo (mejoras, renovaciones y cláusulas no lo superan)
+    topeSueldo: 1.5,
+    techoFamaMargen: 12, sueloFama: 0.4,   // suelo = 40 % del techo (Primera ≈ 36)
   },
   // Impuesto simplificado: tipo según lo ganado esa semana (salario + primas)
   impuestos: [[300, 0.05], [1000, 0.15], [4000, 0.30], [Infinity, 0.45]],
@@ -570,8 +574,11 @@ const CFG = {
     // Concurso: si la caja sigue en negativo estas semanas, el negocio (o el club) cierra y se liquida
     // por este porcentaje de su valor; como dueño, la deuda que quede la pagas tú.
     semanasConcurso: 6, liquidacion: 0.5,
-    // Gerente: ajusta la plantilla a la demanda cada semana y evita precios que hunden la fama. Cobra un % de los ingresos.
-    gerente: { pct: 0.07, min: 120 } },
+    // Con sueldo básico la plantilla rota y el negocio se queda en un servicio mediocre: la fama baja hasta este suelo, no hasta 0
+    famaSueloBasico: 30,
+    // Gerente: ajusta la plantilla a la demanda cada semana, evita precios que hunden la fama y sube los sueldos
+    // si la fama del negocio baja de famaSueldo (los vuelve a básico cuando pasa de famaAhorro). Cobra un % del margen (ventas − producto).
+    gerente: { pct: 0.12, min: 120, famaSueldo: 45, famaAhorro: 75 } },
   // Qué se desbloquea en cada pantalla (además de los negocios)
   desbloqueos: { coches: 4, inmuebles: 6, hijos: 7, clubes: 9 },
 
@@ -628,7 +635,9 @@ const CFG = {
   // Tu personaje: capas del avatar y tienda. p = precio en € (de juego); req = qué hace falta
   // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
   // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
-  humor: { probTitular: 0.2 },
+  humor: { probTitular: 0.12 },
+  // Variedad: semanas que tarda en poder repetirse un imprevisto y cuánto pierde de peso cada vez que ya salió
+  variedad: { sucesoEspera: 52, sucesoRepite: 0.6 },
   personajes: { activos: true },
   // Siguiente generación: desde qué edad del hijo o hija se puede seguir, herencia (% del patrimonio, con tope) y fama heredada (% de la tuya)
   generacion: { edadMin: 14, herenciaPct: 0.05, herenciaMax: 20000, famaPct: 0.2 },   // rival, mentor y periodista (sus capítulos)
@@ -1394,11 +1403,11 @@ const ACCIONES = {
     aplicar(s, R) { const t = tiradaEntreno(s, R), g = mejoraSemana(s, true) * t.f; s.p.nivel += g; s.p.energia -= 20; R.dep.push(['Entrenamiento extra', `+${nf(g)} nivel, −20 energía`, `${nf(CFG.club.mejoraExtra)} × calidad ${nf(calidadEntreno(s))} × edad ${nf(crecimientoEdad(s))} × techo ${nf(factorTecho(s))} × forma ${nf(forma(s).entreno)}${t.t}.`]); },
   },
   normal: {
-    fases: ['club'], ic: '📋', n: 'Semana normal', fx: s => [['💪', mejoraSemana(s, false)], ['⚡', -10]],
-    pro: s => `+${nf(mejoraSemana(s, false))} nivel`, con: () => '−10 energía',
+    fases: ['club'], ic: '📋', n: 'Semana normal', fx: s => [['💪', mejoraSemana(s, false)], ['⚡', -5]],
+    pro: s => `+${nf(mejoraSemana(s, false))} nivel`, con: () => '−5 energía',
     why: s => `Mejora = ${nf(CFG.club.mejoraNormal)} × calidad (${nf(calidadEntreno(s))}) × edad (${nf(crecimientoEdad(s))}) × techo (${nf(factorTecho(s))}). Equilibrio entre mejorar y llegar fresco.`,
     disponible: s => s.lesion > 0 ? 'Tienes una lesión.' : null,
-    aplicar(s, R) { const t = tiradaEntreno(s, R), g = mejoraSemana(s, false) * t.f; s.p.nivel += g; s.p.energia -= 10; R.dep.push(['Semana normal', `+${nf(g)} nivel, −10 energía`, `${nf(CFG.club.mejoraNormal)} × calidad ${nf(calidadEntreno(s))} × edad ${nf(crecimientoEdad(s))} × techo ${nf(factorTecho(s))} × forma ${nf(forma(s).entreno)}${t.t}.`]); },
+    aplicar(s, R) { const t = tiradaEntreno(s, R), g = mejoraSemana(s, false) * t.f; s.p.nivel += g; s.p.energia -= 5; R.dep.push(['Semana normal', `+${nf(g)} nivel, −5 energía`, `${nf(CFG.club.mejoraNormal)} × calidad ${nf(calidadEntreno(s))} × edad ${nf(crecimientoEdad(s))} × techo ${nf(factorTecho(s))} × forma ${nf(forma(s).entreno)}${t.t}.`]); },
   },
   fisio: {
     fases: ['club'], ic: '🧊', n: 'Fisio y recuperación', fx: s => [['⚡', 25], ['€', -CFG.club.fisioCoste]].concat(s.lesion > 0 ? [['🩹', '−1 sem']] : []),
@@ -1472,6 +1481,9 @@ const ACCIONES = {
   },
 };
 for (const a of Object.values(ACCIONES)) a.t = a.ic + ' ' + a.n;
+function topeSueldoLiga(key) { return red(infoLiga(key).L.sueldo[1] * CFG.club.topeSueldo, 10); }
+const topeSueldo = (s, id) => topeSueldoLiga(s.mundo.de[id]);
+function techoFama(s, id) { return clamp(Math.round(ligaDe(s, id).L.fuerza * 1.3 - 15), 30, 100); }
 function pagoPatrocinio(s) { return red((20 + s.p.rep * 3) * visibilidad(s, s.contrato.clubId), 5); }
 function accionDe(s, a) { return !!a && a.fases.includes(s.fase) && depOk(a, s); }
 function accionesDisponibles(s) {
@@ -1671,7 +1683,8 @@ function semanaClub(s, R, mods) {
   const pT = s.patroTemp; pT.partidos += 1;
   if (juega) { pT.pj += 1; pT.goles += P.goles; if (titular) pT.tit += 1; if (TXE.hazaña(P)) s.hattrick = (s.hattrick || 0) + 1;
     if (titular) s.cont.titular++; if (P.nota >= 7) s.cont.nota7++; if (P.resultado === 'victoria') s.cont.victorias++; }
-  if (juega && P.efForma <= -0.8) R.opo.push(['😫', `Llegué ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} al partido: ${nf(r1(P.efForma))} en mi nota. Necesito descansar.`]);
+  // Solo si llegas en el tramo «Cansado» o «Agotado» (menos de 40 de energía); en «Justo» la nota baja un poco, sin aviso
+  if (juega && P.efForma <= (CFG.forma.tramos[1].hasta - 60) / CFG.forma.notaBajo) R.opo.push(['😫', `Llegué ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} al partido: ${nf(r1(P.efForma))} en mi nota. Necesito descansar.`]);
   else if (juega && P.efAnimo <= -0.5) R.opo.push(['😞', `Con el ánimo por los suelos no hay quien juegue: ${nf(r1(P.efAnimo))} en mi nota.`]);
   if (juega) {
     s.stats.jugados += 1; s.stats.goles += P.goles; s.stats.asist += P.asist; s.stats.reb = (s.stats.reb || 0) + (P.reb || 0);
@@ -1688,10 +1701,17 @@ function semanaClub(s, R, mods) {
   let dRep;
   if (juega) dRep = Math.round(((P.nota - 6) * 2 * vis + P.goles * pos.repGol) * (titular ? 1 : 0.5)) + (P.resultado === 'victoria' ? 1 : 0);
   else dRep = -1;
+  // Techo de fama según tu liga: en una liga pequeña la fama sube cada vez menos y, por encima del techo, se va perdiendo
+  const techo = techoFama(s, yo), dRepAntes = dRep;
+  if (dRep > 0) dRep = Math.round(dRep * clamp((techo - s.p.rep) / CFG.club.techoFamaMargen, 0, 1));
+  if (s.p.rep > techo && dRep >= 0) dRep = -1;
+  // …y un suelo: jugar en una liga grande ya da algo de fama aunque las cosas vayan mal
+  const suelo = Math.round(techo * CFG.club.sueloFama);
+  if (dRep < 0 && s.p.rep + dRep < suelo) dRep = Math.min(0, suelo - s.p.rep);
   s.p.rep = clamp(s.p.rep + dRep, 0, 100);
-  R.dep.push([`Reputación ${sg(dRep)}`, '', juega
+  R.dep.push([`Reputación ${sg(dRep)}`, '', (juega
     ? `((nota − 6) × 2 × visibilidad de tu liga ${nf(vis)} + ${TXE.uGol(2)} × ${nf(pos.repGol)})${titular ? '' : ' × 0,5 por jugar poco'}${P.resultado === 'victoria' ? ' + 1 por la victoria' : ''}.`
-    : 'Si no juegas pierdes 1 punto de reputación.']);
+    : 'Si no juegas pierdes 1 punto de reputación.') + (dRep !== dRepAntes ? ` Techo de fama en tu liga: ${techo}${s.p.rep >= techo ? ' (ya lo has alcanzado: para más fama, juega en una liga mayor)' : ''}.` : '')]);
 
   // Energía y lesiones
   if (P.rol === 'titular') s.p.energia -= K.energiaTitular;
@@ -1754,11 +1774,11 @@ function condicionMejora(s) {
   const K = CFG.club, c = s.contrato, media = notaMedia(s);
   const jugados = tramoActual(s) ? tramoActual(s).pj : 0;
   return { semanas: c.semanas, jugados, media, notaReq: K.notaMejora,
-    ok: c.semanas >= K.semanasMinMejora && jugados >= K.partidosMinMejora && media >= K.notaMejora };
+    tope: topeSueldo(s, c.clubId), ok: c.semanas >= K.semanasMinMejora && jugados >= K.partidosMinMejora && media >= K.notaMejora && c.salario < topeSueldo(s, c.clubId) };
 }
 function ofertaMejora(s) {
   const c = s.contrato;
-  return { salario: red(c.salario * CFG.club.mejoraFactor, 10), temporadas: Math.max(c.temporadasRestantes, 1) + 1 };
+  return { salario: Math.min(red(c.salario * CFG.club.mejoraFactor, 10), topeSueldo(s, c.clubId)), temporadas: Math.max(c.temporadasRestantes, 1) + 1 };
 }
 
 function elegirClubOjeador(s) { // un club de 4ª división española
@@ -1820,7 +1840,7 @@ function abrirMercado(s, R, ventana) {
   const c = s.contrato;
   if (ventana === 'verano' && c.temporadasRestantes <= 0 && s.edad < CFG.retiro.edadSinRenovacion) {
     const m = notaMedia(s), sube = m >= CFG.club.notaMejora;
-    ofertas.unshift({ ...c, renovacion: true, salario: red(c.salario * (sube ? 1.1 : 0.9), 10), temporadas: 2, fichaje: 0,
+    ofertas.unshift({ ...c, renovacion: true, salario: Math.min(red(c.salario * (sube ? 1.1 : 0.9), 10), topeSueldo(s, c.clubId)), temporadas: 2, fichaje: 0,
       motivo: `Renovación con tu club: sueldo ${sube ? '+10 %' : '−10 %'} porque tu nota media (${nf(m)}) ${sube ? 'llega' : 'no llega'} a ${nf(CFG.club.notaMejora)}.` });
   }
   if (!ofertas.length) {
@@ -1850,7 +1870,8 @@ function finTemporada(s, R) {
         R.eco.push([`Prima por ${z === 'campeon' ? 'título' : 'ascenso'} (neta)`, c.primaAscenso - imp]);
       } else info.primas.push(`Sin prima por ascenso: necesitabas ${CFG.club.partidosMinPrimaAscenso} partidos jugados (tienes ${tramo.pj}).`);
     }
-    if (c.subidaAscenso) { const antes = c.salario; c.salario = red(c.salario * (1 + c.subidaAscenso / 100), 10); info.primas.push(`Cláusula de ascenso: sueldo ${cr(antes)} → ${cr(c.salario)} (+${c.subidaAscenso} %)`); }
+    if (c.subidaAscenso) { const antes = c.salario, it = infoLiga(T.liga), nueva = z === 'ascenso' && it.tier > 1 ? `${it.pais}-${it.tier - 1}` : T.liga;
+      c.salario = Math.max(antes, Math.min(red(c.salario * (1 + c.subidaAscenso / 100), 10), topeSueldoLiga(nueva))); info.primas.push(`Cláusula de ascenso: sueldo ${cr(antes)} → ${cr(c.salario)} (+${c.subidaAscenso} %)`); }
   }
   if (z === 'descenso' && c.bajadaDescenso) { const antes = c.salario; c.salario = red(c.salario * (1 - c.bajadaDescenso / 100), 10); info.primas.push(`Cláusula de descenso: sueldo ${cr(antes)} → ${cr(c.salario)} (−${c.bajadaDescenso} %)`); }
 
@@ -2277,12 +2298,17 @@ function cambiarInteres(s, delta) {
 }
 function elegirSuceso(s) {
   const esc = esInd(s), fase = esc ? ({ rocodromo: 'barrio', escalador: 'club' }[s.fase] || s.fase) : s.fase;
-  const ok = Object.entries(SUCESOS).filter(([id, e]) => !e.capitulo && (e.dep ? depOk(e, s) : !(esc && NO_ESCALADA.includes(id))) && e.fases.includes(fase) && (!e.neg || s.negocios.length) && (!e.cond || e.cond(s)));
+  // Memoria: un imprevisto no se repite hasta pasado un tiempo, y cada vez que ya ha salido pesa menos
+  const M = CFG.variedad, vistos = s.sucVistos || (s.sucVistos = {});
+  const ok = Object.entries(SUCESOS).filter(([id, e]) => !e.capitulo && (e.dep ? depOk(e, s) : !(esc && NO_ESCALADA.includes(id))) && e.fases.includes(fase) && (!e.neg || s.negocios.length) && (!e.cond || e.cond(s))
+    && !(vistos[id] && s.semana - vistos[id].sem < M.sucesoEspera));
   if (!ok.length) return null;
-  const tot = ok.reduce((a, [, e]) => a + (e.peso || 1), 0);
-  let u = rnd(s) * tot;
-  for (const [id, e] of ok) { u -= e.peso || 1; if (u <= 0) return { id, data: e.prep ? e.prep(s) : {} }; }
-  const [id, e] = ok[ok.length - 1];
+  const peso = ([id, e]) => (e.peso || 1) / (1 + M.sucesoRepite * (vistos[id] ? vistos[id].n : 0));
+  const tot = ok.reduce((a, x) => a + peso(x), 0);
+  let u = rnd(s) * tot, el = ok[ok.length - 1];
+  for (const x of ok) { u -= peso(x); if (u <= 0) { el = x; break; } }
+  const [id, e] = el;
+  vistos[id] = { sem: s.semana, n: (vistos[id] ? vistos[id].n : 0) + 1 };
   return { id, data: e.prep ? e.prep(s) : {} };
 }
 const textoSuceso = (s, e, d, k) => typeof e[k] === 'function' ? e[k](s, d) : e[k];
@@ -2333,7 +2359,7 @@ function resolver(opcion) {
     if (opcion === 'aceptar') { c.salario = o.salario; c.temporadasRestantes = o.temporadas; msg = `Firmo la mejora: ${cr(o.salario)} por semana.`; }
     else if (opcion === 'pedir') {
       const prob = clamp(s.p.rep, N.probMin, N.probMax);
-      if (rnd(s) * 100 < prob) { c.salario = red(o.salario * N.pedirMasFactor, 10); c.temporadasRestantes = o.temporadas; msg = `¡El club acepta! Firmo por ${cr(c.salario)} por semana (probabilidad ${prob} %).`; }
+      if (rnd(s) * 100 < prob) { c.salario = Math.max(o.salario, Math.min(red(o.salario * N.pedirMasFactor, 10), topeSueldo(s, c.clubId))); c.temporadasRestantes = o.temporadas; msg = `¡El club acepta! Firmo por ${cr(c.salario)} por semana (probabilidad ${prob} %).`; }
       else { c.salario = o.salario; c.temporadasRestantes = o.temporadas; s.mods.push({ tipo: 'sel', v: -N.tensionSeleccion, sem: N.tensionSemanas, motivo: 'relación tensa con el club' }); msg = `El club no acepta (probabilidad ${prob} %). Firmo la oferta inicial y la relación queda tensa: −${N.tensionSeleccion} en la selección durante ${N.tensionSemanas} semanas.`; }
     } else if (opcion === 'largo') {
       const sal = red(o.salario * N.largoFactor, 10), prima = sal * N.largoPrimaSemanas;
@@ -2517,7 +2543,10 @@ function gerenteNegocio(s, R, n) {
   if (k < n.empleados) cambios.push(`deja ${n.empleados - k} ${n.empleados - k === 1 ? 'puesto' : 'puestos'} sin cubrir`);
   n.empleados = k;
   if (n.precio === 'premium' && n.fama < T.precios.premium.famaSinPenal) { n.precio = 'normal'; cambios.push('baja el precio a normal'); }
-  if (cambios.length) R.neg.push([`👔 Gerente de tu ${T.n.toLowerCase()}`, cambios.join(', '), 'El gerente ajusta la plantilla a la demanda y no usa precios que hunden la fama.']);
+  const G = CFG.negocioComun.gerente;
+  if (n.sueldo === 'basico' && n.fama < G.famaSueldo) { n.sueldo = 'bueno'; cambios.push('sube los sueldos para que el personal no se vaya'); }
+  else if (n.sueldo === 'bueno' && n.fama > G.famaAhorro) { n.sueldo = 'basico'; cambios.push('vuelve a sueldos básicos: la fama ya aguanta'); }
+  if (cambios.length) R.neg.push([`👔 Gerente de tu ${T.n.toLowerCase()}`, cambios.join(', '), 'El gerente ajusta la plantilla a la demanda, no usa precios que hunden la fama y sube los sueldos si la fama baja.']);
 }
 function semanaNegocio(s, R, n) {
   const T = CFG.negocios[n.tipo], C = CFG.negocioComun;
@@ -2530,7 +2559,7 @@ function semanaNegocio(s, R, n) {
   const ingresos = Math.round(venta + clientes * ef.extra), sueldos = Math.round(n.empleados * (su.coste + ef.sueldo));
   const productos = Math.round((T.costePct ? venta * T.costePct : clientes * T.costeCliente) * ef.costeF);
   const fijos = T.fijos + ef.fijos;
-  const gerente = n.gerente ? Math.max(C.gerente.min, Math.round(ingresos * C.gerente.pct)) : 0;
+  const gerente = n.gerente ? Math.max(C.gerente.min, Math.round((ingresos - productos) * C.gerente.pct)) : 0;
   const gastos = T.alquiler + fijos + sueldos + productos + gerente, resultado = ingresos - gastos;
   n.caja += resultado; n.semanas += 1;
   s.acum.ingresosNeg += ingresos; s.acum.gastosNeg += gastos;
@@ -2538,7 +2567,7 @@ function semanaNegocio(s, R, n) {
   let dPrecio = pr.fama;
   if (n.precio === 'premium' && n.fama >= pr.famaSinPenal) dPrecio = 0;
   if (dPrecio) fam.push([dPrecio, n.precio === 'premium' ? `precio premium con fama < ${pr.famaSinPenal}` : 'precios populares']);
-  fam.push([su.fama, su.fama > 0 ? 'personal bien pagado' : 'rotación por sueldo básico']);
+  if (su.fama > 0 || n.fama > C.famaSueloBasico) fam.push([su.fama, su.fama > 0 ? 'personal bien pagado' : 'rotación por sueldo básico']);
   if (perdidos > Math.max(5, cap * 0.08)) fam.push([C.colasFama, `${perdidos} ${T.unidad} perdidas por falta de personal`]);
   if (n.caja < 0) fam.push([C.impagoFama, 'caja en negativo: pagos con retraso']);
   if (ef.famaSem) fam.push([ef.famaSem, 'tus decisiones en el negocio']);
@@ -3051,7 +3080,8 @@ function objetivos(s) {
   }
   const c = s.contrato, cm = condicionMejora(s), i = ligaDe(s, c.clubId), T = s.temporada, pos = posicion(s, c.clubId);
   const P1 = CFG.negocios.peluqueria, objCompra = P1.precio + P1.cajaOpciones[0], pat = patrimonio(s);
-  if (!c.mejora) out.push({ t: 'Gánate una mejora de contrato', d: `${cm.semanas}/${CFG.club.semanasMinMejora} semanas · ${cm.jugados}/${CFG.club.partidosMinMejora} partidos · nota media ${cm.media ? nf(cm.media) : '—'} de ${nf(cm.notaReq)}.`,
+  if (!c.mejora && c.salario >= cm.tope) out.push({ t: 'Ya cobras lo máximo que paga tu liga', d: `Tope en ${i.L.n}: ${cr(cm.tope)}/semana. Para cobrar más, ficha por un club de una liga mayor.`, prog: 1 });
+  else if (!c.mejora) out.push({ t: 'Gánate una mejora de contrato', d: `${cm.semanas}/${CFG.club.semanasMinMejora} semanas · ${cm.jugados}/${CFG.club.partidosMinMejora} partidos · nota media ${cm.media ? nf(cm.media) : '—'} de ${nf(cm.notaReq)}.`,
     prog: Math.min(cm.semanas / CFG.club.semanasMinMejora, cm.jugados / CFG.club.partidosMinMejora, cm.media / cm.notaReq, 1) });
   if (!s.negocios.length) out.push({ t: 'Ahorra para tu primer negocio: una peluquería', d: `${cr(s.p.dinero)} de ${cr(objCompra)}. Cómprala en Bienes.`, prog: s.p.dinero / objCompra });
   if (i.tier > 1) out.push({ t: `Sube a ${i.P.ligas[i.tier - 2].n}`, d: `${miClub(s).nombre} va ${pos}º (ascienden 2; jornada ${T.jornada}/${CFG.temporada.jornadas}) o ficha por un club mejor.`, prog: 1 - (pos - 1) / (CFG.temporada.equipos - 1) });
@@ -4675,8 +4705,37 @@ function titularGracioso(s) {
   if (['azul', 'rosa', 'verde'].includes(L.colorPelo)) l.push(`${n} estrena pelo de colores. Las peluquerías de ${c}, colapsadas.`);
   if (L.cabeza === 'corona') l.push(`${n} aparece con corona en el súper. «Es por si acaso».`);
   if ((s.patros || []).length) { const m = s.patros[0].marca; l.push(`${m}: «Estamos muy orgullosos de ${n}». Fuentes internas dicen que lo leyeron de una tarjeta.`); }
-  return [azar(s, MEDIOS_HUMOR), azar(s, l)];
+  l.push(...TITULARES_EXTRA(n, c));
+  // Sin repetir hasta haberlos visto todos (se recuerda el principio de cada titular)
+  const vistos = s.titVistos || (s.titVistos = []), clave = x => x.slice(0, 40);
+  let libres = l.filter(x => !vistos.includes(clave(x)));
+  if (!libres.length) { vistos.length = 0; libres = l; }
+  const tit = azar(s, libres); vistos.push(clave(tit));
+  return [azar(s, MEDIOS_HUMOR), tit];
 }
+// Titulares de humor que valen para cualquier deporte
+const TITULARES_EXTRA = (n, c) => [
+  `${n} pierde las llaves de casa por tercera vez este mes. Las encuentra en la nevera.`,
+  `La abuela de ${n} imprime todas las noticias de su nieto y las pega en el portal.`,
+  `${n} confiesa que todavía no sabe doblar una sábana bajera. El país entero se identifica.`,
+  `El perro del vecino de ${n} ya tiene más seguidores que el propio ${n}. Investigamos.`,
+  `${n} pide la contraseña del wifi en una cafetería de ${c}. Se la dan sin preguntar.`,
+  `Exclusiva: ${n} pone la piña en la pizza. Las redes, divididas.`,
+  `${n} llega 10 minutos antes a todas partes. Sus amigos están hartos.`,
+  `${n} gana el concurso de tortillas de su calle. «Sin cebolla, que es lo que me gusta».`,
+  `Un taxista de ${c} jura que ${n} le dio la mejor propina de su vida: un llavero.`,
+  `${n} se apunta a clases de baile. El profesor pide un día libre.`,
+  `${n} se hace un selfi con una estatua de ${c}. La estatua sale mejor.`,
+  `${n} intenta montar un mueble sin instrucciones. Sobran 14 tornillos.`,
+  `${n} descubre que lleva un año pagando dos plataformas de series iguales.`,
+  `Pillado: ${n} cantando en el coche con la ventanilla bajada. Nota del jurado: 6.`,
+  `${n} se olvida el cumpleaños de su mejor amigo y lo arregla con una tarta de 3 pisos.`,
+  `El instituto de ${n} cuelga su foto en el pasillo. Sale con los ojos cerrados.`,
+  `${n} riega una planta de plástico durante seis meses. «Estaba preciosa».`,
+  `Un loro de ${c} ha aprendido a decir el nombre de ${n}. Su dueño lo niega todo.`,
+  `${n} se equivoca de autobús y acaba en la otra punta de ${c}. Lo cuenta como una aventura.`,
+  `${n} da una charla en un colegio. La pregunta estrella: «¿Cuánto ganas?».`,
+];
 function bocadillo(s) {
   const pick = l => l[s.semana % l.length], u = s.ultimo || {}, P = u.partido;
   if (s.lesion > 0) return ['Ay, ay, ay…', 'Esta tirita es de la suerte', 'Volveré más fuerte (cuando pueda andar)'].map(t => [t, 0])[s.semana % 3];
@@ -5247,8 +5306,8 @@ function hojaNegocio(tipo) {
       <button class="btn w" data-act="neg" data-t="${tipo}" data-c="empleados" data-v="1" ${n.empleados >= T.empleadosMax || n.caja < T.costeContratar ? 'disabled' : ''}>+</button></div>
       <p class="small">Contratar: −${cr(T.costeContratar)} de la caja. Despedir: una semana de sueldo.</p>
       <div class="seg">${Object.entries(T.sueldos).map(([k, x]) => `<button data-act="neg" data-t="${tipo}" data-c="sueldo" data-v="${k}" class="${n.sueldo === k ? 'sel' : ''}">Sueldo ${x.nombre.toLowerCase()}<br>${cr(x.coste)}</button>`).join('')}</div>
-      <p class="small">Básico: ${T.sueldos.basico.capacidad} por persona y −1 fama/semana. Bueno: ${T.sueldos.bueno.capacidad} por persona y +1 fama/semana.</p></div>
-    <div class="sec">👔 Gerente</div><div class="card"><p class="small">Ajusta la plantilla a la demanda cada semana y no usa precios que hunden la fama. Cobra el ${Math.round(C.gerente.pct * 100)} % de los ingresos (mínimo ${cr(C.gerente.min)}/semana).</p>
+      <p class="small">Básico: ${T.sueldos.basico.capacidad} por persona y −1 fama/semana (hasta quedarse en ${CFG.negocioComun.famaSueloBasico}). Bueno: ${T.sueldos.bueno.capacidad} por persona y +1 fama/semana.</p></div>
+    <div class="sec">👔 Gerente</div><div class="card"><p class="small">Ajusta la plantilla a la demanda cada semana, no usa precios que hunden la fama y sube los sueldos si la fama del negocio baja de ${C.gerente.famaSueldo}. Cobra el ${Math.round(C.gerente.pct * 100)} % del margen (ventas − producto; mínimo ${cr(C.gerente.min)}/semana).</p>
       <button class="btn ${n.gerente ? 'r' : 'g'} full" data-act="gerente" data-v="${tipo}">${n.gerente ? 'Despedir al gerente' : 'Contratar un gerente'}</button></div>
     ${htmlDecisiones(s, n, tipo)}
     <div class="sec">Caja ↔ tu dinero</div><div class="card"><div class="seg">

@@ -42,8 +42,9 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   obligatoria y quien solo competía se quedaba atascado para siempre). Retirada obligatoria a los 40.
 - **Negocios y clubes**: si la caja sigue en negativo 6 semanas, **concurso**: cierran y se liquidan
   por el 50 % de su valor; la deuda que quede la pagas tú. Aviso cuando un negocio pierde dinero 3
-  semanas seguidas y **gerente** opcional (7 % de los ingresos, mínimo 120 €/semana) que ajusta la
-  plantilla a la demanda y no usa precios que hunden la fama.
+  semanas seguidas y **gerente** opcional (12 % del margen —ventas menos producto—, mínimo 120 €/semana) que ajusta la
+  plantilla a la demanda, no usa precios que hunden la fama y sube los sueldos si la fama del negocio baja de 45
+  (los vuelve a básicos por encima de 75).
 - **Imprevistos**: las opciones que no puedes pagar se desactivan.
 - **Banco**: de menor, la deuda la pagan tus padres (y se enfadan); por debajo de 500 € solo cobra una
   comisión de 15 € por semana, sin embargo ni quiebra.
@@ -430,7 +431,7 @@ fama en todos), curso de gestión (−800 €, +5 % de demanda en todos tus nego
 
 **Negocios:** demanda = base × factor de precio × (0,2 + fama/80) × (1 + reputación/200)
 × (1 + 5 % por curso) ± 10 %. Capacidad = personas × capacidad por sueldo. Resultado = ingresos −
-alquiler − sueldos − género. Fama: precio económico +1, premium −3 (si fama < 60), sueldo básico −1,
+alquiler − sueldos − género. Fama: precio económico +1, premium −3 (si fama < 60), sueldo básico −1 (hasta quedarse en 30: servicio mediocre, no ruina),
 bueno +1, clientes perdidos −2, caja negativa −5. Valor = precio × (0,5 + fama/100).
 
 | Negocio | Precio | Alquiler/sem | Demanda base | Precio normal |
@@ -459,7 +460,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-181 de 181 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+187 de 187 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -582,6 +583,27 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    El marcador de las pantallas solo muestra un partido jugado con ese club, y en los deportes individuales el pie de la
    escena dice a qué escenario has llegado (los nombres siguen las competiciones del juego: Pro Tour mundial, Circuito de
    Clasificación, Circuito de Élite…).
+6o. **Revisión jugando dos vidas completas del mismo deporte** (fútbol: delantero «normal» y defensa «ambiciosa»;
+   y una de baloncesto). Lo que no tenía sentido y se ha corregido:
+   - **Negocios que se hundían con fama alta**: el sueldo básico bajaba la fama del negocio 1 punto cada semana sin
+     límite y el gerente no lo corregía; ahora se queda en 30 y el gerente sube sueldos. El gerente cobra el 12 % del
+     margen (no de las ventas), así que los negocios de margen pequeño (supermercado, tienda) ya no pierden. Con
+     gerente, todos ganan dinero (10–25 % al año) y más cuanta más fama tienes.
+   - **Cansancio permanente**: la «Semana normal» de un titular gastaba más de lo que se recupera (−10 −15 +20) y se
+     llegaba «cansado» a 1 de cada 3 partidos aunque jugaras con cuidado. Ahora cuesta −5 y se mantiene; cansan el
+     entrenamiento extra, las actividades y los imprevistos. El aviso «Llegué cansado» sale solo por debajo de 40 de
+     energía (lo que el juego llama «Cansado»), no en «Justo».
+   - **Fama sin relación con la liga**: con 20 años en la cuarta división inglesa se llegaba a 100. Ahora hay un techo
+     por liga (fuerza × 1,3 − 15: Tercera Federación ≈ 43, Primera ≈ 89, Liga Americana 100) y un suelo (40 % del
+     techo) para quien juega poco en una liga grande.
+   - **Sueldos que crecían sin límite** (mejoras × 1,35, «pedir más», renovaciones y cláusulas de ascenso se
+     acumulaban: 61.000 €/semana en la segunda francesa, 326.000 en la Liga Americana). Ahora el tope es el 150 % del
+     sueldo más alto de la liga; si ya lo cobras, el objetivo lo dice y no hay mejora.
+   - **Repetición**: salían ~310 imprevistos por vida de solo ~60 distintos (el mismo hasta 18 veces) y ~27
+     titulares de humor en 200 apariciones. Ahora un imprevisto no se repite antes de un año y pesa menos cada vez que
+     sale; los titulares no se repiten hasta agotarlos (20 nuevos) y salen menos. En la etapa de jugador, el
+     imprevisto más repetido sale 3 veces. Dos vidas del mismo deporte comparten la mayoría de imprevistos (el
+     catálogo es finito), pero cambian clubes, países, ligas, marcas, negocios y la historia de ascensos.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 
