@@ -362,7 +362,7 @@ const CFG = {
     edadCrec: [[20, 1.2], [24, 1.0], [28, 0.7], [99, 0.4]],
     mejoraNormal: 0.3, mejoraExtra: 0.6,   // nivel por semana antes de multiplicadores
     potencial: [75, 92], margenTecho: 15,  // cerca de tu techo mejoras más despacio
-    probSuceso: 0.45,
+    probSuceso: 0.35,
   },
   // Impuesto simplificado: tipo según lo ganado esa semana (salario + primas)
   impuestos: [[300, 0.05], [1000, 0.15], [4000, 0.30], [Infinity, 0.45]],
@@ -567,10 +567,11 @@ const CFG = {
   // (pantalla superada, logro o tener patrocinador); dep = solo en ese deporte;
   // gratisCat = gratis si tienes un patrocinador de esa categoría (te lo regala).
   humor: { probTitular: 0.2 },
+  personajes: { activos: true },   // rival, mentor y periodista (sus capítulos)
   // Retos: cuántos, cuántas semanas duran y premio (semanas de ingresos, con mínimo y máximo) + extra si cumples todos
   retos: { cuantos: 3, semanas: 3, premioMin: 50, premioMax: 5000, premioSemanas: 1, bonusAnimo: 5, bonusFama: 2 },
   // Momentos clave: probabilidad de jugada decisiva en un partido igualado (más en partidos grandes) y en una final de escalada
-  momentos: { prob: 0.22, probGrande: 0.45, probEsc: 0.6 },
+  momentos: { prob: 0.1, probGrande: 0.3, probEsc: 0.6 },
   // Números rojos: el banco manda una carta y te da un plazo (en semanas de juego). Si sigues en
   // negativo, cobra intereses cada semana y embarga tus bienes hasta cubrir la deuda (venta forzosa).
   banco: { plazo: 1, interes: 0.02, interesMin: 20, ventaForzosa: 0.7,
@@ -1423,6 +1424,7 @@ function avanzarSemana() {
 
   semanaPatros(s, R);
   semanaMejoras(s, R);
+  semanaPersonajes(s, R);
   for (const n of s.negocios) semanaNegocio(s, R, n);
   semanaInmuebles(s, R);
   semanaCoches(s, R);
@@ -1820,6 +1822,55 @@ const amigo = s => (rel(s, 'amigo') || { nombre: 'Tu amigo' }).nombre;
 const pareja = s => (rel(s, 'pareja') || { nombre: 'Tu pareja' }).nombre;
 
 const SUCESOS = {
+  // ---- Capítulos de tus personajes (no salen al azar: los lanza la historia) ----
+  mentorConsejo: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🧓', t: s => `${MEN(s).nombre}, ${MEN(s).rol}, te da un consejo`,
+    d: s => s.deporte === 'escalada' ? '«Los pies, los pies, los pies. Y nada de colgarte de la tabla hasta los 16.»' : '«Chaval, el talento sin trabajo no vale nada. Y bebe agua.»',
+    ops: [{ n: 'Hacerle caso', fx: () => [['💪', 1], ['😊', 2]], txt: 'Te lo apuntas en la mano. Se borra en la ducha, pero ya te lo sabes.' },
+          { n: '«Ya, ya…»', fx: () => [['😊', 1]], hacer(s) { aplicarFx(s, [['😊', 1]]); return `${MEN(s).nombre} sonríe: sabe que volverás a pedirle consejo.`; } }] },
+  rivalPresenta: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '😤', t: s => `${RIV(s).nombre} dice que eres un paquete`,
+    d: s => s.deporte === 'escalada' ? `Tiene tu edad, escala en el rocódromo de al lado y dice que tus bloques son «de niños». Hoy está aquí.` : `Tiene tu edad, es el crack del barrio de al lado y no para de decir que es mejor que tú. Hoy está en la plaza.`,
+    ops: [{ n: 'Retarle', fx: () => [['🎲', '50 %: le ganas (+4 ⭐)'], ['⚡', -5]],
+            hacer(s) { aplicarFx(s, [['⚡', -5]]); const r = RIV(s); if (rnd(s) < 0.5) { aplicarFx(s, [['⭐', 4], ['😊', 4]]); return `Le ganas delante de todos. ${r.nombre} se va sin decir nada… por ahora.`; } aplicarFx(s, [['⭐', -1], ['😊', -3]]); return `${r.nombre} te gana y lo cuenta por todo el barrio. Esto no acaba aquí.`; } },
+          { n: 'Pasar de él', fx: () => [['😊', 1]], hacer(s) { aplicarFx(s, [['😊', 1]]); return `No le das el gusto. Pero no olvidarás el nombre de ${RIV(s).nombre}.`; } }] },
+  rivalFicha: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '📸', t: s => { const r = RIV(s); return s.deporte === 'escalada' ? `${r.nombre} entra en el equipo de la federación` : `${r.nombre} ficha por el ${r.clubId ? club(s, r.clubId).nombre : 'un club de más categoría'}`; },
+    d: () => 'Sube una foto con la camiseta nueva: «Unos nacen para esto». Y te etiqueta.',
+    ops: [{ n: 'Felicitarle', fx: () => [['⭐', 1], ['😊', -1]], txt: 'Le felicitas con los dientes apretados. La gente valora tu deportividad.' },
+          { n: 'Responderle en redes', fx: () => [['⭐', 2], ['🎲', '20 %: polémica (−3 ⭐)']], hacer(s) { if (rnd(s) < 0.2) { aplicarFx(s, [['⭐', -3]]); return 'Tu respuesta se malinterpreta: polémica.'; } aplicarFx(s, [['⭐', 2]]); return 'Tu respuesta tiene más «me gusta» que su foto.'; } }] },
+  perioEntrevista: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🎙️', t: s => `${PER(s).nombre}, de ${PER(s).medio}, quiere entrevistarte`,
+    d: () => 'Tu primera entrevista de verdad. Te pregunta qué esperas de esta temporada.',
+    ops: [{ n: 'Humilde: «Trabajar y aprender»', fx: () => [['⭐', 1], ['😊', 1]], txt: 'Titular: «Con los pies en el suelo». Tu madre lo recorta y lo pega en la nevera.' },
+          { n: 'Chulo: «Voy a ser el mejor»', fx: () => [['⭐', 3], ['🎲', '30 %: te sale caro (−4 ⭐)']], hacer(s) { if (rnd(s) < 0.3) { aplicarFx(s, [['⭐', -4]]); return 'Esa semana juegas fatal y todo el mundo te recuerda la entrevista.'; } aplicarFx(s, [['⭐', 3]]); return 'Titular: «Viene a comerse el mundo». Te sigue más gente.'; } },
+          { n: 'Hacerla reír', fx: () => [['⭐', 2], ['😊', 2]], txt: 'Le cuentas lo de la paloma. La entrevista se hace viral.' }] },
+  mentorLesion: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🧓', t: s => `${MEN(s).nombre} viene a verte`,
+    d: () => 'Trae un plan de recuperación escrito a mano y una bolsa de mandarinas.',
+    ops: [{ n: 'Seguir su plan al pie de la letra', fx: () => [['🩹', '−1 semana de lesión'], ['😊', 3]], hacer(s) { s.lesion = Math.max(1, s.lesion - 1); aplicarFx(s, [['😊', 3]]); return 'Una semana menos de lesión. Y las mandarinas, buenísimas.'; } },
+          { n: 'Darle las gracias', fx: () => [['😊', 2]], txt: 'Se va contento. Las mandarinas se quedan.' }] },
+  mentorAnimo: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '☕', t: s => `${MEN(s).nombre} te ve con la cabeza gacha`,
+    d: () => '«Vente a tomar un café, que invito yo. Y me cuentas.»',
+    ops: [{ n: 'Ir a tomar el café', fx: () => [['😊', 8], ['⚡', -2]], txt: 'Hablas dos horas. Sales con otra cara.' },
+          { n: 'Hoy no', fx: () => [['⚡', 3]], txt: '«Cuando quieras, ya sabes dónde estoy.»' }] },
+  rivalLesion: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🤕', t: s => `${RIV(s).nombre} se lesiona de gravedad`,
+    d: () => 'Rotura de ligamentos: varios meses fuera. Tu mayor rival, en una camilla.',
+    ops: [{ n: 'Mandarle un mensaje de ánimo', fx: () => [['😊', 3], ['⭐', 1]], hacer(s) { const r = RIV(s); r.amigo = true; aplicarFx(s, [['😊', 3], ['⭐', 1]]); return `${r.nombre} te contesta: «Gracias, de verdad». Algo ha cambiado entre vosotros.`; } },
+          { n: 'No decir nada', fx: () => [], txt: 'Sigues a lo tuyo. Volverá, y con ganas.' }] },
+  perioTele: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '📺', t: s => `Estás en el programa de ${PER(s).nombre}`,
+    d: () => 'Horario de máxima audiencia. De repente, te pregunta por tu vida privada.',
+    ops: [{ n: 'Contarlo todo', fx: () => [['⭐', 3], ['❤️', -5]], txt: 'Audiencia récord. En casa no les ha hecho tanta gracia.' },
+          { n: 'Cambiar de tema con gracia', fx: () => [['⭐', 2], ['😊', 2]], txt: 'Acabas hablando de tu receta de tortilla. Te adoran.' },
+          { n: 'Levantarte e irte', fx: () => [['⭐', -2], ['😊', 3]], txt: 'Polémica en directo, pero tú duermes tranquilo.' }] },
+  perioExclusiva: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🗞️', t: s => `${PER(s).nombre} tiene una exclusiva sobre ti`,
+    d: () => 'Una foto tuya bailando la Macarena a las 4 de la mañana. Saldrá mañana en portada.',
+    ops: [{ n: 'Dar tu versión', fx: () => [['⭐', -1]], txt: '«Era una boda». Nadie te cree, pero da igual.' },
+          { n: 'Pedirle que no la publique', fx: () => [['€', -500], ['🎲', '50 %: sale igual']], hacer(s) { aplicarFx(s, [['€', -500]]); if (rnd(s) < 0.5) { aplicarFx(s, [['⭐', -3]]); return 'Te cobra el «favor»… y la publica igual. Lección aprendida.'; } return 'La foto no sale. Por ahora.'; } },
+          { n: 'Subirla tú antes', fx: () => [['⭐', 2], ['😊', 2]], txt: '«Sí, bailo así. ¿Algún problema?». Te aplauden.' }] },
+  rivalAdios: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '✉️', t: s => `${RIV(s).nombre} te escribe`,
+    d: s => RIV(s).amigo ? '«Gracias por hacerme mejor. Fuiste el mejor rival de mi vida… y luego un buen amigo.»' : '«Te tuve manía muchos años. Ahora sé que sin ti no habría llegado tan lejos.»',
+    ops: [{ n: 'Quedar para tomar algo', fx: () => [['😊', 6]], hacer(s) { RIV(s).amigo = true; s.rivalesAmigos = true; aplicarFx(s, [['😊', 6]]); return 'Os pasáis la tarde recordando los viejos tiempos.'; } },
+          { n: 'Contestar con un emoji', fx: () => [['😊', 2]], txt: '👊. A veces no hace falta más.' }] },
+  mentorFinal: { capitulo: true, fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🧓', t: s => `${MEN(s).nombre} te pide un favor`,
+    d: s => s.deporte === 'escalada' ? '«Ya estoy mayor. ¿Darías un curso a los peques del rocódromo?»' : '«Ya estoy mayor. ¿Entrenarías a los chavales del barrio los sábados?»',
+    ops: [{ n: 'Aceptar', fx: () => [['😊', 10], ['⭐', 2], ['⚡', -5]], txt: 'El primer sábado vienen 30 chavales. Uno se parece mucho a ti de pequeño.' },
+          { n: 'No puedo', fx: () => [['😊', -2]], txt: '«Lo entiendo. Gracias por todo, de verdad.»' }] },
   // ---- Toques de humor (los dos deportes) ----
   paloma: { fases: ['barrio', 'prep', 'club', 'retirado'], ic: '🕊️', peso: 0.6, t: 'Una paloma te ha elegido', d: 'En plena calle, una paloma te deja un «regalito» en el hombro. Dicen que da buena suerte.',
     ops: [{ n: 'Creer que da suerte', fx: () => [['😊', 4]], hacer(s) { aplicarFx(s, [['😊', 4]]); s.palomaSuerte = true; return 'Te convences de que es una señal. Esta semana te sientes imparable.'; } },
@@ -2082,7 +2133,7 @@ function cambiarInteres(s, delta) {
 }
 function elegirSuceso(s) {
   const esc = s.deporte === 'escalada', fase = esc ? ({ rocodromo: 'barrio', escalador: 'club' }[s.fase] || s.fase) : s.fase;
-  const ok = Object.entries(SUCESOS).filter(([id, e]) => (e.dep ? e.dep === (s.deporte || 'futbol') : !(esc && NO_ESCALADA.includes(id))) && e.fases.includes(fase) && (!e.neg || s.negocios.length) && (!e.cond || e.cond(s)));
+  const ok = Object.entries(SUCESOS).filter(([id, e]) => !e.capitulo && (e.dep ? e.dep === (s.deporte || 'futbol') : !(esc && NO_ESCALADA.includes(id))) && e.fases.includes(fase) && (!e.neg || s.negocios.length) && (!e.cond || e.cond(s)));
   if (!ok.length) return null;
   const tot = ok.reduce((a, [, e]) => a + (e.peso || 1), 0);
   let u = rnd(s) * tot;
@@ -2782,6 +2833,7 @@ const LOGROS = [
   ['quiebra', '📉', 'Quiebra… y vuelta a empezar', s => (s.quiebras || 0) > 0, null, true],
   ['biografia', '📖', 'Publicar tu biografía', s => !!s.libroPublicado],
   ['retos10', '🔥', 'Cumplir 10 retos', s => !!s.retos && s.retos.completos >= 10],
+  ['rivales', '🤝', 'Rivales para siempre: acabar siendo amigo de tu rival', s => !!s.pj && s.pj.rival.amigo],
   ['palomita', '🕊️', 'Elegido por una paloma', s => !!s.palomaSuerte, null, true],
   ['hattrick', '🎩', 'Hat-trick: 3 goles en un partido', s => (s.hattrick || 0) > 0, 'futbol', true],
 ];
@@ -4738,7 +4790,7 @@ function hojaRelaciones() {
     <div class="chips" style="margin-top:8px">${interaccionesDe(r).map(([k, x]) => `<button class="btn ${k === 'romper' || k === 'despedir' ? 'r' : k === 'tenerHijo' ? 'g' : 'w'}" style="min-height:38px;padding:6px 10px;font-size:13px" data-act="rel" data-id="${r.id}" data-v="${k}" ${r.semana === s.semana || (k === 'tenerHijo' && bh) ? 'disabled' : ''}>${x.ic} ${x.n}</button>`).join('')}</div>
     ${r.tipo === 'pareja' && bh ? `<p class="lock">👶 ${esc(bh)}</p>` : ''}
     ${r.semana === s.semana ? '<p class="lock">Ya habéis estado juntos esta semana.</p>' : ''}</div>`).join('');
-  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="avatar">🧍 Personaje y tienda</button><button data-act="hoja" data-v="mejoras">🛒 Mejoras</button><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div><div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
+  return hoja('🧑‍🤝‍🧑 Vida', `<div class="enlaces"><button data-act="hoja" data-v="avatar">🧍 Personaje y tienda</button><button data-act="hoja" data-v="mejoras">🛒 Mejoras</button><button data-act="hoja" data-v="actividades">🎯 Actividades</button><button data-act="hoja" data-v="diario">📓 Partes</button><button data-act="hoja" data-v="pantallas">🎮 Pantallas</button><button data-act="hoja" data-v="logros">🏅 Logros</button></div>${htmlPersonajes(s)}<div class="sec">Tu gente</div>${s.embarazo ? `<div class="card">🤰 ¡Vais a tener un bebé! Nacerá en ${s.embarazo} ${s.embarazo === 1 ? 'semana' : 'semanas'}.</div>` : ''}<p class="small">Hijos: ${cr(CFG.hijos.costes[0][1])}/sem hasta los 5 años y ${cr(CFG.hijos.costes[1][1])}/sem hasta los 17 (+${cr(CFG.hijos.privado)} con colegio privado). Suben tu felicidad si os lleváis bien. </p><p class="small">Tus relaciones bajan un poco cada semana si no las cuidas, y su media sube o baja tu felicidad. Una interacción por persona y semana: pasar tiempo (+8, ⚡ −5), regalo (+12, −60 €), llamar (+4).</p>${h}
     ${rel(s, 'pareja') ? '' : '<p class="note">💘 Sin pareja. Quizá conozcas a alguien…</p>'}${rel(s, 'agente') ? '' : `<p class="note">🕴️ Con reputación ${CFG.agente.repMin} o más, algún representante se fijará en ti.</p>`}`);
 }
 
@@ -5385,6 +5437,84 @@ function hojaRetos() {
     <p class="small">Retos cumplidos en toda tu vida: <b>${X.completos || 0}</b>.</p>`);
 }
 
+/* =====================================================================
+   20. PERSONAJES QUE VUELVEN: tu rival, tu mentor y una periodista.
+   Su historia avanza por capítulos (imprevistos con «capitulo: true», que nunca salen al azar).
+   ===================================================================== */
+function crearPersonajes(s) {
+  const esc = s.deporte === 'escalada';
+  return {
+    rival: { nombre: azar(s, CFG.nombres.filter(n => n !== s.nombre)), nivel: s.p.nivel + 3, rep: s.p.rep + 4, clubId: null, año: null, equipo: esc ? 'Club Vertical de la ciudad vecina' : null, goles: 0, podios: 0, duelos: [0, 0], amigo: false, lesion: 0 },
+    mentor: esc ? { nombre: 'Lola', rol: 'la entrenadora del rocódromo' } : { nombre: 'Paco', rol: 'el míster del barrio' },
+    periodista: { nombre: 'Marta Ríos', medio: 'Radio Patio' },
+    caps: {},
+  };
+}
+function pjs(s) { if (!s.pj) s.pj = crearPersonajes(s); return s.pj; }
+const RIV = s => pjs(s).rival, MEN = s => pjs(s).mentor, PER = s => pjs(s).periodista;
+function capitulo(s, R, id) {
+  const P = pjs(s);
+  if (P.caps[id]) return;
+  P.caps[id] = s.semana;
+  encolar(s, { tipo: 'suceso', id, data: {} });
+}
+// El rival avanza a la vez que tú (un poco por delante, para picarte)
+function semanaPersonajes(s, R) {
+  const P = pjs(s), r = P.rival, esc = s.deporte === 'escalada';
+  if (r.lesion > 0) r.lesion--;
+  else { r.nivel = r1(clamp(r.nivel + clamp((s.p.nivel + 2 - r.nivel) * 0.08 + (rnd(s) - 0.5) * 0.6, -1, 1.2), 0, CFG.nivelMax)); r.rep = clamp(Math.round(r.rep + (s.p.rep + 3 - r.rep) * 0.06), 0, 100); }
+  // Fútbol: el rival juega en un club una división por encima de la tuya
+  if (!esc && s.fase === 'club' && s.contrato && s.temporada) {
+    const mia = s.mundo.de[s.contrato.clubId], [pais, t] = mia.split('-'), arriba = `${pais}-${Math.max(1, +t - 1)}`;
+    if (!r.clubId || r.año !== s.temporada.año) {
+      const antes = r.clubId, liga = !r.clubId || r.nivel >= s.p.nivel ? arriba : mia, l = s.mundo.ligas[liga].filter(id => id !== s.contrato.clubId);
+      r.clubId = azar(s, l); r.año = s.temporada.año;
+      if (antes && antes !== r.clubId) R.opo.push(['📰', `${PER(s).medio}: «${r.nombre} ficha por el ${club(s, r.clubId).nombre} (${nombreLiga(s.mundo.de[r.clubId])})».`]);
+    }
+    if (!r.lesion && rnd(s) < 0.3) r.goles++;
+    const Pt = R.partido;
+    if (Pt && Pt.rivalId === r.clubId && Pt.rol !== 'lesionado') {
+      const gano = Pt.resultado === 'victoria', pierdo = Pt.resultado === 'derrota';
+      r.duelos[gano ? 0 : pierdo ? 1 : 0] += gano || pierdo ? 1 : 0;
+      if (gano) { s.p.rep = clamp(s.p.rep + 2, 0, 100); s.p.fel = clamp(s.p.fel + 3, 0, 100); }
+      R.opo.push(['😤', `Duelo contra ${r.nombre}: ${gano ? '¡le gano! Hoy no ha dicho ni mu (+2 de fama)' : pierdo ? 'gana él y me lo recuerda con un emoji' : 'empate; nos miramos mal todo el partido'}. Duelos: ${r.duelos[0]}-${r.duelos[1]}.`]);
+    }
+  }
+  // Escalada: el rival compite en las mismas pruebas que tú
+  if (esc && R.comp && !r.lesion) {
+    const c = R.comp, pos = clamp(Math.round(c.pos + (r.nivel - s.p.nivel) * -0.8 + gauss(s) * 4), 1, c.N);
+    if (pos <= 3) r.podios++;
+    const gano = c.pos < pos;
+    r.duelos[gano ? 0 : 1]++;
+    if (gano) s.p.rep = clamp(s.p.rep + 1, 0, 100);
+    R.opo.push(['😤', `${r.nombre} queda ${pos}º. ${gano ? 'Le gano 😏' : 'Me gana… esta vez'}. Duelos: ${r.duelos[0]}-${r.duelos[1]}.`]);
+  }
+  // Capítulos
+  const C = P.caps;
+  if (!CFG.personajes.activos) return;
+  if (!C.mentorConsejo && s.semana >= 1) capitulo(s, R, 'mentorConsejo');
+  else if (!C.rivalPresenta && s.semana >= 2 && ['barrio', 'prep', 'rocodromo'].includes(s.fase)) capitulo(s, R, 'rivalPresenta');
+  else if (!C.rivalFicha && ((!esc && s.fase === 'club' && r.clubId) || (esc && s.fase === 'escalador'))) capitulo(s, R, 'rivalFicha');
+  else if (!C.perioEntrevista && s.p.rep >= 30 && ['club', 'escalador'].includes(s.fase)) capitulo(s, R, 'perioEntrevista');
+  else if (!C.mentorLesion && s.lesion >= 3) capitulo(s, R, 'mentorLesion');
+  else if (s.p.fel < 30 && s.semana - (C.mentorAnimo || -99) >= 18) { C.mentorAnimo = 0; delete C.mentorAnimo; capitulo(s, R, 'mentorAnimo'); }
+  else if (!C.rivalLesion && s.edad >= 23 && ['club', 'escalador'].includes(s.fase) && rnd(s) < 0.03) { r.lesion = 10; capitulo(s, R, 'rivalLesion'); }
+  else if (!C.perioTele && s.p.rep >= 60 && ['club', 'escalador'].includes(s.fase)) capitulo(s, R, 'perioTele');
+  else if (!C.perioExclusiva && s.p.rep >= 45 && ['club', 'escalador'].includes(s.fase) && rnd(s) < 0.03) capitulo(s, R, 'perioExclusiva');
+  else if (!C.rivalAdios && s.fase === 'retirado') capitulo(s, R, 'rivalAdios');
+  else if (!C.mentorFinal && s.fase === 'retirado' && C.rivalAdios) capitulo(s, R, 'mentorFinal');
+}
+// Vida → Tu gente del deporte
+function htmlPersonajes(s) {
+  const P = pjs(s), r = P.rival, escal = s.deporte === 'escalada';
+  const donde = escal ? r.equipo : r.clubId ? `${club(s, r.clubId).nombre} (${nombreLiga(s.mundo.de[r.clubId])})` : 'en el barrio de al lado';
+  return `<div class="sec">🎭 Tu gente del deporte</div><div class="card lista">
+    <div class="row"><div class="ic">${r.amigo ? '🤝' : '😤'}</div><div class="tx"><b>${esc(r.nombre)} · ${r.amigo ? 'tu rival… y amigo' : 'tu rival'}</b><span>${esc(donde)} · nivel ${nf(r.nivel)} (tú ${nf(s.p.nivel)}) · fama ${r.rep}${r.lesion ? ' · 🤕 lesionado' : ''}</span><span>${escal ? `Podios: ${r.podios}` : `Goles: ${r.goles}`} · duelos ${r.duelos[0]}-${r.duelos[1]}</span></div></div>
+    <div class="row"><div class="ic">🧓</div><div class="tx"><b>${esc(P.mentor.nombre)} · tu mentor${escal ? 'a' : ''}</b><span>${esc(P.mentor.rol[0].toUpperCase() + P.mentor.rol.slice(1))}. Aparece cuando más lo necesitas.</span></div></div>
+    <div class="row"><div class="ic">🎙️</div><div class="tx"><b>${esc(P.periodista.nombre)} · ${esc(P.periodista.medio)}</b><span>Sigue tu carrera desde el principio. Cuidado con lo que le cuentas.</span></div></div></div>`;
+}
+
+
 function render() {
   if (!S || silencio) return;
   syncEsc(S);
@@ -5480,7 +5610,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, JUGADAS, probJugada: (ev, o) => probJugada(S, ev, o), RETOS, nuevosRetos: () => nuevosRetos(S, null), opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, JUGADAS, probJugada: (ev, o) => probJugada(S, ev, o), RETOS, nuevosRetos: () => nuevosRetos(S, null), pjs: () => pjs(S), opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,
