@@ -2984,9 +2984,11 @@ function semanaRetirado(s, R) {
   s.semanasAño += 1;
   if (s.semanasAño >= CFG.hipoteca.semanasAño) { s.semanasAño = 0; cumpleaños(s, R); R.opo.push(['🎂', `Cumplo ${s.edad} años.`]); }
   // El mundo sigue: se juega la liga de tu club (o la última en la que jugaste)
+  // Si te retiraste justo al acabar una temporada, primero empieza la siguiente
+  if (s.temporada && s.temporada.jornada >= CFG.temporada.jornadas) iniciarTemporada(s, s.clubes.length ? s.mundo.de[s.clubes[0].clubId] : s.temporada.liga, 0, s.temporada.año + 1);
   const T = s.temporada;
   if (T) {
-    for (const [h, a] of T.cal[T.jornada]) simPartido(s, T, h, a);
+    for (const [h, a] of T.cal[T.jornada] || []) simPartido(s, T, h, a);
     T.jornada += 1;
     if (T.jornada >= CFG.temporada.jornadas) {
       actualizarMundo(s, T.liga, clasificacion(T));
