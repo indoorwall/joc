@@ -127,6 +127,7 @@
   .link { background: none; border: 0; padding: 0; color: var(--acc); font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
   .carta { background: #fffdf3; color: #2a2d34; border: 2px dashed #d9cfa8; text-align: left; font-size: 14px; }
   .carta p { margin: 6px 0; }
+  textarea.codigo { width: 100%; min-height: 70px; margin: 8px 0; border-radius: 12px; border: 2px solid var(--line); padding: 8px; font-size: 11px; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
   .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 68px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -492,7 +493,12 @@ const CFG = {
       alquiler: 1200, fijos: 900, demandaBase: 120, repSens: 0.006, costePct: 0.45, empleadosMax: 8, costeContratar: 300,
       precios: P3(60, 90, 140), sueldos: S2(450, 60, 520, 70) },
   },
-  negocioComun: { famaInicial: 40, colasFama: -2, impagoFama: -5, traspaso: 1000, visitaFama: 4, cursoDemanda: 0.05, cursosMax: 3 },
+  negocioComun: { famaInicial: 40, colasFama: -2, impagoFama: -5, traspaso: 1000, visitaFama: 4, cursoDemanda: 0.05, cursosMax: 3,
+    // Concurso: si la caja sigue en negativo estas semanas, el negocio (o el club) cierra y se liquida
+    // por este porcentaje de su valor; como dueño, la deuda que quede la pagas tú.
+    semanasConcurso: 6, liquidacion: 0.5,
+    // Gerente: ajusta la plantilla a la demanda cada semana y evita precios que hunden la fama. Cobra un % de los ingresos.
+    gerente: { pct: 0.07, min: 120 } },
   // Qué se desbloquea en cada pantalla (además de los negocios)
   desbloqueos: { coches: 4, inmuebles: 6, hijos: 7, clubes: 9 },
 
@@ -552,6 +558,9 @@ const CFG = {
   // Números rojos: el banco manda una carta y te da un plazo (en semanas de juego). Si sigues en
   // negativo, cobra intereses cada semana y embarga tus bienes hasta cubrir la deuda (venta forzosa).
   banco: { plazo: 1, interes: 0.02, interesMin: 20, ventaForzosa: 0.7,
+    // Menores de edadPadres: el banco no actúa, la deuda la pagan tus padres (y se enfadan).
+    // Por debajo de deudaMinima solo cobra una comisión fija cada semana: ni embargo ni quiebra.
+    edadPadres: 18, enfadoPadres: 8, deudaMinima: 500, comision: 15,
     // Sin nada que embargar: puedes declararte en quiebra; si no, el banco lo hace por ti a las 4 semanas.
     // La quiebra borra la deuda, pero cuesta fama y ánimo, se van tus marcas y tu equipo, y el banco no te da hipotecas en 2 años.
     semanasQuiebra: 4, quiebraFama: 15, quiebraAnimo: 25, vetoSemanas: 36 },
@@ -1381,6 +1390,7 @@ function avanzarSemana() {
   semanaInmuebles(s, R);
   semanaCoches(s, R);
   semanaClubes(s, R);
+  concursos(s, R);
   semanaVida(s, R);
   procesarAgenda(s, R);
   tickMods(s, R);
@@ -2041,6 +2051,14 @@ function elegirSuceso(s) {
   return { id, data: e.prep ? e.prep(s) : {} };
 }
 const textoSuceso = (s, e, d, k) => typeof e[k] === 'function' ? e[k](s, d) : e[k];
+// Lo que cuesta una opción de un imprevisto (los € negativos de sus efectos)
+function costeOpcion(s, o, d) { return o.fx(s, d).reduce((a, [ic, v]) => a + (ic === '€' && typeof v === 'number' && v < 0 ? -v : 0), 0); }
+// Una opción que no puedes pagar no se puede elegir (si ninguna se puede pagar, queda la más barata)
+function opcionPosible(s, e, k, d) {
+  const costes = e.ops.map(o => costeOpcion(s, o, d)), c = costes[k];
+  if (c <= s.p.dinero) return true;
+  return !costes.some(x => x <= s.p.dinero) && c === Math.min(...costes);
+}
 
 /* =====================================================================
    9. EVENTOS (decisiones que llegan en una semana)
@@ -2088,7 +2106,7 @@ function resolver(opcion) {
     } else return false;
   } else if (ev.tipo === 'suceso') {
     const e = SUCESOS[ev.id], op = e && e.ops[Number(opcion)];
-    if (!op) return false;
+    if (!op || !opcionPosible(s, e, Number(opcion), ev.data || {})) return false;
     msg = op.hacer ? op.hacer(s, ev.data || {}) : (aplicarFx(s, op.fx(s, ev.data || {})), op.txt);
     msg = `${textoSuceso(s, e, ev.data || {}, 't')} → ${op.n}. ${msg}`;
     ic = e.ic;
@@ -2105,7 +2123,7 @@ function resolver(opcion) {
     if (opcion === 'quiebra') { if (s.p.dinero < 0) quiebra(s, false, null); }
     else if (['seguir', 'ok', '0'].includes(opcion)) { msg = 'Intento pagar la deuda sin declararme en quiebra.'; ic = '💪'; }
     else return false;
-  } else if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo' || ev.tipo === 'quiebraForzada') {
+  } else if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo' || ev.tipo === 'quiebraForzada' || ev.tipo === 'concurso') {
     if (opcion === 'empresa') s.hoja = 'bienes';
     msg = ''; // ya está en el diario
   } else if (ev.tipo === 'fin' || ev.tipo === 'pantalla' || ev.tipo === 'retiro') {
@@ -2235,8 +2253,30 @@ function venderNegocio(tipo) {
   guardar(); render();
   return true;
 }
+// Plantilla que más beneficio da con la demanda prevista (la usa el gerente)
+function plantillaOptima(s, n) {
+  const T = CFG.negocios[n.tipo], d = demandaNegocio(s, n), orig = n.empleados;
+  let best = orig, bv = -1e18;
+  for (let k = 1; k <= T.empleadosMax; k++) {
+    n.empleados = k;
+    const cap = capacidadNegocio(n), cl = Math.min(d, cap), ef = efectosNegocio(n), pr = T.precios[n.precio].precio * ef.precioF;
+    const v = cl * (pr + ef.extra) - k * (T.sueldos[n.sueldo].coste + ef.sueldo) - (T.costePct ? cl * pr * T.costePct : cl * T.costeCliente) * ef.costeF - Math.max(0, d - cl) * pr * 0.3;
+    if (v > bv) { bv = v; best = k; }
+  }
+  n.empleados = orig;
+  return best;
+}
+function gerenteNegocio(s, R, n) {
+  const T = CFG.negocios[n.tipo], k = plantillaOptima(s, n), cambios = [];
+  if (k > n.empleados) { const nuevos = k - n.empleados; n.caja -= nuevos * T.costeContratar; cambios.push(`contrata ${nuevos}`); }
+  if (k < n.empleados) cambios.push(`deja ${n.empleados - k} ${n.empleados - k === 1 ? 'puesto' : 'puestos'} sin cubrir`);
+  n.empleados = k;
+  if (n.precio === 'premium' && n.fama < T.precios.premium.famaSinPenal) { n.precio = 'normal'; cambios.push('baja el precio a normal'); }
+  if (cambios.length) R.neg.push([`👔 Gerente de tu ${T.n.toLowerCase()}`, cambios.join(', '), 'El gerente ajusta la plantilla a la demanda y no usa precios que hunden la fama.']);
+}
 function semanaNegocio(s, R, n) {
   const T = CFG.negocios[n.tipo], C = CFG.negocioComun;
+  if (n.gerente) gerenteNegocio(s, R, n);
   const pr = T.precios[n.precio], su = T.sueldos[n.sueldo];
   const famaAntes = n.fama, fm = factorModsNegocio(s, n);
   const demanda = Math.round(demandaNegocio(s, n) * (0.9 + rnd(s) * 0.2));
@@ -2245,7 +2285,8 @@ function semanaNegocio(s, R, n) {
   const ingresos = Math.round(venta + clientes * ef.extra), sueldos = Math.round(n.empleados * (su.coste + ef.sueldo));
   const productos = Math.round((T.costePct ? venta * T.costePct : clientes * T.costeCliente) * ef.costeF);
   const fijos = T.fijos + ef.fijos;
-  const gastos = T.alquiler + fijos + sueldos + productos, resultado = ingresos - gastos;
+  const gerente = n.gerente ? Math.max(C.gerente.min, Math.round(ingresos * C.gerente.pct)) : 0;
+  const gastos = T.alquiler + fijos + sueldos + productos + gerente, resultado = ingresos - gastos;
   n.caja += resultado; n.semanas += 1;
   s.acum.ingresosNeg += ingresos; s.acum.gastosNeg += gastos;
   const fam = [];
@@ -2259,11 +2300,30 @@ function semanaNegocio(s, R, n) {
   for (const [d] of fam) n.fama += d;
   n.fama = r1(clamp(n.fama, 0, 100));
   n.temp = (n.temp || []).map(t => ({ ...t, sem: t.sem - 1 })).filter(t => t.sem > 0);
-  n.ultimo = { demanda, cap, clientes, perdidos, ingresos, sueldos, productos, alquiler: T.alquiler, fijos, gastos, resultado, famaAntes, fama: n.fama, fam };
+  n.ultimo = { demanda, cap, clientes, perdidos, ingresos, sueldos, productos, alquiler: T.alquiler, fijos, gerente, gastos, resultado, famaAntes, fama: n.fama, fam };
+  n.semNeg = n.caja < 0 ? (n.semNeg || 0) + 1 : 0;
+  n.semPerd = resultado < 0 ? (n.semPerd || 0) + 1 : 0;
   R.negocios.push([n.tipo, resultado]);
   R.neg.push([`${T.ic} ${T.n}: ${resultado >= 0 ? '+' : ''}${cr(resultado)}`, `${clientes} de ${demanda} ${T.unidad}`,
     `Demanda = ${T.demandaBase} × precio ${pr.nombre.toLowerCase()} ${nf(pr.factor)} × (0,2 + fama ${famaAntes}/80) × (1 + reputación ${s.p.rep} × ${nf3(T.repSens)})${factorCursos(s) !== 1 ? ` × ${nf(factorCursos(s))} (cursos)` : ''}${fm !== 1 ? ` × ${nf(fm)} (competencia)` : ''}${ef.dem !== 1 ? ` × ${nf(ef.dem)} (tus decisiones)` : ''} ± 10 %. Capacidad ${cap}. Precio ${nf(precio)} €${ef.extra ? ` + ${nf(ef.extra)} € de margen extra` : ''}. Ingresos ${cr(ingresos)} − alquiler ${cr(T.alquiler)} − suministros y seguros ${cr(fijos)} − sueldos ${cr(sueldos)} − ${T.costePct ? `compras (${Math.round(T.costePct * 100)} % de lo vendido)` : 'género'} ${cr(productos)}. Fama ${nf(famaAntes)} → ${nf(n.fama)} (${fam.map(([d, t]) => `${sg(d)} ${t}`).join(', ')}).`]);
-  if (n.caja < 0) R.opo.push(['⚠️', `La caja de tu ${T.n.toLowerCase()} está en negativo: pasa dinero o cambia precios/personal.`]);
+  if (n.semPerd && n.semPerd % 3 === 0) R.opo.push(['📉', `Mi ${T.n.toLowerCase()} lleva ${n.semPerd} semanas perdiendo dinero (${cr(resultado)} la última). Toca cambiar precio o personal, o poner un gerente.`]);
+  if (n.caja < 0) { const q = C.semanasConcurso - n.semNeg; R.opo.push(['⚠️', q > 0 ? `La caja de mi ${T.n.toLowerCase()} está en negativo (${cr(n.caja)}). Si sigue así ${q} ${q === 1 ? 'semana' : 'semanas'} más, entra en concurso y cierra.` : `La caja de mi ${T.n.toLowerCase()} sigue en negativo: entra en concurso.`]); }
+}
+// Concurso de acreedores: negocios y clubes con la caja en negativo demasiadas semanas
+function concursos(s, R) {
+  const C = CFG.negocioComun;
+  for (const n of s.negocios.filter(x => (x.semNeg || 0) >= C.semanasConcurso)) {
+    const T = CFG.negocios[n.tipo], liq = Math.round(valorNegocio(n) * C.liquidacion), neto = Math.round(n.caja + liq);
+    s.p.dinero += neto; s.negocios = s.negocios.filter(x => x !== n);
+    R.opo.push(['⚖️', `Concurso: mi ${T.n.toLowerCase()} cierra. Se liquida por ${cr(liq)} y, con la caja (${cr(n.caja)}), ${neto >= 0 ? `me quedan ${cr(neto)}` : `me toca pagar ${cr(-neto)}`}.`]);
+    encolar(s, { tipo: 'concurso', ic: T.ic, nombre: `tu ${T.n.toLowerCase()}`, caja: Math.round(n.caja), liq, neto });
+  }
+  for (const o of s.clubes.filter(x => (x.semNeg || 0) >= C.semanasConcurso)) {
+    const c = club(s, o.clubId), liq = Math.round(valorClub(s, o.clubId) * C.liquidacion), neto = Math.round(o.caja + liq);
+    s.p.dinero += neto; s.clubes = s.clubes.filter(x => x !== o);
+    R.opo.push(['⚖️', `Concurso: el ${c.nombre} pasa a otras manos por ${cr(liq)} y, con la caja (${cr(o.caja)}), ${neto >= 0 ? `me quedan ${cr(neto)}` : `me toca pagar ${cr(-neto)}`}.`]);
+    encolar(s, { tipo: 'concurso', ic: '🏟️', nombre: `el ${c.nombre}`, caja: Math.round(o.caja), liq, neto });
+  }
 }
 
 /* ---- Inmuebles ---- */
@@ -2442,7 +2502,8 @@ function semanaClubes(s, R) {
     o.ultimo = { ingresos, gastos, resultado: ingresos - gastos, valor: v };
     R.neg.push([`🏟️ ${c.nombre}: ${ingresos - gastos >= 0 ? '+' : ''}${cr(ingresos - gastos)}`, `valor ${cr(v)}`,
       `Ingresos = valor × ${nf3(K.ingresos * 100)} % × entradas ${E.n.toLowerCase()} (${nf(E.ingresos)}) ± 10 %. Gastos = valor × ${nf3(K.gastos * 100)} % + inversión ${I.n.toLowerCase()} (${nf3(I.coste * 100)} %). Valor = ${cr(K.base)} × e^((fuerza ${nf(c.fuerza)} − 45) / ${K.escala}).`]);
-    if (o.caja < 0) R.opo.push(['⚠️', `La caja del ${c.nombre} está en negativo: pasa dinero o reduce la inversión.`]);
+    o.semNeg = o.caja < 0 ? (o.semNeg || 0) + 1 : 0;
+    if (o.caja < 0) { const q = CFG.negocioComun.semanasConcurso - o.semNeg; R.opo.push(['⚠️', q > 0 ? `La caja del ${c.nombre} está en negativo (${cr(o.caja)}). Si sigue así ${q} ${q === 1 ? 'semana' : 'semanas'} más, entra en concurso.` : `La caja del ${c.nombre} sigue en negativo: entra en concurso.`]); }
   }
 }
 
@@ -2849,13 +2910,13 @@ const PANTALLAS = [
           ['Llega a 60.000 € de patrimonio', s => patrimonio(s) / 60000]] },
   { n: 'Casa propia', ic: '🏠', premio: [['€', 10000]], desbloquea: 'Tienda de deportes, restaurante, rocódromo de bloque e hijos',
     obj: [['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0],
-          ['Ten pareja', s => rel(s, 'pareja') ? 1 : 0],
+          ['Ten pareja o tu propio coche', s => rel(s, 'pareja') || s.coches.length ? 1 : 0],
           ['Ten 2 negocios', s => s.negocios.length / 2]] },
   { n: 'La élite', ic: '🌍', premio: [['€', 25000]], desbloquea: 'Gimnasio, supermercado y marca de presas',
     obj: [['Juega en 1ª o 2ª categoría (o ten 3 negocios)', s => (s.mejorTier || 9) <= 2 || s.negocios.length >= 3 ? 1 : Math.max(s.negocios.length / 3, (6 - (s.mejorTier || 6)) / 4)],
           ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
   { n: 'Familia y empresa', ic: '👨‍👩‍👧', premio: [['€', 50000]], desbloquea: 'Hotel y compra de clubes de fútbol',
-    obj: [['Ten un hijo o una hija', s => s.rel.some(r => r.tipo === 'hijo') ? 1 : s.embarazo ? 0.5 : 0],
+    obj: [['Ten un hijo o una hija, o 2 propiedades', s => s.rel.some(r => r.tipo === 'hijo') || s.inmuebles.length >= 2 ? 1 : s.embarazo ? 0.5 : s.inmuebles.length / 2],
           ['Ten 4 negocios', s => s.negocios.length / 4],
           ['Ten una propiedad alquilada', s => s.inmuebles.some(i => i.inquilino) ? 1 : 0]] },
   { n: 'Colgar las botas', ic: '👴', premio: [['€', 100000]], desbloquea: 'La última pantalla',
@@ -3856,10 +3917,10 @@ const PANTALLAS_ESC = [
     obj: [['Escala 6b en el rocódromo', s => idxVia(nivelMod(s, 'dificultad')) / 4],
           ['Entra en un equipo de competición', s => s.fase !== 'rocodromo' ? 1 : s.p.rep / CFG.escalada.repEquipo * 0.9]] },
   { n: 'El equipo de competición', ic: '🏅', premio: [['€', 300]], desbloquea: 'Nuevos retos: Copa y Campeonato de España',
-    obj: [['Compite en 3 pruebas', s => s.esc.comps / 3], [`Encadena ${textoGrado(8)} en roca`, s => Math.max(0, maxRoca(s) + 1) / 9]] },
+    obj: [['Compite en 3 pruebas', s => s.esc.comps / 3], [`Encadena ${textoGrado(8)} en roca o top 20 en una Copa de España`, s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 20 ? 1 : Math.max(0, maxRoca(s) + 1) / 9]] },
   { n: 'Campeonato de España', ic: '🇪🇸', premio: [['€', 500]], desbloquea: 'Coches y furgoneta camper',
     obj: [['Top 10 en una Copa o Campeonato de España', s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 10 ? 1 : 0],
-          [`Encadena ${textoGrado(12)} en roca`, s => Math.max(0, maxRoca(s) + 1) / 13], ['Ahorra 1.500 €', s => s.p.dinero / 1500]] },
+          [`Encadena ${textoGrado(12)} en roca o top 5 en España`, s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 5 ? 1 : Math.max(0, maxRoca(s) + 1) / 13], ['Ahorra 1.500 €', s => s.p.dinero / 1500]] },
   { n: 'Primer patrocinador', ic: '💼', premio: [['€', 5000]], desbloquea: 'Escuela de escalada (tu primer negocio)',
     obj: [['Consigue un patrocinador', s => s.patros.length || s.fase === 'retirado' ? 1 : 0],
           [`Podio en España o ${textoGrado(14)} en roca`, s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 3 ? 1 : Math.max(0, maxRoca(s) + 1) / 15]] },
@@ -3871,7 +3932,7 @@ const PANTALLAS_ESC = [
           ['Llega a 80.000 € de patrimonio', s => patrimonio(s) / 80000]] },
   { n: 'Élite mundial', ic: '⭐', premio: [['€', 25000]], desbloquea: 'Hijos, tienda de deportes y restaurante',
     obj: [[`Final de Copa del Mundo, ${textoGrado(18)} en roca o 3 negocios`, s => (s.esc.mejor.mundo || 99) <= 8 || s.negocios.length >= 3 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 19, s.negocios.length / 3)],
-          ['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0], ['Ten pareja', s => rel(s, 'pareja') ? 1 : 0]] },
+          ['Vive en una casa tuya (vale con hipoteca)', s => vivienda(s) ? 1 : 0], ['Ten pareja o tu propio coche', s => rel(s, 'pareja') || s.coches.length ? 1 : 0]] },
   { n: 'Sueño olímpico', ic: '🏅', premio: [['€', 50000]], desbloquea: 'Marca de presas, gimnasio y supermercado',
     obj: [[`Clasifícate para unos Juegos, ${textoGrado(20)} en roca o 4 negocios`, s => s.esc.olimpico || s.negocios.length >= 4 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 21, s.negocios.length / 4)],
           ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
@@ -4152,6 +4213,12 @@ function entradaInicial(s) {
 /* ---- Números rojos: carta del banco, intereses y embargo ---- */
 function semanaBanco(s, R) {
   const K = CFG.banco, B = s.banco;
+  if (s.p.dinero < 0 && s.edad < K.edadPadres) {
+    const d = -s.p.dinero; s.p.dinero = 0; s.banco = null;
+    cambiarRel(s, 'madre', -K.enfadoPadres); cambiarRel(s, 'padre', -K.enfadoPadres);
+    R.opo.push(['👪', `Mis padres pagan mi deuda de ${cr(d)}… y me echan una buena bronca (−${K.enfadoPadres} con mamá y con papá).`]);
+    return;
+  }
   if (s.p.dinero >= 0) { if (B) { s.banco = null; R.opo.push(['✅', 'Salgo de los números rojos: el banco me deja en paz.']); } return; }
   if (!B) {
     s.banco = { carta: s.semana, plazo: s.semana + K.plazo, intereses: 0 };
@@ -4160,6 +4227,12 @@ function semanaBanco(s, R) {
     return;
   }
   if (s.semana < B.plazo) return;
+  if (-s.p.dinero < K.deudaMinima) {
+    s.p.dinero -= K.comision; s.acum.gastosPers += K.comision; B.sinBienes = 0;
+    R.eco.push(['Comisión del banco por números rojos', -K.comision]);
+    R.dep.push(['El banco cobra una comisión', `−${cr(K.comision)}`, `Debes menos de ${cr(K.deudaMinima)}: solo una comisión cada semana. Si la deuda llega a ${cr(K.deudaMinima)}, intereses y embargo.`]);
+    return;
+  }
   const int = Math.max(K.interesMin, Math.round(-s.p.dinero * K.interes));
   s.p.dinero -= int; B.intereses += int; s.acum.gastosPers += int;
   R.eco.push([`Intereses del banco por números rojos (${Math.round(K.interes * 100)} % a la semana)`, -int]);
@@ -4220,6 +4293,9 @@ function embargar(s) {
 }
 function popupBanco(s, ev) {
   const K = CFG.banco;
+  if (ev.tipo === 'concurso') return `<div class="pi">⚖️</div><h2>Concurso de acreedores</h2><p class="pd">La caja de ${esc(ev.nombre)} ha estado en negativo ${CFG.negocioComun.semanasConcurso} semanas seguidas: cierra y se liquida.</p>
+    <div class="card lista"><div class="row"><div class="ic">${ev.ic}</div><div class="tx"><span>Liquidación (el ${Math.round(CFG.negocioComun.liquidacion * 100)} % de lo que valía): +${cr(ev.liq)}</span><span>Deudas de la caja: ${cr(ev.caja)}</span><b class="${ev.neto >= 0 ? 'up' : 'down'}">${ev.neto >= 0 ? `Te quedan ${cr(ev.neto)}` : `Como dueño, pagas ${cr(-ev.neto)}`}</b></div></div></div>
+    <button class="po" data-act="resolver" data-v="ok"><b>Lección aprendida</b></button>`;
   if (ev.tipo === 'quiebra') return `<div class="pi">📉</div><h2>No queda nada que embargar</h2><p class="pd">Debes ${cr(ev.deuda)} y los intereses siguen. Puedes declararte en quiebra (ley de segunda oportunidad) o intentar pagarlo; si en ${K.semanasQuiebra - 1} semanas más sigues debiendo, el banco te declara en quiebra.</p>
     <button class="po" data-act="resolver" data-v="quiebra"><b>📉 Declararme en quiebra</b>${chips([['€', 'Deuda borrada'], ['⭐', -K.quiebraFama], ['😊', -K.quiebraAnimo], ['💔', 'Se van tus marcas y tu equipo'], ['🏦', `Sin hipotecas ${Math.round(K.vetoSemanas / CFG.hipoteca.semanasAño)} años`]])}</button>
     <button class="po" data-act="resolver" data-v="seguir"><b>💪 Intentar pagarlo</b>${chips([['📈', `${Math.round(K.interes * 100)} % de intereses cada semana`], ['⏳', `${K.semanasQuiebra - 1} semanas de margen`]])}</button>`;
@@ -4227,7 +4303,7 @@ function popupBanco(s, ev) {
     <button class="po" data-act="resolver" data-v="ok"><b>Toca levantarse</b></button>`;
   if (ev.tipo === 'cartaBanco') return `<div class="pi">✉️</div><h2>Carta del banco</h2>
     <div class="card carta"><p><i>Estimado/a ${esc(s.nombre)}:</i></p><p>Su cuenta está en <b>números rojos: −${cr(ev.deuda)}</b>.</p>
-      <p>Tiene <b>hasta el final de la semana que viene</b> para dejarla en positivo. Si no, le cobraremos <b>intereses del ${Math.round(K.interes * 100)} % cada semana</b> y <b>embargaremos sus bienes</b>: primero el dinero de las cajas de sus negocios, después coches, casas, negocios y clubes, que se subastan por el ${Math.round(K.ventaForzosa * 100)} % de lo que valen.</p>
+      <p>Tiene <b>hasta el final de la semana que viene</b> para dejarla en positivo. Si debe menos de ${cr(K.deudaMinima)}, solo le cobraremos una comisión de ${cr(K.comision)} por semana. Si debe más, le cobraremos <b>intereses del ${Math.round(K.interes * 100)} % cada semana</b> y <b>embargaremos sus bienes</b>: primero el dinero de las cajas de sus negocios, después coches, casas, negocios y clubes, que se subastan por el ${Math.round(K.ventaForzosa * 100)} % de lo que valen.</p>
       <p>Atentamente,<br><b>Banco del Barrio</b></p><p class="small">P. D.: Le deseamos un excelente día. Nos encanta su trabajo.</p></div>
     <p class="small">Puedes pasar dinero de la caja de tus negocios, vender algo en Empresa o trabajar más esta semana.</p>
     <button class="po" data-act="resolver" data-v="empresa"><b>🏢 Ver mis bienes</b></button>
@@ -4549,6 +4625,7 @@ function hojaNegocio(tipo) {
   return hoja(`${T.ic} ${T.n}`, `<div class="card"><div class="row"><div class="ic">${T.ic}</div><div class="tx"><b id="caja" class="${n.caja < 0 ? 'down' : ''}">Caja ${cr(n.caja)}</b><span>Fama ${Math.round(n.fama)}/100 · vale ${cr(valorNegocio(n))}</span></div></div>
       <div class="small" style="margin-top:8px">👥 ${T.unidad[0].toUpperCase() + T.unidad.slice(1)} previstas: ~${dem}</div><div class="pbar"><i style="width:${dem / mx * 100}%;background:var(--purple)"></i></div>
       <div class="small" style="margin-top:6px">${T.icEmp} Capacidad: ${cap}</div><div class="pbar"><i style="width:${cap / mx * 100}%;background:var(--blue)"></i></div>
+      ${n.caja < 0 ? `<p class="small down">⚖️ Caja en negativo ${n.semNeg || 0} ${(n.semNeg || 0) === 1 ? 'semana' : 'semanas'}: a las ${C.semanasConcurso} entra en concurso y cierra. Pasa dinero a la caja o cambia precio y personal.</p>` : ''}
       <p class="small">${dem > cap ? '⚠️ Más demanda que capacidad: perderás clientes y fama.' : dem < cap * 0.6 ? '💸 Sobra personal: pagas sueldos de más.' : '👍 Demanda y capacidad equilibradas.'}</p></div>
     <div class="sec">Precio</div><div class="card"><div class="seg">${Object.entries(T.precios).map(([k, p]) => `<button data-act="neg" data-t="${tipo}" data-c="precio" data-v="${k}" class="${n.precio === k ? 'sel' : ''}">${p.nombre}<br>${cr(p.precio)}</button>`).join('')}</div>
       <p class="small">${n.precio === 'economico' ? 'Muchos clientes y +1 fama/semana, poco margen.' : n.precio === 'normal' ? 'Equilibrado.' : `Pocos clientes y mucho margen; −3 fama/semana mientras la fama sea < ${pr.famaSinPenal}.`}</p></div>
@@ -4558,13 +4635,15 @@ function hojaNegocio(tipo) {
       <p class="small">Contratar: −${cr(T.costeContratar)} de la caja. Despedir: una semana de sueldo.</p>
       <div class="seg">${Object.entries(T.sueldos).map(([k, x]) => `<button data-act="neg" data-t="${tipo}" data-c="sueldo" data-v="${k}" class="${n.sueldo === k ? 'sel' : ''}">Sueldo ${x.nombre.toLowerCase()}<br>${cr(x.coste)}</button>`).join('')}</div>
       <p class="small">Básico: ${T.sueldos.basico.capacidad} por persona y −1 fama/semana. Bueno: ${T.sueldos.bueno.capacidad} por persona y +1 fama/semana.</p></div>
+    <div class="sec">👔 Gerente</div><div class="card"><p class="small">Ajusta la plantilla a la demanda cada semana y no usa precios que hunden la fama. Cobra el ${Math.round(C.gerente.pct * 100)} % de los ingresos (mínimo ${cr(C.gerente.min)}/semana).</p>
+      <button class="btn ${n.gerente ? 'r' : 'g'} full" data-act="gerente" data-v="${tipo}">${n.gerente ? 'Despedir al gerente' : 'Contratar un gerente'}</button></div>
     ${htmlDecisiones(s, n, tipo)}
     <div class="sec">Caja ↔ tu dinero</div><div class="card"><div class="seg">
       <button data-act="traspaso" data-t="${tipo}" data-v="aCaja" ${s.p.dinero >= C.traspaso ? '' : 'disabled'}>👛 → 🏪 ${cr(C.traspaso)}</button>
       <button data-act="traspaso" data-t="${tipo}" data-v="aPersonal" ${n.caja >= C.traspaso ? '' : 'disabled'}>🏪 → 👛 ${cr(C.traspaso)}</button></div></div>
     ${u ? `<div class="sec">Última semana</div><div class="card"><table>
       <tr><td>Ingresos (${u.clientes} ${T.unidad})</td><td class="n up">+${cr(u.ingresos)}</td></tr><tr><td>Alquiler</td><td class="n down">−${cr(u.alquiler)}</td></tr>
-      <tr><td>Suministros y seguros</td><td class="n down">−${cr(u.fijos || 0)}</td></tr><tr><td>Sueldos</td><td class="n down">−${cr(u.sueldos)}</td></tr><tr><td>${T.costePct ? 'Compras' : 'Género y consumo'}</td><td class="n down">−${cr(u.productos)}</td></tr>
+      <tr><td>Suministros y seguros</td><td class="n down">−${cr(u.fijos || 0)}</td></tr>${u.gerente ? `<tr><td>Gerente</td><td class="n down">−${cr(u.gerente)}</td></tr>` : ''}<tr><td>Sueldos</td><td class="n down">−${cr(u.sueldos)}</td></tr><tr><td>${T.costePct ? 'Compras' : 'Género y consumo'}</td><td class="n down">−${cr(u.productos)}</td></tr>
       <tr class="tot"><td>Resultado</td><td class="n ${u.resultado >= 0 ? 'up' : 'down'}">${u.resultado >= 0 ? '+' : ''}${cr(u.resultado)}</td></tr></table></div>` : ''}
     <button class="btn r full" data-act="venderNeg" data-v="${tipo}">Vender por ${cr(valorNegocio(n))} + caja</button>`);
 }
@@ -4655,8 +4734,38 @@ function accionPrueba(v) {
   s.aviso = `🧪 ${txt}`;
   guardar(); render();
 }
+// Copia de seguridad: la partida en un código de texto que se puede guardar y volver a cargar
+let codigoExport = '';
+function exportarPartida() {
+  codigoExport = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  try { navigator.clipboard.writeText(codigoExport).then(() => { S.aviso = 'Código copiado: guárdalo en una nota.'; render(); }, () => {}); } catch (_) {}
+  render(); return codigoExport;
+}
+function importarPartida(codigo) {
+  const t = (codigo != null ? codigo : ($('codigoImport') || {}).value || '').trim();
+  try {
+    const s = JSON.parse(decodeURIComponent(escape(atob(t))));
+    if (!s || s.v !== 5 || !s.p || !s.mundo) throw new Error('no es una partida');
+    S = migrar(s); S.hoja = null; S.aviso = '¡Partida cargada!'; codigoExport = '';
+    guardar(); render(); return true;
+  } catch (_) { S.aviso = 'Ese código no es una partida válida.'; render(); return false; }
+}
+function ponerGerente(tipo) {
+  const n = negocioDe(S, tipo);
+  if (!n) return false;
+  n.gerente = !n.gerente;
+  anotar(S, '👔', n.gerente ? `Contrato un gerente para mi ${CFG.negocios[tipo].n.toLowerCase()}.` : `Despido al gerente de mi ${CFG.negocios[tipo].n.toLowerCase()}.`);
+  guardar(); render(); return true;
+}
 function hojaAjustes() {
   return hoja('⚙️ Partida', `<div class="card"><p class="small">La partida se guarda sola en este dispositivo y navegador.</p>
+    <div class="sec" style="margin-top:4px">💾 Copia de seguridad</div>
+    <p class="small">En iPhone, Safari puede borrar los datos de una web que no abres en 7 días. Para no perder tu vida: añade el juego a la pantalla de inicio (Compartir → Añadir a pantalla de inicio) o guarda de vez en cuando un código de tu partida en una nota.</p>
+    <button class="btn g full" data-act="exportar">📋 Copiar el código de mi partida</button>
+    ${codigoExport ? `<textarea class="codigo" readonly onclick="this.select()">${codigoExport}</textarea><p class="small">Si no se ha copiado solo, mantén pulsado el texto y cópialo.</p>` : ''}
+    <textarea class="codigo" id="codigoImport" placeholder="Pega aquí un código para cargar esa partida"></textarea>
+    <button class="btn w full" data-act="importar">📥 Cargar partida desde un código</button></div>
+    <div class="card"><p class="small">Empezar de cero borra la partida de este dispositivo.</p>
     <button class="btn r full" data-act="reiniciar" id="btnReiniciar">${confirmarReinicio ? '⚠️ Toca otra vez para borrar la partida' : '🔄 Empezar una nueva vida'}</button>
     ${confirmarReinicio ? '<button class="btn w full" data-act="noReiniciar">Cancelar</button>' : ''}</div>
     ${hojaPruebas()}
@@ -4701,9 +4810,9 @@ function popup() {
   if (ev.tipo === 'suceso') {
     const e = SUCESOS[ev.id], d = ev.data || {};
     return `<div class="pi">${e.ic}</div><h2>${esc(textoSuceso(s, e, d, 't'))}</h2><p class="pd">${esc(textoSuceso(s, e, d, 'd'))}</p>
-      ${e.ops.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${esc(o.n)}</b>${chips(o.fx(s, d))}</button>`).join('')}`;
+      ${e.ops.map((o, i) => { const ok = opcionPosible(s, e, i, d); return `<button class="po" data-act="resolver" data-v="${i}" ${ok ? '' : 'disabled'}><b>${esc(o.n)}</b>${chips(o.fx(s, d))}${ok ? '' : `<span class="lock">🔒 No tienes ${cr(costeOpcion(s, o, d))}</span>`}</button>`; }).join('')}`;
   }
-  if (['cartaBanco', 'embargo', 'quiebra', 'quiebraForzada'].includes(ev.tipo)) return popupBanco(s, ev);
+  if (['cartaBanco', 'embargo', 'quiebra', 'quiebraForzada', 'concurso'].includes(ev.tipo)) return popupBanco(s, ev);
   if (POPUPS_PATRO[ev.tipo]) return popupPatro(s, ev);
   if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
   if (ev.tipo === 'retiro' && ev.deporte === 'escalada') return popupRetiroEsc(s, ev);
@@ -5066,6 +5175,9 @@ document.addEventListener('click', e => {
     case 'look': ponerLook(b.dataset.c, v); break;
     case 'capaLook': S.capaLook = v; render(); break;
     case 'contratar': contratar(id); break;
+    case 'gerente': ponerGerente(v); break;
+    case 'exportar': exportarPartida(); break;
+    case 'importar': importarPartida(); break;
     case 'despedir': despedir(id); break;
     case 'material': comprarMaterial(id); break;
     case 'capricho': usarCapricho(id); break;
@@ -5124,7 +5236,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar, ponerLook, avatarSVG: (L, m) => avatarSVG(S, L, m), precioLook: (c, id) => precioLook(S, itemLook(c, id)), contratar, despedir, comprarMaterial, usarCapricho, efMejoras: () => efMejoras(S), banco: () => S.banco, ofertasPatro: cat => ofertasPatro(S, cat), exportarPartida, importarPartida, ponerGerente, opcionPosible: (id, k) => opcionPosible(S, SUCESOS[id], k, {}), costeViajeZona: id => costeViajeZona(S, ZONAS[id]),
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,

@@ -21,6 +21,8 @@ async function openPage(browser, opts) {
   page.on('pageerror', e => errors.push(String(e)));
   page.on('request', r => requests.push(r.url()));
   await page.goto(FILE);
+  // Como un jugador: si no puede pagar la primera opción de un imprevisto, elige otra
+  await page.evaluate(() => { const r = __P1.resolver; __P1.resolver = op => r(op) || (op === '0' && __P1.S.pendiente && __P1.S.pendiente.tipo === 'suceso' ? r('1') || r('2') || r('3') : false); });
   return { ctx, page, errors, requests };
 }
 const st = page => page.evaluate(() => JSON.parse(JSON.stringify(__P1.S)));
@@ -116,7 +118,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
         else if (t === 'pantalla' || t === 'retiro') { log.pantallas = (log.pantallas || 0) + (t === 'pantalla' ? 1 : 0); await tap(page, '#modal [data-v=ok]'); }
         else {
           const antes = JSON.stringify([s.p, s.mods, s.agenda, s.rel, s.negocios]);
-          await tap(page, '#modal [data-v="0"]');
+          await tap(page, '#modal .po:not([disabled])');
           const d = await st(page);
           if (JSON.stringify([d.p, d.mods, d.agenda, d.rel, d.negocios]) !== antes || d.log[d.log.length - 1].lineas.some(([, x]) => x.includes('→'))) sucesoOk++;
         }
@@ -224,6 +226,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await resolverConToques();
     const antes = await st(page);
     await page.reload();
+    await page.evaluate(() => { const r = __P1.resolver; __P1.resolver = op => r(op) || (op === '0' && __P1.S.pendiente && __P1.S.pendiente.tipo === 'suceso' ? r('1') || r('2') || r('3') : false); });
     const despues = await st(page);
     check('La vida entera se guarda y se recupera al recargar', despues.semana === antes.semana && despues.p.dinero === antes.p.dinero && despues.log.length === antes.log.length && despues.clubes.length === antes.clubes.length && despues.inmuebles.length === antes.inmuebles.length, JSON.stringify([antes.semana, despues.semana, antes.p.dinero, despues.p.dinero, antes.log.length, despues.log.length, despues.clubes.length, despues.inmuebles.length]));
     await tap(page, '[data-act=hoja][data-v=ajustes]');
@@ -990,8 +993,8 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       out.embargo = G.S.pendiente && G.S.pendiente.tipo === 'embargo' && n.caja === 0 && G.S.coches.length === 0 && G.S.p.dinero >= 0 && !G.banco();
       out.casaSigue = G.S.inmuebles.length === 1; limpiar();
       // Si sales a tiempo, no pasa nada
-      G.nueva(82); G.S.p.dinero = -100; G.elegir('descansar'); G.avanzarSemana(); limpiar();
-      G.S.p.dinero = 5000; G.elegir('descansar'); G.avanzarSemana();
+      G.nueva(82); G.S.edad = 30; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal; G.S.p.dinero = -100; G.elegir('rentas'); G.avanzarSemana(); limpiar();
+      G.S.p.dinero = 5000; G.elegir('rentas'); G.avanzarSemana();
       out.aTiempo = !G.banco() && !G.S.ultimo.eco.some(([t]) => t.startsWith('Intereses del banco')) && G.S.ultimo.opo.some(([, t]) => t.includes('Salgo de los números rojos'));
       return out;
     });
@@ -1019,6 +1022,48 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     });
     check('Números rojos: sin nada que embargar puedes declararte en quiebra (deuda borrada, pierdes fama y marcas, sin hipotecas)', qb.quiebra && qb.veto, JSON.stringify(qb));
     check('Números rojos: si no te declaras, el banco te declara en quiebra a las pocas semanas: la deuda nunca crece sin fin', qb.forzada, JSON.stringify(qb));
+    // Fallos corregidos del análisis
+    const fx = await page.evaluate(() => {
+      const G = __P1, out = {}, limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver('ok') || G.resolver('0') || G.resolver('si') || G.resolver('seguir'); };
+      G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0;
+      // Escalada: se puede pasar la pantalla 2 compitiendo, sin ir a la roca
+      G.nueva(91, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar();
+      G.S.pantalla = 1; G.S.esc.comps = 3; G.S.esc.maxVia = -1; G.S.esc.maxBloque = -1; G.S.esc.mejor = { esp: 15 };
+      out.p2Competir = G.progresoObjetivos().every(([, v]) => v >= 1);
+      G.nueva(96, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar();
+      // Imprevistos: lo que no puedes pagar no se puede elegir
+      G.S.p.dinero = 10; G.S.pendiente = { tipo: 'suceso', id: 'taladro', data: {} }; G.render();
+      out.noPagable = !G.resolver('2') && document.querySelector('#evento [data-v="2"]').disabled && G.resolver('0') && G.S.p.dinero === 10;
+      // Menores: la deuda la pagan sus padres
+      G.S.edad = 15; G.S.p.dinero = -300; const m0 = G.S.rel.find(r => r.id === 'madre').v; G.elegir('descansoEsc'); G.avanzarSemana(); limpiar();
+      out.menor = G.S.p.dinero >= 0 && !G.banco() && G.S.rel.find(r => r.id === 'madre').v < m0;
+      // Deuda pequeña: solo comisión, sin embargo ni quiebra
+      G.nueva(92); G.S.edad = 30; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal; G.S.p.dinero = -100;
+      for (let i = 0; i < 8; i++) { G.S.p.dinero = -100; G.elegir('rentas'); G.avanzarSemana(); limpiar(); }
+      out.pequena = !G.S.quiebras && G.S.ultimo.eco.some(([t]) => t.startsWith('Comisión del banco'));
+      // Negocio con la caja en negativo: concurso y cierre
+      G.nueva(93); G.S.edad = 36; G.S.fase = 'retirado'; G.S.ultimoClub = G.S.clubLocal; G.S.pantalla = 9; G.S.p.dinero = 100000; G.comprarNegocio('peluqueria', 6000);
+      const n = G.S.negocios[0]; let concurso = false;
+      for (let i = 0; i < 9 && G.S.negocios.length; i++) { n.caja = -5000; G.elegir('rentas'); G.avanzarSemana(); if (G.S.pendiente && G.S.pendiente.tipo === 'concurso') concurso = true; limpiar(); }
+      out.concurso = concurso && G.S.negocios.length === 0;
+      // Gerente: ajusta la plantilla a la demanda
+      G.S.p.dinero = 100000; G.comprarNegocio('peluqueria', 6000); const n2 = G.S.negocios[0]; n2.empleados = G.CFG.negocios.peluqueria.empleadosMax; n2.caja = 50000;
+      G.ponerGerente('peluqueria'); G.elegir('rentas'); G.avanzarSemana(); limpiar();
+      out.gerente = n2.gerente && n2.empleados < G.CFG.negocios.peluqueria.empleadosMax && n2.ultimo.gerente > 0;
+      // Copia de seguridad: exportar y volver a cargar
+      const codigo = G.exportarPartida(), sem = G.S.semana, din = G.S.p.dinero;
+      G.nueva(94); out.importa = G.importarPartida(codigo) && G.S.semana === sem && G.S.p.dinero === din && !G.importarPartida('basura');
+      // Fútbol: pantallas con alternativa a pareja e hijos
+      G.nueva(95); G.S.pantalla = 5; G.S.coches = [{ id: 'k1', tipo: 'utilitario', valor: 9000 }];
+      out.sinPareja = G.progresoObjetivos().some(([t, v]) => t.includes('coche') && v === 1);
+      return out;
+    });
+    check('Escalada: la pantalla 2 se puede pasar compitiendo, sin ir a la roca', fx.p2Competir, JSON.stringify(fx));
+    check('Imprevistos: las opciones que no puedes pagar no se pueden elegir', fx.noPagable, JSON.stringify(fx));
+    check('Deudas: de menor las pagan tus padres; si son pequeñas, solo comisión (sin quiebra)', fx.menor && fx.pequena, JSON.stringify(fx));
+    check('Negocios: si la caja sigue en negativo, concurso y cierre; el gerente ajusta la plantilla', fx.concurso && fx.gerente, JSON.stringify(fx));
+    check('Copia de seguridad: exportar la partida a un código y volver a cargarla', fx.importa, JSON.stringify(fx));
+    check('Fútbol: las pantallas de vida tienen alternativa (pareja o coche, hijo o propiedades)', fx.sinPareja, JSON.stringify(fx));
 
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
