@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-172 de 172 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+173 de 173 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -551,6 +551,12 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    Bryggeriet) con trucos de street y de bowl como «proyectos»; Copa y Campeonato de España, Pro Tour mundial,
    Equis Games por invitación, Mundiales, Europeos y Juegos; marcas propias (Elemento, Panadero, Santa Crus,
    Vanz, Naik SB, Espitfuego, Trasher, Suprim, Monstruo…); imprevistos, logros, tienda y mejoras propios.
+   **Surf**: shortboard (la modalidad olímpica) y olas grandes; empiezas en la playa del barrio; «Piel» (sol y
+   sal) y «Hombros»; olas reales con su temporada (Mundaka, Rodiles, Pantín, Supertubos, Hossegor, Pipeline,
+   Teahupo'o, Jeffreys Bay, Punta Galea, Belharra, Nazaré, Jaws, Mavericks); alturas de ola y maniobras como
+   «proyectos»; Circuito español, Qualifying Series, Championship Tour, desafíos de olas grandes por invitación
+   (Nazaré, Jaws), Mundiales y Juegos; mangas con las dos mejores olas; marcas propias (Pukus, Perdido, Channel
+   Islas, O'Nail, Rip Curvas, Quicksilva, Billabonk…); localismo, swell del año, delfines y gaviotas ladronas.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

@@ -1328,7 +1328,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     // Deportes individuales nuevos (mismo motor que la escalada, con su propio paquete)
     const ind = await page.evaluate(() => {
       const G = __P1, out = {}, was = G.silencio;
-      for (const dep of ['skate']) {
+      for (const dep of ['skate', 'surf']) {
         G.silencio = true; G.nueva(41, null, dep, null);
         const L = () => { for (let g = 0; G.S.pendiente && g < 30; g++) G.resolver('si') || G.resolver('ok') || G.resolver('club') || G.resolver('aceptar') || G.resolver('0') || G.resolver('todo'); };
         const o = { fase0: G.S.fase, edad0: G.S.edad, mods: Object.keys(G.CFG.escalada.pesosGen).join(','), zonas: Object.keys(G.ZONAS).length };
@@ -1350,6 +1350,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
         out[dep] = o;
       }
       return out; });
+    check('Surf: shortboard y olas grandes, olas reales, 14 años en la playa, circuitos y marcas propias, sin textos de escalada', ind.surf.fase0 === 'rocodromo' && ind.surf.edad0 === 14 && ind.surf.mods === 'shortboard,grandes' && ind.surf.zonas >= 10 && ind.surf.comps > 5 && ind.surf.palmares && ind.surf.marcas >= 15 && ind.surf.limpio && ind.surf.carrera && ind.surf.sucesos[0] >= 15 && ind.surf.sucesos[1] === 0, JSON.stringify(ind.surf));
     check('Skate: street y park, spots reales, 14 años en el skatepark, competiciones y marcas propias, sin textos de escalada', ind.skate.fase0 === 'rocodromo' && ind.skate.edad0 === 14 && ind.skate.mods === 'street,park' && ind.skate.zonas >= 10 && ind.skate.comps > 5 && ind.skate.palmares && ind.skate.marcas >= 20 && ind.skate.limpio && ind.skate.carrera && ind.skate.sucesos[0] >= 20 && ind.skate.sucesos[1] === 0, JSON.stringify(ind));
 
     // Inicio compacto: con marcas y retos, la agenda se ve entera encima de JUGAR en un iPhone 13

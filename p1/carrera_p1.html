@@ -1082,7 +1082,7 @@ const DEPORTES = {
   basket: { n: 'Baloncesto', ic: '🏀', motor: 'equipo' },
   escalada: { n: 'Escalada', ic: '🧗', motor: 'individual' },
   skate: { n: 'Skate', ic: '🛹', motor: 'individual' },
-  surf: { n: 'Surf', ic: '🏄', motor: 'individual', pronto: true },
+  surf: { n: 'Surf', ic: '🏄', motor: 'individual' },
   boxeo: { n: 'Boxeo', ic: '🥊', motor: 'individual', pronto: true },
 };
 const depDe = s => (s && s.deporte) || 'futbol';
@@ -3434,7 +3434,7 @@ function condicionesZona(s, Z) {
   const m = mesEsc(s);
   if (Z.buenos.includes(m)) return { f: 1.25, n: 'buenas', ic: '🟢' };
   if (Z.buenos.includes((m + 1) % 12) || Z.buenos.includes((m + 11) % 12)) return { f: 0.85, n: 'regulares', ic: '🟡' };
-  return { f: 0.45, n: m >= 5 && m <= 8 ? 'malas (calor)' : 'malas (frío, lluvia o nieve)', ic: '🔴' };
+  return { f: 0.45, n: TX.malas ? TX.malas(m) : m >= 5 && m <= 8 ? 'malas (calor)' : 'malas (frío, lluvia o nieve)', ic: '🔴' };
 }
 // Si algo externo cambia el nivel (gimnasio, un imprevisto, modo pruebas) se reparte entre las cualidades
 function syncEsc(s) {
@@ -5307,6 +5307,7 @@ function avatarSVG(s, L, modo) {
   if (L.extra === 'medalla') h += `<path d="M42 68 L50 86 L58 68" fill="none" stroke="#2f6fe0" stroke-width="3.5"/><circle cx="50" cy="90" r="6.5" fill="#f5c518" stroke="#b08a00"/><text x="50" y="93" text-anchor="middle" font-size="8" font-weight="900" fill="#b08a00">1</text>`;
   if (L.extra === 'magnesio') h += `<rect x="62" y="100" width="13" height="14" rx="4" fill="#f2f2f2" stroke="#9aa" stroke-width="1"/><circle cx="66" cy="102" r="1" fill="#fff"/>`;
   if (L.extra === 'balonBasket') h += `<circle cx="84" cy="140" r="10" fill="#f28a2e" stroke="#7a3b0b" stroke-width="1.2"/><path d="M74 140 h20 M84 130 v20 M77 133 q7 7 0 14 M91 133 q-7 7 0 14" stroke="#7a3b0b" stroke-width="1.1" fill="none"/>`;
+  if (L.extra === 'tablaSurf') h += `<g transform="rotate(-8 84 118)"><ellipse cx="84" cy="118" rx="7" ry="30" fill="#ffd166" stroke="#2a2340" stroke-width="1.5"/><path d="M84 90 V146" stroke="#e63946" stroke-width="2"/></g>`;
   if (L.extra === 'tablaSk') h += `<g transform="rotate(-70 84 128)"><rect x="62" y="124" width="44" height="8" rx="4" fill="#e8a33d" stroke="#2a2340" stroke-width="1.5"/><circle cx="70" cy="134" r="2.6" fill="#fff" stroke="#2a2340" stroke-width="1"/><circle cx="98" cy="134" r="2.6" fill="#fff" stroke="#2a2340" stroke-width="1"/></g>`;
   if (L.extra === 'balon') h += `<circle cx="84" cy="141" r="9" fill="#fff" stroke="#333" stroke-width="1"/><path d="M84 137 l3.5 2.5 -1.3 4 h-4.4 l-1.3 -4Z" fill="#333"/>`;
   // Cabeza
@@ -6562,6 +6563,210 @@ CFG.mejoras.material.push(
   { id: 'protecciones', dep: 'skate', ic: '🦺', n: 'Rodilleras y protecciones buenas', p: 150, ef: { lesion: 0.12 }, d: 'Caer duele menos (el orgullo sigue doliendo igual).' },
   { id: 'tablasRepuesto', dep: 'skate', ic: '🛹', n: 'Pack de tablas de repuesto', p: 300, ef: { entreno: 0.04 }, d: 'Nunca más una sesión cortada por una tabla rota.' },
   { id: 'minirrampa', dep: 'skate', ic: '🏗️', n: 'Minirrampa en el jardín', p: 3500, ef: { entreno: 0.1 }, d: 'Tu propio bowl en casa (los vecinos, encantados).' },
+);
+// ---------------------------------------------------------------------
+// SURF (motor individual). Shortboard (olímpico) y olas grandes; olas y circuitos reales; marcas inventadas.
+// ---------------------------------------------------------------------
+function olaSVG(y, alto, color) { return `<path d="M0 ${y} Q60 ${y - alto} 120 ${y} T240 ${y} T360 ${y} V170 H0 Z" fill="${color}" stroke="#2a2340" stroke-width="3"/>`; }
+function surfista(x, y, rot) {
+  return `<g transform="translate(${x} ${y}) rotate(${rot})"><ellipse cx="0" cy="16" rx="20" ry="4" fill="#ffd166" stroke="#2a2340" stroke-width="2"/>
+    <circle cx="0" cy="-12" r="6" fill="#ffd9b0" stroke="#2a2340" stroke-width="2.5"/><path d="M0 -6 L0 6 M0 -2 L-12 -6 M0 -2 L12 -4 M0 6 L-7 14 M0 6 L7 14" stroke="#2a2340" stroke-width="3.5" stroke-linecap="round"/></g>`;
+}
+function escenaPlaya() {
+  return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><linearGradient id="skPl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#59b8ff"/><stop offset="1" stop-color="#d7f2ff"/></linearGradient></defs>
+    <rect width="360" height="170" fill="url(#skPl)"/><circle cx="300" cy="34" r="20" fill="#fff3a6" stroke="#2a2340" stroke-width="3"/>
+    ${olaSVG(92, 18, '#2e8bc0')}${olaSVG(110, 10, '#4fb0dd')}
+    <path d="M0 136 Q180 124 360 138 V170 H0 Z" fill="#f2d49b" stroke="#2a2340" stroke-width="3"/>
+    <path d="M40 150 l10 -30 l10 30 Z" fill="#ff5d73" stroke="#2a2340" stroke-width="2"/><path d="M30 122 Q50 108 70 122" fill="#ff8a3d" stroke="#2a2340" stroke-width="2"/>
+    ${surfista(190, 74, -8)}</svg>`;
+}
+function escenaOla(Z, cond) {
+  const cielo = cond && cond.f > 1 ? ['#59b8ff', '#c8ecff'] : cond && cond.f < 0.5 ? ['#8a94a6', '#c9cfd8'] : ['#ffb26b', '#ffe3b0'];
+  const grande = Z.tipo === 'via';
+  return `<svg viewBox="0 0 360 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs><linearGradient id="skOl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${cielo[0]}"/><stop offset="1" stop-color="${cielo[1]}"/></linearGradient></defs>
+    <rect width="360" height="170" fill="url(#skOl)"/>
+    ${grande ? `<path d="M0 170 L0 120 Q120 120 200 30 Q250 -10 300 40 Q260 40 250 90 Q240 140 360 140 V170 Z" fill="#1d6f9c" stroke="#2a2340" stroke-width="3"/><path d="M200 30 Q250 -10 300 40" stroke="#fff" stroke-width="6" fill="none"/><path d="M0 150 H360" stroke="#fff" stroke-width="3" opacity=".6"/>`
+    : `<path d="M0 170 L0 100 Q150 100 220 50 Q280 20 330 70 Q300 70 290 100 Q285 130 360 130 V170 Z" fill="#2e9bc6" stroke="#2a2340" stroke-width="3"/><path d="M220 50 Q280 20 330 70 Q300 70 290 100 Q260 70 220 50 Z" fill="#0f5a7a" opacity=".55"/><path d="M0 140 H360" stroke="#fff" stroke-width="3" opacity=".6"/>`}
+    ${surfista(grande ? 180 : 255, grande ? 70 : 82, grande ? 18 : -10)}</svg>`;
+}
+const GRADOS_OLA = ['2 m', '2,5 m', '3 m', '3,5 m', '4 m', '4,5 m', '5 m', '6 m', '7 m', '8 m', '9 m', '10 m', '11 m', '12 m', '13 m', '14 m', '15 m', '16 m', '17 m', '18 m', '20 m', '22 m', '24 m', '26 m', '28 m'];
+const GRADOS_MANIOBRA = ['Ola de espuma', 'Primera pared', 'Bottom turn', 'Cutback', 'Floater', 'Top turn', 'Re-entry', 'Tubo corto', 'Snap', 'Roundhouse cutback', 'Tubo largo',
+  'Aéreo', 'Tubo de manual', 'Air reverse', 'Tubo profundo', 'Alley-oop', 'Tubo con salida imposible', 'Rodeo flip', 'Doble tubo', 'Kerrupt flip', 'Tubo perfecto de 10', 'Aéreo 540'];
+const ZONAS_SURF = {
+  mundaka: { n: 'Mundaka', f: '🇪🇸', reg: 'Bizkaia', tipo: 'bloque', roca: 'fondo de arena', buenos: [9, 10, 11, 0, 1], coste: 50, d: 'La mejor izquierda de Europa: tubos larguísimos en la ría.', clasicas: [[14, 'Tubo profundo en Mundaka']] },
+  rodiles: { n: 'Rodiles', f: '🇪🇸', reg: 'Asturias', tipo: 'bloque', roca: 'fondo de arena', buenos: [9, 10, 11, 0, 1, 2], coste: 50, d: 'Una izquierda de arena junto a un bosque de eucaliptos.', clasicas: [] },
+  pantin: { n: 'Pantín', f: '🇪🇸', reg: 'Galicia', tipo: 'bloque', roca: 'arena', buenos: [8, 9, 10, 11, 2, 3], coste: 50, d: 'Playa abierta al Atlántico, con campeonatos desde hace décadas.', clasicas: [] },
+  supertubos: { n: 'Supertubos', f: '🇵🇹', reg: 'Peniche', tipo: 'bloque', roca: 'arena', buenos: [8, 9, 10, 11, 0, 1, 2], coste: 300, d: 'Tubos rápidos y pesados sobre la arena.', clasicas: [] },
+  hossegor: { n: 'Hossegor', f: '🇫🇷', reg: 'Las Landas', tipo: 'bloque', roca: 'arena', buenos: [8, 9, 10, 11], coste: 350, d: 'Tubos de playa potentes: la capital del surf en Francia.', clasicas: [] },
+  pipeline: { n: 'Pipeline', f: '🇺🇸', reg: 'Hawái', tipo: 'bloque', roca: 'arrecife', buenos: [10, 11, 0, 1, 2], coste: 1600, d: 'El tubo más famoso del mundo, sobre un arrecife a pocos palmos.', clasicas: [[18, 'Doble tubo en Pipeline']] },
+  teahupoo: { n: "Teahupo'o", f: '🇵🇫', reg: 'Tahití', tipo: 'bloque', roca: 'arrecife', buenos: [4, 5, 6, 7, 8], coste: 1800, d: 'La ola más pesada del planeta; aquí fue el surf de París 2024.', clasicas: [[20, "Tubo perfecto en Teahupo'o"]] },
+  jbay: { n: 'Jeffreys Bay', f: '🇿🇦', reg: 'Sudáfrica', tipo: 'bloque', roca: 'roca y arena', buenos: [5, 6, 7], coste: 1400, d: 'Una derecha perfecta y larguísima.', clasicas: [] },
+  puntaGalea: { n: 'Punta Galea', f: '🇪🇸', reg: 'Bizkaia', tipo: 'via', roca: 'roca', buenos: [10, 11, 0, 1, 2], coste: 50, d: 'Olas grandes sobre una losa de roca, bajo el acantilado.', clasicas: [] },
+  belharra: { n: 'Belharra', f: '🇫🇷', reg: 'País Vasco francés', tipo: 'via', roca: 'arrecife', buenos: [10, 11, 0, 1], coste: 350, d: 'Rompe muy pocos días al año, a dos kilómetros de la costa.', clasicas: [] },
+  nazare: { n: 'Nazaré', f: '🇵🇹', reg: 'Portugal', tipo: 'via', roca: 'cañón submarino', buenos: [10, 11, 0, 1, 2], coste: 300, d: 'El cañón de Nazaré fabrica las olas más grandes jamás surfeadas.', clasicas: [[23, 'Récord en Nazaré']] },
+  jaws: { n: 'Jaws (Peʻahi)', f: '🇺🇸', reg: 'Hawái', tipo: 'via', roca: 'arrecife', buenos: [11, 0, 1, 2], coste: 1700, d: 'Paredes de agua de 20 metros en la isla de Maui.', clasicas: [] },
+  mavericks: { n: 'Mavericks', f: '🇺🇸', reg: 'California', tipo: 'via', roca: 'roca', buenos: [11, 0, 1, 2], coste: 1600, d: 'Agua fría, tiburones y olas enormes.', clasicas: [] },
+};
+const CAL_SURF = [
+  [2, 'auto', 'shortboard', 'tu comunidad'], [3, 'esp', 'shortboard', 'Zarautz (Gipuzkoa)'], [4, 'esp', 'shortboard', 'Pantín (Galicia)'], [5, 'auto', 'shortboard', 'tu comunidad'],
+  [6, 'mundo', 'shortboard', 'Bells Beach (Australia)'], [7, 'esp', 'shortboard', 'Somo (Cantabria)'], [7, 'mundo', 'shortboard', 'Margaret River (Australia)'], [8, 'europa', 'shortboard', 'Ericeira (Portugal)'],
+  [9, 'mundo', 'shortboard', 'Punta Roca (El Salvador)'], [10, 'europa', 'shortboard', 'Hossegor (Francia)'], [10, 'mundo', 'shortboard', 'Jeffreys Bay (Sudáfrica)'], [11, 'mundo', 'shortboard', "Teahupo'o (Tahití)"],
+  [12, 'esp', 'shortboard', 'Mundaka (Bizkaia)'], [13, 'esp', 'grandes', 'Punta Galea (Bizkaia)'], [14, 'cesp', 'shortboard', 'Salinas (Asturias)'], [15, 'mundo', 'shortboard', 'Lower Trestles (EE. UU.)'],
+  [1, 'master', 'grandes', 'Nazaré (Portugal)'], [16, 'master', 'grandes', 'Jaws (Hawái)'],
+];
+const MARCA_HEAT = (s, z) => { const a = clamp(6.5 + z * 1.2 + gauss(s) * 0.4, 1.5, 9.9), b = clamp(a - 0.3 - rnd(s) * 1.5, 0.8, a); return `2 mejores olas: ${nf(a)} + ${nf(b)} = ${nf(a + b)}`; };
+const MARCA_GRANDE = (s, z, L) => `ola más grande: ${GRADOS_OLA[clamp(idxVia(L) + Math.round(z), 0, GRADOS_OLA.length - 1)]}, nota ${nf(clamp(6.5 + z * 1.2, 1.5, 9.9))}`;
+PAQ.surf = paqueteInd({
+  GRADOS_VIA: GRADOS_OLA, GRADOS_BLOQUE: GRADOS_MANIOBRA, ZONAS: ZONAS_SURF, CAL_ESC: CAL_SURF,
+  ATTRS: { fuerza: { n: 'Remada y potencia', ic: '💪', corto: 'potencia' }, resistencia: { n: 'Resistencia', ic: '🔁', corto: 'resistencia' }, tecnica: { n: 'Técnica (maniobras)', ic: '🎯', corto: 'técnica' },
+    cabeza: { n: 'Cabeza (miedo y lectura del mar)', ic: '🧠', corto: 'cabeza' }, velocidad: { n: 'Equilibrio y explosividad', ic: '🚀', corto: 'equilibrio' } },
+  MODS: {
+    shortboard: { n: 'Shortboard', ic: '🏄', pesos: { tecnica: 0.4, velocidad: 0.25, fuerza: 0.2, cabeza: 0.15 }, d: 'Mangas de 30 minutos: cuentan tus dos mejores olas.', ultimo: 'Última ola', marca: MARCA_HEAT },
+    grandes: { n: 'Olas grandes', ic: '🌊', pesos: { cabeza: 0.45, fuerza: 0.3, resistencia: 0.25 }, suerte: 5, d: 'Olas de más de 10 metros, a remo o con moto de agua.', ultimo: 'Última ola', marca: MARCA_GRANDE },
+  },
+  AMBITOS: nombresAmb(AMBITOS, { auto: 'Circuito autonómico', esp: 'Circuito español', europa: 'Qualifying Series', master: 'Desafío de olas grandes', mundo: 'Championship Tour', mundial: 'Campeonato del Mundo' }),
+  EQUIPOS: {
+    club: { n: 'Club de surf del barrio', ic: '🏠', cuota: 12, calidad: 1.0, d: 'Un entrenador del club, la playa de siempre y los amigos en el agua.' },
+    centro: { n: 'Centro de alto rendimiento', ic: '🏛️', cuota: 45, calidad: 1.2, nivelMin: 30, d: 'Entrenadores de la federación, vídeo-análisis y gimnasio, pero lejos de casa.' },
+    libre: { n: 'Por libre', ic: '🎒', cuota: 0, calidad: 0.85, bono: 8, d: 'Sin cuota ni horarios, pero sin entrenador: pagas el aparcamiento y alquilas tabla cuando hace falta.' },
+  },
+  LESIONES_ESC: {
+    dedos: [['hombro (manguito rotador)', 4, 8, 'fuerza']], codo: [['hombro sobrecargado de remar', 3, 6, 'resistencia']],
+    bloque: [['corte con el arrecife', 1, 3, 'tecnica'], ['esguince de tobillo', 2, 5, 'velocidad'], ['golpe con la tabla', 1, 3, 'cabeza']],
+    roca: [['revolcón: costillas rotas', 5, 9, 'fuerza'], ['rodilla al caer de la ola', 6, 10, 'velocidad'], ['un susto bajo el agua (vuelves con respeto)', 2, 4, 'cabeza']],
+    velocidad: [['esguince de tobillo', 2, 4, 'velocidad']],
+  },
+  cfg: {
+    inicio: { edad: 14, energia: 75, rep: 3, dinero: 40, attrs: { fuerza: 22, resistencia: 22, tecnica: 26, cabeza: 22, velocidad: 22 } },
+    fuertes: { tecnica: { n: 'Maniobras', ic: '🏄', attr: 'tecnica', d: 'Técnica: giros, tubos y aéreos que puntúan alto.' },
+      grandes: { n: 'Olas grandes', ic: '🌊', attr: 'cabeza', d: 'Cabeza fría: te atreves con las olas más grandes.' },
+      remada: { n: 'Remada', ic: '💪', attr: 'fuerza', d: 'Potencia: llegas a todas las olas antes que nadie.' } },
+    declive: [[32, 0], [37, 0.06], [99, 0.15]], edadRetiro: 27, edadRetiroForzosa: 42, edadTabla: 16,
+    pesosGen: { shortboard: 0.7, grandes: 0.3 }, modVia: 'grandes', modBloque: 'shortboard', modsGrandes: ['shortboard'], modsJJOO: ['shortboard'], clasifLugar: 'Arecibo (Puerto Rico)',
+    catsPatro: ['local', 'tablas', 'neopreno', 'bebida', 'ropa', 'tecno'], objCat: { grado: ['tablas', 'neopreno'], seg: ['ropa', 'tecno'], podio: ['bebida'] },
+    piesGato: 450, semanasPies: 12,
+    patrocinadores: [
+      { id: 'escuelaOla', marca: 'Escuela de surf La Ola', cat: 'local', ic: '🏄', año: [0, 600], rep: 10, material: true, repMax: 45, lema: 'Hoy hay olas (casi siempre)', d: 'Te prestan tablas y algo de dinero a cambio de que lleves su licra.' },
+      { id: 'chiringuito', marca: 'Chiringuito El Pirata', cat: 'local', ic: '🏴‍☠️', año: [300, 2000], rep: 22, repMax: 60, lema: 'Bocadillos para después de la sesión', d: 'Comes gratis y sales en sus redes.' },
+      { id: 'fisioHombro', marca: 'Fisio Hombro Fuerte', cat: 'local', ic: '🩹', año: [500, 2500], rep: 30, req: 'esp', lema: 'Hombros como nuevos', d: 'Una clínica especializada en surfistas (y en sus hombros).' },
+      { id: 'tablasNorte', marca: 'Tablas del Norte', cat: 'tablas', ic: '🏄', año: [0, 1500], rep: 15, material: true, repMax: 50, lema: 'Hechas con cariño y resina', d: 'Tablas gratis y algo de dinero si destacas.' },
+      { id: 'pukus', marca: 'Pukus Surfboards', cat: 'tablas', ic: '🌊', año: [0, 3000], rep: 25, material: true, repMax: 65, lema: 'Tablas con acento del norte', d: 'Tablas gratis y un pequeño fijo.' },
+      { id: 'perdido', marca: 'Perdido Surfboards', cat: 'tablas', ic: '🧭', año: [1500, 10000], rep: 40, req: 'esp', material: true, lema: 'Para cuando no sabes dónde están las olas', d: 'Tablas a medida y un fijo al año.' },
+      { id: 'channelIslas', marca: 'Channel Islas', cat: 'tablas', ic: '🏝️', año: [3000, 15000], rep: 55, req: 'mundo', material: true, lema: 'Las tablas de los campeones del mundo', d: 'Tablas hechas para ti y un buen fijo.' },
+      { id: 'onail', marca: "O'Nail", cat: 'neopreno', ic: '🥽', año: [500, 3000], rep: 25, repMax: 60, lema: 'Inventamos el neopreno (o eso dicen)', d: 'Neoprenos y algo de dinero.' },
+      { id: 'ripCurvas', marca: 'Rip Curvas', cat: 'neopreno', ic: '🌀', año: [2000, 12000], rep: 45, req: 'nacional', lema: 'La búsqueda continúa', d: 'Neoprenos, relojes de mareas y un buen fijo.' },
+      { id: 'kombucha', marca: 'Kombucha Zen', cat: 'bebida', ic: '🍵', año: [300, 1500], rep: 18, repMax: 50, lema: 'Fermentada como tu neopreno', d: 'Una bebida pequeña que adora a los surfistas.' },
+      { id: 'monstruo', marca: 'Monstruo Energy', cat: 'bebida', ic: '👹', año: [5000, 25000], rep: 55, req: 'nacional', lema: 'Libera a la bestia (y a la ola)', d: 'Pegatinas en tu tabla y un buen fijo.' },
+      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te da alitas… para el aéreo', d: 'Solo estrellas: viajes a olas secretas y vídeos imposibles.' },
+      { id: 'quicksilva', marca: 'Quicksilva', cat: 'ropa', ic: '🌊', año: [300, 2500], rep: 20, repMax: 55, lema: 'Ropa con ola (y con prisa)', d: 'Bañadores, sudaderas y algo de dinero.' },
+      { id: 'billabonk', marca: 'Billabonk', cat: 'ropa', ic: '🌴', año: [1000, 8000], rep: 40, req: 'esp', lema: 'Desde las antípodas', d: 'Ropa y un fijo; les encantan los viajes.' },
+      { id: 'patagonioSurf', marca: 'Patagonio', cat: 'ropa', ic: '🧥', año: [3000, 15000], rep: 60, req: 'mundo', lema: 'Ropa para salvar el planeta… y tu culo del frío', d: 'Ropa, neoprenos ecológicos y documentales.' },
+      { id: 'gopru', marca: 'GoPru', cat: 'tecno', ic: '🎥', año: [1000, 6000], rep: 45, req: 'nacional', lema: 'Graba tus tubos en 4K', d: 'Cámaras para tus vídeos y un fijo.' },
+      { id: 'sansongSurf', marca: 'Sansong', cat: 'tecno', ic: '📲', año: [5000, 20000], rep: 70, req: 'mundo', lema: 'La pantalla más grande de la playa', d: 'Tecnología y anuncios por todo el mundo.' },
+    ],
+  },
+  TX: {
+    introSub: 'Una vida: de la playa del barrio al Championship Tour, las olas gigantes y los Juegos… y dueño/a de negocios y casas.',
+    introInicio: 'Empiezas con 14 años en la playa del barrio y compites en shortboard y olas grandes.',
+    introNota: 'Olas y campeonatos reales; marcas y rivales ficticios.',
+    deporte: 'surf', materialGratis: 'Tablas', deportistas: 'surfistas',
+    mentor: { nombre: 'Marisa', rol: 'la surfera veterana de la playa' }, rivalEquipo: 'Club de surf de la playa vecina', rivalFicha: 'entra en el equipo de la federación',
+    consejo: '«Rema, rema y rema. Y respeta al mar, que no perdona.»',
+    rivalPresenta: 'Tiene tu edad, surfea en la playa de al lado y dice que tus olas son «de espuma». Hoy está aquí.',
+    mentorFinal: '«Ya estoy mayor. ¿Darías un curso a los peques del club de surf?»',
+    titulares: (n, c) => [`${n} espera tres horas la ola perfecta. Llega. Se cae.`, `Un turista confunde a ${n} con una foca. Lo cuenta en todas partes.`,
+      `${n} encera su tabla 14 veces al día. Los científicos, desconcertados.`, `La playa de ${c} ya tiene «la ola de ${n}». Nadie más se atreve a cogerla.`],
+    lugar: 'Playa', lugarBarrio: 'Playa del barrio', icLugar: '🏖️', ocupInicial: 'Surfea en la playa de', exDeportista: 'Exsurfista',
+    seFija: 'El entrenador del club de surf se fija en ti', meVe: 'El entrenador me ve surfear', bono: 'Aparcamiento y tabla de alquiler', equipoTxt: 'El entrenador del club de surf te ha visto en el agua',
+    masTiempo: 'Más tiempo para buscar olas', retiroLugar: '🌊 El mar sigue ahí', retiroFrase: 'El mar seguirá ahí.',
+    gPiel: ['☀️', 'Piel'], gCarga: ['💪', 'Hombros'], cargaLarga: 'Carga en los hombros', material: ['🏄', 'Tablas', 'unas tablas'],
+    icRoca: '🌊', secRoca: 'La ola de tu vida', primera: 'ola virgen', rocaEn: 'Viaje a', pruebo: 'busco mi ola:', proyecto: 'ola',
+    encadeno: 'Surfeo', encadenado: 'Ola surfeada', encadenoInf: 'Surfear', enRoca: 'en olas grandes', secEnvios: 'Las olas de tu vida', zonasDe: 'spots de',
+    tipos: { via: ['🌊', 'Olas grandes', 'olas grandes'], bloque: ['🌀', 'Tubos y maniobras', 'tubos'] },
+    malas: () => 'malas (mar plano o tormenta)',
+    resumenNivel: s => `Ola más grande: ${gV(s.esc.maxVia)} · Mejor maniobra: ${gB(s.esc.maxBloque)} · En tu playa: ${gV(idxVia(nivelMod(s, 'grandes')))} / ${gB(idxBloque(nivelMod(s, 'shortboard')))}`,
+    rocaAyuda: 'Cambiar de ola empieza de cero. Surfear una ola más grande (o un tubo mejor) da reputación (más a partir de 9 m), seguidores y, con algunos patrocinadores, primas. Cada ola rompe en su temporada.',
+    compAyuda: s => `Premios: Circuito español y Campeonato de España 500, 300 y 200 €; Championship Tour 8.000, 7.000 y 5.000 €; desafíos de olas grandes por invitación hasta 4.000 €. Circuito y Campeonato de España: abiertos a quien tenga licencia. Qualifying Series, Championship Tour, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} en shortboard, con plaza en el clasificatorio (top 10).`,
+    secGrados: 'Olas y maniobras', gradosAyuda: () => `Olas grandes: ${GRADOS_VIA.join(' · ')}.<br>Maniobras: ${GRADOS_BLOQUE.join(' · ')}.<br>La ola más grande surfeada mide unos 26 metros (Nazaré, 2020).`,
+    finMax: ev => `🌊 Ola más grande: <b>${gV(ev.maxVia)}</b> · mejor maniobra: <b>${gB(ev.maxBloque)}</b>.`,
+    retiroChips: ev => `${chip('🌊', gV(ev.maxVia))}${chip('🏄', gB(ev.maxBloque))}`, retiroMax: E => `, ola más grande de ${gV(E.maxVia)} y mejor maniobra ${gB(E.maxBloque)}`,
+    basta: 'los hombros y la espalda dicen basta.', tarjetaExtra: s => ['🌊', s.esc.maxVia >= 0 ? gV(s.esc.maxVia) : '—', 'ola más grande'], salonTitulo: s => `Ola más grande ${gV(s.esc.maxVia)} · `,
+    sueño: 'Mi sueño: competir en el Championship Tour, surfear las olas más grandes del mundo… y vivir de lo que me gusta.', diarioJuego: 'surfeo en la playa de',
+    escenaInt: () => escenaPlaya(), escenaExt: (Z, c) => escenaOla(Z, c),
+    final: { ic: '🏄', d: ev => `${ev.nombre}. ${ev.pos === 2 ? 'El oro está a una ola.' : 'El podio está en juego.'}`,
+      ops: [{ id: 'todo', n: 'Ir a por un aéreo enorme', base: 0.35, sube: 1, baja: 1, ok: '¡Aéreo clavado! Los jueces sacan dieces. Subes un puesto.', mal: 'Te caes en la recepción y te machaca la espuma. Bajas un puesto.' },
+            { id: 'leer', n: 'Esperar la ola buena', base: 0.42, tecnica: true, sube: 1, baja: 0, ok: 'Llega la mejor serie del día y es tuya. Subes un puesto.', mal: 'La ola buena no llega a tiempo: mantienes el puesto.' },
+            { id: 'seguro', n: 'Coger la primera ola y surfear limpio', base: 0.8, sube: 0, baja: 1, ok: 'Ola limpia: mantienes tu puesto.', mal: 'La ola se cierra encima de ti: bajas un puesto.' }] },
+    acc: {
+      amigos: { ic: '🏄', n: 'Surfear con los amigos', fx: s => [['🎯', '+técnica'], ['⭐', repAmigos(s)], ['⚡', -10]], pro: s => `+${repAmigos(s)} reputación: el entrenador del club se fija en ti`, con: () => '−10 energía · sol y sal', why: () => 'Reputación = 2 + nivel/15. Así empiezan casi todos: cogiendo espumas con los amigos.' },
+      rocoBloque: { ic: '🌊', n: 'Sesión de olas', fx: () => [['💪', '+potencia'], ['🎯', '+técnica'], ['⚡', -15], ['☀️', 'piel −18']], pro: () => 'Mejora potencia y técnica', con: () => '−15 energía · sol y sal · carga en los hombros', why: () => 'Base: potencia 1,0 y técnica 0,5 por semana, multiplicadas por calidad, edad y techo.' },
+      tabla: { ic: '🏋️', n: 'Gimnasio: fuerza y explosividad', fx: () => [['💪', '+potencia ×1,4'], ['⚡', -12], ['🤕', 'riesgo de hombro']], pro: () => 'La forma más rápida de ganar potencia', con: () => 'Mucha carga en los hombros',
+        why: () => `Base: potencia 1,4. Con mucha carga el riesgo de lesión se multiplica por 1,5. Desde los ${CFG.escalada.edadTabla} años.`, disponible: s => s.lesion > 0 ? 'Estás lesionado/a.' : s.edad < CFG.escalada.edadTabla ? `Desde los ${CFG.escalada.edadTabla} años.` : null },
+      resistencia: { ic: '🏊', n: 'Remada y natación', fx: () => [['🔁', '+resistencia'], ['🧠', '+cabeza'], ['⚡', -15]], pro: () => 'Mejora resistencia y cabeza (olas grandes)', con: () => '−15 energía · hombros cargados', why: () => 'Base: resistencia 1,2 y cabeza 0,3.' },
+      tecnica: { ic: '🎯', n: 'Clase con entrenador (vídeo-análisis)', motivo: 'Clase con entrenador', fx: () => [['🎯', '+técnica'], ['🧠', '+cabeza'], ['€', -35]], pro: () => 'Técnica y lectura de las olas', con: () => '−35 € · −10 energía', why: () => 'Base: técnica 1,1 y cabeza 0,5. Poca carga en los hombros.' },
+      velocidad: { ic: '🛹', n: 'Surfskate y equilibrio', motivo: 'Pista de surfskate', fx: () => [['🚀', '+equilibrio'], ['⚡', -12], ['€', -10]], pro: () => 'Equilibrio y explosividad para las maniobras', con: () => '−12 energía · −10 €', why: () => 'Base: equilibrio 1,3 y potencia 0,2.' },
+      roca: { ic: '🌊', n: 'Viaje a por la ola de tu vida', fx: s => [['🌊', s.esc.proy ? `${s.esc.proy.tipo === 'via' ? gV(s.esc.proy.grado) : gB(s.esc.proy.grado)} en ${ZONAS[s.esc.proy.zona].n}` : 'elige ola'], ['⚡', -18], ['€', -(s.esc.proy ? costeViajeZona(s, ZONAS[s.esc.proy.zona]) : 0)]],
+        pro: () => 'Avanzas hacia tu ola; surfearla da fama y patrocinadores', con: () => '−18 energía · sol y sal · viaje', why: () => 'Avance = 18 + (tu nivel − nivel de la ola) × 5, por las condiciones del mes, tu piel y tu cabeza.' },
+      descansoEsc: { fx: () => [['⚡', 25], ['☀️', 'piel +30'], ['💪', 'hombros −30']], pro: () => '+25 energía · la piel y los hombros se recuperan' },
+      fisioEsc: { pro: s => s.lesion > 0 ? 'La lesión dura una semana menos' : 'Baja la carga de los hombros' },
+      ayudar: { n: 'Ayudar en la escuela de surf', pro: () => '+25 € y surfeas gratis', why: () => 'Llevar tablas y vigilar a los alumnos: así se pagan el material muchos chavales.' },
+      monitor: { n: 'Dar clases de surf', pro: () => `+${cr(CFG.escalada.pagoMonitor)} por dar clases en una escuela (y algo surfeas)`, why: () => 'Un trabajo habitual entre surfistas de competición.' },
+      equipador: { ic: '🔧', n: 'Reparar y diseñar tablas', pro: () => `+${cr(CFG.escalada.pagoEquipador)} en un taller de tablas`, why: () => 'Para diseñar buenas tablas hay que surfear bien: desde nivel 50 y 18 años.' },
+      equipar: { ic: '🧹', n: 'Limpiar playas con tu club', motivo: 'Bolsas, guantes y furgoneta', con: () => '−80 € en material', why: () => 'Devuelves al mar lo que te dio.' },
+      entrenadorEsc: { n: 'Entrenar a jóvenes surfistas' },
+    },
+  },
+});
+PAQ.surf.PANTALLAS_ESC = pantallasInd({ p1: 'La playa del barrio', ic: '🏄', obj1: `Haz un ${GRADOS_MANIOBRA[4].toLowerCase()} en tu playa`, f1: s => idxBloque(nivelMod(s, 'shortboard')) / 4,
+  verbo: 'Surfea una ola de', grado: iv => GRADOS_OLA[iv], enRoca: 'en olas grandes', mundo: 'Championship Tour', enMundo: 'en el Championship Tour', escuela: 'Escuela de surf', tienda: 'surf shop',
+  recinto: 'piscina de olas', marca: 'Marca de tablas de surf', leyenda: 'Leyenda del surf', icLeyenda: '🌊', huella: 'Deja huella: medalla, una ola virgen, una ola de 22 m o 6 negocios' });
+NOMBRES_NEG.surf = { academia: { n: 'Academia deportiva', ic: '🏅' }, escuelaEsc: { n: 'Escuela de surf', ic: '🏄' }, tiendaEsc: { n: 'Surf shop', ic: '🛍️' }, rocodromo: { n: 'Piscina de olas', ic: '🌊' }, marcaPresas: { n: 'Marca de tablas de surf', ic: '🏄' } };
+CAT_PATRO.neopreno = 'Neopreno';
+// Contenido propio del surf
+Object.assign(SUCESOS, {
+  localismo: { dep: 'surf', fases: ['club'], ic: '😠', cond: s => !!s.esc.proy, t: 'Los locales no te dejan coger olas', d: 'En el pico mandan ellos. Te miran mal cada vez que remas.',
+    ops: [{ n: 'Esperar tu turno con respeto', fx: () => [['😊', -1], ['⭐', 1]], txt: 'A la tercera ola te dejan una. «Esa es tuya». Te has ganado el sitio.' },
+          { n: 'Saltarte la prioridad', fx: () => [['🎲', '50 %: pelea en el agua']], hacer(s) { if (rnd(s) < 0.5) { aplicarFx(s, [['⭐', -3], ['😊', -4]]); return 'Bronca en el agua. Sales en los vídeos de «mal comportamiento».'; } aplicarFx(s, [['😊', 2]]); return 'Coges la ola de la sesión. Nadie dice nada… esta vez.'; } }] },
+  marPlano: { dep: 'surf', fases: ['barrio', 'club'], ic: '🪞', t: 'Una semana de mar plano', d: 'Ni una ola. El mar parece una piscina.',
+    ops: [{ n: 'Gimnasio y surfskate', fx: () => [['💪', 1], ['⚡', -5]], txt: 'Sales más fuerte, pero con mono de olas.' },
+          { n: 'Vacaciones de playa sin tabla', fx: () => [['😊', 4], ['⚡', 8]], txt: 'Tumbado/a al sol, como un turista más.' }] },
+  delfin: { dep: 'surf', fases: ['barrio', 'club'], ic: '🐬', peso: 0.6, t: '¡Una aleta en el agua!', d: 'Todo el mundo sale corriendo… era un delfín.',
+    ops: [{ n: 'Quedarte a verlo', fx: () => [['😊', 6]], txt: 'Surfeas una ola a su lado. El vídeo da la vuelta al mundo.' },
+          { n: 'Salir del agua por si acaso', fx: () => [['😊', -1]], txt: 'Desde la arena ves cómo el delfín se lleva tu ola.' }] },
+  medusa: { dep: 'surf', fases: ['barrio', 'club'], ic: '🪼', peso: 0.6, cond: s => [6, 7, 8].includes(mesActual(s)), t: 'Te pica una medusa', d: 'En plena remada. Duele muchísimo.',
+    ops: [{ n: 'Vinagre y a seguir', fx: () => [['⚡', -6], ['😊', -2]], txt: 'Sobrevives. La medusa, también.' }] },
+  gaviota: { dep: 'surf', fases: ['barrio', 'club'], ic: '🕊️', peso: 0.5, t: 'Una gaviota te roba el bocadillo', d: 'Sales del agua muerto de hambre y… zas.',
+    ops: [{ n: 'Perseguirla por la playa', fx: () => [['⚡', -3], ['😊', 2]], txt: 'No la alcanzas, pero la playa entera se ríe contigo.' }] },
+  swell: { dep: 'surf', fases: ['club'], ic: '🌀', cond: s => !!s.esc.proy, t: 'Se acerca el swell del año', d: 'Los partes de olas se vuelven locos: la ola de tu vida podría romper esta semana.',
+    ops: [{ n: 'Ir aunque haya que pagar el viaje', fx: s => [['€', -200], ['🌊', '+30 % en tu ola']], hacer(s) { aplicarFx(s, [['€', -200]]); s.esc.proy.prog = Math.min(99, s.esc.proy.prog + 30); return 'Llegas a tiempo. Tu ola está más cerca que nunca.'; } },
+          { n: 'Quedarte en casa', fx: () => [], txt: 'Lo ves por internet. Te arrepentirás toda la vida (un poco).' }] },
+  tablaRotaSurf: { dep: 'surf', fases: ['barrio', 'club'], ic: '💔', t: 'Se te parte la tabla', d: 'Una ola te la parte en dos. Vuelves remando con media tabla.',
+    ops: [{ n: 'Comprar una buena', fx: () => [['€', -450], ['💪', 1], ['😊', 2]], txt: 'Tabla nueva, hecha a medida.' },
+          { n: 'Arreglarla con resina', fx: () => [['€', -40], ['😊', -1]], txt: 'Queda con una cicatriz, pero flota.' }] },
+  videoSurf: { dep: 'surf', fases: ['club'], ic: '🎬', cond: s => s.p.rep >= 30, t: 'Una marca quiere grabarte surfeando', d: 'Un viaje de rodaje a una ola secreta.',
+    ops: [{ n: 'Aceptar', fx: s => [['€', s.p.rep * 15], ['⚡', -15], ['📱', '+seguidores']], hacer(s) { aplicarFx(s, [['€', s.p.rep * 15], ['⚡', -15]]); s.esc.seg += 3000 + s.p.rep * 100; return `Cobras ${cr(s.p.rep * 15)} y el vídeo se ve en medio mundo.`; } },
+          { n: 'Rechazar', fx: () => [], txt: 'La ola secreta sigue siendo secreta.' }] },
+  hijoSurf: { dep: 'surf', fases: ['club', 'retirado'], ic: '🏄', cond: s => s.rel.some(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18 && !r.futbol), prep: s => ({ id: azar(s, s.rel.filter(r => r.tipo === 'hijo' && r.edad >= 6 && r.edad < 18 && !r.futbol)).id }),
+    t: (s, d) => `${hijoDe(s, d).nombre} quiere surfear como tú`, d: 'Te pide apuntarse al club de surf y una tabla de espuma.',
+    ops: [{ n: 'Apuntarle', fx: () => [['€', '−25/sem'], ['🧒', 12], ['😊', 5]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v + 12, 0, 100); aplicarFx(s, [['😊', 5]]); s.mods.push({ tipo: 'ingreso', v: -25, sem: 36, motivo: `Club de surf de ${h.nombre}` }); return `${h.nombre} se pone de pie en su primera ola. Lloras un poco.`; } },
+          { n: 'Mejor otro deporte', fx: () => [['🧒', -6]], hacer(s, d) { const h = hijoDe(s, d); h.futbol = true; h.v = clamp(h.v - 6, 0, 100); return `${h.nombre} se lleva un disgusto.`; } }] },
+});
+LOGROS.push(
+  ['diezMetros', '🌊', 'Surfear una ola de 10 metros', s => s.esc.maxVia >= 11, 'surf'],
+  ['viajeSurf', '✈️', 'Surfear en el extranjero', s => Object.keys(s.esc.viajes).length > 0, 'surf'],
+  ['ct', '🌍', 'Competir en el Championship Tour', s => !!s.esc.mejor.mundo, 'surf'],
+  ['finalCT', '🔥', 'Final del Championship Tour', s => (s.esc.mejor.mundo || 99) <= 8, 'surf'],
+  ['olaVirgen', '🆕', 'Descubrir y surfear una ola virgen', s => s.esc.fa > 0, 'surf'],
+  ['nazare', '🗻', 'Surfear Nazaré', s => s.esc.envios.some(x => x.zona === 'Nazaré'), 'surf'],
+  ['veinte', '💎', 'Surfear una ola de 20 metros', s => s.esc.maxVia >= 20, 'surf', true],
+);
+CFG.look.items.extra.push({ id: 'tablaSurf', n: 'Tabla de surf', p: 120, dep: 'surf', gratisCat: 'tablas' });
+CFG.mejoras.material.push(
+  { id: 'quiver', dep: 'surf', ic: '🏄', n: 'Quiver de tablas', p: 900, ef: { entreno: 0.05 }, d: 'Una tabla para cada tipo de ola.' },
+  { id: 'neopreno', dep: 'surf', ic: '🥽', n: 'Neopreno de invierno', p: 350, ef: { energia: 2, animo: 1 }, d: 'Entras al agua en enero sin quedarte azul.' },
+  { id: 'surfskateCasa', dep: 'surf', ic: '🛹', n: 'Surfskate y balance board', p: 250, ef: { entreno: 0.03 }, d: 'Para entrenar giros sin mojarte.' },
 );
 
 // Jugadas decisivas del baloncesto (últimos segundos de un partido igualado)
