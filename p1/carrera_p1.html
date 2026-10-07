@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#ffffff">
 <title>Del barrio al negocio · P1</title>
 <!--
-  PROTOTIPO P1 (v0.9) — Simulador de vida de un deportista (fútbol o escalada): 10 pantallas, carrera, retirada, familia, negocios, casas con hipoteca, coches y clubes.
+  PROTOTIPO P1 (v0.10) — Simulador de vida de un deportista (fútbol o escalada): 10 pantallas, carrera, retirada, familia, negocios, casas con hipoteca, coches y clubes.
   Estilo «juego de móvil»: HUD arriba, escena del lugar donde estás, tres fichas para la semana (mañana, tarde y noche) y un botón JUGAR SEMANA.
   No hay partidos controlables, física ni gráficos 3D: los partidos se simulan con reglas explicadas.
   Archivo autónomo: no carga nada de Internet. Sin anuncios, compras, cuentas ni servicios de IA.
@@ -77,6 +77,13 @@
   /* Escena */
   .escena { position: relative; height: 118px; border-radius: 20px; overflow: hidden; border: 3px solid rgba(255,255,255,.22); box-shadow: 0 6px 0 rgba(0,0,0,.3); }
   .escena svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .escena .marcas { position: absolute; left: 10px; right: 10px; top: 44px; display: flex; flex-wrap: nowrap; overflow: hidden; justify-content: flex-start; gap: 4px; background: none; border: 0; padding: 0; min-height: 0; box-shadow: none; }
+  .escena .marcas span { background: rgba(255,255,255,.94); color: #15202b; font-weight: 900; font-size: 11px; border-radius: 6px; padding: 2px 6px; box-shadow: 0 2px 0 rgba(0,0,0,.35); white-space: nowrap; }
+  .relp { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; font-size: 13px; font-weight: 800; }
+  .relp .pb { flex: 1; height: 10px; border-radius: 99px; background: rgba(0,0,0,.12); overflow: hidden; }
+  .relp .pb i { display: block; height: 100%; border-radius: 99px; }
+  .patro .ob { font-size: 13px; margin-top: 4px; }
+  .patro .lema { display: block; font-style: italic; color: var(--muted, #667); font-size: 12px; }
   .escena .fecha { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-weight: 900; font-size: 13px; border-radius: 999px; padding: 3px 10px; }
   .escena .lugar { position: absolute; left: 10px; bottom: 10px; right: 10px; color: #fff; font-weight: 900; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.7);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -495,6 +502,31 @@ const CFG = {
     ['#8d0801', '#f4d58d'], ['#2b2d42', '#ef233c']],
 
   // ---- Escalada ----
+  // Patrocinadores (fútbol y escalada). Cada contrato tiene obligaciones: compromisos que te
+  // ocupan una tarde, un objetivo de temporada y una relación con la marca (0-100).
+  patrocinio: {
+    relInicial: 60, relRuptura: 25, relRenueva: 40, relFiel: 80, relObjetivo: 15, relFallo: 20,
+    primaObjetivo: 0.1,       // si cumples el objetivo: 10 % de lo que te pagan al año
+    semanasMinObj: 6,         // si firmas al final de la temporada, el objetivo no cuenta hasta la siguiente
+    separacionEventos: 3,     // como mucho un compromiso cada 3 semanas
+    cats: { futbol: ['local', 'botas', 'bebida', 'ropa', 'reloj', 'coche'], escalada: ['local', 'bebida', 'pies', 'material', 'ropa'] },
+    // tier = peor división en la que te pueden fichar (1 = primera). req 'estrella' = primera división.
+    futbol: [
+      { id: 'barPaco', marca: 'Bar Paco', cat: 'local', ic: '🍺', año: [0, 800], rep: 10, tier: 5, lema: 'El mejor bocata de calamares del barrio', d: 'Te invitan a comer y te pagan algo por llevar su nombre en el chándal.' },
+      { id: 'talleres', marca: 'Talleres Manolo', cat: 'local', ic: '🔧', año: [300, 2500], rep: 22, tier: 4, lema: 'Si hace ruido, lo arreglamos', d: 'El taller de toda la vida quiere salir en tus fotos.' },
+      { id: 'pumba', marca: 'Pumba', cat: 'botas', ic: '👟', año: [0, 3000], rep: 20, tier: 4, material: true, lema: 'Hakuna patada', d: 'Botas gratis y algo de dinero.' },
+      { id: 'adibas', marca: 'Adibas', cat: 'botas', ic: '👟', año: [5000, 60000], rep: 50, tier: 2, material: true, lema: 'Tres rayas y ninguna excusa', d: 'Botas, ropa y un fijo al año.' },
+      { id: 'naik', marca: 'Naik', cat: 'botas', ic: '✔️', año: [40000, 400000], rep: 80, req: 'estrella', material: true, lema: 'Just du it', d: 'Solo ficha estrellas de primera: anuncios por todo el mundo.' },
+      { id: 'aquarios', marca: 'Aquarios', cat: 'bebida', ic: '🥤', año: [1000, 8000], rep: 32, tier: 3, lema: 'Repón lo que sudas (y un poco más)', d: 'La isotónica de toda la vida.' },
+      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [60000, 250000], rep: 85, req: 'estrella', lema: 'Te da alitas… o casi', d: 'Solo estrellas: vídeos imposibles, eventos y fiestas.' },
+      { id: 'kapa', marca: 'Kapa', cat: 'ropa', ic: '🧢', año: [500, 4000], rep: 28, tier: 4, lema: 'Dos personas sentadas espalda con espalda', d: 'Chándales y algo de dinero.' },
+      { id: 'underamour', marca: 'Under Amour', cat: 'ropa', ic: '💘', año: [3000, 30000], rep: 48, tier: 2, lema: 'Entrena con el corazón', d: 'Ropa técnica y un buen fijo.' },
+      { id: 'casiyo', marca: 'Casiyo', cat: 'reloj', ic: '⌚', año: [1000, 6000], rep: 40, tier: 3, lema: 'Hace pip, pero es puntual', d: 'Relojes digitales de toda la vida.' },
+      { id: 'rolecs', marca: 'Rolecs', cat: 'reloj', ic: '👑', año: [50000, 200000], rep: 85, req: 'estrella', lema: 'Para cuando el tiempo es oro (literalmente)', d: 'Solo ficha a lo más alto del fútbol.' },
+      { id: 'siat', marca: 'Siat', cat: 'coche', ic: '🚗', año: [2000, 12000], rep: 45, tier: 2, lema: 'Auto emoción (o eso dicen)', d: 'Un fijo y un coche para ir a entrenar.' },
+      { id: 'audy', marca: 'Audy', cat: 'coche', ic: '🏎️', año: [20000, 90000], rep: 70, tier: 1, lema: 'Cuatro aros y un sueldo', d: 'Coche de lujo y un fijo muy alto.' },
+    ],
+  },
   escalada: {
     inicio: { edad: 14, energia: 75, rep: 3, dinero: 40, attrs: { fuerza: 22, resistencia: 22, tecnica: 26, cabeza: 22, velocidad: 22 } },
     fuertes: {
@@ -517,21 +549,21 @@ const CFG = {
     // Si en esos Juegos no vuelves a ganar (o no vas), la pierdes.
     becaOlimpica: 60000, semanaJJOO: 10,
     // Patrocinadores: una marca por categoría a la vez. año = € por año de juego según tu fama (de mín. a máx.).
-    // Marcas reales usadas como ambientación: los importes son de juego, no contratos reales.
+    // Marcas inventadas que «suenan» a las de verdad; los importes son de juego, no contratos reales.
     patrocinadores: [
-      { id: 'tiendaBarrio', marca: 'Tienda de montaña del barrio', cat: 'local', ic: '🏪', año: [0, 600], rep: 10, material: true, d: 'Te dan material y algo de dinero a cambio de que lleves su camiseta.' },
-      { id: 'rocoLocal', marca: 'Rocódromo de tu ciudad', cat: 'local', ic: '🧱', año: [300, 2000], rep: 22, bono: true, d: 'Entrenas gratis allí y sales en sus redes.' },
-      { id: 'isotonica', marca: 'Bebida isotónica regional', cat: 'bebida', ic: '🥤', año: [500, 3000], rep: 30, d: 'Una marca pequeña que quiere deportistas jóvenes.' },
-      { id: 'redbull', marca: 'Red Bull', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', d: 'Solo ficha estrellas: vídeos, eventos y viajes por todo el mundo.' },
-      { id: 'tenaya', marca: 'Tenaya', cat: 'pies', ic: '👟', año: [0, 2000], rep: 15, material: true, d: 'Pies de gato gratis y algo de dinero si destacas.' },
-      { id: 'scarpa', marca: 'Scarpa', cat: 'pies', ic: '👟', año: [1500, 10000], rep: 40, material: true, d: 'Pies de gato y un fijo al año.' },
-      { id: 'lasportiva', marca: 'La Sportiva', cat: 'pies', ic: '👟', año: [3000, 20000], rep: 55, material: true, d: 'Equipo internacional de la marca.' },
-      { id: 'edelrid', marca: 'Edelrid', cat: 'material', ic: '🪢', año: [0, 3000], rep: 25, d: 'Cuerdas, arneses y algo de dinero.' },
-      { id: 'petzl', marca: 'Petzl', cat: 'material', ic: '🪢', año: [2000, 12000], rep: 50, d: 'Material y un fijo al año.' },
-      { id: 'blackdiamond', marca: 'Black Diamond', cat: 'material', ic: '🪢', año: [2000, 15000], rep: 55, d: 'Equipo internacional de la marca.' },
-      { id: 'patagonia', marca: 'Patagonia', cat: 'ropa', ic: '🧥', año: [1000, 8000], rep: 40, d: 'Ropa y un fijo; les gustan los proyectos en roca.' },
-      { id: 'mammut', marca: 'Mammut', cat: 'ropa', ic: '🧥', año: [3000, 15000], rep: 55, d: 'Ropa, material y un fijo al año.' },
-      { id: 'tnf', marca: 'The North Face', cat: 'ropa', ic: '🧥', año: [8000, 35000], rep: 70, d: 'Una de las grandes: expediciones y documentales.' },
+      { id: 'tiendaBarrio', marca: 'Tienda de montaña del barrio', cat: 'local', ic: '🏪', año: [0, 600], rep: 10, material: true, lema: 'Si no lo tenemos, te lo pedimos', d: 'Te dan material y algo de dinero a cambio de que lleves su camiseta.' },
+      { id: 'rocoLocal', marca: 'Rocódromo de tu ciudad', cat: 'local', ic: '🧱', año: [300, 2000], rep: 22, bono: true, lema: 'Aquí se cae con estilo', d: 'Entrenas gratis allí y sales en sus redes.' },
+      { id: 'aquarios', marca: 'Aquarios', cat: 'bebida', ic: '🥤', año: [500, 3000], rep: 30, lema: 'Repón lo que sudas (y un poco más)', d: 'Una isotónica de toda la vida que quiere deportistas jóvenes.' },
+      { id: 'redtoro', marca: 'Red Toro', cat: 'bebida', ic: '🐂', año: [30000, 50000], rep: 85, req: 'estrella', lema: 'Te da alitas… o casi', d: 'Solo ficha estrellas: vídeos, eventos y viajes por todo el mundo.' },
+      { id: 'tenaja', marca: 'Tenaja', cat: 'pies', ic: '👟', año: [0, 2000], rep: 15, material: true, lema: 'Pies pequeños, sueños grandes', d: 'Pies de gato gratis y algo de dinero si destacas.' },
+      { id: 'escarpa', marca: 'Escarpa', cat: 'pies', ic: '👟', año: [1500, 10000], rep: 40, material: true, lema: 'Hechos para pisar donde no se puede', d: 'Pies de gato y un fijo al año.' },
+      { id: 'esportiva', marca: 'La Esportiva', cat: 'pies', ic: '👟', año: [3000, 20000], rep: 55, material: true, lema: 'Más apretados que tu agenda', d: 'Equipo internacional de la marca.' },
+      { id: 'edelrit', marca: 'Edelrit', cat: 'material', ic: '🪢', año: [0, 3000], rep: 25, lema: 'Cuerdas que no te dejan colgado', d: 'Cuerdas, arneses y algo de dinero.' },
+      { id: 'petzel', marca: 'Petzel', cat: 'material', ic: '🪢', año: [2000, 12000], rep: 50, lema: 'Luz en la frente, cabeza en la vía', d: 'Material y un fijo al año.' },
+      { id: 'blackdiamante', marca: 'Black Diamante', cat: 'material', ic: '💎', año: [2000, 15000], rep: 55, lema: 'Duro como un diamante (negro)', d: 'Equipo internacional de la marca.' },
+      { id: 'patagonio', marca: 'Patagonio', cat: 'ropa', ic: '🧥', año: [1000, 8000], rep: 40, lema: 'Ropa para salvar el planeta… y tu culo del frío', d: 'Ropa y un fijo; les gustan los proyectos en roca.' },
+      { id: 'mamut', marca: 'Mamut', cat: 'ropa', ic: '🦣', año: [3000, 15000], rep: 55, lema: 'Abriga como un mamut', d: 'Ropa, material y un fijo al año.' },
+      { id: 'southface', marca: 'The South Face', cat: 'ropa', ic: '🧥', año: [8000, 35000], rep: 70, lema: 'Nunca dejes de bajar', d: 'Una de las grandes: expediciones y documentales.' },
     ],
     edadPagas: 18,   // hasta esta edad tu familia paga cuota, bono, licencia y competiciones en España
     segColab: 10000, colabPorMil: 2.5, semanasPies: 8, piesGato: 130, edadRetiro: 28,
@@ -926,6 +958,7 @@ function nuevaPartida(seed) {
     acum: { ingresosPers: 0, gastosPers: 0, impuestos: 0, ingresosNeg: 0, gastosNeg: 0 },
     historial: [],
     intro: true, nombre: '', avatar: CFG.avatares[0], posicion: 'delantero', deporte: 'futbol', fuerte: 'bloque',
+    patros: [], patroOf: { ofrecida: {}, prox: 0, ultEv: -99 }, patroTemp: { partidos: 0, pj: 0, tit: 0, goles: 0 }, patrosHist: [], tardePatro: null,
   };
   s.potencial = Math.round(CFG.club.potencial[0] + rnd(s) * (CFG.club.potencial[1] - CFG.club.potencial[0]));
   s.mundo = generarMundo(s);
@@ -953,8 +986,25 @@ function cargar() {
     const t = localStorage.getItem(CFG.guardado);
     if (!t) return null;
     const s = JSON.parse(t);
-    return s && s.v === 5 ? s : null;
+    return s && s.v === 5 ? migrar(s) : null;
   } catch (_) { return null; }
+}
+// Partidas guardadas con una versión anterior del juego
+function migrar(s) {
+  const ren = { redbull: 'redtoro', isotonica: 'aquarios', tenaya: 'tenaja', scarpa: 'escarpa', lasportiva: 'esportiva', edelrid: 'edelrit', petzl: 'petzel', blackdiamond: 'blackdiamante', patagonia: 'patagonio', mammut: 'mamut', tnf: 'southface' };
+  if (!s.patros) s.patros = (s.esc && s.esc['patros']) || [];
+  if (!s.patroOf) s.patroOf = { ofrecida: (s.esc && s.esc.ofrecida) || {}, prox: (s.esc && s.esc.proxOferta) || 0, ultEv: -99 };
+  if (s.esc) { delete s.esc['patros']; delete s.esc.ofrecida; delete s.esc.proxOferta; }
+  if (!s.patroTemp) s.patroTemp = { partidos: 0, pj: 0, tit: 0, goles: 0 };
+  if (!s.patrosHist) s.patrosHist = s.patros.map(p => ren[p.id] || p.id);
+  const cat = s.deporte === 'escalada' ? CFG.escalada.patrocinadores : CFG.patrocinio.futbol;
+  for (const pt of s.patros) {
+    pt.id = ren[pt.id] || pt.id;
+    const P = cat.find(x => x.id === pt.id);
+    if (P) Object.assign(pt, { marca: P.marca, ic: P.ic, lema: P.lema });
+    if (pt.rel == null) Object.assign(pt, { rel: CFG.patrocinio.relInicial, desde: s.semana, proxEv: s.semana + 3, obj: objetivoPatro(s, pt.cat) });
+  }
+  return s;
 }
 function reiniciar(seed) {
   try { localStorage.removeItem(CFG.guardado); } catch (_) {}
@@ -1062,9 +1112,9 @@ const ACCIONES = {
   },
   patrocinio: {
     fases: ['club'], ic: '📸', n: 'Acto de patrocinador', fx: s => [['€', pagoPatrocinio(s)], ['⭐', 2], ['⚡', -5], ['📋', 'Selección −8']],
-    pro: s => `+${cr(pagoPatrocinio(s))} · +2 reputación`, con: () => '−5 energía · −8 en la selección esta semana',
+    pro: s => `+${cr(pagoPatrocinio(s))} · +2 reputación${s.patros.length ? ' · +5 relación con tus marcas' : ''}`, con: () => '−5 energía · −8 en la selección esta semana',
     why: s => `Pago = (20 + reputación × 3) × visibilidad de tu liga (${nf(visibilidad(s, s.contrato.clubId))}), ya con impuestos.`,
-    aplicar(s, R) { const pago = pagoPatrocinio(s); s.p.dinero += pago; s.p.rep += 2; s.p.energia -= 5; R.eco.push(['Acto de patrocinador', pago]); R.dep.push(['Patrocinador', '+2 reputación, −5 energía', 'Valor fijo de esta acción.']); },
+    aplicar(s, R) { const pago = pagoPatrocinio(s); s.p.dinero += pago; s.p.rep += 2; s.p.energia -= 5; R.eco.push(['Acto de patrocinador', pago]); R.dep.push(['Patrocinador', '+2 reputación, −5 energía', 'Valor fijo de esta acción.']); for (const pt of s.patros) pt.rel = Math.min(100, pt.rel + 5); },
   },
   // ---- Retirado ----
   gestionar: {
@@ -1162,6 +1212,7 @@ function avanzarSemana() {
     semanaEscalada(s, R);
   }
 
+  semanaPatros(s, R);
   for (const n of s.negocios) semanaNegocio(s, R, n);
   semanaInmuebles(s, R);
   semanaCoches(s, R);
@@ -1278,6 +1329,8 @@ function semanaClub(s, R, mods) {
   }
   T.jornada += 1;
 
+  const pT = s.patroTemp; pT.partidos += 1;
+  if (juega) { pT.pj += 1; pT.goles += P.goles; if (titular) pT.tit += 1; }
   if (juega) {
     s.stats.jugados += 1; s.stats.goles += P.goles; s.stats.asist += P.asist;
     s.stats.notas.push(P.nota); if (s.stats.notas.length > 20) s.stats.notas.shift();
@@ -1441,6 +1494,8 @@ function finTemporada(s, R) {
   const T = s.temporada, c = s.contrato, yo = c.clubId, orden = clasificacion(T);
   const pos = orden.indexOf(yo) + 1, z = zona(T.liga, pos), tramo = tramoActual(s);
   const info = { tipo: 'fin', clubId: yo, año: T.año, liga: T.liga, pos, zona: z, tabla: orden.map(id => [id, { ...T.tabla[id] }]), primas: [], tramo: { ...tramo } };
+  balancePatros(s, R, z);
+  s.patroTemp = { partidos: 0, pj: 0, tit: 0, goles: 0 };
   if (z === 'ascenso' || z === 'campeon') {
     s.ascensos += 1;
     if (c.primaAscenso) {
@@ -1823,6 +1878,10 @@ function resolver(opcion) {
     msg = `${textoSuceso(s, e, ev.data || {}, 't')} → ${op.n}. ${msg}`;
     ic = e.ic;
     s.p.nivel = clamp(r1(s.p.nivel), 0, CFG.nivelMax); s.p.rep = clamp(Math.round(s.p.rep), 0, 100);
+  } else if (POPUPS_PATRO[ev.tipo]) {
+    const r = resolverPatro(s, ev, opcion);
+    if (!r) return false;
+    [ic, msg] = r;
   } else if (POPUPS_ESC[ev.tipo]) {
     const r = resolverEsc(s, ev, opcion);
     if (!r) return false;
@@ -2349,6 +2408,8 @@ function semanaVida(s, R) {
 const LOGROS = [
   ['contrato', '📝', 'Primer contrato profesional', s => s.fase === 'club', 'futbol'],
   ['gol', '⚽', 'Primer gol como profesional', s => s.stats.goles > 0, 'futbol'],
+  ['patro1', '💼', 'Primer patrocinador', s => (s.patrosHist || []).length > 0],
+  ['alitas', '🐂', 'Te da alitas: firma con Red Toro', s => (s.patrosHist || []).includes('redtoro')],
   ['ascenso', '⬆️', 'Primer ascenso', s => s.ascensos > 0, 'futbol'],
   ['extranjero', '✈️', 'Jugar en el extranjero', s => s.fase === 'club' && miClub(s).pais !== 'es', 'futbol'],
   ['primera', '🏆', 'Jugar en primera división', s => s.fase === 'club' && ligaDe(s, s.contrato.clubId).tier === 1, 'futbol'],
@@ -2663,11 +2724,11 @@ function retirarse(s, forzado, R) {
   const c = miClub(s), RR = CFG.retiro;
   const homenaje = s.p.rep >= RR.homenajeRep ? s.p.rep * RR.homenajePorRep : 0;
   s.ultimoClub = c.id;
-  s.fase = 'retirado'; s.contrato = null; s.lesion = 0; s.semanasAño = 0;
+  s.fase = 'retirado'; s.contrato = null; s.lesion = 0; s.semanasAño = 0; s.patros = []; s.tardePatro = null;
   s.plan = s.negocios.length ? 'gestionar' : 'rentas';
   s.mods = s.mods.filter(m => m.tipo !== 'sel');
-  s.cola = s.cola.filter(e => !['ofertas', 'mejora'].includes(e.tipo));
-  if (s.pendiente && ['ofertas', 'mejora'].includes(s.pendiente.tipo)) s.pendiente = s.cola.shift() || null;
+  s.cola = s.cola.filter(e => !['ofertas', 'mejora', 'patrocinio', 'eventoPatro'].includes(e.tipo));
+  if (s.pendiente && ['ofertas', 'mejora', 'patrocinio', 'eventoPatro'].includes(s.pendiente.tipo)) s.pendiente = s.cola.shift() || null;
   if (homenaje) { s.p.dinero += homenaje; s.acum.ingresosPers += homenaje; }
   const txt = `${forzado ? 'Ningún club me ofrece contrato: ' : ''}me retiro del fútbol a los ${s.edad} años tras ${s.stats.jugados} partidos y ${s.stats.goles} goles.${homenaje ? ` Partido de homenaje en el ${c.estadio}: +${cr(homenaje)}.` : ''}`;
   if (R) R.opo.push(['👋', txt]); else anotar(s, '👋', txt);
@@ -2768,8 +2829,7 @@ const EQUIPOS = {
   centro: { n: 'Centro de tecnificación', ic: '🏛️', cuota: 45, calidad: 1.2, nivelMin: 30, d: 'Entrenadores titulados y muro de velocidad, pero lejos de casa: cuota y desplazamientos.' },
   libre: { n: 'Por libre', ic: '🎒', cuota: 0, calidad: 0.85, bono: 12, d: 'Sin cuota ni horarios, pero sin entrenador: pagas el bono del rocódromo cada vez que entrenas allí.' },
 };
-const CAT_PATRO = { local: 'Patrocinador local', bebida: 'Bebida', pies: 'Pies de gato', material: 'Material (cuerdas y arneses)', ropa: 'Ropa' };
-const POPUPS_ESC = { equipoEsc: 1, patrocinio: 1, nacional: 1, finEsc: 1, invitacion: 1 };
+const POPUPS_ESC = { equipoEsc: 1, nacional: 1, finEsc: 1, invitacion: 1 };
 
 /* ---- Niveles y grados ---- */
 function nivelMod(s, m) {
@@ -2830,7 +2890,7 @@ function initEscalada(s, fuerte) {
   for (const k of Object.keys(ATTRS)) tal[k] = Math.round((rnd(s) * 2 - 1) * K.talentoAttr);
   tal[K.fuertes[pf].attr] += 3;
   s.potencial = Math.round(K.potencial[0] + rnd(s) * (K.potencial[1] - K.potencial[0]));
-  s.esc = { at, tal, piel: 90, carga: 10, equipo: null, federado: false, nacional: 0, beca: 0, patros: [], ofrecida: {}, proxOferta: 0, becaHasta: 0, becaSaldo: 0, invit: {}, seg: 150,
+  s.esc = { at, tal, piel: 90, carga: 10, equipo: null, federado: false, nacional: 0, beca: 0, becaHasta: 0, becaSaldo: 0, invit: {}, seg: 150,
     año: CFG.temporada.añoInicio, maxVia: -1, maxBloque: -1, proy: null, modoComp: 'todo', ins: {}, comps: 0, podios: 0, finales: 0, palmares: [],
     mejor: {}, anual: nuevoAnual(), medallas: [], fa: 0, viajes: {}, olimpico: null, mejorMundoMod: {}, lesTipo: '', semPies: 0, nv: 0,
     equipoOfrecido: false, mejorTiempo: null, puntosSel: 0, envios: [] };
@@ -2900,8 +2960,8 @@ const ACCIONES_ESC = {
     disponible: s => s.edad < 18 || s.p.nivel < 50 ? 'Desde los 18 años y nivel 50.' : s.lesion > 0 ? 'Estás lesionado/a.' : null,
     aplicar(s, R) { s.p.dinero += CFG.escalada.pagoEquipador; R.eco.push(['Equipador de bloques', CFG.escalada.pagoEquipador]); entrenarEsc(s, R, 'Equipar bloques', [['tecnica', 0.35]], { e: 15, piel: 6, carga: 4 }); } },
   contenido: { fases: ['escalador'], ic: '🎥', n: 'Grabar contenido para redes', fx: s => [['📱', `+${nf(segContenido(s) / 1000)} mil seguidores`], ['⭐', 1], ['⚡', -6]],
-    pro: () => 'Más seguidores: los patrocinadores pagan por audiencia', con: () => '−6 energía · no mejoras', why: () => 'Seguidores = 300 + reputación × 60. Con más de 10.000 cobras colaboraciones cada semana.',
-    aplicar(s, R) { const g = segContenido(s); s.esc.seg += g; s.p.rep += 1; s.p.energia -= 6; s.esc.piel = clamp(s.esc.piel - 6, 0, 100); R.dep.push(['Contenido para redes', `+${nf(g / 1000)} mil seguidores, +1 reputación`, 'Seguidores = 300 + reputación × 60.']); } },
+    pro: s => `Más seguidores: los patrocinadores pagan por audiencia${s.patros.length ? ' · +3 relación con tus marcas' : ''}`, con: () => '−6 energía · no mejoras', why: () => 'Seguidores = 300 + reputación × 60. Con más de 10.000 cobras colaboraciones cada semana.',
+    aplicar(s, R) { const g = segContenido(s); s.esc.seg += g; s.p.rep += 1; s.p.energia -= 6; s.esc.piel = clamp(s.esc.piel - 6, 0, 100); R.dep.push(['Contenido para redes', `+${nf(g / 1000)} mil seguidores, +1 reputación`, 'Seguidores = 300 + reputación × 60.']); for (const pt of s.patros) pt.rel = Math.min(100, pt.rel + 3); } },
   // ---- Retirada (escalada) ----
   equipar: { fases: ['retirado'], dep: 'escalada', ic: '🔩', n: 'Equipar vías nuevas', fx: () => [['⭐', 1], ['😊', 3], ['€', -80]],
     pro: () => '+1 reputación · +3 felicidad', con: () => '−80 € en chapas y anclajes', why: () => 'Devuelves a la escalada lo que te dio.',
@@ -2966,7 +3026,7 @@ function encadenar(s, R) {
   if (clasica) rep += 3;
   s.p.rep += rep;
   E.seg += 500 + rep * 400;
-  if ((via ? P.grado : P.grado + 1.3) >= 16) for (const pt of E.patros) if (pt.primaGrado) { s.p.dinero += pt.primaGrado; R.eco.push([`Prima de ${pt.marca} por encadenar`, pt.primaGrado]); }
+  if ((via ? P.grado : P.grado + 1.3) >= 16) for (const pt of s.patros) if (pt.primaGrado) { s.p.dinero += pt.primaGrado; R.eco.push([`Prima de ${pt.marca} por encadenar`, pt.primaGrado]); }
   E.envios.unshift({ año: E.año, g, zona: Z.n, fa: P.fa, nombre: clasica || '' }); E.envios = E.envios.slice(0, 20);
   const nombre = P.fa ? ' (¡primera ascensión!)' : clasica ? ` («${clasica}»)` : '';
   R.escLineas.push(['🎉', `¡Encadeno ${g} en ${Z.n}${nombre} tras ${P.sem} ${P.sem === 1 ? 'semana' : 'semanas'}!${rep ? ` +${rep} reputación.` : ''}`]);
@@ -3056,7 +3116,7 @@ function competirEsc(s, R, c) {
   pagarEsc(s, R, coste, `Inscripción${coste > A.ins ? ' y viaje' : ''}: ${A.n}`);
   let bruto = premio;
   if (premio) R.eco.push([c.amb === 'jjoo' ? 'Premio del Consejo Superior de Deportes por la medalla' : `Premio (${pos}º)`, premio]);
-  if (pos <= 3 && ORDEN_AMB.indexOf(c.amb) >= 1) for (const pt of E.patros) if (pt.primaPodio) { const b = Math.round(pt.primaPodio * K.factorPrima[c.amb]); bruto += b; R.eco.push([`Prima de ${pt.marca} por el podio`, b]); }
+  if (pos <= 3 && ORDEN_AMB.indexOf(c.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) { const b = Math.round(pt.primaPodio * K.factorPrima[c.amb]); bruto += b; R.eco.push([`Prima de ${pt.marca} por el podio`, b]); }
   if (bruto) { const imp = Math.round(bruto * tipoImpuesto(bruto)); s.p.dinero += bruto - imp; if (imp) { R.eco.push([`Impuestos de premios (${Math.round(tipoImpuesto(bruto) * 100)} %)`, -imp]); s.acum.impuestos += imp; } E.anual.premios += premio; }
   // Reputación y seguidores
   const f = pos === 1 ? 1.6 : pos <= 3 ? 1.2 : ronda === 'final' ? 0.7 : ronda === 'semifinal' ? 0.35 : 0.1;
@@ -3142,7 +3202,6 @@ function semanaEscalada(s, R) {
   // Patrocinadores
   if (s.fase === 'escalador') {
     s.p.rep = clamp(s.p.rep, 0, 100);
-    buscarOfertas(s, R);
     buscarInvitaciones(s, R);
   }
   // La fama se apaga sin resultados; los seguidores se acercan a lo que corresponde a tu reputación
@@ -3161,7 +3220,7 @@ function economiaEsc(s, R) {
   const E = s.esc, K = CFG.escalada;
   let bruto = 0;
   if (E.becaOlimpica) { const v = Math.round(K.becaOlimpica / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Beca olímpica (${cr(K.becaOlimpica)}/año hasta ${E.becaOlimpica.hasta})`, v]); }
-  for (const pt of E.patros) if (pt.año) { const v = Math.round(pt.año / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Patrocinio de ${pt.marca} (${cr(pt.año)}/año)`, v]); }
+  for (const pt of s.patros) if (pt.año) { const v = Math.round(pt.año / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Patrocinio de ${pt.marca} (${cr(pt.año)}/año)`, v]); }
   if (E.nacional === E.año && E.beca) { bruto += E.beca; R.eco.push(['Ayuda de la federación', E.beca]); }
   const colab = E.seg >= K.segColab ? Math.round(E.seg / 1000 * K.colabPorMil) : 0;
   if (colab) { bruto += colab; R.eco.push([`Colaboraciones en redes (${nf(E.seg / 1000)} mil seguidores)`, colab]); }
@@ -3169,47 +3228,9 @@ function economiaEsc(s, R) {
   // Beca del Estado: se ingresa en un saldo que solo sirve para gastos de escalada
   if (E.becaHasta >= E.año) { const v = Math.round(K.becaEstado.mes * 12 / CFG.hipoteca.semanasAño); E.becaSaldo += v; R.dep.push([`Beca del Estado: +${cr(v)}`, `saldo ${cr(E.becaSaldo)}`, `${cr(K.becaEstado.mes)} al mes (cada semana de juego son unas 3 semanas reales). Solo se puede gastar en escalada; lo que sobre al acabar el año se pierde.`]); }
   if (E.equipo && EQUIPOS[E.equipo].cuota && s.edad >= K.edadPagas) pagarEsc(s, R, EQUIPOS[E.equipo].cuota, `Cuota: ${EQUIPOS[E.equipo].n.toLowerCase()}`);
-  if (E.semPies >= K.semanasPies) { E.semPies = 0; const pm = E.patros.find(pt => pt.material); if (pm) R.escLineas.push(['👟', `Pies de gato nuevos, cortesía de ${pm.marca}.`]); else if (s.edad < K.edadPagas) R.escLineas.push(['👟', 'Mis padres me compran unos pies de gato nuevos.']); else pagarEsc(s, R, K.piesGato, 'Pies de gato nuevos (los viejos están rotos)'); }
+  if (E.semPies >= K.semanasPies) { E.semPies = 0; const pm = s.patros.find(pt => pt.material); if (pm) R.escLineas.push(['👟', `Pies de gato nuevos, cortesía de ${pm.marca}.`]); else if (s.edad < K.edadPagas) R.escLineas.push(['👟', 'Mis padres me compran unos pies de gato nuevos.']); else pagarEsc(s, R, K.piesGato, 'Pies de gato nuevos (los viejos están rotos)'); }
   const gv = gastosVida(s);
   s.p.dinero -= gv.v; R.eco.push([`Gastos (${gv.motivo})`, -gv.v]);
-}
-// ---- Patrocinadores ----
-function tienePatro(s, id) { return s.esc.patros.some(p => p.id === id); }
-function cumpleReqPatro(s, P) {
-  const E = s.esc;
-  if (s.p.rep < P.rep) return false;
-  if (P.req === 'estrella') return (E.mejor.mundo || 99) <= 8 || (E.mejor.mundial || 99) <= 8 || E.maxVia >= 20 || E.medallas.length > 0;
-  return true;
-}
-function textoReqPatro(P) { return `fama ${P.rep}${P.req === 'estrella' ? ' y una final de Copa del Mundo, un 9a o una medalla' : ''}`; }
-// Lo que te paga una marca: de su mínimo a su máximo según cuánto superas la fama que pide
-function pagoPatro(s, P) { const f = clamp((s.p.rep - P.rep) / Math.max(1, 100 - P.rep), 0, 1); return red(P.año[0] + (P.año[1] - P.año[0]) * (0.3 + 0.7 * f), 100); }
-function ofertasPatro(s, cat) {
-  const E = s.esc, act = E.patros.find(p => p.cat === cat), minimo = act ? act.año * 1.15 + 50 : -1;
-  const l = CFG.escalada.patrocinadores.filter(P => P.cat === cat && cumpleReqPatro(s, P) && (!act || P.id !== act.id || pagoPatro(s, P) > minimo)).map(P => [P, pagoPatro(s, P)]).filter(([, v]) => v > minimo).sort((a, b) => b[1] - a[1]);
-  if (!l.length) return [];
-  const base = ([P, v]) => ({ id: P.id, marca: P.marca, cat: P.cat, ic: P.ic, año: v, material: !!P.material, bono: !!P.bono, temporadas: 2, d: P.d });
-  const out = [Object.assign(base(l[0]), { tipo: 'fijo' })];
-  const [P2, v2] = l[1] || l[0];
-  if (v2 >= 2000) out.push(Object.assign(base([P2, red(v2 * 0.6, 100)]), { tipo: 'variable', temporadas: 1, primaPodio: red(v2 * 0.15, 50), primaGrado: red(v2 * 0.2, 50), d: `${P2.d} Menos fijo, con primas por podio y por encadenar 8b o más.` }));
-  else if (l[1]) out.push(Object.assign(base(l[1]), { tipo: 'fijo' }));
-  return out;
-}
-function buscarOfertas(s, R) {
-  const E = s.esc;
-  if (s.semana < E.proxOferta) return;
-  let mejor = null;
-  for (const cat of Object.keys(CAT_PATRO)) {
-    if ((E.ofrecida[cat] || -99) > s.semana - 12) continue;
-    const o = ofertasPatro(s, cat);
-    if (!o.length) continue;
-    const act = E.patros.find(p => p.cat === cat), mejora = o[0].año - (act ? act.año : -1);
-    if (!mejor || mejora > mejor.mejora) mejor = { cat, ofertas: o, mejora };
-  }
-  if (!mejor) return;
-  E.ofrecida[mejor.cat] = s.semana; E.proxOferta = s.semana + 3;
-  encolar(s, { tipo: 'patrocinio', cat: mejor.cat, ofertas: mejor.ofertas });
-  R.opo.push(['💼', `${mejor.ofertas[0].marca} quiere patrocinarme.`]);
 }
 // ---- Másters por invitación ----
 function invitadoMaster(s, c) { return s.edad >= 16 && (s.p.rep >= 65 || mejorMundoReciente(s, c.mod) <= 16 || nivelMod(s, c.mod) >= 75); }
@@ -3225,7 +3246,8 @@ function buscarInvitaciones(s, R) {
 
 function nuevoAñoEsc(s, R) {
   const E = s.esc, K = CFG.escalada, A = E.anual;
-  const resumen = { tipo: 'finEsc', año: E.año, comps: A.comps, podios: A.podios, mejorEsp: A.mejorEsp, mejorMundo: A.mejorMundo, premios: A.premios, maxVia: E.maxVia, maxBloque: E.maxBloque, edad: s.edad + 1, beca: E.becaHasta > E.año, perdida: Math.round(E.becaSaldo), patros: E.patros.reduce((a, p) => a + p.año, 0) };
+  const resumen = { tipo: 'finEsc', año: E.año, comps: A.comps, podios: A.podios, mejorEsp: A.mejorEsp, mejorMundo: A.mejorMundo, premios: A.premios, maxVia: E.maxVia, maxBloque: E.maxBloque, edad: s.edad + 1, beca: E.becaHasta > E.año, perdida: Math.round(E.becaSaldo), patros: s.patros.reduce((a, p) => a + p.año, 0) };
+  if (s.fase === 'escalador') balancePatros(s, R);
   if (E.becaSaldo > 0) R.opo.push(['🎓', `Se pierden ${cr(E.becaSaldo)} de la beca que no he gastado en escalada.`]);
   E.becaSaldo = 0;
   // Equipo nacional para el año que viene
@@ -3235,18 +3257,295 @@ function nuevoAñoEsc(s, R) {
   R.opo.push(['🎂', `Cumplo ${s.edad} años. Empieza ${E.año}.`]);
   if (s.fase === 'escalador') {
     if (s.edad >= K.edadPagas) pagarEsc(s, R, K.licencia, 'Licencia federativa del año');
-    for (const pt of E.patros) {
-      pt.temporadas -= 1;
-      if (pt.temporadas > 0) continue;
-      // Si sigues cumpliendo lo que pide la marca, renueva 2 años con lo que te corresponde ahora
-      const P = CFG.escalada.patrocinadores.find(x => x.id === pt.id);
-      if (P && cumpleReqPatro(s, P)) { const antes = pt.año; pt.año = pt.tipo === 'variable' ? red(pagoPatro(s, P) * 0.6, 100) : pagoPatro(s, P); pt.temporadas = 2; R.opo.push(['💼', `Renuevo con ${pt.marca} 2 años: ${pt.año ? `${cr(pt.año)}/año` : 'material'}${pt.año !== antes ? ` (antes ${cr(antes)})` : ''}.`]); }
-      else { R.opo.push(['💼', `${pt.marca} no me renueva: mi fama ha bajado.`]); E.ofrecida[pt.cat] = -99; }
-    }
-    E.patros = E.patros.filter(pt => pt.temporadas > 0);
     encolar(s, resumen);
     if (ofrecer) encolar(s, { tipo: 'nacional', año: E.año, beca: K.becaBase });
   }
+}
+
+/* =====================================================================
+   15b. PATROCINADORES (fútbol y escalada)
+   Una marca por categoría. Cada contrato trae obligaciones:
+   · compromisos (anuncios, fiestas, firmas…) que te ocupan una tarde,
+   · un objetivo de temporada (si lo cumples, prima; si no, la marca se enfada),
+   · una relación con la marca: por debajo de 25 rompen el contrato y para renovar piden 40.
+   ===================================================================== */
+const CAT_PATRO = { local: 'Patrocinador local', bebida: 'Bebida', pies: 'Pies de gato', material: 'Material (cuerdas y arneses)', ropa: 'Ropa', botas: 'Botas', reloj: 'Reloj', coche: 'Coche' };
+const POPUPS_PATRO = { patrocinio: 1, eventoPatro: 1 };
+const NOMBRE_TIER = ['Primera División', 'Segunda División', 'Primera Federación', 'Segunda Federación', 'Tercera Federación'];
+function catalogoPatro(s) { return s.deporte === 'escalada' ? CFG.escalada.patrocinadores : CFG.patrocinio.futbol; }
+function patroDe(s, id) { return catalogoPatro(s).find(P => P.id === id); }
+function puedePatro(s) { return s.deporte === 'escalada' ? s.fase === 'escalador' : s.fase === 'club' && !!s.contrato; }
+function tienePatro(s, id) { return s.patros.some(p => p.id === id); }
+function tierActual(s) { return s.contrato ? ligaDe(s, s.contrato.clubId).tier : 9; }
+function cumpleReqPatro(s, P) {
+  if (!P || s.p.rep < P.rep) return false;
+  if (s.deporte === 'escalada') {
+    const E = s.esc;
+    if (P.req === 'estrella') return (E.mejor.mundo || 99) <= 8 || (E.mejor.mundial || 99) <= 8 || E.maxVia >= 20 || E.medallas.length > 0;
+    return true;
+  }
+  return tierActual(s) <= (P.req === 'estrella' ? 1 : P.tier || 9);
+}
+function textoReqPatro(s, P) {
+  if (s.deporte === 'escalada') return `fama ${P.rep}${P.req === 'estrella' ? ' y una final de Copa del Mundo, un 9a o una medalla' : ''}`;
+  const t = P.req === 'estrella' ? 1 : P.tier || 9;
+  return `fama ${P.rep}${t <= 4 ? ` y jugar en ${NOMBRE_TIER[t - 1]}${t > 1 ? ' o más arriba' : ''}` : ''}`;
+}
+// Lo que te paga una marca: de su mínimo a su máximo según cuánto superas la fama que pide
+function pagoPatro(s, P) { const f = clamp((s.p.rep - P.rep) / Math.max(1, 100 - P.rep), 0, 1); return red(P.año[0] + (P.año[1] - P.año[0]) * (0.3 + 0.7 * f), 100); }
+// El objetivo de temporada depende del tipo de marca
+function objetivoPatro(s, cat) {
+  if (s.deporte === 'escalada') {
+    const E = s.esc;
+    if (cat === 'bebida') return { tipo: 'podio', v: 1, t: 'Subir a un podio este año' };
+    if (cat === 'pies' || cat === 'material') { const v = Math.min(Math.max(E.maxVia + 1, 8), GRADOS_VIA.length - 1); return { tipo: 'grado', v, t: `Encadenar ${gV(v)} en roca` }; }
+    if (cat === 'ropa') { const v = Math.max(2000, red(E.seg * 1.25, 1000)); return { tipo: 'seg', v, t: `Llegar a ${nf(v / 1000)} mil seguidores` }; }
+    return { tipo: 'comps', v: 4, t: 'Competir 4 veces este año' };
+  }
+  const g = { delantero: 6, medio: 3, defensa: 1 }[s.posicion] || 2;
+  if (cat === 'botas') return { tipo: 'goles', v: g, t: `Marcar ${g} ${g === 1 ? 'gol' : 'goles'} esta temporada` };
+  if (cat === 'reloj' || cat === 'coche') return { tipo: 'top', v: 1, t: 'Que tu equipo acabe en la mitad de arriba' };
+  if (cat === 'local') return { tipo: 'pj', v: 8, t: 'Jugar 8 partidos esta temporada' };
+  return { tipo: 'tit', v: 50, t: 'Ser titular en la mitad de los partidos' };
+}
+// [lo que llevas, lo que piden]
+function progresoObjPatro(s, o) {
+  if (!o) return [1, 1];
+  if (s.deporte === 'escalada') {
+    const E = s.esc, A = E.anual;
+    if (o.tipo === 'podio') return [A.podios, o.v];
+    if (o.tipo === 'grado') return [E.maxVia >= o.v ? 1 : 0, 1];
+    if (o.tipo === 'seg') return [E.seg, o.v];
+    return [A.comps, o.v];
+  }
+  const T = s.patroTemp;
+  if (o.tipo === 'goles') return [T.goles, o.v];
+  if (o.tipo === 'pj') return [T.pj, o.v];
+  if (o.tipo === 'tit') return [T.partidos ? Math.round(T.tit * 100 / T.partidos) : 0, o.v];
+  if (o.tipo === 'top') { if (!s.temporada || !s.contrato) return [0, 1]; const ord = clasificacion(s.temporada); return [ord.indexOf(s.contrato.clubId) + 1 <= ord.length / 2 ? 1 : 0, 1]; }
+  return [1, 1];
+}
+function textoProgresoPatro(s, o) {
+  const [a, v] = progresoObjPatro(s, o), ok = a >= v;
+  if (o.tipo === 'grado' || o.tipo === 'top') return ok ? '✅ conseguido' : o.tipo === 'top' ? '⏳ ahora no' : s.esc.maxVia >= 0 ? `⏳ tu máximo es ${gV(s.esc.maxVia)}` : '⏳ aún no has encadenado en roca';
+  if (o.tipo === 'tit') return `${ok ? '✅' : '⏳'} ${a} % de ${v} %`;
+  if (o.tipo === 'seg') return `${ok ? '✅' : '⏳'} ${nf(a / 1000)} mil de ${nf(v / 1000)} mil`;
+  return `${ok ? '✅' : '⏳'} ${Math.min(a, v)} de ${v}`;
+}
+// Cada cuánto te llama la marca: las grandes piden más
+function cadaEventoPatro(s, pt) { const b = pt.año >= 20000 ? [4, 3] : pt.año >= 3000 ? [6, 4] : [9, 5]; return b[0] + Math.floor(rnd(s) * b[1]); }
+function ofertasPatro(s, cat) {
+  const act = s.patros.find(p => p.cat === cat), minimo = act ? act.año * 1.15 + 50 : -1;
+  const l = catalogoPatro(s).filter(P => P.cat === cat && cumpleReqPatro(s, P) && (!act || P.id !== act.id || pagoPatro(s, P) > minimo)).map(P => [P, pagoPatro(s, P)]).filter(([, v]) => v > minimo).sort((a, b) => b[1] - a[1]);
+  if (!l.length) return [];
+  const base = ([P, v]) => ({ id: P.id, marca: P.marca, cat: P.cat, ic: P.ic, lema: P.lema, año: v, material: !!P.material, bono: !!P.bono, temporadas: 2, d: P.d, obj: objetivoPatro(s, P.cat) });
+  const out = [Object.assign(base(l[0]), { tipo: 'fijo' })];
+  const [P2, v2] = l[1] || l[0];
+  if (v2 >= 2000) {
+    const o = Object.assign(base([P2, red(v2 * 0.6, 100)]), { tipo: 'variable', temporadas: 1 });
+    if (s.deporte === 'escalada') Object.assign(o, { primaPodio: red(v2 * 0.15, 50), primaGrado: red(v2 * 0.2, 50), d: `${P2.d} Menos fijo, con primas por podio y por encadenar 8b o más.` });
+    else Object.assign(o, { primaGol: red(v2 * 0.01, 10), primaTitulo: red(v2 * 0.2, 100), d: `${P2.d} Menos fijo, con primas por gol y por ascenso o título.` });
+    out.push(o);
+  } else if (l[1]) out.push(Object.assign(base(l[1]), { tipo: 'fijo' }));
+  return out;
+}
+function buscarOfertas(s, R) {
+  const O = s.patroOf;
+  if (s.semana < O.prox) return;
+  let mejor = null;
+  for (const cat of CFG.patrocinio.cats[s.deporte === 'escalada' ? 'escalada' : 'futbol']) {
+    if ((O.ofrecida[cat] || -99) > s.semana - 12) continue;
+    const o = ofertasPatro(s, cat);
+    if (!o.length) continue;
+    const act = s.patros.find(p => p.cat === cat), mejora = o[0].año - (act ? act.año : -1);
+    if (!mejor || mejora > mejor.mejora) mejor = { cat, ofertas: o, mejora };
+  }
+  if (!mejor) return;
+  O.ofrecida[mejor.cat] = s.semana; O.prox = s.semana + 3;
+  encolar(s, { tipo: 'patrocinio', cat: mejor.cat, ofertas: mejor.ofertas });
+  R.opo.push(['💼', `${mejor.ofertas[0].marca} quiere patrocinarme.`]);
+}
+function firmarPatro(s, o) {
+  s.patros = s.patros.filter(p => p.cat !== o.cat).concat(Object.assign({}, o, { rel: CFG.patrocinio.relInicial, desde: s.semana, proxEv: s.semana + 2 + Math.floor(rnd(s) * 3), eventos: 0, faltas: 0 }));
+  if (!s.patrosHist.includes(o.id)) s.patrosHist.push(o.id);
+}
+function firmarPatroTest(s, id, extra) { const P = patroDe(s, id); if (!P) return false; firmarPatro(s, Object.assign({ id, marca: P.marca, cat: P.cat, ic: P.ic, lema: P.lema, año: pagoPatro(s, P), material: !!P.material, bono: !!P.bono, temporadas: 2, tipo: 'fijo', obj: objetivoPatro(s, P.cat) }, extra || {})); return true; }
+
+// Compromisos con la marca. Hacerlo te ocupa la tarde de la semana; «loco» es la opción arriesgada.
+const EVENTOS_PATRO = {
+  anuncio: { ic: '🎬', cond: (s, pt) => pt.año >= 1500, t: pt => `Rodaje del anuncio de ${pt.marca}`,
+    d: (s, pt) => `Toca decir «${pt.lema}» mirando a cámara con una sonrisa enorme. Hasta la toma 23 nadie se lo cree… ni tú.`,
+    si: (s, pt) => [['⚡', -10], ['€', Math.max(100, red(pt.año * 0.05, 50))]], rel: 12, loco: 'Improvisar tu propio anuncio' },
+  redes: { ic: '📱', t: pt => `Publicación pactada con ${pt.marca}`,
+    d: (s, pt) => `Una foto con el producto, el logo bien visible y la frase «${pt.lema}». Esta vez, con el producto del derecho.`,
+    si: () => [['⚡', -2]], rel: 8, loco: 'Hacer un baile ridículo con el producto' },
+  fiesta: { ic: '🎉', t: pt => `Fiesta de presentación de ${pt.marca}`,
+    d: () => 'Música altísima, canapés diminutos y un DJ que se hace llamar DJ Producto. Hay que ir y sonreír.',
+    si: () => [['⚡', -8], ['😊', 4]], rel: 10 },
+  firmas: { ic: '✍️', cond: s => s.p.rep >= 25, t: pt => `Firma de autógrafos para ${pt.marca}`,
+    d: () => 'Vienen 14 personas. Tres creen que eres otra persona, pero se llevan la foto igual.',
+    si: () => [['⚡', -5], ['⭐', 1], ['😊', 2]], rel: 10 },
+  prueba: { ic: '🧪', cond: (s, pt) => ['pies', 'material', 'botas', 'ropa'].includes(pt.cat), t: pt => `Probar el prototipo de ${pt.marca}`,
+    d: () => 'Te mandan un modelo nuevo para probar en secreto. Parece diseñado por alguien que nunca ha hecho deporte. Hay que rellenar un formulario de 40 preguntas.',
+    si: () => [['⚡', -4], ['😊', 1]], rel: 10, loco: 'Decirles la verdad: es horrible' },
+  viaje: { ic: '✈️', cond: (s, pt) => pt.año >= 15000, t: pt => `Viaje de rodaje con ${pt.marca}`,
+    d: () => 'Un sitio precioso para grabar… con el despertador a las 5 para pillar la luz buena. Y repetir el salto 30 veces.',
+    si: () => [['⚡', -15], ['😊', 6], ['⭐', 2]], rel: 15 },
+  bar: { ic: '🍽️', cond: (s, pt) => pt.cat === 'local', t: pt => `Foto con el dueño de ${pt.marca}`,
+    d: () => 'Quiere una foto contigo para colgarla al lado de la máquina de tabaco. Y que pruebes la tortilla. Es obligatorio.',
+    si: () => [['⚡', -2], ['😊', 3]], rel: 12 },
+  coche: { ic: '🚗', cond: (s, pt) => pt.cat === 'coche', t: pt => `Presentación del coche nuevo de ${pt.marca}`,
+    d: () => 'Tienes que bajarte del coche saludando como si acabaras de ganar un Mundial. Hay ensayo… dos veces.',
+    si: () => [['⚡', -6], ['⭐', 1]], rel: 12, loco: 'Bajar haciendo una voltereta' },
+};
+function elegirEventoPatro(s, pt) {
+  const l = Object.keys(EVENTOS_PATRO).filter(k => k !== pt.ultEv && (!EVENTOS_PATRO[k].cond || EVENTOS_PATRO[k].cond(s, pt)));
+  return azar(s, l);
+}
+const relNoPatro = pt => pt.año >= 20000 ? 18 : 12;
+
+function semanaPatros(s, R) {
+  const K = CFG.patrocinio;
+  if (!puedePatro(s)) return;
+  // Fútbol: cobro semanal y primas por gol (en escalada se cobra con el resto de ingresos de escalada)
+  if (s.deporte !== 'escalada') {
+    let bruto = 0;
+    for (const pt of s.patros) if (pt.año) { const v = Math.round(pt.año / CFG.hipoteca.semanasAño); bruto += v; R.eco.push([`Patrocinio de ${pt.marca} (${cr(pt.año)}/año)`, v]); }
+    const P = R.partido;
+    if (P && P.goles && (P.rol === 'titular' || P.rol === 'suplente')) for (const pt of s.patros) if (pt.primaGol) { bruto += pt.primaGol * P.goles; R.eco.push([`Prima de ${pt.marca} por gol (${P.goles})`, pt.primaGol * P.goles]); }
+    if (bruto) { const t = tipoImpuesto(bruto), imp = Math.round(bruto * t); s.p.dinero += bruto - imp; if (imp) { R.eco.push([`Impuestos del patrocinio (${Math.round(t * 100)} %)`, -imp]); s.acum.impuestos += imp; } }
+  }
+  // Si la relación cae demasiado, la marca rompe el contrato
+  for (const pt of s.patros.filter(p => p.rel < K.relRuptura)) {
+    R.opo.push(['💔', `${pt.marca} rompe el contrato: «No cumples con nosotros». Relación ${pt.rel}/100.`]);
+    s.patroOf.ofrecida[pt.cat] = s.semana;
+  }
+  s.patros = s.patros.filter(p => p.rel >= K.relRuptura);
+  // Compromisos: como mucho uno cada pocas semanas
+  const ya = (s.pendiente && s.pendiente.tipo === 'eventoPatro') || s.cola.some(e => e.tipo === 'eventoPatro');
+  if (!ya && s.semana - s.patroOf.ultEv >= K.separacionEventos) {
+    const pt = s.patros.filter(p => p.proxEv <= s.semana).sort((a, b) => a.proxEv - b.proxEv)[0];
+    if (pt) {
+      const ev = elegirEventoPatro(s, pt);
+      pt.ultEv = ev; pt.proxEv = s.semana + cadaEventoPatro(s, pt); s.patroOf.ultEv = s.semana;
+      encolar(s, { tipo: 'eventoPatro', id: pt.id, ev });
+      R.opo.push(['📣', `${pt.marca} me necesita: ${EVENTOS_PATRO[ev].t(pt).toLowerCase()}.`]);
+    }
+  }
+  buscarOfertas(s, R);
+}
+// Fin de temporada (fútbol) o de año (escalada): objetivos, primas y renovaciones
+function balancePatros(s, R, zona) {
+  const K = CFG.patrocinio;
+  for (const pt of s.patros) {
+    if ((zona === 'ascenso' || zona === 'campeon') && pt.primaTitulo) { s.p.dinero += pt.primaTitulo; R.eco.push([`Prima de ${pt.marca} por ${zona === 'campeon' ? 'el título' : 'el ascenso'}`, pt.primaTitulo]); }
+    if (pt.obj && s.semana - (pt.desde || 0) >= K.semanasMinObj) {
+      const [a, v] = progresoObjPatro(s, pt.obj);
+      if (a >= v) {
+        const prima = pt.año ? red(pt.año * K.primaObjetivo, 50) : 0;
+        pt.rel = clamp(pt.rel + K.relObjetivo, 0, 100); pt.cumplidos = (pt.cumplidos || 0) + 1;
+        if (prima) { s.p.dinero += prima; R.eco.push([`Prima de ${pt.marca}: objetivo cumplido`, prima]); }
+        R.opo.push(['🎯', `Cumplo el objetivo de ${pt.marca} (${pt.obj.t.toLowerCase()})${prima ? `: +${cr(prima)}` : ''}. Relación ${pt.rel}/100.`]);
+      } else {
+        pt.rel = clamp(pt.rel - K.relFallo, 0, 100);
+        R.opo.push(['😬', `No cumplo el objetivo de ${pt.marca} (${pt.obj.t.toLowerCase()}). Relación ${pt.rel}/100.`]);
+      }
+    }
+    pt.temporadas -= 1;
+    if (pt.temporadas > 0) { pt.obj = objetivoPatro(s, pt.cat); pt.desde = s.semana; continue; }
+    // Renueva 2 años si sigues cumpliendo lo que pide la marca y os lleváis bien
+    const P = patroDe(s, pt.id), cumple = P && cumpleReqPatro(s, P);
+    if (cumple && pt.rel >= K.relRenueva) {
+      const antes = pt.año, base = pt.tipo === 'variable' ? red(pagoPatro(s, P) * 0.6, 100) : pagoPatro(s, P), fiel = pt.rel >= K.relFiel;
+      pt.año = fiel ? red(base * 1.1, 100) : base; pt.temporadas = 2; pt.obj = objetivoPatro(s, pt.cat); pt.desde = s.semana;
+      R.opo.push(['💼', `Renuevo con ${pt.marca} 2 años: ${pt.año ? `${cr(pt.año)}/año` : 'material'}${pt.año !== antes ? ` (antes ${cr(antes)})` : ''}${fiel && pt.año ? '; +10 % por la buena relación' : ''}.`]);
+    } else {
+      R.opo.push(['💼', `${pt.marca} no me renueva: ${cumple ? `no he cumplido con la marca (relación ${pt.rel}/100)` : 'mi fama ha bajado'}.`]);
+      s.patroOf.ofrecida[pt.cat] = -99;
+    }
+  }
+  s.patros = s.patros.filter(pt => pt.temporadas > 0);
+}
+function resolverPatro(s, ev, op) {
+  if (ev.tipo === 'patrocinio') {
+    const act = s.patros.find(p => p.cat === ev.cat);
+    if (op === 'no') return ['💼', act ? `Sigo con ${act.marca}.` : `No firmo con ${ev.ofertas[0].marca} por ahora.`];
+    const o = ev.ofertas[Number(op)];
+    if (!o) return null;
+    firmarPatro(s, o);
+    return ['💼', `Firmo con ${o.marca}: ${o.año ? `${cr(o.año)} al año` : 'material gratis'} durante ${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}${o.primaPodio || o.primaGol ? ', con primas' : ''}. Objetivo: ${o.obj.t.toLowerCase()}.`];
+  }
+  if (ev.tipo === 'eventoPatro') {
+    const pt = s.patros.find(p => p.id === ev.id), X = EVENTOS_PATRO[ev.ev];
+    if (!X || !['si', 'no', 'loco'].includes(op) || (op === 'loco' && !X.loco)) return null;
+    if (!pt) return ['📣', 'El compromiso se cancela: ya no tienes contrato con esa marca.'];
+    if (op === 'no') { pt.rel = clamp(pt.rel - relNoPatro(pt), 0, 100); pt.faltas += 1; return ['🙅', `Me excuso con ${pt.marca}. No les gusta nada: relación ${pt.rel}/100.`]; }
+    s.tardePatro = pt.marca; pt.eventos += 1;
+    if (op === 'si') {
+      aplicarFx(s, X.si(s, pt)); pt.rel = clamp(pt.rel + X.rel, 0, 100);
+      if (s.deporte === 'escalada') s.esc.seg += 300;
+      const cache = X.si(s, pt).find(([i]) => i === '€');
+      return [X.ic, `${X.t(pt)}: cumplido${cache ? ` (+${cr(cache[1])})` : ''}. Relación ${pt.rel}/100.`];
+    }
+    aplicarFx(s, [['⚡', -4]]);
+    if (rnd(s) < 0.5) {
+      pt.rel = clamp(pt.rel + 18, 0, 100); s.p.rep = clamp(s.p.rep + 2, 0, 100);
+      if (s.deporte === 'escalada') s.esc.seg += 2000;
+      return ['🤳', `${X.loco}… ¡y se hace viral! ${pt.marca} está encantada: relación ${pt.rel}/100 y +2 de fama.`];
+    }
+    pt.rel = clamp(pt.rel - 8, 0, 100);
+    return ['🤦', `${X.loco}… y a ${pt.marca} no le hace ninguna gracia. «La próxima vez, sigue el guion.» Relación ${pt.rel}/100.`];
+  }
+  return null;
+}
+function popupPatro(s, ev) {
+  if (ev.tipo === 'patrocinio') {
+    const act = s.patros.find(p => p.cat === ev.cat);
+    return `<div class="pi">💼</div><h2>Oferta de patrocinio</h2><p class="pd">${esc(CAT_PATRO[ev.cat])}. ${act ? `Ahora tienes a ${esc(act.marca)} (${act.año ? `${cr(act.año)}/año` : 'material'}).` : 'Sería tu primer patrocinador de esta categoría.'} A cambio tendrás compromisos con la marca y un objetivo de temporada.</p>
+      ${ev.ofertas.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${o.ic} ${esc(o.marca)}</b><span class="small"><i>«${esc(o.lema || '')}»</i> ${esc(o.d)}</span>
+        ${chips([['💰', o.año ? `${cr(o.año)}/año` : 'material gratis'], ['📄', `${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}`], ['🎯', o.obj.t], ['📣', `un compromiso cada ~${o.año >= 20000 ? 5 : o.año >= 3000 ? 8 : 11} semanas`]]
+          .concat(o.primaPodio ? [['🥇', `Podio en Copa del Mundo: +${cr(o.primaPodio)}`], ['⛰️', `8b o más: +${cr(o.primaGrado)}`]] : [])
+          .concat(o.primaGol ? [['⚽', `+${cr(o.primaGol)} por gol`], ['⬆️', `Ascenso o título: +${cr(o.primaTitulo)}`]] : [])
+          .concat(o.material ? [['👟', s.deporte === 'escalada' ? 'Pies de gato gratis' : 'Botas gratis']] : []).concat(o.bono ? [['🧱', 'Entrenas gratis']] : []))}</button>`).join('')}
+      <button class="po" data-act="resolver" data-v="no"><b>${act ? `Seguir con ${esc(act.marca)}` : 'No firmar todavía'}</b></button>`;
+  }
+  const pt = s.patros.find(p => p.id === ev.id), X = EVENTOS_PATRO[ev.ev];
+  if (!pt || !X) return `<div class="pi">📣</div><h2>Compromiso cancelado</h2><p class="pd">Ya no tienes contrato con esa marca.</p><button class="po" data-act="resolver" data-v="si"><b>Vale</b></button>`;
+  return `<div class="pi">${X.ic}</div><h2>${esc(X.t(pt))}</h2><p class="pd">${esc(X.d(s, pt))}</p><p class="small" style="text-align:center">Relación con ${esc(pt.marca)}: <b>${pt.rel}/100</b> · si baja de ${CFG.patrocinio.relRuptura}, rompen el contrato.</p>
+    <button class="po" data-act="resolver" data-v="si"><b>Cumplir</b>${chips(X.si(s, pt).concat([['🤝', `+${X.rel} relación`], ['🌇', 'Te ocupa la tarde']]))}</button>
+    ${X.loco ? `<button class="po" data-act="resolver" data-v="loco"><b>${esc(X.loco)}</b>${chips([['🎲', '50 %: viral (+18 relación, +2 fama)'], ['🤦', '50 %: −8 relación'], ['🌇', 'Te ocupa la tarde']])}</button>` : ''}
+    <button class="po" data-act="resolver" data-v="no"><b>Excusarte</b>${chips([['🤝', `−${relNoPatro(pt)} relación`], ['🌇', 'Tarde libre']])}</button>`;
+}
+// Logos de tus marcas en la escena
+function marcasEscena(s) {
+  if (!s.patros || !s.patros.length || !puedePatro(s)) return '';
+  const l = s.patros.slice().sort((a, b) => b.año - a.año).slice(0, 3);
+  return `<button class="marcas" data-act="hoja" data-v="patros" aria-label="Patrocinadores">${l.map(p => `<span>${p.ic} ${esc(p.marca)}</span>`).join('')}</button>`;
+}
+function resumenPatros(s) {
+  const n = s.patros.length, tot = s.patros.reduce((a, p) => a + p.año, 0), mal = s.patros.filter(p => p.rel < CFG.patrocinio.relRenueva).length;
+  return `<div class="row"><div class="ic">💼</div><div class="tx"><b>${n ? `${n} ${n === 1 ? 'marca' : 'marcas'} · ${cr(tot)}/año` : 'Sin patrocinadores'}</b><span>${n ? s.patros.map(p => `${p.ic} ${esc(p.marca)}`).join(' · ') : 'Las marcas te llamarán cuando subas tu fama.'}${mal ? ` · ⚠️ ${mal} ${mal === 1 ? 'marca descontenta' : 'marcas descontentas'}` : ''}</span></div>
+    <button class="btn" data-act="hoja" data-v="patros">Ver</button></div>`;
+}
+function hojaPatros() {
+  const s = S, K = CFG.patrocinio, dep = s.deporte === 'escalada';
+  const colorRel = v => v < K.relRenueva ? 'var(--red)' : v < 60 ? 'var(--amber)' : 'var(--green2)';
+  let h = `<p class="small">Las marcas te pagan por llevar su logo, pero piden cosas a cambio: <b>compromisos</b> que te ocupan una tarde (anuncios, fiestas, firmas…), un <b>objetivo de temporada</b> y que os llevéis bien. Si la relación baja de ${K.relRuptura}, rompen el contrato; para renovar piden ${K.relRenueva}, y con ${K.relFiel} o más te suben un 10 %.</p>`;
+  if (!puedePatro(s)) h += `<div class="card"><p class="small">${dep ? 'Las marcas solo patrocinan a quien compite con licencia.' : 'Las marcas solo patrocinan a quien juega en un club.'}</p></div>`;
+  for (const p of s.patros) {
+    h += `<div class="card patro"><div class="row"><div class="ic">${p.ic}</div><div class="tx"><b>${esc(p.marca)}</b><span>${esc(CAT_PATRO[p.cat])} · ${p.año ? `${cr(p.año)}/año (${cr(Math.round(p.año / CFG.hipoteca.semanasAño))}/semana)` : 'solo material'} · ${p.temporadas} ${p.temporadas === 1 ? (dep ? 'año' : 'temporada') : (dep ? 'años' : 'temporadas')} más</span><span class="lema">«${esc(p.lema || '')}»</span></div></div>
+      <div class="relp"><span>🤝 Relación</span><div class="pb"><i style="width:${p.rel}%;background:${colorRel(p.rel)}"></i></div><b>${p.rel}</b></div>
+      <div class="ob">🎯 <b>${esc(p.obj ? p.obj.t : '—')}</b> · ${p.obj ? textoProgresoPatro(s, p.obj) : ''}${p.año ? ` · prima ${cr(red(p.año * K.primaObjetivo, 50))}` : ''}</div>
+      <div class="ob">📣 Próximo compromiso: ${p.proxEv <= s.semana ? 'en cuanto puedan' : `en unas ${p.proxEv - s.semana} semanas`} · cumplidos ${p.eventos || 0}${p.faltas ? ` · faltas ${p.faltas}` : ''}</div>
+      ${p.primaPodio ? `<div class="ob">🥇 Prima por podio ${cr(p.primaPodio)} · ⛰️ por 8b o más ${cr(p.primaGrado)}</div>` : ''}${p.primaGol ? `<div class="ob">⚽ ${cr(p.primaGol)} por gol · ⬆️ ${cr(p.primaTitulo)} por ascenso o título</div>` : ''}
+      ${p.material ? `<div class="ob">👟 ${dep ? 'Pies de gato' : 'Botas'} gratis</div>` : ''}${p.bono ? '<div class="ob">🧱 Entrenas gratis</div>' : ''}</div>`;
+  }
+  if (!s.patros.length && puedePatro(s)) h += '<div class="card"><p class="small">Aún no tienes patrocinadores: te llamarán cuando subas tu fama.</p></div>';
+  h += `<div class="card"><p class="small">💡 Para cuidar a tus marcas: cumple sus compromisos y su objetivo, ${dep ? 'graba contenido para redes (+3 relación con cada marca)' : 'haz actos de patrocinador (+5 relación con cada marca)'} y no te excuses demasiado.</p></div>`;
+  h += `<details class="card"><summary><b>Marcas que patrocinan ${dep ? 'escalada' : 'fútbol'} (${catalogoPatro(s).length})</b></summary>${catalogoPatro(s).map(P => { const ok = cumpleReqPatro(s, P), mio = tienePatro(s, P.id);
+    return `<div class="row"><div class="ic">${P.ic}</div><div class="tx"><b>${esc(P.marca)}${mio ? ' ✓' : ''}</b><span>${esc(CAT_PATRO[P.cat])} · ${P.año[1] ? `${P.año[0] ? cr(P.año[0]) : 'material'}–${cr(P.año[1])}/año` : 'material'} · ${mio ? 'es tu patrocinador' : ok ? `✅ te puede llamar (unos ${cr(pagoPatro(s, P))}/año)` : `🔒 ${textoReqPatro(s, P)}`}</span></div></div>`; }).join('')}
+    <p class="small">Una marca por categoría a la vez (${CFG.patrocinio.cats[dep ? 'escalada' : 'futbol'].map(c => CAT_PATRO[c].toLowerCase()).join(', ')}). Marcas inventadas que se parecen a las de verdad; los importes son de juego.</p></details>`;
+  return hoja('💼 Patrocinadores', h);
 }
 
 /* ---- Decisiones en ventana ---- */
@@ -3260,14 +3559,6 @@ function resolverEsc(s, ev, op) {
     if (s.edad >= CFG.escalada.edadPagas) s.p.dinero -= CFG.escalada.licencia;
     if (!E.proy) nuevoProyecto(s, 'via', 'siurana', 2, false);
     return ['🧗', `Entro en: ${Q.n.toLowerCase()}. Me federo${s.edad >= CFG.escalada.edadPagas ? ` (−${cr(CFG.escalada.licencia)})` : ' (la licencia la pagan mis padres)'} y ya puedo competir.`];
-  }
-  if (ev.tipo === 'patrocinio') {
-    const act = E.patros.find(p => p.cat === ev.cat);
-    if (op === 'no') return ['💼', act ? `Sigo con ${act.marca}.` : `No firmo con ${ev.ofertas[0].marca} por ahora.`];
-    const o = ev.ofertas[Number(op)];
-    if (!o) return null;
-    E.patros = E.patros.filter(p => p.cat !== o.cat).concat(Object.assign({}, o));
-    return ['💼', `Firmo con ${o.marca}: ${o.año ? `${cr(o.año)} al año` : 'material gratis'} durante ${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}${o.primaPodio ? ', con primas' : ''}.`];
   }
   if (ev.tipo === 'invitacion') {
     if (op !== 'si' && op !== 'no') return null;
@@ -3287,10 +3578,11 @@ function resolverEsc(s, ev, op) {
 function retirarseEsc(s, forzado, R) {
   if (s.fase !== 'escalador' || (!forzado && s.edad < CFG.escalada.edadRetiro)) return false;
   const E = s.esc;
-  s.fase = 'retirado'; s.lesion = 0; s.semanasAño = 0; E.patros = []; E.becaOlimpica = null; E.nacional = 0; E.beca = 0; E.becaHasta = 0; E.becaSaldo = 0;
+  s.fase = 'retirado'; s.lesion = 0; s.semanasAño = 0; s.patros = []; E.becaOlimpica = null; E.nacional = 0; E.beca = 0; E.becaHasta = 0; E.becaSaldo = 0;
   s.plan = s.negocios.length ? 'gestionar' : 'rentas';
-  s.cola = s.cola.filter(e => !['patrocinio', 'nacional', 'invitacion'].includes(e.tipo));
-  if (s.pendiente && ['patrocinio', 'nacional', 'invitacion'].includes(s.pendiente.tipo)) s.pendiente = s.cola.shift() || null;
+  s.cola = s.cola.filter(e => !['patrocinio', 'eventoPatro', 'nacional', 'invitacion'].includes(e.tipo));
+  if (s.pendiente && ['patrocinio', 'eventoPatro', 'nacional', 'invitacion'].includes(s.pendiente.tipo)) s.pendiente = s.cola.shift() || null;
+  s.tardePatro = null;
   const txt = `Dejo la competición y el alto nivel a los ${s.edad} años: ${E.comps} competiciones, ${E.podios} podios, máximo ${gV(E.maxVia)} en vía y ${gB(E.maxBloque)} en bloque.`;
   if (R) R.opo.push(['👋', txt]); else anotar(s, '👋', txt);
   encolar(s, { tipo: 'retiro', deporte: 'escalada', edad: s.edad, comps: E.comps, podios: E.podios, maxVia: E.maxVia, maxBloque: E.maxBloque, medallas: E.medallas.length });
@@ -3309,7 +3601,7 @@ const PANTALLAS_ESC = [
     obj: [['Top 10 en una Copa o Campeonato de España', s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 10 ? 1 : 0],
           [`Encadena ${textoGrado(12)} en roca`, s => Math.max(0, maxRoca(s) + 1) / 13], ['Ahorra 1.500 €', s => s.p.dinero / 1500]] },
   { n: 'Primer patrocinador', ic: '💼', premio: [['€', 5000]], desbloquea: 'Escuela de escalada (tu primer negocio)',
-    obj: [['Consigue un patrocinador', s => s.esc.patros.length || s.fase === 'retirado' ? 1 : 0],
+    obj: [['Consigue un patrocinador', s => s.patros.length || s.fase === 'retirado' ? 1 : 0],
           [`Podio en España o ${textoGrado(14)} en roca`, s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 3 ? 1 : Math.max(0, maxRoca(s) + 1) / 15]] },
   { n: 'Profesional', ic: '🧗', premio: [['€', 5000]], desbloquea: 'Peluquería, cafetería y tienda de material de escalada',
     obj: [[`Entra en el equipo nacional o encadena ${textoGrado(16)} en roca`, s => s.esc.nacional || s.esc.mejor.mundo ? 1 : Math.max(0, maxRoca(s) + 1) / 17], ['Compra tu primer negocio', s => s.negocios.length ? 1 : 0]] },
@@ -3394,7 +3686,7 @@ function hojaCarreraEsc() {
       ${E.nacional === E.año ? `<span class="badge g">🇪🇸 Equipo nacional · ${cr(E.beca)}/sem</span>` : ''}
       ${E.becaOlimpica ? `<span class="badge g">🥇 Beca olímpica ${cr(CFG.escalada.becaOlimpica)}/año hasta los Juegos de ${E.becaOlimpica.hasta}</span>` : ''}
       ${E.becaHasta >= E.año ? `<span class="badge g">🎓 Beca del Estado hasta ${E.becaHasta} · saldo ${cr(E.becaSaldo)}</span>` : ''}
-      ${E.patros.length ? `<span class="badge g">💼 ${E.patros.length} ${E.patros.length === 1 ? 'patrocinador' : 'patrocinadores'} · ${cr(E.patros.reduce((a, p) => a + p.año, 0))}/año</span>` : ''}
+      ${s.patros.length ? `<span class="badge g">💼 ${s.patros.length} ${s.patros.length === 1 ? 'patrocinador' : 'patrocinadores'} · ${cr(s.patros.reduce((a, p) => a + p.año, 0))}/año</span>` : ''}
       <span class="badge">🖐️ Piel ${E.piel}</span><span class="badge ${E.carga > CFG.escalada.cargaRiesgo ? 'b' : ''}">🦴 Carga en los dedos ${E.carga}</span>
       <span class="badge">📱 ${nf(E.seg / 1000)} mil seguidores</span>${E.mejorTiempo ? `<span class="badge">⏱️ 15 m en ${String(E.mejorTiempo).replace('.', ',')} s</span>` : ''}
       <span class="badge">🏆 ${E.comps} competiciones · ${E.podios} podios</span></div></div>`;
@@ -3432,12 +3724,10 @@ function hojaCarreraEsc() {
           ${r ? '' : `<button class="btn ${ins ? 'g' : 'w'}" data-act="escIns" data-id="${c.id}" data-v="${ins ? 'no' : 'si'}">${ins ? '✓ Voy' : 'Ir'}</button>`}</div>`; }).join('') || '<p class="small">No quedan competiciones este año.</p>'}</div>
       <p class="small">Premios: Copa y Campeonato de España 500, 300 y 200 €; Copa del Mundo 8.000, 7.000 y 5.000 €; másters por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, del Mundo, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos Olímpicos: ${SEDES_JJOO[2028] ? 'Los Ángeles 2028, Brisbane 2032…' : ''} con plaza en el clasificatorio (top 10).</p></div>`;
     // Patrocinadores y becas
-    h += `<div class="sec">💼 Patrocinadores y becas</div><div class="card lista">${E.patros.length ? E.patros.map(p => `<div class="row"><div class="ic">${p.ic}</div><div class="tx"><b>${esc(p.marca)}</b><span>${esc(CAT_PATRO[p.cat])} · ${p.año ? `${cr(p.año)}/año (${cr(Math.round(p.año / CFG.hipoteca.semanasAño))}/semana)` : 'solo material'} · ${p.temporadas} ${p.temporadas === 1 ? 'año' : 'años'} más${p.primaPodio ? ` · prima por podio ${cr(p.primaPodio)} y por 8b ${cr(p.primaGrado)}` : ''}${p.material ? ' · pies de gato gratis' : ''}${p.bono ? ' · entrenas gratis' : ''}</span></div></div>`).join('') : '<p class="small">Aún no tienes patrocinadores: te llamarán cuando subas tu fama.</p>'}
+    h += `<div class="sec">💼 Patrocinadores y becas</div><div class="card lista">${resumenPatros(s)}
       <p class="small">🥇 Oro olímpico: ${cr(AMBITOS.jjoo.premio[0])} de premio y una beca de ${cr(CFG.escalada.becaOlimpica)} al año hasta los siguientes Juegos; si allí no repites el oro, la pierdes.${E.becaOlimpica ? ` Ahora la cobras hasta ${E.becaOlimpica.hasta}.` : ''}</p>
       <p class="small">🎓 Beca del Estado: ${E.becaHasta >= E.año ? `cobras ${cr(CFG.escalada.becaEstado.mes)} al mes hasta final de ${E.becaHasta}. Saldo para gastar en escalada: ${cr(E.becaSaldo)} (lo que sobre al acabar el año se pierde).` : `si llegas a una final de Copa del Mundo (las ${CFG.escalada.becaEstado.puesto} mejores), el Estado te da ${cr(CFG.escalada.becaEstado.mes)} al mes durante ese año y el siguiente, para gastar solo en escalada.`}</p>
-      <details><summary><b>Marcas que patrocinan escalada (${CFG.escalada.patrocinadores.length})</b></summary>${CFG.escalada.patrocinadores.map(P => { const ok = cumpleReqPatro(s, P), mio = tienePatro(s, P.id);
-        return `<div class="row"><div class="ic">${P.ic}</div><div class="tx"><b>${esc(P.marca)}${mio ? ' ✓' : ''}</b><span>${esc(CAT_PATRO[P.cat])} · ${P.año[1] ? `${P.año[0] ? cr(P.año[0]) : 'material'}–${cr(P.año[1])}/año` : 'material'} · ${mio ? 'es tu patrocinador' : ok ? `✅ te puede llamar (unos ${cr(pagoPatro(s, P))}/año)` : `🔒 ${textoReqPatro(P)}`}</span></div></div>`; }).join('')}</details>
-      <p class="small">Una marca por categoría a la vez (local, bebida, pies de gato, material y ropa). Marcas reales usadas como ambientación: los importes son de juego, no contratos reales.</p></div>`;
+</div>`;
     // Equipo
     h += `<div class="sec">Dónde entrenas</div><div class="card"><div class="seg">${Object.entries(EQUIPOS).map(([k, q]) => `<button data-act="escEquipo" data-v="${k}" class="${E.equipo === k ? 'sel' : ''}" ${q.nivelMin && s.p.nivel < q.nivelMin ? 'disabled' : ''}>${q.ic} ${q.n.split(' ')[0]}<br>${q.cuota ? `${cr(q.cuota)}/sem` : 'gratis'}</button>`).join('')}</div>
       <p class="small">${esc(EQUIPOS[E.equipo].d)} Calidad de entrenamiento ×${String(EQUIPOS[E.equipo].calidad).replace('.', ',')}${E.nacional === E.año ? ' (×1,1 más con el equipo nacional)' : ''}.</p></div>`;
@@ -3458,13 +3748,6 @@ function popupEsc(s, ev) {
   if (ev.tipo === 'equipoEsc') return `<div class="pi">🧗</div><h2>¡Te quieren en un equipo de competición!</h2><p class="pd">El entrenador del rocódromo te ha visto escalar. Con la licencia federativa (${cr(CFG.escalada.licencia)} al año) ya puedes competir. ¿Dónde entrenas?</p>
     ${Object.entries(EQUIPOS).map(([k, q]) => { const b = q.nivelMin && s.p.nivel < q.nivelMin;
       return `<button class="po" data-act="resolver" data-v="${k}" ${b ? 'disabled' : ''}><b>${q.ic} ${esc(q.n)}</b><span class="small">${esc(q.d)}</span>${chips([['💰', q.cuota ? `${cr(q.cuota)}/semana${s.edad < CFG.escalada.edadPagas ? ' (la pagan tus padres)' : ''}` : 'sin cuota'], ['📈', `Entrenamiento ×${String(q.calidad).replace('.', ',')}`]].concat(k === 'centro' ? [['😊', -4]] : []).map(([i, v]) => [i, v]))}${b ? `<span class="lock">🔒 Piden nivel ${q.nivelMin} (tienes ${nf(s.p.nivel)}).</span>` : ''}</button>`; }).join('')}`;
-  if (ev.tipo === 'patrocinio') {
-    const act = s.esc.patros.find(p => p.cat === ev.cat);
-    return `<div class="pi">💼</div><h2>Oferta de patrocinio</h2><p class="pd">${esc(CAT_PATRO[ev.cat])}. ${act ? `Ahora tienes a ${esc(act.marca)} (${act.año ? `${cr(act.año)}/año` : 'material'}).` : 'Sería tu primer patrocinador de esta categoría.'}</p>
-      ${ev.ofertas.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${o.ic} ${esc(o.marca)}</b><span class="small">${esc(o.d)}</span>
-        ${chips([['💰', o.año ? `${cr(o.año)}/año` : 'material gratis'], ['📄', `${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}`]].concat(o.primaPodio ? [['🥇', `Podio en Copa del Mundo: +${cr(o.primaPodio)}`], ['⛰️', `8b o más: +${cr(o.primaGrado)}`]] : []).concat(o.material ? [['👟', 'Pies de gato gratis']] : []).concat(o.bono ? [['🧱', 'Entrenas gratis']] : []))}</button>`).join('')}
-      <button class="po" data-act="resolver" data-v="no"><b>${act ? `Seguir con ${esc(act.marca)}` : 'No firmar todavía'}</b></button>`;
-  }
   if (ev.tipo === 'invitacion') {
     const A = AMBITOS.master;
     return `<div class="pi">💌</div><h2>Invitación a un máster</h2><p class="pd">${esc(nombreComp({ amb: 'master', mod: ev.mod }, s))} en ${esc(ev.lugar)}, en ${MESES[Math.floor(ev.sem * 12 / 18)]}. Solo invitan a ${A.N} escaladores de todo el mundo y el organizador paga el viaje y el hotel.</p>
@@ -3630,7 +3913,7 @@ function pantallaSemana() {
   const s = S, a = ACCIONES[s.plan], fin = finDeSemana(s), pr = proximos(s).filter(([cu]) => !(fin && cu === 'Esta semana')).slice(0, 2), [svg, lugar] = escenaActual(s);
   const [emo, ...txt] = a ? a.t.split(' ') : ['❓', 'Elige', 'tu', 'plan'];
   let h = htmlMision();
-  h += `<section class="escena">${svg}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
+  h += `<section class="escena">${svg}${marcasEscena(s)}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
   h += `<div class="gauges ${s.deporte === 'escalada' && s.fase !== 'retirado' ? 'g6' : ''}">${gauges(s)}</div>`;
   h += `<section class="panel" id="agenda"><div class="ph"><span>Tu semana</span><span>se repite sola</span></div>
     <div class="tiles"><button class="slot principal" data-act="hoja" data-v="plan"><span class="tt">☀️ Mañana</span><span class="te">${emo}</span><b>${esc(txt.join(' '))}</b></button>${Object.keys(SLOTS).map(k => slotHtml(s, k)).join('')}</div>
@@ -3644,7 +3927,7 @@ function pantallaSemana() {
 function renderDock() {
   const s = S;
   if (s.intro) { $('dock').innerHTML = ''; return; }
-  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas'].includes(h) ? 3 : -1;
+  const h = s.hoja || '', on = h === '' ? 0 : h === 'carrera' || h === 'plan' || h === 'patros' ? 1 : h === 'bienes' || h.startsWith('negocio:') || h.startsWith('club:') ? 2 : ['relaciones', 'actividades', 'diario', 'logros', 'pantallas'].includes(h) ? 3 : -1;
   const t = (k, v, ic, n) => `<button class="ab ${on === k ? 'on' : ''}" data-act="hoja" data-v="${v}"><span>${ic}</span>${n}</button>`;
   $('dock').innerHTML = `<nav class="tabs">${t(0, '', '🏠', 'Inicio')}${t(1, 'carrera', s.deporte === 'escalada' ? '🧗' : '⚽', 'Carrera')}${t(2, 'bienes', '🏢', 'Empresa')}${t(3, 'relaciones', '🧑‍🤝‍🧑', 'Vida')}</nav>`;
 }
@@ -3676,6 +3959,7 @@ function cerrarSemana() {
   if (!s.semanaAct.agendaHecha) {
     s.semanaAct.agendaHecha = true;
     for (const k of Object.keys(SLOTS)) {
+      if (k === 'tarde' && s.tardePatro) { anotar(s, '📣', `Tarde ocupada: compromiso con ${s.tardePatro}.`); s.tardePatro = null; continue; }
       const v = (s.agendaSlots || {})[k];
       if (!v) { aplicarFx(s, [['⚡', CFG.agenda.libreEnergia], ['😊', CFG.agenda.libreFel]]); anotar(s, SLOTS[k][0], `${SLOTS[k][1]} libre: descanso (+${CFG.agenda.libreEnergia} energía, +${CFG.agenda.libreFel} ánimo).`); continue; }
       const [t, id] = v.split(':');
@@ -3773,6 +4057,7 @@ function hojaCarrera() {
       h += `<div class="card"><div class="small" style="text-align:center">Próximo partido · jornada ${pp.jornada}/${CFG.temporada.jornadas} · ${pp.casa ? '🏠 en casa' : '✈️ fuera'}</div>
         <div class="vs"><div>${escudoClub(a, 30)}<b>${esc(a.nombre)}</b>${posicion(s, a.id)}º · ${nf(a.fuerza)}</div><b>VS</b><div>${escudoClub(b, 30)}<b>${esc(b.nombre)}</b>${posicion(s, b.id)}º · ${nf(b.fuerza)}</div></div></div>`; }
     h += `<div class="sec">Plan semanal (se repite hasta que lo cambies)</div><div class="grid">${accionesDisponibles(s).map(([id, a]) => htmlPlan(id, a)).join('')}</div>`;
+    h += `<div class="sec">💼 Patrocinadores</div><div class="card lista">${resumenPatros(s)}</div>`;
     h += `<div class="sec">${esc(i.L.n)} ${T.año}/${String(T.año + 1).slice(2)} · jornada ${T.jornada}/${CFG.temporada.jornadas}</div><div class="card">${tablaHTML(T.liga, clasificacion(T).map(id => [id, T.tabla[id]]), mi.id)}</div>`;
     h += `<div class="sec">Trayectoria</div><div class="card"><table><tr class="hd"><td>Temp.</td><td>Club</td><td class="n">PJ</td><td class="n">Goles</td><td class="n">Nota</td></tr>
       ${s.trayectoria.slice().reverse().map(x => `<tr><td>${x.año}/${String(x.año + 1).slice(2)}</td><td>${esc(club(s, x.clubId).nombre)}<div class="small">${esc(nombreLiga(x.liga))}</div></td><td class="n">${x.pj}</td><td class="n">${x.goles}</td><td class="n">${x.pj ? nf(x.sumaNota / x.pj) : '—'}</td></tr>`).join('')}</table>
@@ -4020,6 +4305,7 @@ function popup() {
     return `<div class="pi">${e.ic}</div><h2>${esc(textoSuceso(s, e, d, 't'))}</h2><p class="pd">${esc(textoSuceso(s, e, d, 'd'))}</p>
       ${e.ops.map((o, i) => `<button class="po" data-act="resolver" data-v="${i}"><b>${esc(o.n)}</b>${chips(o.fx(s, d))}</button>`).join('')}`;
   }
+  if (POPUPS_PATRO[ev.tipo]) return popupPatro(s, ev);
   if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
   if (ev.tipo === 'retiro' && ev.deporte === 'escalada') return popupRetiroEsc(s, ev);
   if (ev.tipo === 'pantalla') {
@@ -4076,7 +4362,7 @@ function render() {
   if (S.intro) { main.innerHTML = pantallaIntro(); $('hoja').innerHTML = ''; $('modal').innerHTML = ''; return; }
   main.innerHTML = pantallaSemana();
   const h = S.hoja;
-  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
+  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
@@ -4149,7 +4435,7 @@ window.__P1 = {
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),
-  reqPatro: id => cumpleReqPatro(S, CFG.escalada.patrocinadores.find(P => P.id === id)), pagoPatro: id => pagoPatro(S, CFG.escalada.patrocinadores.find(P => P.id === id)),
+  reqPatro: id => cumpleReqPatro(S, patroDe(S, id)), pagoPatro: id => pagoPatro(S, patroDe(S, id)), firmarPatro: (id, extra) => firmarPatroTest(S, id, extra), EVENTOS_PATRO, balancePatros: () => { const R = { eco: [], opo: [] }; balancePatros(S, R); return R; }, migrar,
   nivelMod: m => nivelMod(S, m), cambiarProyecto, inscribir, modoCompeticion, cambiarEquipoEsc, maxRoca: () => maxRoca(S), logrosDe: () => logrosDe(S), pantallas: () => pantallas(S),
   elegir, avanzarSemana, cerrarSemana, ponerSlot, proximos: () => proximos(S), resolver, reiniciar, render: () => render(),
   comprarNegocio, cambiarNegocio, traspasar, venderNegocio, comprarInmueble, modoInmueble, venderInmueble, comprarCoche, venderCoche,

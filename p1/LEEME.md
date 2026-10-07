@@ -1,4 +1,4 @@
-# P1 — Del barrio al negocio (versión 0.9, 6 de octubre de 2026)
+# P1 — Del barrio al negocio (versión 0.10, 7 de octubre de 2026)
 
 **Simulador de vida** de un deportista (**fútbol** o **escalada**), en vertical y pensado para iPhone,
 con formato de juego: cada semana eliges qué haces por la mañana, la tarde y la noche, pulsas
@@ -10,8 +10,30 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 - Pruebas automáticas: `tests/p1.test.cjs` (solo para quien programa)
 - Sin anuncios, compras, cuentas de usuario ni servicios de IA externos.
 - Fútbol: clubes, ciudades y estadios **ficticios**. Escalada: **zonas, grados y competiciones reales**;
-  marcas y rivales ficticios. Los importes están en euros pero son **de juego y
+  rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Red Toro, Adibas, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
+
+**Novedades de la versión 0.10: patrocinadores con obligaciones (fútbol y escalada)**
+- Patrocinadores en los **dos deportes**, con nombres de guiño y su lema: en fútbol 13 marcas en 6
+  categorías (local, botas, bebida, ropa, reloj y coche), de **Bar Paco** a **Naik**, **Red Toro** o
+  **Rolecs** (solo para quien juega en primera); en escalada 13 marcas en 5 categorías, de la tienda de
+  montaña del barrio a **La Esportiva**, **The South Face** o **Red Toro** (solo estrellas).
+- Cada contrato tiene **obligaciones**:
+  - **Compromisos** (rodaje de un anuncio, fiesta de presentación, firma de autógrafos, probar un
+    prototipo, viaje de rodaje…) que te **ocupan la tarde**. Puedes cumplir (+relación), excusarte
+    (−relación) o, a veces, improvisar algo (50 % viral, 50 % la marca se enfada). Las marcas grandes
+    llaman más a menudo.
+  - Un **objetivo de temporada** según la marca: goles, ser titular, que tu equipo acabe arriba, un
+    podio, encadenar un grado en roca, llegar a X seguidores… Si lo cumples, prima del 10 % de lo que
+    te pagan al año y +15 de relación; si no, −20.
+  - Una **relación** con cada marca (0-100, empieza en 60): por debajo de 25 rompen el contrato, para
+    renovar piden 40 y con 80 o más te suben un 10 %. Los actos de patrocinador (fútbol, +5) y el
+    contenido para redes (escalada, +3) la cuidan.
+- Los **logos** de tus marcas salen en la escena del inicio; al tocarlos se abre la hoja
+  **💼 Patrocinadores** (también desde Carrera) con pago, relación, objetivo y próximo compromiso.
+- Ofertas fijas o variables (menos fijo con primas: en fútbol por gol y por ascenso o título).
+- Logros nuevos: primer patrocinador y «Te da alitas» (firmar con Red Toro).
+- Las partidas guardadas antes se convierten solas (por ejemplo, Red Bull pasa a Red Toro).
 
 **Novedades de la versión 0.9: interfaz de juego**
 - Pantalla de inicio limpia, como un juego de móvil: **HUD** arriba (avatar con el número de pantalla,
@@ -57,10 +79,10 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
   convoca para el año siguiente (beca, viajes pagados, competiciones internacionales).
 - **Patrocinadores**: 13 marcas en 5 categorías (local, bebida, pies de gato, material y ropa), una
   por categoría a la vez. Te llaman cuando tu fama sube: de la tienda de montaña del barrio (material)
-  a La Sportiva, The North Face o **Red Bull** (de 30.000 a 50.000 € al año, solo para estrellas con una
+  a La Esportiva, The South Face o **Red Toro** (de 30.000 a 50.000 € al año, solo para estrellas con una
   final de Copa del Mundo, un 9a o una medalla). Puedes elegir dinero fijo o menos fijo con primas por
-  podio y por encadenar 8b o más. Se renuevan solos si sigues cumpliendo lo que pide la marca.
-  Marcas reales usadas como ambientación: los importes son de juego, no contratos reales.
+  podio y por encadenar 8b o más. Tienen compromisos, objetivo y relación (ver novedades de la 0.10)
+  y renuevan si sigues cumpliendo lo que pide la marca y os lleváis bien. Marcas inventadas; importes de juego.
 - **Premios**: competiciones nacionales 500, 300 y 200 €; Copa del Mundo 8.000, 7.000 y 5.000 €.
 - **Másters internacionales** en rocódromos (Stuttgart, Arco, Ginebra): solo por invitación (fama 65,
   un top 16 en Copa del Mundo o nivel muy alto), con viaje pagado y 4.000 € para quien gana.
@@ -191,7 +213,7 @@ En vidas simuladas, las pantallas 1–8 se superan entre los 17 y los 25 años, 
 Siempre hay un camino de negocios por si tu techo no da para la élite mundial.
 
 **Dinero en la escalada (importes de juego; un año de juego son 18 semanas):** patrocinadores de 0
-(material) a 50.000 €/año cada uno (Red Bull), que se cobran repartidos por semanas; beca del Estado
+(material) a 50.000 €/año cada uno (Red Toro), que se cobran repartidos por semanas; beca del Estado
 1.400 €/mes (solo para escalada); ayuda del equipo nacional 120 €/semana; monitor 150 €/semana;
 equipador 260 €/semana; premios: autonómico 100/60/40 €, Copa y Campeonato de España 500/300/200 €,
 Copa de Europa 800/500/300 €, máster 4.000/2.500/1.500 €, Copa del Mundo 8.000/7.000/5.000 € (del 4º al
@@ -327,7 +349,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-112 de 112 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+121 de 121 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -356,6 +378,11 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    fin de año y equipo nacional; gastos según la edad; retirada desde los 28; pantallas y desbloqueos
    propios; logros propios; los 17 imprevistos de escalada (33 opciones); sin imprevistos de fútbol;
    y tres vidas simuladas hasta los 34 años (todas pasan la pantalla 5 antes de los 30).
+6b. **Patrocinadores**: nombres de guiño sin marcas reales y con lema; 13 marcas de fútbol en 6
+   categorías; ofertas en un club que se cobran cada semana; marcas top solo en primera; compromisos que
+   ocupan la tarde (cumplir sube la relación, excusarse la baja, por debajo de 25 rompen); objetivo de
+   temporada con prima y no renovación si fallas con mala relación; objetivos de escalada, logos en la
+   escena y hoja propia; conversión de partidas antiguas.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

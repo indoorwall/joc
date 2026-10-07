@@ -73,7 +73,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     await tap(page, '#hoja [data-act=slotSet][data-v="act:meditar"]');
     const felA = (await st(page)).p.fel, semA = (await st(page)).semana;
     await tap(page, '#btnAvanzar');
-    for (let g = 0; g < 6 && (await st(page)).pendiente; g++) await page.evaluate(() => __P1.resolver('0') || __P1.resolver('ok') || __P1.resolver('corto'));
+    for (let g = 0; g < 6 && (await st(page)).pendiente; g++) await page.evaluate(() => __P1.resolver('0') || __P1.resolver('ok') || __P1.resolver('si') || __P1.resolver('corto'));
     const dA = await st(page), ultimo = dA.log[dA.log.length - 1];
     check('Agenda: la tarde se programa con toques y se hace al cerrar la semana (y se repite)', dA.agendaSlots.tarde === 'act:meditar' && ultimo.lineas.some(([, t]) => /Meditar/.test(t)) && ultimo.lineas.some(([, t]) => /Noche libre/.test(t)) && dA.semana === semA + 1);
     check('Botones principales de al menos 44 px', layout.minH >= 44, `mínimo ${Math.round(layout.minH)} px`);
@@ -111,6 +111,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
           await tap(page, (await page.locator('#modal [data-v=quedarse]').count()) ? '#modal [data-v=quedarse]' : '#modal [data-v="0"]');
         } else if (t === 'mejora') await tap(page, '#modal [data-v=aceptar]');
         else if (t === 'fin') { log.finInfo = log.finInfo || s.pendiente.zona || s.pendiente.pos; await tap(page, '#modal [data-v=ok]'); }
+        else if (t === 'eventoPatro') await tap(page, '#modal [data-v=si]');
         else if (t === 'pantalla' || t === 'retiro') { log.pantallas = (log.pantallas || 0) + (t === 'pantalla' ? 1 : 0); await tap(page, '#modal [data-v=ok]'); }
         else {
           const antes = JSON.stringify([s.p, s.mods, s.agenda, s.rel, s.negocios]);
@@ -240,7 +241,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     const r = await page.evaluate(() => {
       const G = __P1, out = {};
       G.CFG.club.probSuceso = 0;
-      const resolverTodo = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'mejora' ? 'aceptar' : ['fin', 'pantalla', 'retiro'].includes(e.tipo) ? 'ok' : e.tipo === 'ofertas' ? (e.ventana === 'invierno' || G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0') : '0'); } };
+      const resolverTodo = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'eventoPatro' ? 'si' : e.tipo === 'mejora' ? 'aceptar' : ['fin', 'pantalla', 'retiro'].includes(e.tipo) ? 'ok' : e.tipo === 'ofertas' ? (e.ventana === 'invierno' || G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0') : '0'); } };
       const semana = a => { resolverTodo(); if (a) G.elegir(a); const ok = G.avanzarSemana(); return ok; };
       const cerrarPantallas = () => { while (G.S.pendiente && G.S.pendiente.tipo === 'pantalla') G.resolver('ok'); };
       function alClub(seed, idx) {
@@ -275,13 +276,13 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       out.felicidadNota = Math.abs((notas[0] - notas[1]) - 0.9) < 0.05;
       // Relaciones: bajan solas; una interacción por persona y semana
       alClub(6, 1); const m0 = G.S.rel.find(x => x.id === 'madre').v;
-      semana('normal'); const m1 = G.S.rel.find(x => x.id === 'madre').v;
+      semana('normal'); resolverTodo(); const m1 = G.S.rel.find(x => x.id === 'madre').v;
       const i1 = G.interactuar('madre', 'tiempo'), i2 = G.interactuar('madre', 'llamar');
       out.relaciones = m1 === m0 - 1 && i1 && !i2 && G.S.rel.find(x => x.id === 'madre').v === m1 + 8;
       // Actividades: máximo 2 y sin repetir
       const a = G.realizarActividad('meditar'), b = G.realizarActividad('meditar'), c = G.realizarActividad('redes'), d = G.realizarActividad('loteria');
       out.actividades = a && !b && c && !d;
-      semana('normal'); out.actividadesReset = G.realizarActividad('meditar');
+      semana('normal'); resolverTodo(); out.actividadesReset = G.realizarActividad('meditar');
       // Pantallas: los negocios se desbloquean al avanzar de pantalla
       alClub(1, 1); G.S.p.dinero = 20000000; resolverTodo();
       G.S.pantalla = 3; const p4 = !G.comprarNegocio('peluqueria', 6000);
@@ -460,13 +461,13 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
           const a = D.acciones.find(x => x.dur) || D.acciones[0];
           const hecha = G.accionNegocio(tipo, a.id), repetida = G.accionNegocio(tipo, a.id);
           let caduca = true;
-          if (a.dur) { for (let i = 0; i < a.dur; i++) { G.elegir('rentas'); G.avanzarSemana(); while (G.S.pendiente) G.resolver(G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); } caduca = !(n().temp || []).some(t => t.id === a.id); }
+          if (a.dur) { for (let i = 0; i < a.dur; i++) { G.elegir('rentas'); G.avanzarSemana(); while (G.S.pendiente) G.resolver(G.S.pendiente.tipo === 'suceso' ? '0' : G.S.pendiente.tipo === 'eventoPatro' ? 'si' : 'ok'); } caduca = !(n().temp || []).some(t => t.id === a.id); }
           if (hecha && !repetida && caduca) out.accionOk.push(tipo);
           // Todo lo demás se puede elegir y se juegan 10 semanas sin errores
           D.mejoras.forEach(x => G.comprarMejora(tipo, x.id));
           D.opciones.forEach(x => x.valores.forEach((_, i) => G.elegirOpcion(tipo, x.id, i)));
           G.S.semana += 60; D.acciones.forEach(x => G.accionNegocio(tipo, x.id));
-          for (let i = 0; i < 10; i++) { G.elegir('rentas'); G.avanzarSemana(); while (G.S.pendiente) G.resolver(G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); }
+          for (let i = 0; i < 10; i++) { G.elegir('rentas'); G.avanzarSemana(); while (G.S.pendiente) G.resolver(G.S.pendiente.tipo === 'suceso' ? '0' : G.S.pendiente.tipo === 'eventoPatro' ? 'si' : 'ok'); }
           if (!isFinite(n().caja) || !isFinite(n().fama)) out.errores.push(tipo + ': NaN');
         } catch (e) { out.errores.push(tipo + ': ' + e.message); }
       }
@@ -517,7 +518,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
             if (ev.tipo === 'ojeador') G.resolver('corto');
             else if (ev.tipo === 'ofertas') { let best = 0, bv = -1e9; ev.ofertas.forEach((o, i) => { const v = st.valor(o, G.ligaDe(o.clubId).tier); if (v > bv) { bv = v; best = i; } }); G.resolver(String(best)); }
             else if (ev.tipo === 'mejora') G.resolver(st.mejora);
-            else G.resolver(['fin', 'pantalla', 'retiro'].includes(ev.tipo) ? 'ok' : '0');
+            else G.resolver(ev.tipo === 'eventoPatro' ? 'si' : ['fin', 'pantalla', 'retiro'].includes(ev.tipo) ? 'ok' : '0');
             continue;
           }
           const s = S();
@@ -620,7 +621,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     const r = await page.evaluate(() => {
       const G = __P1, out = {}, K = G.CFG.escalada;
       G.CFG.club.probSuceso = 0;
-      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'equipoEsc' ? 'club' : G.S.pendiente.tipo === 'patrocinio' ? '0' : G.S.pendiente.tipo === 'nacional' || G.S.pendiente.tipo === 'invitacion' ? 'si' : G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); };
+      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'equipoEsc' ? 'club' : G.S.pendiente.tipo === 'patrocinio' ? '0' : G.S.pendiente.tipo === 'nacional' || G.S.pendiente.tipo === 'invitacion' || G.S.pendiente.tipo === 'eventoPatro' ? 'si' : G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); };
       const escalador = (seed, edad) => { G.nueva(seed, null, 'escalada', 'bloque'); G.S.p.rep = 15; G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); if (edad) G.S.edad = edad; G.S.p.dinero = 5000; return G.S; };
       const semana = a => { limpiar(); if (a) G.elegir(a); G.avanzarSemana(); limpiar(); };
       // Grados reales
@@ -665,15 +666,15 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       s = escalador(12, 20); s.lesion = 3; out.lesionBloquea = !G.disponible('rocoBloque') && G.disponible('descansoEsc');
       // Patrocinadores: varias marcas a la vez (una por categoría) y cobro semanal
       s = escalador(13, 20); s.p.rep = 41; semana('descansoEsc');
-      s = G.S; out.patroDbg = s.esc.patros.map(p => p.marca + ' ' + p.año);
-      out.patroOferta = s.esc.patros.length === 1 && s.esc.patros[0].año > 0;
+      s = G.S; out.patroDbg = s.patros.map(p => p.marca + ' ' + p.año);
+      out.patroOferta = s.patros.length === 1 && s.patros[0].año > 0;
       semana('descansoEsc');
       out.patroCobra = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Patrocinio') && v > 0);
       s = escalador(31, 22); s.p.rep = 65; for (let i = 0; i < 16; i++) { s.p.rep = 65; s.semanasAño = 3; semana('descansoEsc'); }
-      out.variasMarcas = new Set(G.S.esc.patros.map(p => p.cat)).size >= 3;
+      out.variasMarcas = new Set(G.S.patros.map(p => p.cat)).size >= 3;
       out.marcas = G.CFG.escalada.patrocinadores.length >= 12;
       // Red Bull: solo estrellas, 30.000-50.000 €/año
-      s = escalador(32, 25); s.p.rep = 95; const rbSin = G.reqPatro('redbull'); s.esc.mejor.mundo = 5; const rbCon = G.reqPatro('redbull'), rbPago = G.pagoPatro('redbull');
+      s = escalador(32, 25); s.p.rep = 95; const rbSin = G.reqPatro('redtoro'); s.esc.mejor.mundo = 5; const rbCon = G.reqPatro('redtoro'), rbPago = G.pagoPatro('redtoro');
       out.redbull = !rbSin && rbCon && rbPago >= 30000 && rbPago <= 50000;
       // Premios reales: nacionales 500/300/200, Copa del Mundo 8.000/7.000/5.000, máster 4.000
       const A = G.AMBITOS;
@@ -761,7 +762,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Escalada: con los dedos cargados la tabla lesiona; descansado, no', r.lesiones.alta > 5 && r.lesiones.baja === 0 && r.lesionBloquea, JSON.stringify(r.lesiones));
     check('Escalada: patrocinadores según tu fama, que se cobran cada semana', r.patroOferta && r.patroCobra, JSON.stringify([r.patroDbg, r.patroOferta, r.patroCobra]));
     check('Escalada: muchas marcas y varias a la vez (una por categoría)', r.marcas && r.variasMarcas);
-    check('Escalada: Red Bull solo para estrellas, de 30.000 a 50.000 € al año', r.redbull);
+    check('Escalada: Red Toro solo para estrellas, de 30.000 a 50.000 € al año', r.redbull);
     check('Escalada: premios de 500/300/200 € en España, 8.000/7.000/5.000 € en Copa del Mundo y 4.000 € en los másters', r.premios);
     check('Escalada: másters internacionales solo por invitación, con premio', r.masterSinInv && r.masterInv && r.master, JSON.stringify([r.masterDbg, r.masterSinInv, r.masterInv, r.master]));
 check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los siguientes Juegos, que se pierde si no repites', r.oro && r.oroCobra && r.oroPierde, JSON.stringify([r.oroDbg, r.oro, r.oroCobra, r.oroPierde]));
@@ -774,6 +775,77 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Escalada: todos sus imprevistos y opciones funcionan', r.sucesos.errores === 0 && r.sucesos.distintos >= 15, `${r.sucesos.distintos} imprevistos, ${r.sucesos.total} opciones`);
     check('Escalada: no salen imprevistos de fútbol', r.sinFutbol);
 
+    // Patrocinadores con obligaciones (fútbol y escalada)
+    const rp = await page.evaluate(() => {
+      const G = __P1, out = {}; G.CFG.club.probSuceso = 0;
+      const todas = G.CFG.escalada.patrocinadores.concat(G.CFG.patrocinio.futbol);
+      const reales = /red bull|nike|adidas|puma|rolex|\baudi\b|\bseat\b|north face|la sportiva|\bscarpa\b|petzl|mammut|\bpatagonia\b|black diamond|edelrid|tenaya|aquarius|under armour|kappa|\bcasio\b/i;
+      out.guino = todas.every(P => !reales.test(P.marca) && P.lema) && todas.some(P => P.marca === 'Red Toro');
+      out.futbolMarcas = G.CFG.patrocinio.futbol.length >= 12 && new Set(G.CFG.patrocinio.futbol.map(P => P.cat)).size === 6;
+      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'eventoPatro' || e.tipo === 'nacional' || e.tipo === 'invitacion' ? 'si' : e.tipo === 'equipoEsc' ? 'club' : ['fin', 'pantalla', 'retiro', 'finEsc'].includes(e.tipo) ? 'ok' : e.tipo === 'mejora' ? 'aceptar' : e.tipo === 'ofertas' && G.S.contrato && G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0'); } };
+      // Fútbol: al club, llega una oferta y se cobra
+      G.nueva(41); G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
+      for (let i = 0; i < 4; i++) { limpiar(); G.elegir('descansar'); G.avanzarSemana(); } limpiar();
+      out.futClub = G.S.fase === 'club';
+      G.S.p.rep = 40; G.S.patroOf.prox = 0; G.S.patroOf.ofrecida = {}; G.S.patros = [];
+      let oferta = null;
+      for (let i = 0; i < 6 && !oferta; i++) {
+        G.elegir('normal'); G.S.p.energia = 90; G.avanzarSemana();
+        for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; if (e.tipo === 'patrocinio' && !oferta) { oferta = JSON.parse(JSON.stringify(e)); G.resolver('0'); } else limpiar(); }
+      }
+      out.futOferta = !!oferta && !!oferta.ofertas[0].obj && G.S.patros.length >= 1;
+      G.S.patros.forEach(p => { p.proxEv = 999; });
+      G.elegir('normal'); G.avanzarSemana();
+      out.futCobra = G.S.ultimo.eco.some(([t, v]) => t.startsWith('Patrocinio de') && v > 0);
+      limpiar();
+      G.S.p.rep = 95; out.futEstrella = !G.reqPatro('naik') && !G.reqPatro('rolecs') && G.reqPatro('barPaco'); G.S.p.rep = 40;
+      // Compromisos: llega uno; cumplir sube la relación y ocupa la tarde
+      const pt = G.S.patros[0]; pt.proxEv = G.S.semana; G.S.patroOf.ultEv = -99; G.S.patroOf.prox = 999;
+      G.elegir('normal'); G.avanzarSemana();
+      let ev = null;
+      for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; if (e.tipo === 'eventoPatro') { ev = e; break; } limpiar(); }
+      out.evento = !!ev;
+      const rel0 = pt.rel; G.resolver('si');
+      out.cumplir = pt.rel > rel0 && !!G.S.tardePatro;
+      G.ponerSlot('tarde', 'act:meditar'); G.cerrarSemana(); limpiar();
+      out.tardeOcupada = G.S.log[G.S.log.length - 1].lineas.some(([, t]) => t.includes('Tarde ocupada')) && !G.S.tardePatro;
+      // Excusarse baja la relación; por debajo de 25 rompen el contrato
+      G.S.pendiente = { tipo: 'eventoPatro', id: pt.id, ev: 'fiesta' }; const r1 = pt.rel; G.resolver('no');
+      out.excusa = pt.rel < r1;
+      pt.rel = 10; G.elegir('normal'); G.avanzarSemana();
+      out.ruptura = !G.S.patros.some(p => p.id === pt.id) && G.S.ultimo.opo.some(([, t]) => t.includes('rompe el contrato'));
+      limpiar();
+      // Objetivo de temporada: prima y relación; si fallas con la relación baja, no renuevan
+      G.S.patros = []; G.firmarPatro('pumba'); const pb = G.S.patros[0]; pb.desde = G.S.semana - 10;
+      G.S.patroTemp.goles = 50; const R1 = G.balancePatros();
+      out.objetivoOk = R1.eco.some(([t, v]) => t.includes('objetivo cumplido') && v > 0) && pb.rel === 75 && pb.temporadas === 1;
+      pb.desde = G.S.semana - 10; pb.rel = 45; G.S.patroTemp.goles = 0; const R2 = G.balancePatros();
+      out.objetivoMal = !G.S.patros.length && R2.opo.some(([, t]) => t.includes('No cumplo')) && R2.opo.some(([, t]) => t.includes('no me renueva'));
+      // Escalada: objetivos propios, logos en la escena y hoja
+      G.nueva(42, null, 'escalada', 'bloque'); G.S.p.rep = 15; G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.S.p.rep = 60;
+      G.firmarPatro('escarpa'); const pe = G.S.patros[0];
+      out.escObjetivo = pe.obj.tipo === 'grado' && /\d/.test(pe.obj.t);
+      G.render(); const m = document.querySelector('.escena .marcas');
+      out.escMarcaEnEscena = !!m && m.textContent.includes('Escarpa');
+      G.S.hoja = 'patros'; G.render(); const hh = document.getElementById('hoja').textContent;
+      out.hoja = hh.includes('Escarpa') && hh.includes('Relación') && hh.includes('Encadenar');
+      G.S.hoja = null; G.render();
+      // Partidas guardadas antiguas
+      const vieja = JSON.parse(JSON.stringify(G.S)); delete vieja.patros; delete vieja.patroOf; delete vieja.patrosHist;
+      vieja.esc.patros = [{ id: 'redbull', marca: 'Red Bull', cat: 'bebida', ic: '🐂', año: 40000, temporadas: 2 }];
+      const mg = G.migrar(vieja); out.migra = mg.patros[0].id === 'redtoro' && mg.patros[0].marca === 'Red Toro' && mg.patros[0].rel === 60 && !!mg.patros[0].obj;
+      return out;
+    });
+    check('Patrocinadores: nombres de guiño (Red Toro, Adibas…), ninguna marca real, cada una con su lema', rp.guino);
+    check('Patrocinadores de fútbol: al menos 12 marcas en 6 categorías', rp.futbolMarcas);
+    check('Fútbol: en un club llegan ofertas con objetivo y se cobran cada semana', rp.futClub && rp.futOferta && rp.futCobra, JSON.stringify(rp));
+    check('Fútbol: las marcas top (Naik, Rolecs) solo para primera división', rp.futEstrella);
+    check('Patrocinadores: compromisos que ocupan la tarde; cumplir sube la relación', rp.evento && rp.cumplir && rp.tardeOcupada, JSON.stringify(rp));
+    check('Patrocinadores: excusarse baja la relación y por debajo de 25 rompen el contrato', rp.excusa && rp.ruptura);
+    check('Patrocinadores: objetivo de temporada con prima; si fallas y la relación es baja, no renuevan', rp.objetivoOk && rp.objetivoMal);
+    check('Escalada: objetivos propios, logos en la escena y hoja de patrocinadores', rp.escObjetivo && rp.escMarcaEnEscena && rp.hoja, JSON.stringify(rp));
+    check('Partidas guardadas antiguas: las marcas se convierten (Red Bull → Red Toro)', rp.migra);
+
     // Vidas completas de escalada
     const vidas = await page.evaluate(() => {
       const G = __P1; G.silencio = true; G.CFG.club.probSuceso = 0.45;
@@ -781,7 +853,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
         G.nueva(seed, null, 'escalada', fuerte); const S = () => G.S; const L = { p5: null, nac: null };
         for (let w = 0; w < 3000 && S().edad < 34; w++) {
           const ev = S().pendiente;
-          if (ev) { if (ev.tipo === 'equipoEsc') G.resolver(S().p.nivel >= 30 ? 'centro' : 'club'); else if (ev.tipo === 'patrocinio' || ev.tipo === 'suceso') G.resolver('0'); else if (ev.tipo === 'nacional') { L.nac = L.nac || S().edad; G.resolver('si'); } else if (ev.tipo === 'invitacion') G.resolver('si'); else G.resolver('ok'); continue; }
+          if (ev) { if (ev.tipo === 'equipoEsc') G.resolver(S().p.nivel >= 30 ? 'centro' : 'club'); else if (ev.tipo === 'patrocinio' || ev.tipo === 'suceso') G.resolver('0'); else if (ev.tipo === 'nacional') { L.nac = L.nac || S().edad; G.resolver('si'); } else if (ev.tipo === 'invitacion' || ev.tipo === 'eventoPatro') G.resolver('si'); else G.resolver('ok'); continue; }
           const s = S(), E = s.esc;
           if (s.pantalla >= 5 && !L.p5) L.p5 = s.edad;
           if (s.fase !== 'rocodromo') for (const [k, T] of Object.entries(G.CFG.negocios)) if (!G.bloqueoNegocio(k) && s.p.dinero > T.precio + T.cajaOpciones[1] + 3000) G.comprarNegocio(k, T.cajaOpciones[1]);
