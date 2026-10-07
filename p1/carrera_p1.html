@@ -177,7 +177,9 @@
 
   /* Panel de la semana */
   .panel { background: var(--card); border-radius: 22px; padding: 12px; box-shadow: 0 6px 0 rgba(0,0,0,.28); margin-top: 4px; }
-  .panel .ph { font-size: 13px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 0 2px 6px; display: flex; justify-content: space-between; }
+  .panel .ph { font-size: 13px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 0 2px 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px; white-space: nowrap; }
+  .panel .ph .fz { font: inherit; letter-spacing: .02em; border: 0; border-radius: 999px; padding: 3px 9px; margin: -4px 0; min-height: 26px; white-space: nowrap; font-size: 12px; color: #fff; background: #d98a1f; cursor: pointer; }
+  .panel .ph .fz.agotado { background: #d64545; } .panel .ph .fz.justo { background: #8a97a8; }
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .slot { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 2px; text-align: center; font: inherit; cursor: pointer;
     background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 5px 4px 6px; min-height: 84px; box-shadow: 0 4px 0 var(--line); }
@@ -366,6 +368,16 @@ const CFG = {
   guardado: 'del_barrio_al_negocio_p1_v5',
   inicio: { edad: 17, nivel: 30, energia: 70, rep: 5, dinero: 60 },
   energiaMax: 100, nivelMax: 99,
+  // Estado de forma según la energía: cuánto aprovechas el entreno y cómo rindes.
+  forma: {
+    tramos: [{ hasta: 25, id: 'agotado', ic: '😫', n: 'Agotado', entreno: 0.3 }, { hasta: 40, id: 'cansado', ic: '😓', n: 'Cansado', entreno: 0.6 },
+      { hasta: 60, id: 'justo', ic: '😐', n: 'Justo', entreno: 0.85 }, { hasta: 101, id: 'fresco', ic: '💪', n: 'En forma', entreno: 1 }],
+    notaBajo: 12, notaAlto: 40,      // nota del partido: (energía − 60)/12 si vas por debajo de 60, (energía − 60)/40 si vas por encima
+    escBajo: 5, escAlto: 16,         // escalada: lo mismo en puntos de competición
+    malaBase: 0.08, malaPorCansancio: 0.006, malaPorAnimo: 0.005, factorMala: 0.35,   // semana de entreno que sale mal
+    buenaBase: 0.1, buenaPorAnimo: 0.004, factorBuena: 1.6,                         // semana redonda (solo en forma y con ánimo ≥ 55)
+    reposoSel: -4,                   // reposo en el club: el míster no te ve entrenar
+  },
 
   barrio: { recuperacion: 10, repOjeador: 40, plazaRepBase: 3, plazaBonusEnergia: 2, trabajoPago: 60, entrenadorCoste: 90 },
   prueba: { semanasCorto: 3, semanasLargo: 5, penalLargo: 4, suerte: 5 },
@@ -374,7 +386,7 @@ const CFG = {
 
   club: {
     recuperacion: 20, energiaTitular: 15, energiaSuplente: 5, probJugarSuplente: 0.5,
-    lesionUmbral: 35, lesionPctPorPunto: 2, lesionSemanas: [1, 4],
+    lesionUmbral: 45, lesionPctPorPunto: 2, lesionSemanas: [1, 4],
     umbralSobreFuerza: 8,          // titular si selección >= fuerza del club + 8
     fisioCoste: 60, viajeNegocio: 150, gastosFamilia: 40,
     semanasMinMejora: 6, partidosMinMejora: 4, notasMejora: 5, notaMejora: 6.3, mejoraFactor: 1.35,
@@ -567,7 +579,7 @@ const CFG = {
   },
 
   // ---- Vida: felicidad, relaciones y actividades ----
-  felicidad: { inicial: 64, base: 38, porRelacion: 0.3, inercia: 0.25, efectoNota: 100 },
+  felicidad: { inicial: 64, base: 38, porRelacion: 0.3, inercia: 0.25, efectoNota: 50 },
   relaciones: {
     madre: { n: 'Madre', ic: '👩', decae: 1 }, padre: { n: 'Padre', ic: '👨', decae: 1 },
     amigo: { n: 'Mejor amigo/a', ic: '🧑‍🤝‍🧑', decae: 1 }, pareja: { n: 'Pareja', ic: '❤️', decae: 2 },
@@ -1240,7 +1252,20 @@ function repPlaza(s) {
 }
 function pruebaBase(s) { return s.p.nivel + s.p.energia / 5 + s.p.rep / 5 + (s.prep ? s.prep.ajuste : 0); }
 function factorTecho(s) { return r1(clamp((s.potencial - s.p.nivel) / CFG.club.margenTecho, 0, 1)); }
-function mejoraSemana(s, extra) { return (extra ? CFG.club.mejoraExtra : CFG.club.mejoraNormal) * calidadEntreno(s) * crecimientoEdad(s) * factorTecho(s) * (1 + efMejoras(s).entreno); }
+function mejoraSemana(s, extra) { return (extra ? CFG.club.mejoraExtra : CFG.club.mejoraNormal) * calidadEntreno(s) * crecimientoEdad(s) * factorTecho(s) * (1 + efMejoras(s).entreno) * forma(s).entreno; }
+// ---- Estado de forma: la energía decide cuánto aprovechas el entreno y cómo rindes ----
+function forma(s) { const e = s.p.energia; return CFG.forma.tramos.find(t => e < t.hasta) || CFG.forma.tramos[CFG.forma.tramos.length - 1]; }
+function efectoForma(s, bajo, alto) { const d = s.p.energia - 60; return d < 0 ? d / bajo : d / alto; }
+function textoForma(s) { const f = forma(s); return f.id === 'fresco' ? '' : `${f.ic} ${f.n}: entrenas al ${Math.round(f.entreno * 100)} % y rindes peor`; }
+// Cada semana de entreno puede salir mal (más si vas cansado o desanimado) o redonda (si vas en forma y con ánimo)
+function tiradaEntreno(s, R) {
+  const K = CFG.forma, e = s.p.energia, fel = s.p.fel, u = rnd(s);
+  const mala = K.malaBase + Math.max(0, 60 - e) * K.malaPorCansancio + Math.max(0, 50 - fel) * K.malaPorAnimo;
+  const buena = e >= 60 && fel >= 55 ? K.buenaBase + (fel - 55) * K.buenaPorAnimo : 0;
+  if (u < mala) { R.opo.push(['😩', azar(s, ['Semana de entreno para olvidar: nada me sale.', 'Hoy las piernas no iban. Semana tirada.', 'Entreno flojo: estaba con la cabeza en otra parte.'])]); s.cont.malaSemana = (s.cont.malaSemana || 0) + 1; return { f: K.factorMala, t: ' · semana mala' }; }
+  if (u < mala + buena) { R.opo.push(['🔥', azar(s, ['¡Semana redonda! Todo me sale en los entrenos.', 'Entreno de cine: hoy estaba en otro nivel.', 'Me noto volando: semana perfecta.'])]); return { f: K.factorBuena, t: ' · semana redonda' }; }
+  return { f: 1, t: '' };
+}
 function crecimientoEdad(s) { for (const [hasta, f] of CFG.club.edadCrec) if (s.edad <= hasta) return f; return 0.4; }
 function calidadEntreno(s) { return CFG.club.calidadTier[ligaDe(s, s.contrato.clubId).tier - 1] || 0.9; }
 function visibilidad(s, id) { const i = ligaDe(s, id); return r1((CFG.club.visTier[i.tier - 1] || 1) * i.P.vis); }
@@ -1248,6 +1273,7 @@ function umbralTitular(s) { return miClub(s).fuerza + CFG.club.umbralSobreFuerza
 function modsSeleccion(s, accionId) {
   const l = s.mods.filter(m => m.tipo === 'sel').map(m => [m.v, m.motivo]);
   if (accionId === 'patrocinio') l.push([-8, 'faltaste a una sesión']);
+  if (accionId === 'reposo') l.push([CFG.forma.reposoSel, 'el míster no te vio entrenar']);
   if (s.contrato && clubPropio(s, s.contrato.clubId)) l.push([3, 'eres el dueño del club']);
   return l;
 }
@@ -1270,16 +1296,16 @@ const ACCIONES = {
     aplicar(s, R) { const g = repPlaza(s), conE = s.p.energia >= 50; s.p.rep += g; s.p.energia -= 15; R.dep.push(['Partido en la plaza', `${sg(g)} reputación, −15 energía`, `${CFG.barrio.plazaRepBase} base + ${Math.floor(s.p.nivel / 10)} por nivel${conE ? ` + ${CFG.barrio.plazaBonusEnergia} por llegar con energía` : ' (sin bonus: llegabas con menos de 50 de energía)'}.`]); },
   },
   entrenarSolo: {
-    fases: ['barrio', 'prep'], ic: '🏃', n: 'Entrenar por tu cuenta', fx: () => [['💪', 3], ['⚡', -20]],
-    pro: () => '+3 nivel', con: () => '−20 energía', why: () => 'Mejora lenta pero gratuita.',
-    aplicar(s, R) { s.p.nivel += 3; s.p.energia -= 20; R.dep.push(['Entrenamiento por tu cuenta', '+3 nivel, −20 energía', 'Valor fijo de esta acción.']); },
+    fases: ['barrio', 'prep'], ic: '🏃', n: 'Entrenar por tu cuenta', fx: s => [['💪', r1(3 * forma(s).entreno)], ['⚡', -20]],
+    pro: s => `+${nf(r1(3 * forma(s).entreno))} nivel`, con: () => '−20 energía', why: () => 'Mejora lenta pero gratuita. Cansado/a aprovechas menos el entreno.',
+    aplicar(s, R) { const t = tiradaEntreno(s, R), f = forma(s), g = r1(3 * f.entreno * t.f); s.p.nivel += g; s.p.energia -= 20; R.dep.push(['Entrenamiento por tu cuenta', `+${nf(g)} nivel, −20 energía`, `3 × forma ${nf(f.entreno)} (${f.n.toLowerCase()})${t.t}.`]); },
   },
   entrenador: {
-    fases: ['prep'], ic: '🎯', n: 'Entrenador personal', fx: () => [['💪', 6], ['⚡', -25], ['€', -CFG.barrio.entrenadorCoste]],
-    pro: () => '+6 nivel', con: () => `−25 energía · −${cr(CFG.barrio.entrenadorCoste)}`,
+    fases: ['prep'], ic: '🎯', n: 'Entrenador personal', fx: s => [['💪', r1(6 * forma(s).entreno)], ['⚡', -25], ['€', -CFG.barrio.entrenadorCoste]],
+    pro: s => `+${nf(r1(6 * forma(s).entreno))} nivel`, con: () => `−25 energía · −${cr(CFG.barrio.entrenadorCoste)}`,
     why: () => 'El doble de mejora que entrenando solo, pero cuesta dinero y cansa más.',
     disponible: s => s.p.dinero >= CFG.barrio.entrenadorCoste ? null : `Necesitas ${cr(CFG.barrio.entrenadorCoste)}.`,
-    aplicar(s, R) { s.p.nivel += 6; s.p.energia -= 25; s.p.dinero -= CFG.barrio.entrenadorCoste; R.eco.push(['Entrenador personal', -CFG.barrio.entrenadorCoste]); R.dep.push(['Entrenador personal', '+6 nivel, −25 energía', 'Valor fijo de esta acción.']); },
+    aplicar(s, R) { const t = tiradaEntreno(s, R), f = forma(s), g = r1(6 * f.entreno * t.f); s.p.nivel += g; s.p.energia -= 25; s.p.dinero -= CFG.barrio.entrenadorCoste; R.eco.push(['Entrenador personal', -CFG.barrio.entrenadorCoste]); R.dep.push(['Entrenador personal', `+${nf(g)} nivel, −25 energía`, `6 × forma ${nf(f.entreno)} (${f.n.toLowerCase()})${t.t}.`]); },
   },
   trabajar: {
     fases: ['barrio', 'prep'], ic: '📦', n: 'Trabajar repartiendo', fx: () => [['€', CFG.barrio.trabajoPago], ['⚡', -15]],
@@ -1299,14 +1325,14 @@ const ACCIONES = {
     pro: s => `+${nf(mejoraSemana(s, true))} nivel`, con: () => '−20 energía · más riesgo de lesión',
     why: s => `Mejora = ${nf(CFG.club.mejoraExtra)} × calidad de entrenamiento de tu división (${nf(calidadEntreno(s))}) × edad (${nf(crecimientoEdad(s))} con ${s.edad} años) × margen hasta tu techo (${nf(factorTecho(s))}).`,
     disponible: s => s.lesion > 0 ? 'Tienes una lesión.' : null,
-    aplicar(s, R) { const g = mejoraSemana(s, true); s.p.nivel += g; s.p.energia -= 20; R.dep.push(['Entrenamiento extra', `+${nf(g)} nivel, −20 energía`, `${nf(CFG.club.mejoraExtra)} × calidad ${nf(calidadEntreno(s))} × edad ${nf(crecimientoEdad(s))} × techo ${nf(factorTecho(s))}.`]); },
+    aplicar(s, R) { const t = tiradaEntreno(s, R), g = mejoraSemana(s, true) * t.f; s.p.nivel += g; s.p.energia -= 20; R.dep.push(['Entrenamiento extra', `+${nf(g)} nivel, −20 energía`, `${nf(CFG.club.mejoraExtra)} × calidad ${nf(calidadEntreno(s))} × edad ${nf(crecimientoEdad(s))} × techo ${nf(factorTecho(s))} × forma ${nf(forma(s).entreno)}${t.t}.`]); },
   },
   normal: {
     fases: ['club'], ic: '📋', n: 'Semana normal', fx: s => [['💪', mejoraSemana(s, false)], ['⚡', -10]],
     pro: s => `+${nf(mejoraSemana(s, false))} nivel`, con: () => '−10 energía',
     why: s => `Mejora = ${nf(CFG.club.mejoraNormal)} × calidad (${nf(calidadEntreno(s))}) × edad (${nf(crecimientoEdad(s))}) × techo (${nf(factorTecho(s))}). Equilibrio entre mejorar y llegar fresco.`,
     disponible: s => s.lesion > 0 ? 'Tienes una lesión.' : null,
-    aplicar(s, R) { const g = mejoraSemana(s, false); s.p.nivel += g; s.p.energia -= 10; R.dep.push(['Semana normal', `+${nf(g)} nivel, −10 energía`, `${nf(CFG.club.mejoraNormal)} × calidad ${nf(calidadEntreno(s))} × edad ${nf(crecimientoEdad(s))} × techo ${nf(factorTecho(s))}.`]); },
+    aplicar(s, R) { const t = tiradaEntreno(s, R), g = mejoraSemana(s, false) * t.f; s.p.nivel += g; s.p.energia -= 10; R.dep.push(['Semana normal', `+${nf(g)} nivel, −10 energía`, `${nf(CFG.club.mejoraNormal)} × calidad ${nf(calidadEntreno(s))} × edad ${nf(crecimientoEdad(s))} × techo ${nf(factorTecho(s))} × forma ${nf(forma(s).entreno)}${t.t}.`]); },
   },
   fisio: {
     fases: ['club'], ic: '🧊', n: 'Fisio y recuperación', fx: s => [['⚡', 25], ['€', -CFG.club.fisioCoste]].concat(s.lesion > 0 ? [['🩹', '−1 sem']] : []),
@@ -1321,8 +1347,8 @@ const ACCIONES = {
     },
   },
   reposo: {
-    fases: ['club'], ic: '🛌', n: 'Reposo', fx: () => [['⚡', 15]],
-    pro: () => '+15 energía · gratis', con: () => 'no mejoras nivel', why: () => 'La opción barata para recuperarse.',
+    fases: ['club'], ic: '🛌', n: 'Reposo', fx: () => [['⚡', 15], ['📋', `Selección ${CFG.forma.reposoSel}`]],
+    pro: () => '+15 energía · gratis', con: () => `no mejoras nivel · selección ${CFG.forma.reposoSel} (el míster no te ve entrenar)`, why: () => 'La opción barata para recuperarse.',
     disponible: s => s.lesion > 0 || s.p.energia < 60 ? null : 'Solo con energía < 60 o con una lesión.',
     aplicar(s, R) { s.p.energia += 15; R.dep.push(['Reposo', '+15 energía', 'Valor fijo de esta acción.']); },
   },
@@ -1551,7 +1577,8 @@ function semanaClub(s, R, mods) {
     let lUs = golesEsperados(mi.fuerza, rival.fuerza, casa), lThem = golesEsperados(rival.fuerza, mi.fuerza, !casa);
     if (juega) {
       const suerte = (rnd(s) * 2 - 1) * 1.2;
-      P.notaBase = clamp(6 + pos.notaExtra + (s.p.nivel - rival.fuerza) / 8 + (s.p.energia - 60) / 30 + (s.p.fel - 50) / CFG.felicidad.efectoNota + suerte, 3, 10);
+      P.efForma = efectoForma(s, CFG.forma.notaBajo, CFG.forma.notaAlto); P.efAnimo = (s.p.fel - 50) / CFG.felicidad.efectoNota;
+      P.notaBase = clamp(6 + pos.notaExtra + (s.p.nivel - rival.fuerza) / 8 + P.efForma + P.efAnimo + suerte, 3, 10);
       P.suerte = suerte;
       lUs *= Math.exp((P.notaBase - 6) * (titular ? 0.12 : 0.05));
     }
@@ -1574,12 +1601,14 @@ function semanaClub(s, R, mods) {
   const pT = s.patroTemp; pT.partidos += 1;
   if (juega) { pT.pj += 1; pT.goles += P.goles; if (titular) pT.tit += 1; if (P.goles >= 3) s.hattrick = (s.hattrick || 0) + 1;
     if (titular) s.cont.titular++; if (P.nota >= 7) s.cont.nota7++; if (P.resultado === 'victoria') s.cont.victorias++; }
+  if (juega && P.efForma <= -0.8) R.opo.push(['😫', `Llegué ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} al partido: ${nf(r1(P.efForma))} en mi nota. Necesito descansar.`]);
+  else if (juega && P.efAnimo <= -0.5) R.opo.push(['😞', `Con el ánimo por los suelos no hay quien juegue: ${nf(r1(P.efAnimo))} en mi nota.`]);
   if (juega) {
     s.stats.jugados += 1; s.stats.goles += P.goles; s.stats.asist += P.asist;
     s.stats.notas.push(P.nota); if (s.stats.notas.length > 20) s.stats.notas.shift();
     tramo.pj += 1; if (titular) tramo.tit += 1; tramo.goles += P.goles; tramo.asist += P.asist; tramo.sumaNota += P.nota;
     R.dep.push([`Tu nota: ${nf(P.nota)}`, P.goles || P.asist ? `${'⚽'.repeat(P.goles)}${'👟'.repeat(P.asist)}` : '',
-      `6${pos.notaExtra ? ' + ' + nf(pos.notaExtra) + ' por ser ' + pos.n.toLowerCase() : ''} + (nivel ${nf(s.p.nivel)} − fuerza del rival ${club(s, P.rivalId).fuerza})/8 + (energía ${s.p.energia} − 60)/30 + (felicidad ${s.p.fel} − 50)/100 + suerte ${sg(r1(P.suerte))}${P.goles ? ` + 0,6 por gol` : ''}${P.asist ? ` + 0,3 por asistencia` : ''}.`]);
+      `6${pos.notaExtra ? ' + ' + nf(pos.notaExtra) + ' por ser ' + pos.n.toLowerCase() : ''} + (nivel ${nf(s.p.nivel)} − fuerza del rival ${club(s, P.rivalId).fuerza})/8 + forma ${sg(r1(P.efForma))} (energía ${s.p.energia}) + ánimo ${sg(r1(P.efAnimo))} (felicidad ${s.p.fel}) + suerte ${sg(r1(P.suerte))}${P.goles ? ` + 0,6 por gol` : ''}${P.asist ? ` + 0,3 por asistencia` : ''}.`]);
   }
   R.dep.push([`${P.casa ? mi.nombre : club(s, P.rivalId).nombre} ${P.casa ? P.gf : P.gc}-${P.casa ? P.gc : P.gf} ${P.casa ? club(s, P.rivalId).nombre : mi.nombre}`, '',
     `Goles esperados según la fuerza de cada equipo (${mi.fuerza} contra ${club(s, P.rivalId).fuerza}) y quién juega en casa${juega ? '; tu nota empuja a tu equipo' : ''}.`]);
@@ -2715,13 +2744,16 @@ function interactuar(relId, accion) {
 }
 
 const ACTIVIDADES = {
-  gimnasio: { ic: '🏋️', n: 'Gimnasio', fx: s => [['💪', r1(0.3 * factorTecho(s))], ['⚡', -10], ['😊', 3], ['€', -30]], coste: 30 },
-  fiesta: { ic: '🎉', n: 'Salir de fiesta', fx: () => [['😊', 12], ['⚡', -20], ['€', -50], ['📸', '25 %: foto comprometida']], coste: 50,
-    hacer(s) { if (rnd(s) < 0.25) { aplicarFx(s, [['⭐', -3]]); return 'Gran fiesta… pero aparece una foto tuya a las 5 de la mañana (−3 reputación).'; } return 'Gran fiesta.'; } },
+  gimnasio: { ic: '🏋️', n: 'Gimnasio', fx: s => [['💪', r1(0.3 * factorTecho(s) * forma(s).entreno)], ['⚡', -10], ['😊', 3], ['€', -30]].concat(s.p.energia < 40 ? [['🤕', `${riesgoGym(s)} %: sobrecarga`]] : []), coste: 30,
+    hacer(s) { if (rnd(s) * 100 < riesgoGym(s)) { s.p.nivel -= r1(0.3 * factorTecho(s) * forma(s).entreno); s.lesion = Math.max(s.lesion || 0, 1); return 'Te pasas con las pesas cansado/a: sobrecarga y una semana parado/a.'; } return 'Buena sesión.'; } },
+  fiesta: { ic: '🎉', n: 'Salir de fiesta', fx: () => [['😊', 12], ['⚡', -20], ['€', -50], ['📸', '25 %: foto comprometida'], ['🥴', '40 %: resaca']], coste: 50,
+    hacer(s) { const t = []; if (rnd(s) < 0.25) { aplicarFx(s, [['⭐', -3]]); t.push('aparece una foto tuya a las 5 de la mañana (−3 reputación)'); }
+      if (rnd(s) < 0.4) { aplicarFx(s, [['⚡', -10]]); if (['club', 'prep'].includes(s.fase)) s.mods.push({ tipo: 'sel', v: -3, sem: 1, motivo: 'llegas con resaca' }); t.push('resaca de campeonato (−10 energía' + (s.fase === 'club' ? ', selección −3' : '') + ')'); }
+      return t.length ? `Gran fiesta… pero ${t.join(' y ')}.` : 'Gran fiesta.'; } },
   vacaciones: { ic: '🏝️', n: 'Escapada de vacaciones', fx: () => [['😊', 25], ['⚡', 30], ['€', -600], ['📋', 'Selección −4 esta semana']], coste: 600,
     bloqueo: s => s.semana - (s.ultimasVacaciones || -99) < 6 ? `Disponible en ${6 - (s.semana - s.ultimasVacaciones)} semanas.` : null,
     hacer(s) { s.ultimasVacaciones = s.semana; if (s.fase === 'club') s.mods.push({ tipo: 'sel', v: -4, sem: 1, motivo: 'te fuiste de vacaciones' }); return 'Desconectas unos días.'; } },
-  meditar: { ic: '🧘', n: 'Meditar', fx: () => [['😊', 6], ['⚡', 5]] },
+  meditar: { ic: '🧘', n: 'Meditar', fx: () => [['😊', 6], ['⚡', 3]] },
   redes: { ic: '📱', n: 'Publicar en redes', fx: () => [['⭐', 2], ['😊', 2], ['💬', '10 %: polémica']],
     hacer(s) { if (rnd(s) < 0.1) { aplicarFx(s, [['⭐', -6]]); return 'Tu publicación se malinterpreta: polémica (−4 reputación en total).'; } return 'Buena publicación.'; } },
   visitarNegocios: { ic: '🏪', n: 'Visitar tus negocios', fx: s => [['✨', `Fama +${CFG.negocioComun.visitaFama} en todos`], ['⚡', -5]].concat(!enEspaña(s) ? [['€', -CFG.club.viajeNegocio]] : []),
@@ -2735,6 +2767,7 @@ const ACTIVIDADES = {
   loteria: { ic: '🎟️', n: 'Comprar lotería', fx: () => [['€', -2], ['🍀', '1 entre 5.000: 50.000 €']], coste: 2,
     hacer(s) { const u = rnd(s); if (u < 1 / 5000) { s.p.dinero += 50000; return '¡¡TE TOCA EL PREMIO GORDO!! +50.000 €'; } if (u < 0.05) { s.p.dinero += 20; return 'Reintegro y un poco más: +20 €.'; } return 'Nada esta vez.'; } },
 };
+function riesgoGym(s) { return s.p.energia >= 40 ? 0 : Math.round(15 + (40 - s.p.energia) * 1.5); }
 function bloqueoActividad(s, id) {
   const A = ACTIVIDADES[id];
   if (s.pendiente) return 'Antes resuelve lo pendiente.';
@@ -3301,7 +3334,7 @@ function edadEsc(s) { for (const [hasta, f] of CFG.escalada.edadCrec) if (s.edad
 function calidadEsc(s) { const E = s.esc; return r1((E.equipo ? EQUIPOS[E.equipo].calidad : 0.9) * (E.nacional === E.año ? 1.1 : 1)); }
 function ganancia(s, k, base) {
   const E = s.esc, techo = clamp((techoAttr(s, k) - E.at[k]) / CFG.escalada.margenTecho, 0, 1);
-  return Math.round(base * CFG.escalada.ritmo * calidadEsc(s) * edadEsc(s) * techo * (s.p.energia < 30 ? 0.6 : 1) * (1 + efMejoras(s).entreno) * 100) / 100;
+  return Math.round(base * CFG.escalada.ritmo * calidadEsc(s) * edadEsc(s) * techo * forma(s).entreno * (1 + efMejoras(s).entreno) * (s._tirada || 1) * 100) / 100;
 }
 function mesEsc(s) { return Math.floor(s.semanasAño * 12 / CFG.hipoteca.semanasAño); }
 function condicionesZona(s, Z) {
@@ -3349,11 +3382,13 @@ function initEscalada(s, fuerte) {
 /* ---- Entrenamiento ---- */
 // g: [[cualidad, base]] · o: { e: energía, piel, carga, coste, motivo, lesion: tipo de lesión probable }
 function entrenarEsc(s, R, titulo, g, o) {
-  const E = s.esc, txt = [];
+  const E = s.esc, txt = [], t = tiradaEntreno(s, R), fo = forma(s);
+  s._tirada = t.f;
   for (const [k, b] of g) { const v = ganancia(s, k, b); E.at[k] = Math.round(Math.min(techoAttr(s, k), E.at[k] + v) * 100) / 100; if (v > 0) txt.push(`${ATTRS[k].ic} +${nf(v)}`); }
+  delete s._tirada;
   s.p.energia -= o.e || 0; E.piel = clamp(E.piel - (o.piel || 0), 0, 100); E.carga = clamp(E.carga + (o.carga || 0), 0, 100);
   R.dep.push([titulo, `${txt.join(' ') || 'sin mejora'}${o.e ? `, −${o.e} energía` : ''}${o.piel ? `, −${o.piel} piel` : ''}`,
-    `Mejora = base × ${nf(CFG.escalada.ritmo)} × calidad de entrenamiento ${nf(calidadEsc(s))} (${E.equipo ? EQUIPOS[E.equipo].n.toLowerCase() : 'sin equipo'}${E.nacional === E.año ? ', equipo nacional' : ''}) × edad ${nf(edadEsc(s))} × margen hasta tu techo${s.p.energia < 30 ? ' × 0,6 por ir sin energía' : ''}.`]);
+    `Mejora = base × ${nf(CFG.escalada.ritmo)} × calidad de entrenamiento ${nf(calidadEsc(s))} (${E.equipo ? EQUIPOS[E.equipo].n.toLowerCase() : 'sin equipo'}${E.nacional === E.año ? ', equipo nacional' : ''}) × edad ${nf(edadEsc(s))} × margen hasta tu techo × forma ${nf(fo.entreno)} (${fo.n.toLowerCase()})${t.t}.`]);
   let coste = o.coste || 0;
   if (o.bono && (!E.equipo || EQUIPOS[E.equipo].bono) && s.edad >= CFG.escalada.edadPagas && !tienePatro(s, 'rocoLocal')) coste += EQUIPOS.libre.bono;
   if (coste && s.edad < CFG.escalada.edadPagas) { R.dep.push([`${o.motivo || titulo}: ${cr(coste)}`, 'lo pagan tus padres', `Hasta los ${CFG.escalada.edadPagas} años tu familia paga tu entrenamiento.`]); coste = 0; }
@@ -3550,9 +3585,10 @@ function competirEsc(s, R, c) {
   const E = s.esc, K = CFG.escalada, A = AMBITOS[c.amb], juv = s.edad < 20 && A.juvenil;
   const antes = { mejor: E.mejor[c.amb], esp: E.anual.mejorEsp, mundo: E.anual.mejorMundo, mm: (E.mejorMundoMod[c.mod] || {})[E.año] };
   const media = A.media - (juv ? K.juvenilMenos : 0), L = nivelMod(s, c.mod);
-  const forma = (s.p.energia - 60) / 8, animo = (s.p.fel - 50) / 25, cab = (E.at.cabeza - 50) / 10 * A.presion, piel = E.piel < 30 ? -(30 - E.piel) / 5 : 0;
+  const fz = efectoForma(s, CFG.forma.escBajo, CFG.forma.escAlto), animo = (s.p.fel - 50) / 25, cab = (E.at.cabeza - 50) / 10 * A.presion, piel = E.piel < 30 ? -(30 - E.piel) / 5 : 0;
   const suerte = gauss(s) * (c.mod === 'velocidad' ? 3 : 4), resbalon = c.mod === 'velocidad' && rnd(s) < K.resbalon;
-  const score = L + forma + animo + cab + piel + suerte - (resbalon ? 40 : 0);
+  if (fz <= -2) R.opo.push(['😫', `Llego ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} a la ${A.n}: ${nf(r1(fz))} puntos por la falta de energía.`]);
+  const score = L + fz + animo + cab + piel + suerte - (resbalon ? 40 : 0);
   const z = (score - media) / A.sd, N = A.N, pos = clamp(1 + Math.round((N - 1) * (1 - phi(z))), 1, N);
   const ronda = A.final && pos <= A.final ? 'final' : A.semi && pos <= A.semi ? 'semifinal' : 'clasificación';
   // Marca según la modalidad
@@ -3587,7 +3623,7 @@ function competirEsc(s, R, c) {
   const ic = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : MODS[c.mod].ic;
   R.escLineas.push([ic, `${nombre} (${c.lugar}): ${ronda === 'clasificación' ? 'me quedo en la clasificación' : `llego a la ${ronda}`}, puesto ${pos} de ${N}. ${marca[0].toUpperCase() + marca.slice(1)}.${dRep ? ` +${dRep} reputación.` : ''}`]);
   R.dep.push([`${nombre}: ${pos}º de ${N}`, marca,
-    `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(forma))} por energía ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
+    `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(fz))} por tu forma (energía ${s.p.energia}) ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
   R.comp = { pos, N, ronda, amb: c.amb };
   prepararMomentoEsc(s, c, pos, ronda, antes, nombre);
   if (c.amb === 'jjoo') {
@@ -4551,7 +4587,7 @@ function pantallaSemana() {
   const bo = bocadillo(s);
   h += `<section class="escena">${svg}<button class="yo ${bo && bo[1] ? 'salta' : ''}" data-act="hoja" data-v="avatar" aria-label="Tu personaje">${avatarSVG(s, null, 'cuerpo')}</button>${bo ? `<span class="bocata"><span>${esc(bo[0])}</span></span>` : ''}${marcasEscena(s)}<span class="fecha">Semana ${s.semana} · ${esc(etiquetaSemana(s))}</span><span class="lugar">${esc(lugar)}</span></section>`;
   h += `<div class="gauges ${s.deporte === 'escalada' && s.fase !== 'retirado' ? 'g6' : ''}">${gauges(s)}</div>`;
-  h += `<section class="panel" id="agenda"><div class="ph"><span>Tu semana</span><span>se repite sola</span></div>
+  h += `<section class="panel" id="agenda"><div class="ph"><span>Tu semana</span>${(() => { const f = forma(s); return f.id === 'fresco' || s.fase === 'retirado' ? '<span>se repite sola</span>' : `<button class="fz ${f.id}" data-act="hoja" data-v="forma">${f.ic} ${f.n}: rindes menos ›</button>`; })()}</div>
     <div class="tiles"><button class="slot principal" data-act="hoja" data-v="plan"><span class="tt">☀️ Mañana</span><span class="te">${emo}</span><b>${esc(txt.join(' '))}</b></button>${Object.keys(SLOTS).map(k => slotHtml(s, k)).join('')}</div>
     ${fin ? `<div class="finde">🏁 <span>${esc(fin.replace(/^\S+\s/, ''))}</span></div>` : ''}
     ${pr.length ? `<ul class="prox">${pr.map(([cu, t]) => `<li><span class="cu">${cu}</span>${t}</li>`).join('')}</ul>` : ''}
@@ -5484,6 +5520,15 @@ function htmlRetos(s) {
   const hechos = X.lista.filter(r => r.hecho).length, quedan = Math.max(1, X.hasta - s.semana);
   return `<button class="retos" data-act="hoja" data-v="retos" id="retos"><span class="rt">🔥 Retos ${hechos}/${X.lista.length}</span><span class="rc">${X.lista.map(r => r.hecho ? '✅' : RETOS[r.id] ? RETOS[r.id].ic : '❔').join(' ')}</span><span class="rq">${quedan === 1 ? 'última semana' : `${quedan} semanas`} ›</span></button>`;
 }
+function hojaForma() {
+  const s = S, f = forma(s), K = CFG.forma, esc_ = s.deporte === 'escalada', C = CFG.club;
+  const compite = esc_ ? s.fase === 'escalador' : s.fase === 'club';
+  const rend = !compite ? 'rindes peor si vas sin energía' : esc_ ? `${sg(r1(efectoForma(s, K.escBajo, K.escAlto)))} puntos en competición` : `${sg(r1(efectoForma(s, K.notaBajo, K.notaAlto)))} en la nota del partido`;
+  const les = !compite ? 'cuanta más energía, mejor' : esc_ ? 'más riesgo de lesión en los dedos' : s.p.energia < C.lesionUmbral ? `${Math.round((C.lesionUmbral - s.p.energia) * C.lesionPctPorPunto * (1 - efMejoras(s).lesion))} % de lesionarte si juegas` : 'sin riesgo extra de lesión';
+  return hoja(`${f.ic} Tu forma: ${f.n}`, `<div class="card"><b>Energía ${s.p.energia}</b><p class="small">Entrenas al ${Math.round(f.entreno * 100)} % · ${rend} · ${les}.</p></div>
+    <div class="card lista">${K.tramos.map((t, i) => `<div class="row"><div class="ic">${t.ic}</div><div class="tx"><b>${t.n}${t === f ? ' (ahora)' : ''}</b><span>Energía ${i ? K.tramos[i - 1].hasta : 0}–${Math.min(100, t.hasta - 1)} · entrenas al ${Math.round(t.entreno * 100)} %</span></div></div>`).join('')}</div>
+    <p class="small">Cansado/a, entrenar cunde menos, rindes peor y las semanas salen mal más a menudo. En forma y con buen ánimo, a veces tienes una semana redonda. Para recuperarte: reposo, fisio, meditar o unas vacaciones.</p>`);
+}
 function hojaRetos() {
   const s = S, X = s.retos;
   if (!X) return hoja('🔥 Retos', '<p class="small">Pronto tendrás retos.</p>');
@@ -5717,7 +5762,7 @@ function render() {
   if (S.intro) { main.innerHTML = pantallaIntro(); $('hoja').innerHTML = ''; $('modal').innerHTML = ''; return; }
   main.innerHTML = pantallaSemana();
   const h = S.hoja;
-  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h === 'retos' ? hojaRetos() : h === 'salon' ? hojaSalon() : h === 'tarjeta' ? hojaTarjeta() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
+  $('hoja').innerHTML = !h ? '' : h === 'plan' ? hojaPlan() : h === 'diario' ? hojaDiario() : h === 'patros' ? hojaPatros() : h === 'avatar' ? hojaAvatar() : h === 'mejoras' ? hojaMejoras() : h === 'retos' ? hojaRetos() : h === 'forma' ? hojaForma() : h === 'salon' ? hojaSalon() : h === 'tarjeta' ? hojaTarjeta() : h.startsWith('slot:') ? hojaSlot(h.slice(5)) : h === 'carrera' ? hojaCarrera() : h === 'bienes' ? hojaBienes() : h === 'relaciones' ? hojaRelaciones() : h === 'actividades' ? hojaActividades()
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
@@ -5798,7 +5843,7 @@ render();
    13. GANCHOS DE PRUEBA (no afectan al juego)
    ===================================================================== */
 window.__P1 = {
-  CFG, ACCIONES, SUCESOS, ACTIVIDADES, LOGROS,
+  CFG, ACCIONES, SUCESOS, ACTIVIDADES, LOGROS, forma, tiradaEntreno, riesgoGym,
   get S() { return S; }, set S(v) { S = v; }, set silencio(v) { silencio = v; },
   nueva(seed, pos, dep, fuerte) { S = nuevaPartida(seed); S.intro = false; S.nombre = 'Prueba'; if (pos) S.posicion = pos; if (dep === 'escalada') initEscalada(S, fuerte); guardar(); render(); return S; },
   PANTALLAS_ESC, ZONAS, AMBITOS, GRADOS_VIA, GRADOS_BLOQUE, calendarioEsc: a => calendarioEsc(S, a == null ? S.esc.año : a), reqComp: c => reqComp(S, c), compDeLaSemana: () => compDeLaSemana(S),

@@ -459,7 +459,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-162 de 162 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+165 de 165 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -523,6 +523,13 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    Arreglos: el rival puede ser chico o chica y los textos concuerdan; empezar con tu hijo funciona también
    en escalada; inicio más compacto (indicadores en una fila, 2 marcas y «+N», bocadillo que no tapa las
    marcas) para que la agenda se vea entera encima de JUGAR en un iPhone 13.
+6j. **Forma y riesgo**: la energía marca tu forma (agotado/a, cansado/a, justo/a, en forma), con aviso en
+   «Tu semana» y explicación al tocarlo. Cansado/a entrenas al 30–85 %, la nota del partido o los puntos de
+   competición bajan mucho y el riesgo de lesión empieza en 45 de energía. Cada semana de entreno puede salir
+   mal (más si vas cansado/a o desanimado/a) o redonda (en forma y con ánimo). El ánimo pesa el doble en la
+   nota. Reposo baja la selección (−4), el gimnasio cansado/a puede sobrecargarte, la fiesta puede dar resaca
+   y meditar recupera menos. Medido en una temporada: entrenando extra agotado/a se sube unos 4 de nivel
+   frente a 10 con semanas normales.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

@@ -284,7 +284,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       // Felicidad: cambia la nota
       const notas = [];
       for (const fel of [95, 5]) { alClub(8, 1); G.S.p.fel = fel; G.S.p.nivel = 62; G.S.p.energia = 80; G.elegir('normal'); G.avanzarSemana(); notas.push(G.S.ultimo.partido.notaBase); }
-      out.felicidadNota = Math.abs((notas[0] - notas[1]) - 0.9) < 0.05;
+      out.felicidadNota = Math.abs((notas[0] - notas[1]) - 1.8) < 0.05;
       // Relaciones: bajan solas; una interacción por persona y semana
       alClub(6, 1); const m0 = G.S.rel.find(x => x.id === 'madre').v;
       semana('normal'); resolverTodo(); const m1 = G.S.rel.find(x => x.id === 'madre').v;
@@ -414,7 +414,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Primer club: el del barrio; el plan pasa a «semana normal»', r.primerClub);
     check('Mismas decisiones y semilla → mismos resultados', r.determinista);
     check('Ascenso: prima, subida de sueldo, nueva división y cumpleaños', r.ascenso);
-    check('La felicidad cambia la nota (felicidad 95 frente a 5: +0,9)', r.felicidadNota);
+    check('La felicidad cambia la nota (felicidad 95 frente a 5: +1,8)', r.felicidadNota);
     check('Relaciones: bajan 1 por semana; una interacción por persona y semana', r.relaciones);
     check('Actividades: máximo 2 por semana, sin repetir, y se reinician', r.actividades && r.actividadesReset);
     check('Los negocios se desbloquean por pantallas (peluquería en la 5, gimnasio en la 8, hotel en la 9)', r.desbloqueos);
@@ -1243,6 +1243,33 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     await page.evaluate(() => { for (let g = 0; __P1.S.pendiente && g < 9; g++) __P1.resolver('0') || __P1.resolver('ok'); __P1.S.hoja = 'salon'; __P1.render(); });
     const gn2 = await page.evaluate(() => document.getElementById('hoja').textContent.includes('Abuela Rosa'));
     check('Siguiente generación: juegas con tu hijo, que hereda dinero y fama; tu vida entra en el salón de la fama', gn0.intro && gn0.nombre === 'Leo' && gn0.salon === 1 && gn1.dinero >= 20000 && gn1.gen === 2 && gn1.padre === 'Abuela Rosa' && gn2, JSON.stringify([gn0, gn1, gn2]));
+
+    // Forma: el cansancio se nota en el entreno, en la nota, en las lesiones y se ve en la pantalla
+    const fo = await page.evaluate(() => {
+      const G = __P1, L = () => { for (let g = 0; G.S.pendiente && g < 30; g++) G.resolver('si') || G.resolver('ok') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('1') || G.resolver('0') || G.resolver('colocado') || G.resolver('rechazar') || G.resolver('no'); };
+      const was = G.silencio; G.silencio = true;
+      function temporada(seed, agotado) {
+        G.nueva(seed); G.S.nombre = 'Leo'; G.S.p.nivel = 52; G.S.p.rep = 45; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto'); L();
+        const n0 = G.S.p.nivel;
+        for (let i = 0; i < 30; i++) { L(); if (G.S.fase !== 'club') { G.elegir('descansar'); G.avanzarSemana(); continue; }
+          if (agotado) { G.S.p.energia = 15; G.elegir(G.S.lesion ? 'reposo' : 'extra'); } else { G.S.p.energia = 85; G.elegir(G.S.lesion ? 'reposo' : 'normal'); }
+          G.avanzarSemana(); }
+        const n = G.S.stats.notas; return { nivel: G.S.p.nivel - n0, nota: n.length ? n.reduce((a, b) => a + b, 0) / n.length : 0, jugados: G.S.stats.jugados };
+      }
+      const a = [1, 2, 3].map(x => temporada(300 + x, true)), f = [1, 2, 3].map(x => temporada(300 + x, false)), m = (l, k) => l.reduce((x, y) => x + y[k], 0) / l.length;
+      G.silencio = was;
+      G.nueva(9); G.S.p.energia = 20; const tr = G.forma(G.S); G.S.p.energia = 90; const tr2 = G.forma(G.S);
+      G.S.p.energia = 20; G.S.intro = false; G.render(); const pill = !!document.querySelector('#agenda .fz.agotado'); G.S.hoja = 'forma'; G.render(); const hoja = document.getElementById('hoja').textContent.includes('Agotado'); G.S.hoja = null; G.render();
+      return { nivelAg: +m(a, 'nivel').toFixed(1), nivelFr: +m(f, 'nivel').toFixed(1), notaAg: +m(a, 'nota').toFixed(2), notaFr: +m(f, 'nota').toFixed(2), jugAg: m(a, 'jugados'), jugFr: m(f, 'jugados'), tr: tr.entreno, tr2: tr2.entreno, pill, hoja };
+    });
+    check('Forma: agotado/a entrenas al 30 % y en forma al 100 %; se avisa en Tu semana y se explica al tocar', fo.tr === 0.3 && fo.tr2 === 1 && fo.pill && fo.hoja, JSON.stringify(fo));
+    check('Forma: entrenar extra agotado/a sale peor que una semana normal en forma (nivel, nota y partidos)', fo.nivelAg < fo.nivelFr && fo.notaAg + 1.5 < fo.notaFr && fo.jugAg < fo.jugFr, JSON.stringify(fo));
+    const sm = await page.evaluate(() => { const G = __P1, R = { opo: [] }; let malas = 0, buenas = 0;
+      G.nueva(5); G.S.p.energia = 20; G.S.p.fel = 30; for (let i = 0; i < 400; i++) { if (G.tiradaEntreno(G.S, R).f < 1) malas++; }
+      G.S.p.energia = 90; G.S.p.fel = 90; let malasF = 0; for (let i = 0; i < 400; i++) { const f = G.tiradaEntreno(G.S, R).f; if (f > 1) buenas++; if (f < 1) malasF++; }
+      G.S.p.energia = 20; const gym = G.riesgoGym(G.S), fx = G.ACTIVIDADES.fiesta.fx(G.S).some(([i]) => i === '🥴');
+      return { malas, malasF, buenas, gym, fx }; });
+    check('Forma: las semanas de entreno pueden salir mal (más si vas cansado/a) o redondas; gimnasio y fiesta tienen riesgos', sm.malas > 120 && sm.malasF < 60 && sm.buenas > 40 && sm.gym >= 40 && sm.fx, JSON.stringify(sm));
 
     // Inicio compacto: con marcas y retos, la agenda se ve entera encima de JUGAR en un iPhone 13
     {
