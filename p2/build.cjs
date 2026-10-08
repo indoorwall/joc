@@ -7,7 +7,7 @@ const root = path.join(__dirname, '..');
 
 // Módulos de comercio incluidos en el prototipo (orden de dependencias). NUNCA: stripeApi.js, pgRepo.js, httpBackend.js
 const COMMERCE = ['catalog/catalog.js', 'core/money.js', 'core/entitlements.js', 'core/orders.js', 'core/config.js', 'core/visibility.js', 'core/router.js', 'core/stripeSignature.js',
-  'core/analytics.js', 'core/service.js', 'core/memoryRepo.js', 'core/fakeStripe.js', 'core/prestige.js', 'core/sports.js', 'core/ads.js', 'client/providers.js', 'client/mockBackend.js', 'client/commerceClient.js'];
+  'core/analytics.js', 'core/service.js', 'core/accounts.js', 'core/memoryRepo.js', 'core/fakeStripe.js', 'core/prestige.js', 'core/sports.js', 'core/ads.js', 'client/providers.js', 'client/mockBackend.js', 'client/commerceClient.js'];
 
 // Mini empaquetador ES → IIFE: cada módulo en su función; import/export resueltos con un mapa de módulos.
 function bundle(files, base) {

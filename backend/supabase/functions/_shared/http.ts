@@ -1,7 +1,7 @@
 // Respuestas JSON, CORS restringido (juego y panel admin) y traducción de errores (sin filtrar detalles internos).
 // Orígenes permitidos: APP_URL (juego) y ADMIN_URL (panel). Las cabeceras CORS se ponen POR PETICIÓN en `handle`.
 const ALLOWED = [Deno.env.get('APP_URL'), Deno.env.get('ADMIN_URL')].filter(Boolean) as string[];
-export const corsFor = (origin: string | null) => ({ 'Access-Control-Allow-Origin': origin && ALLOWED.includes(origin) ? origin : (ALLOWED[0] || 'null'), 'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', Vary: 'Origin' });
+export const corsFor = (origin: string | null) => ({ 'Access-Control-Allow-Origin': origin && ALLOWED.includes(origin) ? origin : (ALLOWED[0] || 'null'), 'Access-Control-Allow-Headers': 'authorization, content-type, apikey, x-client-info', 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, OPTIONS', Vary: 'Origin' });
 export const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 export function fail(e: any) {
   const status = typeof e?.status === 'number' ? e.status : 500;

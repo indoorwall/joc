@@ -1,7 +1,8 @@
 // Suite contra PostgreSQL REAL: aplica (shim de Supabase) + migración + seed, corre el contrato completo con PgRepo
 // y prueba el RLS como lo vería un cliente (roles anon / authenticated con auth.uid()).
 import pg from 'pg';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { runAccounts } from './accounts.mjs';
 import { runContract } from './contract.mjs';
 import { createPgRepo } from '../../commerce/core/pgRepo.js';
 import { seedSql } from '../../commerce/tools/gen-seed.mjs';
@@ -17,7 +18,7 @@ export async function runPg(check) {
   await pool.query('drop schema if exists public cascade; drop schema if exists auth cascade; create schema public; grant all on schema public to public;');
   await pool.query(sql('./supabase_shim.sql'));
   let migErr = null;
-  try { await pool.query(sql('../../backend/supabase/migrations/20261008000000_commerce.sql')); await pool.query(seedSql()); } catch (e) { migErr = e.message; }
+  try { for (const f of readdirSync(new URL('../../backend/supabase/migrations/', import.meta.url)).filter(f => f.endsWith('.sql')).sort()) await pool.query(sql('../../backend/supabase/migrations/' + f)); await pool.query(seedSql()); } catch (e) { migErr = e.message; }
   check('[postgres] La migración y el seed se aplican sobre una base vacía', !migErr, migErr);
   if (migErr) { await pool.end(); return; }
   const seedFile = readFileSync(new URL('../../backend/supabase/seed.sql', import.meta.url), 'utf8');
@@ -28,6 +29,7 @@ export async function runPg(check) {
   };
   const makeRepo = async () => { await reset(); return createPgRepo({ pool }); };
   await runContract('postgres', makeRepo, check);
+  await runAccounts('postgres', makeRepo, check, [U, U2]);
 
   // ---------- RLS: lo que puede y no puede hacer un cliente ----------
   await reset();

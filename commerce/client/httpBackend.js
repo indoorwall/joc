@@ -21,5 +21,11 @@ export function createHttpBackend({ functionsUrl, publishableKey, fetchImpl = (.
     track: (token, name, props) => req('analytics', { method: 'POST', token, body: { name, props } }).catch(() => null),
     remoteConfig: () => req('remote-config'),
     deleteAccount: token => req('account-delete', { method: 'POST', token }),
+    // Cuenta: perfil, carreras en la nube y descarga de datos
+    profile: token => req('profile', { token }),
+    updateProfile: (token, patch) => req('profile', { method: 'PATCH', token, body: patch }),
+    getSaves: token => req('game-saves', { token }),
+    putSaves: (token, blob) => req('game-saves', { method: 'PUT', token, body: blob }),
+    exportData: token => req('account-export', { token }),
   };
 }

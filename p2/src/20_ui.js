@@ -152,7 +152,7 @@
         <button class="btn w full" data-act="premioVisto">Vale</button></div>`;
     }
     if (P2.MONETIZATION.activa && !P2.bloqueoRewarded(s, 'energia')) h += `<div class="card rwCard"><b>⚡ Vas justo de energía</b><p class="small">Descansar sigue siendo la opción de siempre. Si quieres, una vez cada ${P2.MONETIZATION.rewarded.energia.cadaSemanas} semanas:</p>${rwBtn(s, 'energia', { contexto: 'inicio' }, `Recuperación patrocinada: +${P2.MONETIZATION.rewarded.energia.cantidad} energía`)}</div>`;
-    if (!ui.iapCard) { const I = P2.ofertaIapAhora(s, ui.iapSesion || 0); if (I) { P2.marcarIapMostrado(s, I.id); ui.iapCard = I.id; ui.iapSesion = (ui.iapSesion || 0) + 1; P2.guardar(s); } }
+    if (!ui.iapCard && !(COM && COM.isMinor())) { const I = P2.ofertaIapAhora(s, ui.iapSesion || 0); if (I) { P2.marcarIapMostrado(s, I.id); ui.iapCard = I.id; ui.iapSesion = (ui.iapSesion || 0) + 1; P2.guardar(s); } }
     if (ui.iapCard) h += htmlIapCard(s, ui.iapCard, 'momento');
     return h;
   }
@@ -533,16 +533,19 @@
   function htmlAjustes(s) {
     const B = ui.balance;
     const lab = P2.MONETIZATION.activa ? P2.IAP_PRODUCTS.filter(I => P2.iapEnVariante(s, I.id) && (I.categoria !== 'cosmetico') && (I.id !== 'founder' || ((s.tele || {}).msActivo || 0) >= P2.MONETIZATION.iap.minutosFounder * 60000)) : [];
-    return `${htmlInforme(s)}<div class="card"><h2>💎 Premium y compras</h2><p class="small">Packs, deportes y carreras. Tus compras están en tu cuenta (simulada en esta versión).</p><button class="btn full" data-act="vista" data-v="premium">Abrir Premium · Mis compras · Restaurar</button></div>${lab.length && false ? '' : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
+    const R = P2.listarPartidas().find(r => r.activa) || {};
+    return `${htmlInforme(s)}<div class="card"><h2>👤 Cuenta y carreras</h2><p class="small">${conCuenta() ? `Has entrado como <b>${esc(COM.account().email || 'tu cuenta')}</b>.` : 'Juegas sin cuenta. Con una cuenta gratis, tus compras y tus carreras quedan a salvo.'}</p>
+        <button class="btn full" data-act="guardarSalir">💾 Guardar y salir</button><button class="btn w full" data-act="carreras">🗂️ Mis carreras</button>
+        <button class="btn w full" data-act="cuenta">👤 ${conCuenta() ? 'Mi cuenta' : 'Crear cuenta o entrar'}</button><button class="btn w full" data-act="vista" data-v="premium">💎 Premium · Mis compras · Restaurar</button></div>${lab.length && false ? '' : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Carrera', esc(R.titulo || '—'))}${kv('Ranura', `${(R.n || 1)} de ${P2.ranurasMax()}`)}${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}${R.guardadoEn ? ` · ${esc(haceTxt(R.guardadoEn))}` : ''}`)}
       <div class="sec">Copia de seguridad</div><p class="small">Copia este código para guardar la partida fuera del navegador.</p>
       <textarea id="codigo" readonly>${esc(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}</textarea>
       <textarea id="importar" placeholder="Pega aquí un código para cargarlo"></textarea>
       <button class="btn w full" data-act="importar">📥 Cargar desde código</button>
       ${ui.msg ? `<p class="small">${esc(ui.msg)}</p>` : ''}
-      <button class="btn r full" data-act="reiniciar">${ui.reinicio ? '⚠️ Toca otra vez para borrar esta partida' : '🔄 Empezar una nueva vida'}</button></div>
+      <button class="btn r full" data-act="reiniciar">${ui.reinicio ? '⚠️ Toca otra vez para borrar esta carrera' : '🗑️ Borrar esta carrera'}</button><p class="small">Para empezar otra vida sin perder esta, usa una ranura libre en «Mis carreras».</p></div>
       <details class="card"><summary><b>🧪 Balance (simulador)</b></summary><p class="small">Juega cientos de partidas con políticas automáticas (todo trabajo, todo entreno…).</p>
         <button class="btn w full" data-act="balance">▶ Simular 100 partidas por política</button>${B ? `<pre>${esc(B)}</pre>` : ''}</details>
-      <p class="small" style="color:rgba(255,255,255,.7);text-align:center">Clubes, marcas y lugares ficticios. Importes de juego. Sin anuncios, compras ni conexiones.</p>`;
+      <p class="small" style="color:rgba(255,255,255,.7);text-align:center">Clubes, marcas y lugares ficticios. Importes de juego. Anuncios, compras y cuenta: simulados en esta versión (sin red).</p>`;
   }
 
   // Informe para testers: todo local; se copia a mano. Preguntas opcionales al final
@@ -568,7 +571,10 @@
         <label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="${esc(ui.nombre)}"></div>
       <div class="card"><h3>Tu personaje</h3>${htmlEditor(null, ui.look || (ui.look = Object.assign({}, P2.LOOK_INICIAL)))}
         <button class="btn g full" data-act="empezar">Empezar</button>
-        ${p1 ? `<button class="btn w full" data-act="desdeP1">📦 Seguir con tu jugador de P1</button><p class="small">Conserva tu nombre, parte de tus ahorros y algo de fama. Tu partida de P1 no se toca.</p>` : ''}</div></div>`;
+        ${p1 ? `<button class="btn w full" data-act="desdeP1">📦 Seguir con tu jugador de P1</button><p class="small">Conserva tu nombre, parte de tus ahorros y algo de fama. Tu partida de P1 no se toca.</p>` : ''}</div>
+      <div class="card introCuenta">${hayCarreras() ? '<button class="btn w full" data-act="carreras">🗂️ Mis carreras</button>' : ''}
+        ${conCuenta() ? `<p class="small">👤 Has entrado como <b>${esc(COM.account().email || 'tu cuenta')}</b>.</p><button class="btn w full" data-act="cuenta">Mi cuenta</button>`
+          : comercio() ? '<button class="btn w full" data-act="cuEntrar" data-v="intro">🔐 ¿Ya tienes cuenta? Entra y trae tus carreras</button><p class="small">No hace falta cuenta para jugar.</p>' : ''}</div></div>`;
   }
 
   // Editor del avatar: al empezar (s = null, todo lo básico) y luego desde la cabecera (con prendas que abren los hitos)
@@ -945,6 +951,7 @@
       <div class="iconos">${MUNDO.map(([id, ic, n, c, lock]) => { const ok = vis.includes(id);
         return `<button class="icono ${ok ? '' : 'lock'}" ${ok ? `data-act="vista" data-v="${id}"` : 'disabled'}><span style="background:${c}">${ic}</span>${n}${ok ? '' : `<small>🔒 ${lock}</small>`}${ok && nuevas.includes(id) ? '<em>Nuevo</em>' : ok && av[id] ? '<em>!</em>' : ''}</button>`; }).join('')}</div>
       <p class="nota">Aquí está todo lo demás. Entra cuando quieras: para jugar no hace falta.</p>
+      <div class="mundoAcc"><button data-act="guardarSalir">💾<span>Guardar y salir</span></button><button data-act="carreras">🗂️<span>Mis carreras</span></button><button data-act="cuenta">👤<span>${conCuenta() ? 'Mi cuenta' : 'Cuenta'}</span></button></div>
       <button class="cerrar" data-act="cerrarMundo">Volver al juego</button></div></div>`;
   }
   function contar() {
@@ -1031,7 +1038,7 @@
     const tabs = `<div class="pmTabs" role="tablist">${PM_TABS.map(([k, n]) => `<button role="tab" aria-selected="${pm.tab === k}" class="${pm.tab === k ? 'sel' : ''}" data-act="pmTab" data-v="${k}">${n}</button>`).join('')}</div>`;
     const cabecera = `<div class="card pmHead"><h2>💎 Premium</h2><p class="small">Gratis para jugar. Aquí solo hay <b>identidad</b> y <b>más juego</b>: nunca nivel, victorias, ascensos ni dinero del juego.</p>
       ${SIM() ? '<p class="small pmModo">🧪 Versión de prueba: compras <b>simuladas</b> (Stripe en modo test, sin red). No se cobra nada.</p>' : COM.config.environment !== 'production' ? '<p class="small pmModo">🧪 Stripe en modo TEST: usa una tarjeta de prueba; no se cobra dinero real.</p>' : ''}
-      ${C.isGuest() ? `<button class="btn w full" data-act="pmCuenta">🔐 Crear cuenta para proteger tus compras</button>` : `<p class="small">Cuenta: <b>${esc(C.account().email || 'sin email')}</b> · ${esc(C.account().method)}${SIM() ? ' (simulada)' : ''}</p>`}</div>`;
+      ${C.isGuest() ? `<button class="btn w full" data-act="pmCuenta">🔐 Crear cuenta para proteger tus compras</button><button class="btn w full" data-act="pmEntrar">Ya tengo cuenta</button>` : `<p class="small">Cuenta: <b>${esc(C.account().email || 'sin email')}</b> · ${esc(METODO_TXT[C.account().method] || C.account().method)}${SIM() ? ' (simulada)' : ''} · <button class="enlace" data-act="cuenta">Mi cuenta</button></p>`}</div>`;
     let cuerpo = '';
     if (pm.tab === 'comprado') cuerpo = htmlMisCompras(s, C);
     else {
@@ -1051,21 +1058,14 @@
       <div class="card"><h3>🔄 Restaurar</h3><p class="small">Tus compras están en tu cuenta, no en la partida: si cambias de móvil o empiezas otra carrera, las recuperas aquí sin volver a pagar.</p>
         <button class="btn full" data-act="pmRestaurar">Restaurar compras</button><button class="btn w full" data-act="pmSync">Sincronizar compras</button>${C.lastSync() ? `<p class="small">Última sincronización: ${esc(new Date(C.lastSync()).toLocaleString('es-ES'))}</p>` : ''}</div>
       <div class="card"><h3>🎟️ Código promocional</h3><div class="fila"><input id="pmPromo" class="inp" maxlength="40" placeholder="CÓDIGO" autocomplete="off"><button class="btn" data-act="pmPromo">Canjear</button></div>${ui.pm.promoMsg ? `<p class="small">${esc(ui.pm.promoMsg)}</p>` : ''}</div>
-      <div class="card"><h3>👤 Cuenta</h3><p class="small">${esc(C.account().email || '')} · ${esc(C.account().method)} (simulada)</p><button class="btn w full" data-act="pmSalir">Cerrar sesión</button><button class="btn w full peligro" data-act="pmBorrarCuenta">Eliminar cuenta</button>
-        <p class="small">Eliminar la cuenta borra tus datos personales. Los registros contables de las compras se conservan anonimizados porque la ley lo exige.</p></div>`;
+      <div class="card"><h3>👤 Cuenta</h3><p class="small">${esc(C.account().email || '')} · ${esc(METODO_TXT[C.account().method] || C.account().method)}${SIM() ? ' (simulada)' : ''}</p><button class="btn w full" data-act="cuenta">Gestionar mi cuenta</button><button class="btn w full" data-act="pmSalir">Cerrar sesión</button>
+        <p class="small">En «Mi cuenta» puedes editar tu perfil, copiar tus carreras en la nube, descargar tus datos o eliminar la cuenta.</p></div>`;
   }
   // Ficha y pasos de compra (capa encima del juego)
   function htmlPmCapa(s) {
     const C = comercio(), pm = ui.pm; if (!C || !pm) return '';
     const P = pm.sku && P2C.getProduct(pm.sku);
     const err = pm.error ? `<p class="pmErr" role="alert">${esc(pmErrorTxt(pm.error))}</p>` : '';
-    if (pm.paso === 'cuenta') return `<div class="overlay" role="dialog" aria-label="Crear cuenta"><div class="modal"><h2>🔐 Crea una cuenta</h2><p>${esc(C.terms.accountPrompt)}</p>
-      <button class="btn full" data-act="pmCrear" data-v="apple"> Continuar con Apple</button><button class="btn full" data-act="pmCrear" data-v="google">G Continuar con Google</button>
-      <input id="pmEmailNuevo" class="inp" type="email" placeholder="o tu email para un enlace mágico" autocomplete="email"><button class="btn full" data-act="pmCrear" data-v="email">✉️ Enlace mágico por email</button>
-      ${pm.aviso ? `<p class="pmOk">${esc(pm.aviso)}</p>` : ''}
-      <p class="small">${SIM() ? '🧪 Simulado: no se crea ninguna cuenta real ni se envían datos.' : 'Sin contraseñas: entras con Apple, Google o un enlace a tu email.'} Puedes seguir jugando sin cuenta.</p>${err}<button class="btn w full" data-act="pmCerrar">Ahora no</button></div></div>`;
-    if (pm.paso === 'entrar') return `<div class="overlay" role="dialog" aria-label="Entrar"><div class="modal"><h2>🔐 Entrar</h2><p class="small">Usa el email de tu cuenta (simulada).</p><input id="pmEmail" class="inp" type="email" placeholder="tu@email" autocomplete="email">${err}
-      <button class="btn full" data-act="pmEntrarOk">Entrar</button><button class="btn w full" data-act="pmCerrar">Cancelar</button></div></div>`;
     if (!P) return '';
     const st = C.state(P.id, ctxJuego(s)), price = st.price ? realTxt(st.price.amountMinor) : '';
     if (pm.paso === 'checkout') return `<div class="overlay" role="dialog" aria-label="Pago"><div class="modal pmCheckout"><small class="eti">🔒 CHECKOUT DE PRUEBA · STRIPE TEST (SIMULADO)</small>
@@ -1077,7 +1077,7 @@
     if (pm.paso === 'lento') return `<div class="overlay" role="dialog"><div class="modal"><h2>⏳ Casi…</h2><p>${esc(C.terms.slow)}</p><button class="btn full" data-act="pmSync">Sincronizar compras</button><button class="btn w full" data-act="pmCerrar">Cerrar</button><p class="small">Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
     if (pm.paso === 'error') return `<div class="overlay" role="dialog"><div class="modal"><h2>No se ha completado</h2><p>No se ha cobrado nada.</p><p class="small">Ref. ${esc(pm.orderRef || '')}</p><button class="btn full" data-act="pmCerrar">Volver</button></div></div>`;
     // Ficha del producto: todo antes de pagar
-    const iap = SKU_IAP[P.id] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[P.id]);
+    const iap = s && SKU_IAP[P.id] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[P.id]);
     const prev = iap && iap.contenido.some(Array.isArray) ? `<div class="iapPrev grande">${P2.avatarSVG(s, lookPack(s, iap), 'cuerpo')}</div>` : `<div class="grande peq">${(P.assets && P.assets.ic) || '💎'}</div>`;
     const req = st.requires && !st.requires.ok ? `<div class="pmReq">🔒 ${st.requires.missing.length ? `Necesitas ${st.requires.missing.map(e => `la expansión <b>${esc(nombreEnt(e))}</b>`).join(' y ')}.` : ''}${st.requires.anyCount ? ` Necesitas al menos ${st.requires.anyCount.n} deportes.` : ''}
       ${st.requires.missing.map(e => { const R = P2C.PRODUCTS.find(x => x.entitlements.length === 1 && x.entitlements[0] === e); return R ? `<button class="btn w" data-act="pmVer" data-id="${esc(R.id)}">Ver ${esc(R.name)}</button>` : ''; }).join('')}</div>` : '';
@@ -1094,6 +1094,349 @@
       <div class="pmBotones">${puede ? `<button class="btn full" data-act="pmComprar" ${pm.consent ? '' : 'disabled'}>Comprar · ${price}</button>` : ''}<button class="btn w full" data-act="pmCerrar">${puede ? 'No, gracias' : 'Cerrar'}</button></div>
       ${puede ? '<p class="small">🧪 Simulado: no se cobra nada. En la versión real, el pago lo procesa Stripe (o la tienda de tu móvil).</p>' : ''}</div></div>`;
   }
+  // =====================================================================
+  // 🗂️ MIS CARRERAS (varias partidas a la vez) · 👤 CUENTA (crear, entrar, perfil, nube, datos, borrar)
+  // La cuenta guarda compras y una copia de las carreras; la partida sigue funcionando sin cuenta y sin red.
+  // =====================================================================
+  const FASE_TXT = { barrio: 'Captación en el barrio', pruebas: 'Preparando las pruebas', amateur: 'Fútbol amateur', club: 'Profesional' };
+  const METODO_TXT = { apple: 'Apple', google: 'Google', email: 'email' };
+  const haceTxt = ms => { if (!ms) return ''; const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? 'ahora mismo' : m < 60 ? `hace ${m} min` : m < 1440 ? `hace ${Math.round(m / 60)} h` : `el ${new Date(ms).toLocaleDateString('es-ES')}`; };
+  const hayCarreras = () => P2.listarPartidas().some(r => r.existe);
+  const conCuenta = () => !!(comercio() && !COM.isGuest());
+  const nubeAuto = () => { try { return almacen.getItem('dban_nube_auto') !== '0'; } catch (_) { return true; } };
+  function resetUiPartida() { Object.assign(ui, { celes: [], pm: null, mj: null, rw: null, iap: null, iapCard: null, inter: false, nuevaCompra: null, fiestas: [], paso: null, mundo: false, desbloqueos: [], msg: '', vista: 'semana', borrarCar: null, ren: null }); }
+  // ---- Copia en la nube ----
+  async function nubeSubir() { const r = await COM.putSaves(P2.exportarPartidas()); P2.limpiarBorradas(r.borradas || []); return r; }
+  let nubeT = null;
+  // Copia automática (al guardar y salir, al cambiar de carrera y cada 4 semanas). Si falla (sin red), lo intenta la próxima vez.
+  function nubeAutoSubir() { if (!conCuenta() || !nubeAuto() || !COM.online()) return; clearTimeout(nubeT); nubeT = setTimeout(() => { nubeSubir().then(() => { if (ui.pant) render(); }).catch(() => {}); }, 300); }
+  async function nubeTraer(forzar) {
+    const blob = await COM.getSaves();
+    const r = P2.importarPartidas(blob, { forzar });
+    if (r.escritas.includes(P2.ranuraActiva()) || !S) { const s2 = P2.cargar(); if (s2) S = s2; }
+    return Object.assign(r, { total: blob.ranuras.length });
+  }
+  function nubeResumen(r) {
+    if (!r.total) return 'No hay carreras en tu cuenta todavía.';
+    const p = [], max = P2.ranurasMax();
+    if (r.escritas.length) p.push(`${r.escritas.length} ${r.escritas.length === 1 ? 'carrera traída' : 'carreras traídas'}`);
+    const viejas = r.omitidas.filter(i => i < max), bloq = r.omitidas.filter(i => i >= max);
+    if (viejas.length) p.push(`${viejas.length} sin tocar (la de este dispositivo es más nueva)`);
+    if (bloq.length) p.push(`${bloq.length} en ranuras de «+3 carreras» (se quedan en la nube)`);
+    if (r.invalidas.length) p.push(`${r.invalidas.length} que no se pudieron leer`);
+    ui.nubeForzar = viejas.length > 0;
+    return (p.join(' · ') || 'Nada que traer') + '.';
+  }
+  // Una carrera en una ranura de pago sin el pack (reembolso, otra cuenta, cerrar sesión): se guarda y se bloquea, nunca se borra
+  function comprobarRanura() {
+    if (S && P2.ranuraActiva() >= P2.ranurasMax()) { S = null; resetUiPartida(); ui.pant = 'carreras'; ui.flash = '🔒 Esa carrera está en una ranura de «+3 carreras» y ahora no tienes ese pack. Está guardada y a salvo.'; }
+  }
+  function htmlNube() {
+    const C = comercio(); if (!C) return '';
+    if (C.isGuest()) return `<div class="card nube"><h3>☁️ Tus carreras, a salvo</h3><p class="small">Con una cuenta gratis tus carreras se copian en la nube y las sigues en otro móvil u ordenador.</p>
+      <button class="btn full" data-act="cuCrear" data-v="carreras">Crear cuenta</button><button class="btn w full" data-act="cuEntrar" data-v="carreras">Ya tengo cuenta</button></div>`;
+    return `<div class="card nube"><h3>☁️ Copia en tu cuenta</h3><p class="small">${C.lastCloudSave() ? `Última copia: ${esc(haceTxt(Date.parse(C.lastCloudSave())))}.` : 'Todavía no has subido ninguna copia.'}${SIM() ? ' 🧪 Nube simulada.' : ''}</p>
+      <div class="fila2"><button class="btn" data-act="nubeSubir">⬆️ Guardar en la nube</button><button class="btn w" data-act="nubeTraer">⬇️ Traer de la nube</button></div>
+      <label class="chk"><input type="checkbox" data-act="nubeAuto" ${nubeAuto() ? 'checked' : ''}> Copia automática (al guardar y salir y cada 4 semanas)</label>
+      ${ui.nubeMsg ? `<p class="small nubeMsg">${esc(ui.nubeMsg)}</p>` : ''}${ui.nubeForzar ? '<button class="btn w full" data-act="nubeForzar">Usar igualmente las de la nube</button>' : ''}</div>`;
+  }
+  function htmlCarreras() {
+    const L = P2.listarPartidas(), pap = ui.deshacer ? P2.papelera() : null, max = P2.ranurasMax(), tot = P2.totalRanuras();
+    const libres = L.filter(r => !r.existe && !r.rota && !r.bloqueada).length;
+    const tarjeta = r => {
+      if (r.existe) {
+        const R = r.resumen, sv = { p: { energia: 80 }, hitos: {} };
+        const botones = r.bloqueada ? '<p class="small carNota">🔒 Ranura de «+3 carreras»: guardada y a salvo. Vuelve a tener el pack para jugarla.</p>'
+          : `<div class="carBtns"><button class="btn g" data-act="carSeguir" data-i="${r.i}">${r.activa && S ? '▶ Seguir jugando' : '▶ Continuar'}</button>
+            <button class="btn w mini" data-act="carRen" data-i="${r.i}" aria-label="Cambiar el nombre">✏️</button>${libres ? `<button class="btn w mini" data-act="carCopiar" data-i="${r.i}" aria-label="Copiar en otra ranura">📄</button>` : ''}
+            <button class="btn w mini ${ui.borrarCar === r.i ? 'peligro' : ''}" data-act="carBorrar" data-i="${r.i}" aria-label="Borrar">${ui.borrarCar === r.i ? '⚠️ Toca otra vez para borrar' : '🗑️'}</button></div>`;
+        return `<div class="carrera ${r.activa ? 'act' : ''} ${r.bloqueada ? 'bloq' : ''}" data-i="${r.i}"><div class="carAva">${P2.avatarSVG(sv, R.look, 'busto')}</div>
+          <div class="carTx">${ui.ren === r.i ? `<div class="fila"><input id="carNombre" class="inp" maxlength="30" value="${esc(r.titulo)}" aria-label="Nombre de la carrera"><button class="btn mini" data-act="carRenOk" data-i="${r.i}">OK</button></div>` : `<b>${esc(r.titulo)}</b>`}
+            <small>${esc(R.nombre)}, ${R.edad} años · semana ${R.semana} · ${esc(R.club || FASE_TXT[R.fase] || '')}</small>
+            <small>💰 ${esc(eur(R.patrimonio))}${R.trofeos ? ` · 🏆 ${R.trofeos}` : ''}${R.empresas ? ` · 💼 ${R.empresas}` : ''}${r.guardadoEn ? ` · 💾 ${esc(haceTxt(r.guardadoEn))}` : ''}</small></div>${botones}</div>`;
+      }
+      if (r.rota) return `<div class="carrera vacia"><b>⚠️ Carrera ${r.n}</b><small>No se pudo leer. Hemos apartado una copia de seguridad en este navegador.</small></div>`;
+      if (r.bloqueada) return `<button class="carrera vacia lock" data-act="carMas"><b>🔒 Carrera ${r.n}</b><small>Con «+3 carreras» juegas hasta ${tot} vidas distintas a la vez.</small></button>`;
+      return `<button class="carrera vacia" data-act="carNueva" data-i="${r.i}"><b>➕ Nueva carrera</b><small>Ranura ${r.n} libre</small></button>`;
+    };
+    return `<div class="intro carreras"><h1>🗂️ Mis carreras</h1><p>${max} ${max === 1 ? 'ranura' : 'ranuras'}${max < tot ? ` · ${tot - max} más con «+3 carreras»` : ''}. Cada carrera es una vida distinta. Tus compras valen en todas.</p>
+      ${pap ? `<div class="card deshacer"><span>🗑️ Has borrado «${esc((pap.meta && pap.meta.titulo) || `Carrera ${pap.i + 1}`)}».</span><button class="btn w mini" data-act="carDeshacer">Deshacer</button></div>` : ''}
+      <div class="carLista">${L.map(tarjeta).join('')}</div>
+      ${htmlNube()}
+      <div class="fila2"><button class="btn w" data-act="cuenta">👤 ${conCuenta() ? 'Mi cuenta' : 'Cuenta'}</button>${S ? '<button class="btn w" data-act="carVolver">‹ Volver a la partida</button>' : ''}</div></div>`;
+  }
+
+  // ---- Pantalla «Mi cuenta» ----
+  function htmlCuenta() {
+    const C = comercio(); if (!C) return '<div class="card"><p>La cuenta no está disponible.</p></div>';
+    const volver = `<button class="btn w full" data-act="cuVolver">‹ Volver</button>`;
+    if (C.isGuest()) return `<div class="intro cuentaP"><h1>👤 Tu cuenta</h1><div class="card"><h3>Juega sin cuenta, o crea una gratis</h3>
+      <ul class="ventajas"><li>🛡️ Tus compras, protegidas y restaurables</li><li>☁️ Tus carreras, copiadas en la nube</li><li>📱 Sigue en otro móvil u ordenador</li></ul>
+      <button class="btn full" data-act="cuCrear" data-v="cuenta">Crear cuenta</button><button class="btn w full" data-act="cuEntrar" data-v="cuenta">Ya tengo cuenta</button>
+      <p class="small">Sin contraseñas: Apple, Google o un código a tu email.${SIM() ? ' 🧪 Simulado: no se crea ninguna cuenta real ni se envía nada.' : ''}</p></div>${volver}</div>`;
+    const a = C.account(), p = C.profile() || {};
+    const sv = S || { p: { energia: 80 }, hitos: {}, look: P2.LOOK_INICIAL };
+    const tutor = p.ageBand === 'u13' ? `<div class="card"><h3>👪 Permiso de tu familia</h3><p class="small">${p.parentalStatus === 'approved' ? '✅ Tu madre, padre o tutor ha dado permiso: puedes comprar.' : p.parentalStatus === 'pending' ? '⏳ Esperando a que tu madre, padre o tutor acepte desde su correo. Mientras, juegas a todo igual.' : 'Para comprar necesitas el permiso de tu madre, padre o tutor.'}</p>
+        ${p.parentalStatus !== 'approved' ? '<button class="btn w full" data-act="cuTutorAbrir">Ver o pedir permiso</button>' : ''}</div>`
+      : p.isMinor ? '<div class="card"><h3>🧒 Cuenta de menor</h3><p class="small">No te enseñamos ofertas ni publicidad. Antes de comprar, pide permiso en casa.</p></div>' : '';
+    return `<div class="intro cuentaP"><h1>👤 Mi cuenta</h1>
+      <div class="card cuentaHead"><div class="carAva">${P2.avatarSVG(sv, S ? null : sv.look, 'busto')}</div><div><b>${esc(p.displayName || (S && S.nombre) || 'Sin nombre')}</b><small>${esc(a.email || 'sin email')} · con ${esc(METODO_TXT[a.method] || a.method)}${SIM() ? ' · 🧪 simulada' : ''}</small>
+        ${p.createdAt ? `<small>Desde el ${esc(new Date(p.createdAt).toLocaleDateString('es-ES'))}</small>` : ''}</div></div>
+      ${p.needsProfile ? '<div class="card aviso"><b>Completa tu perfil</b><p class="small">Necesitamos tu edad y que aceptes los términos para poder comprar.</p><button class="btn full" data-act="cuEditar">Completar perfil</button></div>' : ''}
+      <div class="card"><h3>🪪 Perfil</h3>${kv('Nombre', esc(p.displayName || '—'))}${kv('País', esc((P2C.COUNTRIES.find(([c]) => c === p.country) || [, '—'])[1]))}${kv('Edad', esc(p.ageBand ? P2C.AGE_TXT[p.ageBand] : '—'))}
+        ${p.isMinor ? '' : kv('Novedades por email', p.marketingOptIn ? 'Sí' : 'No')}${kv('Términos', p.termsVersion ? `aceptados (${esc(p.termsVersion)})` : 'pendientes')}
+        <button class="btn w full" data-act="cuEditar">✏️ Editar perfil</button></div>
+      ${tutor}
+      ${htmlNube()}
+      <div class="card"><h3>💎 Compras</h3><p class="small">${C.entitlements().length ? `Tienes: ${C.entitlements().map(e => esc(nombreEnt(e))).join(' · ')}` : 'Todavía no has comprado nada.'}</p>
+        <button class="btn w full" data-act="cuCompras">🧾 Mis compras y restaurar</button></div>
+      <div class="card"><h3>🔏 Privacidad y datos</h3><button class="btn w full" data-act="cuDatos">📦 Descargar mis datos</button>
+        <div class="fila2"><button class="btn w" data-act="cuLegal" data-v="terminos">📄 Términos</button><button class="btn w" data-act="cuLegal" data-v="privacidad">🔏 Privacidad</button></div></div>
+      <div class="card"><h3>🚪 Sesión</h3><button class="btn w full" data-act="cuSalir">Cerrar sesión</button><p class="small">Tus carreras siguen en este dispositivo. Tus compras, en tu cuenta.</p>
+        <button class="btn w full peligro" data-act="cuBorrar">Eliminar mi cuenta</button></div>
+      ${volver}</div>`;
+  }
+
+  // ---- Capa de cuenta (crear / entrar / perfil / permiso / nube / borrar) ----
+  const LEGAL = {
+    terminos: `<ul><li>El juego es gratis. Lo que se compra es solo aspecto o más juego: nunca victorias, nivel, reputación ni dinero del juego.</li><li>Los precios son en euros, con impuestos incluidos, y se ven antes de pagar.</li><li>Las compras son permanentes, se guardan en tu cuenta y se restauran en cualquier dispositivo.</li><li>Al ser contenido digital entregado al momento, al comprar aceptas perder el desistimiento de 14 días (te lo preguntamos siempre con una casilla).</li><li>Menores de 13 años: necesitan el permiso de su madre, padre o tutor para comprar.</li><li>Puedes eliminar tu cuenta cuando quieras.</li></ul>`,
+    privacidad: `<ul><li>Guardamos: tu email (o el alias de Apple), el nombre que eliges, tu país, tu franja de edad, tus compras y, si quieres, una copia de tus carreras.</li><li>Nunca vemos tu tarjeta: el pago lo procesa Stripe (o la tienda de tu móvil).</li><li>No vendemos tus datos. A menores no les mandamos publicidad.</li><li>Puedes descargar todos tus datos o borrar tu cuenta desde «Mi cuenta».</li><li>Al borrarla, los registros contables de las compras se guardan anonimizados porque la ley lo exige.</li></ul>`,
+  };
+  const cuErrorTxt = (c, cu) => ({ invalid_email: 'Ese email no parece válido.', email_required: 'Escribe tu email.', account_exists: 'Ya hay una cuenta con ese email. Toca «Ya tengo cuenta» para entrar.',
+    account_not_found: 'No hay ninguna cuenta con ese email. ¿Quieres crear una?', invalid_code: `Código incorrecto.${cu && cu.intentos ? ` Te quedan ${Math.max(0, 5 - cu.intentos)} intentos.` : ''}`,
+    code_expired: 'El código ha caducado. Pide otro.', too_many_attempts: 'Demasiados intentos. Pide un código nuevo.', rate_limited: 'Espera unos segundos antes de pedir otro código.',
+    offline: 'Sin conexión. Puedes seguir jugando; la cuenta necesita internet.', invalid_display_name: 'Escribe un nombre.', invalid_country: 'Elige un país de la lista.', invalid_age: 'Dinos tu edad.',
+    age_locked: 'La edad no se puede cambiar.', terms_required: 'Para seguir tienes que aceptar los términos y la privacidad.', confirm_required: 'Escribe ELIMINAR para confirmar.',
+    profile_required: 'Completa tu perfil para poder comprar.', parental_consent_required: 'Necesitas el permiso de tu madre, padre o tutor para comprar.', parental_not_needed: 'No hace falta permiso.' }[c] || pmErrorTxt(c));
+  function htmlCuCapa() {
+    const C = comercio(), cu = ui.cu; if (!C || !cu) return '';
+    const err = cu.error ? `<p class="pmErr" role="alert">${esc(cuErrorTxt(cu.error, cu))}</p>` : '';
+    const sim = SIM(), crear = cu.modo !== 'entrar', a = C.account() || {};
+    let h = '';
+    switch (cu.paso) {
+      case 'inicio':
+        h = `<h2>${crear ? '🔐 Crea tu cuenta' : '🔐 Entra en tu cuenta'}</h2>
+          ${crear ? `<p>${esc(C.terms.accountPrompt)}</p><ul class="ventajas"><li>🛡️ Compras protegidas y restaurables</li><li>☁️ Tus carreras, copiadas en la nube</li><li>📱 Sigue en otro móvil u ordenador</li></ul>` : '<p>Con la misma cuenta recuperas tus compras y tus carreras en este dispositivo.</p>'}
+          <button class="btn full apple" data-act="cuMetodo" data-v="apple">Continuar con Apple</button>
+          <button class="btn full google" data-act="cuMetodo" data-v="google">Continuar con Google</button>
+          <button class="btn full" data-act="cuMetodo" data-v="email">✉️ Continuar con email</button>
+          ${cu.aviso ? `<p class="pmOk">${esc(cu.aviso)}</p>` : ''}
+          <p class="small">Sin contraseñas.${sim ? ' 🧪 Simulado: no se crea ninguna cuenta real ni se envía nada.' : ''} Puedes seguir jugando sin cuenta.</p>${err}
+          <button class="btn w full" data-act="cuModo" data-v="${crear ? 'entrar' : 'crear'}">${crear ? 'Ya tengo cuenta' : 'Crear una cuenta nueva'}</button><button class="btn w full" data-act="cuCerrar">Ahora no</button>`; break;
+      case 'sistema': {
+        const ap = cu.metodo === 'apple';
+        h = `<div class="hojaSis ${esc(cu.metodo)}"><small class="eti">🧪 SIMULACIÓN · ${ap ? 'INICIAR SESIÓN CON APPLE' : 'ACCEDER CON GOOGLE'}</small><h2>${ap ? 'Tu Apple ID' : 'Elige una cuenta de Google'}</h2>
+          <p class="small">En el juego real aquí se abre la pantalla de ${ap ? 'Apple' : 'Google'}. Para probar, escribe un email inventado.</p>
+          <input id="cuEmail" class="inp" type="email" autocomplete="email" value="${esc(cu.email || '')}" placeholder="${ap ? 'tu@icloud.com' : 'tu@gmail.com'}" aria-label="Email">
+          ${ap && crear ? `<div class="radios"><label><input type="radio" name="cuOcultar" value="no" ${cu.ocultar ? '' : 'checked'}> Compartir mi email</label><label><input type="radio" name="cuOcultar" value="si" ${cu.ocultar ? 'checked' : ''}> Ocultar mi email (Apple te da un alias)</label></div>` : ''}
+          ${err}<button class="btn full" data-act="cuSistemaOk">Continuar</button><button class="btn w full" data-act="cuAtras">Atrás</button></div>`; break;
+      }
+      case 'email':
+        h = `<h2>✉️ ${crear ? 'Tu email' : 'Entra con tu email'}</h2><p class="small">Te mandamos un código de 6 cifras. Sin contraseñas.</p>
+          <input id="cuEmail" class="inp" type="email" autocomplete="email" inputmode="email" value="${esc(cu.email || '')}" placeholder="tu@email.com" aria-label="Email">${err}
+          <button class="btn full" data-act="cuPedirCodigo">Enviarme el código</button><button class="btn w full" data-act="cuAtras">Atrás</button>`; break;
+      case 'codigo':
+        h = `<h2>📬 Revisa tu correo</h2><p>Hemos enviado un código de 6 cifras a <b>${esc(cu.email)}</b>.</p>
+          ${cu.testCode ? `<div class="bandeja" role="note"><small>🧪 BANDEJA DE ENTRADA (SIMULADA)</small><b>Del barrio al negocio</b><span>Tu código es <b class="cod">${esc(cu.testCode)}</b>. Caduca en 10 minutos.</span></div>` : ''}
+          <input id="cuCodigo" class="inp codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="······" aria-label="Código de 6 cifras">${err}
+          ${cu.aviso ? `<p class="pmOk">${esc(cu.aviso)}</p>` : ''}
+          <button class="btn full" data-act="cuVerificar">Confirmar</button><button class="btn w full" data-act="cuReenviar">Reenviar el código</button>
+          <p class="small">¿No llega? Mira en spam o en promociones.</p><button class="btn w full" data-act="cuAtras">Cambiar el email</button>`; break;
+      case 'perfil': {
+        const p = C.profile() || {}, fijo = !!p.ageBand, edad = cu.edad || p.ageBand || '', terms = p.termsVersion !== P2C.TERMS_VERSION;
+        h = `<h2>${cu.editar ? '✏️ Editar perfil' : '👤 Tu perfil'}</h2>${cu.editar ? '' : '<p class="small">Un último paso: así el juego es adecuado para ti.</p>'}
+          <label class="campo">Nombre que se ve<input id="cuNombre" class="inp" maxlength="24" value="${esc(cu.nombre != null ? cu.nombre : (p.displayName || (S && S.nombre) || ''))}"></label>
+          <label class="campo">País<select id="cuPais" class="inp">${P2C.COUNTRIES.map(([c, n]) => `<option value="${c}" ${(cu.pais || p.country || 'ES') === c ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+          <div class="campo"><span>Edad</span>${fijo ? `<b>${esc(P2C.AGE_TXT[p.ageBand])}</b><small>La edad no se puede cambiar. Si te equivocaste, escríbenos.</small>`
+            : `<div class="segEdad" role="radiogroup">${P2C.AGE_BANDS.map(x => `<button role="radio" data-act="cuEdad" data-v="${x}" class="${edad === x ? 'sel' : ''}" aria-checked="${edad === x}">${esc(P2C.AGE_TXT[x])}</button>`).join('')}</div>`}</div>
+          ${edad && edad !== '18p' ? '<p class="small">🧒 Eres menor: no te enseñamos ofertas ni publicidad.' + (edad === 'u13' ? ' Para comprar, tu madre, padre o tutor tendrá que dar permiso.' : ' Antes de comprar, pide permiso en casa.') + '</p>' : ''}
+          ${terms ? `<label class="pmConsent"><input type="checkbox" id="cuTerminos" data-act="cuTerminos" ${cu.terminos ? 'checked' : ''}> He leído y acepto los <button class="enlace" data-act="cuLegal" data-v="terminos">Términos</button> y la <button class="enlace" data-act="cuLegal" data-v="privacidad">Privacidad</button>.</label>` : ''}
+          ${edad === '18p' ? `<label class="pmConsent"><input type="checkbox" id="cuNovedades" data-act="cuNovedades" ${(cu.novedades != null ? cu.novedades : p.marketingOptIn) ? 'checked' : ''}> Quiero recibir novedades del juego por email (opcional)</label>` : ''}
+          ${err}<button class="btn full" data-act="cuGuardarPerfil">${cu.editar ? 'Guardar' : 'Guardar y seguir'}</button><button class="btn w full" data-act="cuCerrar">${cu.editar ? 'Cancelar' : 'Más tarde'}</button>`; break;
+      }
+      case 'tutor': {
+        const p = C.profile() || {};
+        h = `<h2>👪 Permiso de tu familia</h2>
+          ${p.parentalStatus === 'pending' ? `<p>Hemos escrito a tu madre, padre o tutor. Cuando acepte desde su correo, podrás comprar. Mientras, puedes jugar a todo.</p>${sim ? '<button class="btn full" data-act="cuTutorSim" data-v="1">🧪 Simular que acepta</button><button class="btn w full" data-act="cuTutorSim" data-v="0">🧪 Simular que no acepta</button>' : ''}`
+          : p.parentalStatus === 'approved' ? '<p>✅ Tu familia ha dado permiso. Ya puedes comprar.</p>'
+          : `<p>Como tienes menos de 13 años, para comprar necesitas que tu madre, padre o tutor dé permiso. Escribe su email y le mandamos un mensaje${sim ? ' (simulado: no se envía nada)' : ''}.</p>
+            ${p.parentalStatus === 'rejected' ? '<p class="small">La última vez no dio permiso. Puedes volver a pedirlo.</p>' : ''}<input id="cuTutor" class="inp" type="email" placeholder="email de tu madre, padre o tutor" aria-label="Email de tu madre, padre o tutor"><button class="btn full" data-act="cuTutorPedir">Pedir permiso</button>`}
+          ${err}<button class="btn w full" data-act="cuSeguir">${p.parentalStatus === 'approved' ? 'Seguir' : 'Ahora no, seguir jugando'}</button>`; break;
+      }
+      case 'listo':
+        h = `<div class="copaGrande">✅</div><h2>¡Cuenta lista!</h2><ul class="ventajas"><li>🛡️ Tus compras quedan en tu cuenta</li><li>☁️ Tus carreras se pueden copiar en la nube</li><li>📱 Entra en otro dispositivo con ${esc(METODO_TXT[a.method] || 'tu cuenta')}</li></ul>
+          ${hayCarreras() ? '<button class="btn g full" data-act="cuSubirYa">☁️ Copiar ya mis carreras en la cuenta</button>' : ''}${ui.nubeMsg ? `<p class="small nubeMsg">${esc(ui.nubeMsg)}</p>` : ''}${err}
+          <button class="btn full" data-act="cuFin">${cu.origen === 'compra' ? 'Volver a la compra' : 'Seguir jugando'}</button>`; break;
+      case 'nube': {
+        const B = cu.blob || { ranuras: [] };
+        h = `<h2>☁️ Tus carreras en la cuenta</h2>${B.ranuras.length ? `<div class="pmLista">${B.ranuras.map(r => { let s = null; try { s = JSON.parse(r.data); } catch (_) { s = null; }
+          return `<div class="lin"><span class="ic">🗂️</span><span><b>${esc(r.titulo || (s ? `Carrera de ${s.nombre}` : `Carrera ${r.i + 1}`))}</b><br><span class="small">${s ? `Semana ${s.semana}` : ''}${r.guardadoEn ? ` · ${esc(haceTxt(r.guardadoEn))}` : ''}</span></span></div>`; }).join('')}</div>
+          <button class="btn g full" data-act="cuTraer">⬇️ Traer a este dispositivo</button><p class="small">Si aquí tienes una versión más reciente de la misma carrera, no se toca.</p>` : '<p>No hay carreras guardadas en tu cuenta.</p>'}
+          ${ui.nubeMsg ? `<p class="small nubeMsg">${esc(ui.nubeMsg)}</p>` : ''}${err}<button class="btn w full" data-act="cuFin">Seguir</button>`; break;
+      }
+      case 'legal':
+        h = `<h2>${cu.doc === 'privacidad' ? '🔏 Privacidad' : '📄 Términos'}</h2><div class="legal">${LEGAL[cu.doc] || ''}</div><p class="small">Resumen. Borrador pendiente de revisión legal (versión ${esc(P2C.TERMS_VERSION)}).</p><button class="btn full" data-act="cuAtras">Volver</button>`; break;
+      case 'datos':
+        h = `<h2>📦 Tus datos</h2><p class="small">Todo lo que guardamos de tu cuenta: perfil, compras, lo que tienes desbloqueado y tus carreras.</p>
+          ${cu.datos ? `<a class="btn full" download="mis-datos-del-barrio.json" href="${esc(cu.datosUrl || '#')}">⬇️ Descargar (JSON)</a><textarea readonly rows="8" aria-label="Tus datos">${esc(cu.datos.slice(0, 3000))}${cu.datos.length > 3000 ? '\n…' : ''}</textarea>` : err ? '' : '<div class="pmSpin" aria-hidden="true"></div>'}
+          ${err}<button class="btn w full" data-act="cuCerrar">Cerrar</button>`; break;
+      case 'borrar':
+        h = `<h2>⚠️ Eliminar tu cuenta</h2><p>Se borran tu perfil, tus carreras de la nube y el acceso a tus compras. <b>No se puede deshacer.</b></p>
+          <p class="small">Las carreras de este dispositivo se quedan aquí. Los registros contables de las compras se conservan anonimizados porque la ley lo exige.</p>
+          <label class="campo">Escribe ELIMINAR para confirmar<input id="cuConfirma" class="inp" autocomplete="off" autocapitalize="characters"></label>${err}
+          <button class="btn r full" data-act="cuBorrarOk">Eliminar mi cuenta</button><button class="btn w full" data-act="cuCerrar">Cancelar</button>`; break;
+    }
+    return `<div class="overlay" role="dialog" aria-label="Cuenta"><div class="modal cuenta ${cu.busy ? 'ocupado' : ''}">${h}</div></div>`;
+  }
+  function cuAbrir(modo, origen) { comercio(); ui.cu = { paso: 'inicio', modo, origen: origen || null }; if (COM) COM.track('account_prompt', { source: origen || 'menu' }); render(); }
+  async function cuAsync(fn) {
+    if (ui.cu) Object.assign(ui.cu, { busy: true, error: null }); render();
+    try { await fn(); } catch (e) { if (ui.cu) ui.cu.error = e.code || e.message; }
+    if (ui.cu) ui.cu.busy = false;
+    limpiarLook(S); if (S && P2.ranuraActiva() < P2.ranurasMax()) P2.guardar(S); render();
+  }
+  function cuTerminar() { const o = ui.cu && ui.cu.origen; ui.cu = null; ui.nubeMsg = ''; if (o === 'compra' && ui.pm && ui.pm.sku) Object.assign(ui.pm, { paso: null, error: null }); }
+  function cuLeerPerfil() {
+    const cu = ui.cu; if (!cu) return;
+    if ($('cuNombre')) cu.nombre = $('cuNombre').value; if ($('cuPais')) cu.pais = $('cuPais').value;
+    if ($('cuTerminos')) cu.terminos = $('cuTerminos').checked; if ($('cuNovedades')) cu.novedades = $('cuNovedades').checked;
+  }
+  async function cuDespuesPerfil() {
+    const cu = ui.cu; if (!cu) return;
+    if (cu.modo === 'entrar') { const B = await COM.getSaves().catch(() => null); if (B && B.ranuras.length) { cu.blob = B; cu.paso = 'nube'; return; } }
+    if (cu.nuevo) { cu.paso = 'listo'; return; }
+    cuTerminar();
+  }
+  async function cuTrasEntrar(nuevo) {
+    const cu = ui.cu; if (!cu) return;
+    cu.nuevo = !!nuevo; cu.error = null; cu.aviso = null;
+    const p = await COM.loadProfile().catch(() => COM.profile());
+    if (nuevo || !p || p.needsProfile) { cu.paso = 'perfil'; return; }
+    await cuDespuesPerfil();
+  }
+  function cuAlias() { return `${Math.random().toString(36).slice(2, 10)}@privaterelay.appleid.test`; }
+  const CU_CAPA = /^cu(Modo|Metodo|SistemaOk|PedirCodigo|Reenviar|Verificar|Atras|Edad|Terminos|Novedades|GuardarPerfil|TutorPedir|TutorSim|Seguir|SubirYa|Traer|BorrarOk)$/;
+  function cuAccion(a, b) {
+    const cu = ui.cu;
+    if (CU_CAPA.test(a) && !cu) return true;
+    switch (a) {
+      case 'cuCrear': cuAbrir('crear', b.dataset.v); return true;
+      case 'cuEntrar': cuAbrir('entrar', b.dataset.v); return true;
+      case 'cuModo': Object.assign(cu, { modo: b.dataset.v, error: null, aviso: null }); render(); return true;
+      case 'cuMetodo': {
+        const m = b.dataset.v; Object.assign(cu, { metodo: m, error: null });
+        if (m === 'email') { cu.paso = 'email'; render(); return true; }
+        if (SIM()) { cu.paso = 'sistema'; cu.email = cu.email || `${String((S && S.nombre) || 'jugador').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '') || 'jugador'}@${m === 'apple' ? 'icloud' : 'gmail'}.test`; render(); return true; }
+        cuAsync(async () => { const r = await COM.createAccount({ method: m }); if (r && r.pending) cu.aviso = 'Te llevamos a iniciar sesión…'; });
+        return true;
+      }
+      case 'cuSistemaOk': {
+        const em = (($('cuEmail') || {}).value || '').trim(), oc = document.querySelector('input[name="cuOcultar"]:checked');
+        cu.email = em; cu.ocultar = !!(oc && oc.value === 'si');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { cu.error = 'invalid_email'; render(); return true; }
+        cuAsync(async () => {
+          if (cu.modo === 'entrar') { await COM.signIn({ email: em }); await cuTrasEntrar(false); }
+          else { await COM.createAccount({ method: cu.metodo, email: cu.ocultar ? cuAlias() : em }); await cuTrasEntrar(true); }
+        });
+        return true;
+      }
+      case 'cuPedirCodigo': case 'cuReenviar': {
+        const em = a === 'cuReenviar' ? cu.email : (($('cuEmail') || {}).value || '').trim();
+        if (!em) { cu.error = 'email_required'; render(); return true; }
+        cuAsync(async () => { const r = await COM.requestCode({ email: em, intent: cu.modo === 'entrar' ? 'signin' : 'signup' }); Object.assign(cu, { email: em, testCode: r.testCode || null, paso: 'codigo', intentos: 0, aviso: a === 'cuReenviar' ? 'Te hemos mandado un código nuevo.' : null }); });
+        return true;
+      }
+      case 'cuVerificar': {
+        const code = (($('cuCodigo') || {}).value || '').replace(/\D/g, '');
+        cuAsync(async () => {
+          try { const r = await COM.verifyCode({ email: cu.email, code, intent: cu.modo === 'entrar' ? 'signin' : 'signup' }); await cuTrasEntrar(r.isNew); }
+          catch (e) { if (e.code === 'invalid_code') cu.intentos = (cu.intentos || 0) + 1; throw e; }
+        });
+        return true;
+      }
+      case 'cuAtras': cu.error = null; cu.aviso = null; cu.paso = cu.paso === 'legal' ? (cu.prev || 'perfil') : cu.paso === 'codigo' ? 'email' : 'inicio'; if (cu.paso === 'inicio' && cu.solo) { ui.cu = null; } render(); return true;
+      case 'cuEdad': cuLeerPerfil(); cu.edad = b.dataset.v; cu.error = null; render(); return true;
+      case 'cuTerminos': case 'cuNovedades': cuLeerPerfil(); return true;
+      case 'cuLegal': if (cu) { cuLeerPerfil(); cu.prev = cu.paso; cu.doc = b.dataset.v; cu.paso = 'legal'; } else ui.cu = { paso: 'legal', doc: b.dataset.v, solo: true, prev: 'inicio' }; render(); return true;
+      case 'cuGuardarPerfil': {
+        cuLeerPerfil();
+        const p = COM.profile() || {}, fijo = !!p.ageBand, terms = p.termsVersion !== P2C.TERMS_VERSION;
+        if (!fijo && !cu.edad) { cu.error = 'invalid_age'; render(); return true; }
+        if (terms && !cu.terminos) { cu.error = 'terms_required'; render(); return true; }
+        const patch = { displayName: cu.nombre, country: cu.pais };
+        if (!fijo) patch.ageBand = cu.edad;
+        if (terms) patch.acceptTerms = P2C.TERMS_VERSION;
+        if ((cu.edad || p.ageBand) === '18p' && cu.novedades != null) patch.marketingOptIn = !!cu.novedades;
+        cuAsync(async () => {
+          const np = await COM.updateProfile(patch);
+          if (cu.editar) { ui.cu = null; ui.flash = '✅ Perfil guardado.'; return; }
+          if (np.ageBand === 'u13' && np.parentalStatus !== 'approved') { cu.paso = 'tutor'; return; }
+          await cuDespuesPerfil();
+        });
+        return true;
+      }
+      case 'cuTutorAbrir': ui.cu = { paso: 'tutor', origen: 'cuenta' }; render(); return true;
+      case 'cuTutorPedir': { const em = (($('cuTutor') || {}).value || '').trim(); cuAsync(async () => { await COM.updateProfile({ parentEmail: em }); }); return true; }
+      case 'cuTutorSim': cuAsync(async () => { await COM.backend.approveParent(COM.account().token, b.dataset.v === '1'); await COM.loadProfile(); }); return true;
+      case 'cuSeguir': if (cu.origen === 'cuenta' || cu.editar) { ui.cu = null; render(); } else cuAsync(cuDespuesPerfil); return true;
+      case 'cuSubirYa': cuAsync(async () => { const r = await nubeSubir(); ui.nubeMsg = `☁️ ${r.guardadas.length === 1 ? 'Copiada 1 carrera' : `Copiadas ${r.guardadas.length} carreras`} en tu cuenta.`; }); return true;
+      case 'cuTraer': cuAsync(async () => { const r = await nubeTraer(false); ui.nubeMsg = nubeResumen(r); }); return true;
+      case 'cuFin': case 'cuCerrar': cuTerminar(); render(); return true;
+      case 'cuenta': if (S) P2.guardar(S); ui.mundo = false; ui.pant = 'cuenta'; if (conCuenta()) COM.loadProfile().then(() => render()).catch(() => {}); render(); window.scrollTo(0, 0); return true;
+      case 'cuVolver': ui.pant = S ? null : 'carreras'; if (!S && !hayCarreras()) ui.pant = null; render(); return true;
+      case 'cuEditar': ui.cu = { paso: 'perfil', editar: !(COM.profile() || {}).needsProfile, origen: 'cuenta', modo: 'crear' }; render(); return true;
+      case 'cuCompras': ui.pant = null; ui.pm = { tab: 'comprado' }; if (S) { irA('premium'); pmAsync(async () => { ui.pm.hist = await COM.history(); }); } else { ui.pant = 'cuenta'; render(); } return true;
+      case 'cuDatos': ui.cu = { paso: 'datos' }; cuAsync(async () => { const j = JSON.stringify(await COM.exportData(), null, 2); ui.cu.datos = j; try { ui.cu.datosUrl = URL.createObjectURL(new Blob([j], { type: 'application/json' })); } catch (_) { ui.cu.datosUrl = '#'; } }); return true;
+      case 'cuSalir': if (S) P2.guardar(S); COM.signOut(); limpiarLook(S); ui.flash = '👋 Has cerrado sesión. Tus carreras siguen en este dispositivo.'; comprobarRanura(); if (S) P2.guardar(S); render(); return true;
+      case 'cuBorrar': ui.cu = { paso: 'borrar' }; render(); return true;
+      case 'cuBorrarOk': {
+        if ((($('cuConfirma') || {}).value || '').trim().toUpperCase() !== 'ELIMINAR') { cu.error = 'confirm_required'; render(); return true; }
+        cuAsync(async () => { if (S) P2.guardar(S); await COM.deleteAccount(); ui.cu = null; ui.flash = 'Cuenta eliminada. Tus carreras de este dispositivo siguen aquí.'; comprobarRanura(); });
+        return true;
+      }
+      // ---- Nube ----
+      case 'nubeSubir': pmAsyncNube(async () => { const r = await nubeSubir(); ui.nubeMsg = `☁️ ${r.guardadas.length === 1 ? 'Copiada 1 carrera' : `Copiadas ${r.guardadas.length} carreras`}${r.conservadas.length ? ` · ${r.conservadas.length} sin tocar (en la nube había una más nueva)` : ''}.`; ui.nubeForzar = false; }); return true;
+      case 'nubeTraer': pmAsyncNube(async () => { const r = await nubeTraer(false); ui.nubeMsg = nubeResumen(r); }); return true;
+      case 'nubeForzar': pmAsyncNube(async () => { const r = await nubeTraer(true); ui.nubeMsg = nubeResumen(r); ui.nubeForzar = false; }); return true;
+      case 'nubeAuto': try { almacen.setItem('dban_nube_auto', b.checked ? '1' : '0'); } catch (_) {} return true;
+      // ---- Mis carreras ----
+      case 'carreras': if (S) P2.guardar(S); nubeAutoSubir(); ui.mundo = false; ui.pant = 'carreras'; ui.borrarCar = null; render(); window.scrollTo(0, 0); return true;
+      case 'guardarSalir': if (S) P2.guardar(S); nubeAutoSubir(); ui.mundo = false; ui.pant = 'carreras'; ui.flash = '💾 Partida guardada. Puedes cerrar el juego: la retomas justo donde la dejaste.'; render(); window.scrollTo(0, 0); return true;
+      case 'carVolver': ui.pant = null; render(); return true;
+      case 'carSeguir': {
+        const i = +b.dataset.i; if (S) P2.guardar(S);
+        const s2 = P2.cargar(i); if (!s2) { ui.flash = 'No se pudo abrir esa carrera.'; render(); return true; }
+        S = s2; resetUiPartida(); ui.pant = null; ui.deshacer = false; limpiarLook(S); P2.guardar(S); nubeAutoSubir(); render(); window.scrollTo(0, 0); return true;
+      }
+      case 'carNueva': {
+        const i = +b.dataset.i; if (S) P2.guardar(S);
+        if (!P2.usarRanura(i)) return true;
+        S = null; resetUiPartida(); ui.pant = null; ui.nuevaEn = i; ui.deshacer = false; ui.look = Object.assign({}, P2.LOOK_INICIAL); ui.nombre = 'Alex'; render(); window.scrollTo(0, 0); return true;
+      }
+      case 'carRen': { ui.ren = +b.dataset.i; render(); const inp = $('carNombre'); if (inp) { inp.focus(); inp.select(); } return true; }
+      case 'carRenOk': P2.renombrarPartida(+b.dataset.i, ($('carNombre') || {}).value); ui.ren = null; nubeAutoSubir(); render(); return true;
+      case 'carCopiar': { const i = +b.dataset.i, j = P2.primeraLibre(); if (S && i === P2.ranuraActiva()) P2.guardar(S); ui.flash = j >= 0 && P2.copiarPartida(i, j) ? `📄 Copiada en la ranura ${j + 1}: prueba otro camino sin perder el tuyo.` : 'No hay ninguna ranura libre.'; render(); return true; }
+      case 'carBorrar': {
+        const i = +b.dataset.i; if (ui.borrarCar !== i) { ui.borrarCar = i; render(); return true; }
+        ui.borrarCar = null; const act = i === P2.ranuraActiva();
+        if (P2.borrarPartida(i)) { ui.deshacer = true; if (act) S = null; }
+        render(); return true;
+      }
+      case 'carDeshacer': { const j = P2.deshacerBorrado(); ui.deshacer = false; ui.flash = j >= 0 ? `↩️ Recuperada en la ranura ${j + 1}.` : 'No hay sitio libre para recuperarla.'; render(); return true; }
+      case 'carMas': ui.pm = { tab: 'packs', sku: 'extra_save_slots_3', paso: null, error: null, consent: false }; if (COM) COM.track('product_view', { sku: 'extra_save_slots_3', source: 'carreras' }); render(); return true;
+    }
+    return false;
+  }
+  async function pmAsyncNube(fn) { try { await fn(); } catch (e) { ui.nubeMsg = cuErrorTxt(e.code || e.message); } render(); }
+  // Pantallas fuera de la partida (Mis carreras, Mi cuenta): sin barra de juego
+  function pintarFuera(html) {
+    pintarEtapa(S ? etapa(S) : 'barrio');
+    $('top').innerHTML = ''; $('nav').innerHTML = '';
+    const capa = ui.cu ? htmlCuCapa() : ui.pm && (ui.pm.sku || ui.pm.paso) ? htmlPmCapa(S) : '';
+    $('main').innerHTML = (ui.flash ? `<div class="flash quieta">${esc(ui.flash)}</div>` : '') + html + capa;
+    ui.flash = '';
+    $('main').classList.remove('conBoton'); document.body.classList.remove('enSeccion');
+  }
   // Insignias y vitrina (lo que se ve de las compras en el juego)
   const INSIGNIAS = [['cosmetic.founder_pack', '🏅', 'Founder'], ['cosmetic.debut_pack', '🌟', 'Debut'], ['cosmetic.press_badge', '📰', 'Prensa']];
   const insignias = () => INSIGNIAS.filter(([e]) => P2.tieneEnt(e)).map(([, ic, n]) => `<span class="insignia" title="Insignia ${n}" aria-label="Insignia ${n}">${ic}</span>`).join('');
@@ -1105,7 +1448,10 @@
 
   // ---------- Render ----------
   function render() {
-    if (!S) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
+    comprobarRanura();
+    if (ui.pant === 'cuenta') return pintarFuera(htmlCuenta());
+    if (ui.pant === 'carreras' || (!S && ui.nuevaEn == null && hayCarreras())) return pintarFuera(htmlCarreras());
+    if (!S) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + htmlIntro() + htmlCuCapa(); ui.flash = ''; $('main').classList.remove('conBoton'); document.body.classList.remove('enSeccion'); return; }
     // Secciones abiertas por algo hecho fuera de la semana (firmar una marca, comprar…): se avisa aquí
     const nuevas = P2.revisarSecciones(S, null);
     if (nuevas.length) { ui.fiestas = (ui.fiestas || []).concat(fiestasDe([], nuevas)); if (!ui.paso) ui.paso = 'fiesta'; P2.guardar(S); }
@@ -1119,8 +1465,8 @@
     const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
       relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones, premium: htmlPremium }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
-    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && !cele && !(ui.pm && (ui.pm.sku || ui.pm.paso)) && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
-    const capa = ui.pm && (ui.pm.sku || ui.pm.paso) ? htmlPmCapa(S) : ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
+    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && !cele && !ui.cu && !(ui.pm && (ui.pm.sku || ui.pm.paso)) && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
+    const capa = ui.cu ? htmlCuCapa() : ui.pm && (ui.pm.sku || ui.pm.paso) ? htmlPmCapa(S) : ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
     const mundo = ui.mundo ? htmlMundo(S) : '';
     $('main').innerHTML = cele ? htmlCele(S, cele) : (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + V(S) + capa + mundo;
     ui.flash = '';
@@ -1152,8 +1498,10 @@
     if (a !== 'vender') ui.vender = null;
     if (a !== 'comprarP') ui.confirmar = null;
     if (a !== 'venderP') ui.venderP = null;
+    if (a !== 'carBorrar') ui.borrarCar = null;
+    if (cuAccion(a, b)) return;
     switch (a) {
-      case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n, look: ui.look }); ui.vista = 'semana'; guardarYPintar(); window.scrollTo(0, 0); break; }
+      case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n, look: ui.look }); ui.vista = 'semana'; ui.nuevaEn = null; guardarYPintar(); nubeAutoSubir(); window.scrollTo(0, 0); break; }
       case 'capa': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = b.dataset.v; render(); break;
       case 'grupoLook': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = (P2.CAPAS_LOOK.find(c => c[4] === b.dataset.v) || P2.CAPAS_LOOK[0])[0]; render(); break;
       case 'look': if ($('nombre')) ui.nombre = $('nombre').value;
@@ -1200,8 +1548,8 @@
       case 'masOps': ui.masOps = !ui.masOps; render(); break;
       case 'mundo': ui.mundo = true; render(); break;
       case 'cerrarMundo': if (e.target !== b && b.classList.contains('velo')) break; ui.mundo = false; render(); break;
-      case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); window.scrollTo(0, 0); } break; }
-      case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
+      case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); if (S.semana % 4 === 0) nubeAutoSubir(); window.scrollTo(0, 0); } break; }
+      case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; ui.nuevaEn = null; guardarYPintar(); break; }
       case 'vista': ui.nuevaCompra = null; ui.mundo = false; irA(b.dataset.v); break;
       case 'grupo': { const g = b.dataset.g, vis = P2.seccionesVisibles(S).filter(x => x.grupo === g).map(x => x.id), u = (ui.ultimaDe || {})[g];
         irA(vis.includes(u) ? u : vis[0] || 'semana'); break; }
@@ -1230,31 +1578,31 @@
         COM.track(P && P.type === 'BUNDLE' ? 'bundle_view' : P && P.type === 'PRESTIGE_CAREER' ? 'prestige_view' : P && P.type === 'SYSTEM_EXPANSION' ? 'expansion_view' : 'product_view', { sku: id }); render(); break; }
       case 'pmConsent': ui.pm.consent = !!b.checked; ui.pm.error = null; render(); break;
       case 'pmCerrar': ui.pm = { tab: (ui.pm && ui.pm.tab) || 'destacados', hist: ui.pm && ui.pm.hist }; COM.track('checkout_cancelled', {}); render(); break;
-      case 'pmCuenta': ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { paso: 'cuenta', error: null }); COM.track('account_prompt', {}); render(); break;
-      case 'pmEntrar': ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { paso: 'entrar', error: null }); render(); break;
-      case 'pmEntrarOk': { const em = ($('pmEmail') || {}).value || ''; pmAsync(async () => { await COM.signIn({ email: em.trim() }); ui.pm.paso = null; ui.pm.hist = await COM.history(); }); break; }
-      case 'pmCrear': { const em = (($('pmEmailNuevo') || {}).value || '').trim();
-        pmAsync(async () => {
-          const r = await COM.createAccount({ method: b.dataset.v, email: b.dataset.v === 'email' ? (em || (SIM() ? `${(S && S.nombre || 'jugador').toLowerCase().replace(/[^a-z0-9]/g, '')}@ejemplo.test` : '')) : null });
-          if (r && r.pending) { ui.pm.aviso = r.pending === 'check_email' ? 'Te hemos enviado un enlace. Ábrelo en este dispositivo para entrar.' : 'Te llevamos a iniciar sesión…'; return; }
-          ui.pm.paso = null; ui.pm.error = null; ui.pm.aviso = null;
-        }); break; }
+      case 'pmCuenta': cuAbrir('crear', ui.pm && ui.pm.sku ? 'compra' : 'premium'); break;
+      case 'pmEntrar': cuAbrir('entrar', ui.pm && ui.pm.sku ? 'compra' : 'premium'); break;
       case 'pmComprar': { const sku = ui.pm.sku;
-        if (COM.isGuest()) { ui.pm.paso = 'cuenta'; COM.track('account_prompt', { sku }); render(); break; }
-        pmAsync(async () => { const r = await COM.purchase(sku, { consentWithdrawal: !!ui.pm.consent }); Object.assign(ui.pm, { paso: SIM() ? 'checkout' : 'redirigiendo', orderId: r.orderId, orderRef: r.orderRef, error: null }); }); break; }
+        if (COM.isGuest()) { cuAbrir('crear', 'compra'); COM.track('account_prompt', { sku }); break; }
+        pmAsync(async () => {
+          // Antes de pagar: perfil completo (edad y términos) y, si es menor de 13, permiso de su familia
+          const p = COM.profile() || await COM.loadProfile().catch(() => null);
+          if (p && p.needsProfile) { ui.cu = { paso: 'perfil', origen: 'compra', modo: 'crear' }; return; }
+          if (p && !p.canPurchase) { ui.cu = { paso: 'tutor', origen: 'compra' }; return; }
+          const r = await COM.purchase(sku, { consentWithdrawal: !!ui.pm.consent }); Object.assign(ui.pm, { paso: SIM() ? 'checkout' : 'redirigiendo', orderId: r.orderId, orderRef: r.orderRef, error: null });
+        }); break; }
       case 'pmPagar': { const out = b.dataset.v, orderId = ui.pm.orderId, sku = ui.pm.sku;
         ui.pm.paso = 'verificando'; render();
         pmAsync(async () => {
           await COM.backend.completeCheckout(orderId, out);
           const o = await COM.waitForOrder(orderId, { tries: 30, intervalMs: 300 });
-          if (o.status === 'FULFILLED') { const P = P2C.getProduct(sku); equiparPack(sku); ui.pm = { tab: 'comprado' }; ui.celes = (ui.celes || []).concat({ tipo: 'premium', sku, n: P.name, ic: (P.assets && P.assets.ic) || '💎', includes: P.includes }); ui.confeti = true; ui.pm.hist = await COM.history(); }
+          if (o.status === 'FULFILLED') { const P = P2C.getProduct(sku); equiparPack(sku); ui.pm = { tab: 'comprado' };
+            if (S && !ui.pant) { ui.celes = (ui.celes || []).concat({ tipo: 'premium', sku, n: P.name, ic: (P.assets && P.assets.ic) || '💎', includes: P.includes }); ui.confeti = true; } else { ui.pm = null; ui.flash = `💎 ¡${P.name} desbloqueado!`; return; }
+            ui.pm.hist = await COM.history(); }
           else ui.pm.paso = o.status === 'SLOW' ? 'lento' : 'error';
         }); break; }
       case 'pmRestaurar': pmAsync(async () => { await COM.restore(); ui.pm.hist = await COM.history(); ui.flash = '✅ Compras restauradas desde tu cuenta.'; }); break;
       case 'pmSync': pmAsync(async () => { await COM.sync(); ui.pm.hist = await COM.history(); if (ui.pm.paso === 'lento') ui.pm.paso = null; ui.flash = '🔄 Compras sincronizadas.'; }); break;
       case 'pmPromo': { const code = ($('pmPromo') || {}).value || ''; pmAsync(async () => { const r = await COM.redeem(code); ui.pm.promoMsg = `🎁 Canjeado: ${r.granted.map(nombreEnt).join(', ')}`; ui.pm.hist = await COM.history(); }).then(() => { if (ui.pm.error) { ui.pm.promoMsg = pmErrorTxt(ui.pm.error); ui.pm.error = null; render(); } }); break; }
-      case 'pmSalir': COM.signOut(); ui.pm = { tab: 'comprado' }; limpiarLook(S); guardarYPintar(); break;
-      case 'pmBorrarCuenta': if (confirm('¿Eliminar tu cuenta? Perderás el acceso a tus compras en otros dispositivos. Tu partida sigue en este.')) pmAsync(async () => { await COM.deleteAccount(); ui.pm = { tab: 'comprado' }; }); break;
+      case 'pmSalir': if (S) P2.guardar(S); COM.signOut(); ui.pm = { tab: 'comprado' }; limpiarLook(S); comprobarRanura(); if (S) P2.guardar(S); render(); break;
       case 'iapResp': if (P2.iapIntencion(S, ui.iap, b.dataset.v)) { ui.iapResp = b.dataset.v; if (ui.iapCard === ui.iap) ui.iapCard = null; guardarYPintar(); } break;
       case 'iapCerrar': ui.iap = null; ui.iapResp = null; render(); break;
       case 'iapNo': ui.iapCard = null; render(); break;
@@ -1273,7 +1621,7 @@
       case 'marca': { const R = { lineas: [], hitos: [] }; if (P2.firmarMarca(S, id, R)) { const M = MARCAS.find(m => m.id === id); S.ultimaDecision = { semana: S.semana, ic: M.ic, titulo: `Firmas con ${M.n}`, texto: M.obligacion + '.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
       case 'oportunidad': if (P2.elegirOportunidad(S, id)) { ui.vista = 'semana'; guardarYPintar(); } break;
       case 'importar': { try { const v = P2.migrateSave(JSON.parse(decodeURIComponent(escape(atob(($('importar').value || '').trim()))))); if (!v) throw 0; S = v; ui.msg = ''; ui.vista = 'semana'; guardarYPintar(); } catch (_) { ui.msg = 'Ese código no es válido.'; render(); } break; }
-      case 'reiniciar': if (!ui.reinicio) { ui.reinicio = true; render(); } else { ui.reinicio = false; try { localStorage.removeItem(CFG.claveGuardado); } catch (_) {} S = null; ui.vista = 'semana'; render(); } break;
+      case 'reiniciar': if (!ui.reinicio) { ui.reinicio = true; render(); } else { ui.reinicio = false; P2.borrarPartida(P2.ranuraActiva()); S = null; resetUiPartida(); ui.deshacer = true; ui.pant = hayCarreras() ? 'carreras' : null; if (!ui.pant) ui.nuevaEn = P2.ranuraActiva(); render(); window.scrollTo(0, 0); } break;
       case 'resp': P2.responderTest(S, b.dataset.q, /^\d+$/.test(b.dataset.v) ? Number(b.dataset.v) : b.dataset.v); ui.informeAbierto = true; guardarYPintar(); break;
       case 'informe': ui.informeAbierto = true; ui.informe = P2.informeTest(S); ui.copiado = ''; guardarYPintar(); break;
       case 'copiarInforme': {
@@ -1316,7 +1664,9 @@
       } else if (q.get('compra') === 'cancelada') { ui.flash = 'Compra cancelada. No se ha cobrado nada.'; history.replaceState(null, '', location.pathname); }
     } catch (_) { /* sin location (tests) */ }
     // Revalida las compras con la cuenta al arrancar (offline: se usa la caché)
-    if (comercio() && !COM.isGuest()) COM.sync().then(() => { limpiarLook(S); if (S) P2.guardar(S); render(); }).catch(() => {});
+    if (comercio() && !COM.isGuest()) COM.sync().then(() => COM.loadProfile().catch(() => null)).then(() => { limpiarLook(S); if (S) P2.guardar(S); render(); }).catch(() => {});
+    // Al salir de la app (cambiar de pestaña, bloquear el móvil): se guarda y, con cuenta, copia en la nube
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && S) { P2.guardar(S); nubeAutoSubir(); } });
   }
 
   // Ganchos de depuración (como window.__P1)
@@ -1326,7 +1676,8 @@
     ir: v => irA(v), etapa: () => etapa(S), ui2: ui,
     jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
-    guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },
+    guardar: () => P2.guardar(S), cargar: (i) => { S = P2.cargar(i); render(); return S; },
+    carreras: () => P2.listarPartidas(), get cu() { return ui.cu; },
     migrateSave: P2.migrateSave, runBalance: (n, m) => P2.runBalance(n || 100, m), informeBalance: (n) => informeTexto(P2.runBalance(n || 100)),
   };
   P2.arrancar = arrancar;

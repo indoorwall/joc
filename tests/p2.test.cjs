@@ -539,6 +539,47 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Si hay varias, se usa la más nueva', P2ls.partidaP1().nombre === 'Leo');
 }
 
+// ---------- 6b-bis. Partidas múltiples (ranuras), guardar y salir, nube ----------
+{
+  const m = {}; const ls = { getItem: k => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: k => { delete m[k]; } };
+  const Q = cargarP2({ localStorage: ls });
+  check('Ranuras: 2 gratis, 5 en total (3 más con «+3 carreras»)', Q.ranurasMax() === 2 && Q.totalRanuras() === 5);
+  // Una partida de antes de las ranuras sigue en la clave de siempre → «Carrera 1»
+  m.del_barrio_al_negocio_p2 = JSON.stringify(Q.nuevaPartida({ seed: 1, nombre: 'Vieja' }));
+  check('Ranuras: una partida guardada antes de las ranuras aparece sola como ranura 1 y se carga', Q.cargar().nombre === 'Vieja' && Q.listarPartidas()[0].existe && Q.ranuraActiva() === 0);
+  check('Ranuras: guardar no cambia la partida (sin campos nuevos dentro)', (() => { const s = Q.cargar(); const a = JSON.stringify(s); Q.guardar(s); return JSON.stringify(Q.cargar()) === a; })());
+  check('Ranuras: no se puede usar una ranura de pago sin el pack', !Q.usarRanura(3) && Q.ranuraActiva() === 0);
+  Q.usarRanura(1); const b = Q.nuevaPartida({ seed: 2, nombre: 'Nueva' }); b.semana = 9; Q.guardar(b);
+  check('Ranuras: dos carreras a la vez, cada una en su ranura', Q.cargar(0).nombre === 'Vieja' && Q.cargar(1).nombre === 'Nueva' && Q.ranuraActiva() === 1);
+  check('Ranuras: «continuar» abre la última carrera jugada', Q.cargar().nombre === 'Nueva' && Q.cargar().semana === 9);
+  const L = Q.listarPartidas();
+  check('Mis carreras: resumen con nombre, semana, fase, dinero, fecha de guardado; las de pago, bloqueadas', L[1].resumen.nombre === 'Nueva' && L[1].resumen.semana === 9 && L[1].guardadoEn > 0 && L[2].bloqueada && !L[2].existe);
+  check('Mis carreras: renombrar', Q.renombrarPartida(1, '  Mi   otra vida  ') && Q.listarPartidas()[1].titulo === 'Mi otra vida');
+  check('Mis carreras: borrar va a la papelera y se puede deshacer', Q.borrarPartida(0) && !Q.listarPartidas()[0].existe && Q.papelera() && Q.deshacerBorrado() === 0 && Q.cargar(0).nombre === 'Vieja');
+  check('Mis carreras: copiar a otra ranura necesita una libre', !Q.copiarPartida(0, 1));
+  // Con el pack: 5 ranuras
+  const o = Q.tieneEnt; Q.tieneEnt = e => e === 'slots.extra_3';
+  check('Con «+3 carreras»: 5 ranuras y se puede copiar a la 3', Q.ranurasMax() === 5 && Q.copiarPartida(0, 2) && Q.cargar(2).nombre === 'Vieja' && /copia/.test(Q.listarPartidas()[2].titulo));
+  Q.usarRanura(2);
+  Q.tieneEnt = o;   // reembolso / otra cuenta: la ranura de pago se bloquea…
+  check('Sin el pack, una carrera en ranura de pago se conserva bloqueada (ni se carga ni se sobrescribe, nunca se borra)', Q.cargar() === null && !Q.guardar(Q.nuevaPartida({ seed: 9 })) && Q.listarPartidas()[2].existe && Q.listarPartidas()[2].bloqueada);
+  Q.usarRanura(0);
+  // Nube: exportar e importar (por ranura gana la más reciente)
+  const blob = Q.exportarPartidas();
+  check('Nube: exportar todas las carreras (también las bloqueadas, para no perderlas)', blob.ranuras.length === 3 && blob.ranuras.every(r => typeof r.data === 'string'));
+  const m2 = {}; const ls2 = { getItem: k => (k in m2 ? m2[k] : null), setItem: (k, v) => { m2[k] = String(v); }, removeItem: k => { delete m2[k]; } };
+  const Q2 = cargarP2({ localStorage: ls2 });
+  const r = Q2.importarPartidas(blob);
+  check('Nube: en otro dispositivo se traen las carreras de las ranuras que puedes usar; las de pago se quedan en la nube', r.escritas.length === 2 && r.omitidas.includes(2) && Q2.cargar(0).nombre === 'Vieja');
+  const s1 = Q2.cargar(1); s1.semana = 30; Q2.guardar(s1);
+  const r2 = Q2.importarPartidas(blob);
+  check('Nube: una copia más vieja NO pisa lo que has jugado aquí…', r2.omitidas.includes(1) && Q2.cargar(1).semana === 30);
+  check('…salvo que lo pidas («usar igualmente las de la nube»)', Q2.importarPartidas(blob, { forzar: true }).escritas.includes(1) && Q2.cargar(1).semana === 9);
+  check('Nube: datos que no son una partida no se escriben', Q2.importarPartidas({ ranuras: [{ i: 0, data: '{"x":1}', guardadoEn: Date.now() + 1e6 }] }).invalidas.includes(0) && Q2.cargar(0).nombre === 'Vieja');
+  Q2.borrarPartida(1);
+  check('Nube: borrar una carrera aquí se apunta para borrarla también en la nube', Q2.exportarPartidas().borradas.includes(1) && (Q2.limpiarBorradas([1]), !Q2.exportarPartidas().borradas.length));
+}
+
 // ---------- 6c. P2.2: nivel, reputación y marca; patrocinadores con identidad; telemetría ----------
 {
   const R0 = () => ({ lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [] });
@@ -802,9 +843,26 @@ let informe;
   check('UI Premium: sin cuentas atrás ni urgencia falsa', !/quedan \d|solo hoy|termina en|últimas unidades|oferta expira/i.test(fx));
   await page.click('[data-act="pmConsent"]', { force: true });
   await page.click('[data-act="pmComprar"]', { force: true });
-  check('UI Premium: invitado → «Crea una cuenta para proteger y restaurar tus compras en cualquier dispositivo»', (await page.textContent('.modal')).includes('Crea una cuenta para proteger y restaurar tus compras en cualquier dispositivo') && await page.locator('[data-act="pmCerrar"]').isVisible());
-  await page.click('[data-act="pmCrear"][data-v="email"]', { force: true });
-  await page.waitForFunction(() => !__P2.COM.isGuest());
+  check('UI Premium: invitado → «Crea una cuenta para proteger y restaurar tus compras en cualquier dispositivo»', (await page.textContent('.modal')).includes('Crea una cuenta para proteger y restaurar tus compras en cualquier dispositivo') && await page.locator('[data-act="cuCerrar"]').isVisible());
+  check('UI Cuenta: Apple, Google y email (sin contraseñas) y «Ahora no» igual de visible', await page.locator('[data-act="cuMetodo"]').count() === 3 && (await page.textContent('.modal')).includes('Sin contraseñas'));
+  await page.click('[data-act="cuMetodo"][data-v="email"]', { force: true });
+  await page.fill('#cuEmail', 'alex@ejemplo.test'); await page.click('[data-act="cuPedirCodigo"]', { force: true });
+  await page.waitForSelector('.bandeja');
+  check('UI Cuenta: código de 6 cifras en una bandeja de entrada SIMULADA (no se envía nada)', /^\d{6}$/.test(await page.textContent('.bandeja .cod')) && (await page.textContent('.bandeja')).includes('SIMULADA'));
+  await page.fill('#cuCodigo', '000000'); await page.click('[data-act="cuVerificar"]', { force: true });
+  await page.waitForSelector('.pmErr');
+  check('UI Cuenta: código incorrecto → aviso con los intentos que quedan', (await page.textContent('.pmErr')).includes('Te quedan 4 intentos') && await page.evaluate(() => __P2.COM.isGuest()));
+  await page.fill('#cuCodigo', await page.textContent('.bandeja .cod')); await page.click('[data-act="cuVerificar"]', { force: true });
+  await page.waitForSelector('#cuNombre');
+  check('UI Cuenta: cuenta nueva → perfil (nombre, país, edad, términos sin marcar)', !(await page.isChecked('#cuTerminos')) && await page.locator('[data-act="cuEdad"]').count() === 3 && await page.locator('#cuPais option').count() > 10);
+  await page.click('[data-act="cuEdad"][data-v="18p"]', { force: true });
+  check('UI Cuenta: novedades por email desmarcadas por defecto (opcional)', !(await page.isChecked('#cuNovedades')));
+  await page.click('[data-act="cuGuardarPerfil"]', { force: true });
+  check('UI Cuenta: sin aceptar los términos no se sigue', (await page.textContent('.pmErr')).includes('aceptar los términos'));
+  await page.check('#cuTerminos'); await page.click('[data-act="cuGuardarPerfil"]', { force: true });
+  await page.waitForSelector('[data-act="cuFin"]');
+  check('UI Cuenta: «¡Cuenta lista!» y vuelta a la compra', (await page.textContent('.modal')).includes('Cuenta lista') && (await page.textContent('[data-act="cuFin"]')).includes('Volver a la compra') && await page.evaluate(() => __P2.COM.profile().canPurchase));
+  await page.click('[data-act="cuFin"]', { force: true });
   await page.click('[data-act="pmComprar"]', { force: true });
   await page.waitForSelector('.pmCheckout');
   const ck = await page.textContent('.pmCheckout');
@@ -829,7 +887,7 @@ let informe;
   check('UI Premium: Prestige avisa «La compra NO garantiza ganar»', (await page.textContent('.pmFicha')).includes('La compra NO garantiza ganar'));
   await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'prestige_world_climbing_president' }; __P2.render(); });
   check('UI Premium: dependencia antes de pagar: «Necesitas la expansión Escalada» + botón para verla', (await page.textContent('.pmFicha')).includes('Necesitas la expansión') && (await page.textContent('.pmFicha')).includes('Escalada') && await page.locator('.pmReq [data-act="pmVer"][data-id="sport_climbing"]').count() === 1 && await page.locator('[data-act="pmComprar"]').count() === 0);
-  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'pack_street' }; __P2.render(); });
+  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'sport_tennis' }; __P2.render(); });
   check('UI Premium: «Próximamente» no se puede comprar', (await page.textContent('.pmFicha')).includes('Próximamente') && await page.locator('[data-act="pmComprar"]').count() === 0);
   await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados' }; __P2.render(); });
   await ir(page, 'premium');
@@ -853,6 +911,70 @@ let informe;
   check('UI: Relaciones muestra tarjetas con nombre, valor y estado', await page.locator('.pers:not(.bloq)').count() >= 6 && (await page.textContent('#main')).includes('CARMEN') && (await page.textContent('#main')).includes('/100') && await page.locator('.pers.bloq').count() === 2);
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1);
   check('UI: sin desplazamiento horizontal', ancho);
+  // ---------- Mis carreras y cuenta (otro navegador limpio) ----------
+  {
+    const c3 = await b.newContext({ ...pw.devices['iPhone 13'], reducedMotion: 'reduce' }); const p3 = await c3.newPage(); p3.on('pageerror', e => errs.push(e.message));
+    await p3.goto(url);
+    await p3.fill('#nombre', 'Lola'); await p3.tap('[data-act="empezar"]');
+    await p3.evaluate(() => { __P2.S.semana = 6; __P2.guardar(); });
+    await p3.tap('[data-act="mundo"]'); await p3.tap('.mundoAcc [data-act="guardarSalir"]');
+    check('UI Carreras: «Guardar y salir» guarda y lleva a «Mis carreras»', (await p3.textContent('.flash')).includes('Partida guardada') && await p3.locator('.carrera[data-i="0"] [data-act="carSeguir"]').count() === 1);
+    check('UI Carreras: 2 ranuras gratis, 3 más bloqueadas con «+3 carreras»', await p3.locator('[data-act="carNueva"]').count() === 1 && await p3.locator('[data-act="carMas"]').count() === 3);
+    await p3.tap('[data-act="carNueva"]'); await p3.fill('#nombre', 'Pepe'); await p3.tap('[data-act="empezar"]');
+    await p3.reload();
+    check('UI Carreras: al abrir el juego continúa la última carrera jugada', await p3.evaluate(() => __P2.S && __P2.S.nombre === 'Pepe'));
+    await p3.evaluate(() => __P2.ir('ajustes')); await p3.tap('.card [data-act="carreras"]');
+    await p3.tap('.carrera[data-i="0"] [data-act="carSeguir"]');
+    check('UI Carreras: cambiar a otra carrera la abre donde estaba', await p3.evaluate(() => __P2.S.nombre === 'Lola' && __P2.S.semana === 6));
+    await p3.evaluate(() => __P2.ir('ajustes')); await p3.tap('.card [data-act="carreras"]');
+    await p3.tap('.carrera[data-i="1"] [data-act="carBorrar"]');
+    check('UI Carreras: borrar pide confirmación', await p3.evaluate(() => __P2.carreras()[1].existe) && (await p3.textContent('.carrera[data-i="1"]')).includes('Toca otra vez'));
+    await p3.tap('.carrera[data-i="1"] [data-act="carBorrar"]');
+    check('UI Carreras: borrada, con «Deshacer»', await p3.evaluate(() => !__P2.carreras()[1].existe) && await p3.locator('[data-act="carDeshacer"]').count() === 1);
+    await p3.tap('[data-act="carDeshacer"]');
+    check('UI Carreras: «Deshacer» la recupera', await p3.evaluate(() => __P2.carreras()[1].existe && __P2.carreras()[1].resumen.nombre === 'Pepe'));
+    await p3.tap('[data-act="carMas"]');
+    check('UI Carreras: una ranura bloqueada abre la ficha de «+3 carreras»', (await p3.textContent('.pmFicha')).includes('+3 carreras'));
+    await p3.tap('.pmBotones [data-act="pmCerrar"]');
+    // Cuenta de menor de 13: sin ofertas, sin publicidad y con permiso parental para comprar
+    await p3.tap('[data-act="cuCrear"]'); await p3.tap('[data-act="cuMetodo"][data-v="apple"]');
+    check('UI Cuenta: «Continuar con Apple» simulado con opción de ocultar el email', (await p3.textContent('.hojaSis')).includes('SIMULACIÓN') && await p3.locator('input[name="cuOcultar"]').count() === 2);
+    await p3.check('input[name="cuOcultar"][value="si"]'); await p3.tap('[data-act="cuSistemaOk"]');
+    await p3.waitForSelector('#cuNombre');
+    check('UI Cuenta: con «Ocultar mi email» la cuenta usa un alias', await p3.evaluate(() => /privaterelay/.test(__P2.COM.account().email)));
+    await p3.tap('[data-act="cuEdad"][data-v="u13"]');
+    check('UI Cuenta: menor → aviso y sin casilla de publicidad', (await p3.textContent('.modal')).includes('Eres menor') && await p3.locator('#cuNovedades').count() === 0);
+    await p3.check('#cuTerminos'); await p3.tap('[data-act="cuGuardarPerfil"]');
+    await p3.waitForSelector('#cuTutor');
+    check('UI Cuenta: menor de 13 → pedir permiso a su madre, padre o tutor', (await p3.textContent('.modal')).includes('madre, padre o tutor') && await p3.evaluate(() => !__P2.COM.profile().canPurchase && __P2.COM.isMinor()));
+    await p3.fill('#cuTutor', 'familia@ejemplo.test'); await p3.tap('[data-act="cuTutorPedir"]');
+    await p3.waitForSelector('[data-act="cuTutorSim"][data-v="1"]');
+    check('UI Cuenta: permiso pendiente: se juega igual, pero no se compra', await p3.evaluate(() => __P2.COM.profile().parentalStatus === 'pending'));
+    await p3.tap('[data-act="cuTutorSim"][data-v="1"]');
+    await p3.waitForFunction(() => __P2.COM.profile().canPurchase);
+    check('UI Cuenta: cuando el tutor acepta, ya puede comprar', await p3.evaluate(() => __P2.COM.profile().parentalStatus === 'approved'));
+    await p3.tap('[data-act="cuSeguir"]');
+    await p3.waitForSelector('[data-act="cuFin"]'); await p3.tap('[data-act="cuFin"]');
+    // Mi cuenta: datos, editar, borrar
+    await p3.tap('[data-act="cuenta"]');
+    const cta = await p3.textContent('#main');
+    check('UI Mi cuenta: perfil, permiso familiar, nube, compras, privacidad y sesión', ['Perfil', 'Permiso de tu familia', 'Copia en tu cuenta', 'Descargar mis datos', 'Cerrar sesión', 'Eliminar mi cuenta'].every(x => cta.includes(x)));
+    await p3.tap('[data-act="nubeSubir"]'); await p3.waitForSelector('.nubeMsg');
+    check('UI Mi cuenta: guardar las carreras en la nube', (await p3.textContent('.nubeMsg')).includes('Copiadas 2 carreras'));
+    await p3.tap('[data-act="cuDatos"]'); await p3.waitForSelector('a[download]');
+    check('UI Mi cuenta: descargar mis datos (JSON con perfil y carreras)', /"careers"/.test(await p3.inputValue('.modal textarea')));
+    await p3.tap('[data-act="cuCerrar"]');
+    await p3.tap('[data-act="cuEditar"]');
+    check('UI Mi cuenta: la edad no se puede cambiar después', (await p3.textContent('.modal')).includes('La edad no se puede cambiar') && await p3.locator('[data-act="cuEdad"]').count() === 0);
+    await p3.tap('[data-act="cuCerrar"]');
+    await p3.tap('[data-act="cuBorrar"]'); await p3.tap('[data-act="cuBorrarOk"]');
+    check('UI Mi cuenta: eliminar exige escribir ELIMINAR', (await p3.textContent('.pmErr')).includes('ELIMINAR') && await p3.evaluate(() => !__P2.COM.isGuest()));
+    await p3.fill('#cuConfirma', 'eliminar'); await p3.tap('[data-act="cuBorrarOk"]');
+    await p3.waitForFunction(() => __P2.COM.isGuest());
+    check('UI Mi cuenta: cuenta eliminada; las carreras de este dispositivo siguen', await p3.evaluate(() => __P2.carreras().filter(r => r.existe).length === 2 && !Object.values(JSON.parse(localStorage.getItem('dban_mock_server_v1')).db.gameSaves || {}).some(x => Object.keys(x).length)));
+    check('UI Carreras y cuenta: sin desplazamiento horizontal', await p3.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await c3.close();
+  }
   // Partida de P1 en el navegador → «Seguir con tu jugador de P1»
   const ctx2 = await b.newContext({ ...pw.devices['iPhone 13'], reducedMotion: 'reduce' }); const p2 = await ctx2.newPage();
   await p2.goto(url);
@@ -861,7 +983,7 @@ let informe;
   await p2.tap('[data-act="desdeP1"]');
   check('UI: una partida de P1 pasa a P2 sin errores y sin borrar la de P1', await p2.evaluate(() => __P2.S.nombre === 'Ruth' && __P2.S.saveVersion === 2 && !!localStorage.getItem('del_barrio_al_negocio_p1_v5')));
   // Guardado corrupto: no rompe y no se borra
-  await p2.evaluate(() => localStorage.setItem('del_barrio_al_negocio_p2', '{roto'));
+  await p2.evaluate(() => { __P2.S = null; localStorage.setItem('del_barrio_al_negocio_p2', '{roto'); });
   await p2.reload();
   check('UI: un guardado corrupto no rompe el juego y se aparta una copia', await p2.locator('[data-act="empezar"]').isVisible() && await p2.evaluate(() => Object.keys(localStorage).some(k => k.startsWith('del_barrio_al_negocio_p2_copia_'))));
   // Informe de prueba en Ajustes

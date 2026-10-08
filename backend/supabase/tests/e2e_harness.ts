@@ -1,6 +1,6 @@
 // Arnés de pruebas e2e: carga las Edge Functions REALES y las sirve en un solo puerto (/functions/v1/<nombre>),
 // como `supabase functions serve`. Solo para tests locales (tests/commerce/edge.e2e.mjs).
-const names = ['checkout-session', 'stripe-webhook', 'entitlements', 'restore', 'purchases', 'promo-redeem', 'remote-config', 'storefront', 'admin', 'analytics'];
+const names = ['checkout-session', 'stripe-webhook', 'entitlements', 'restore', 'purchases', 'promo-redeem', 'remote-config', 'storefront', 'admin', 'analytics', 'profile', 'game-saves', 'account-export'];
 const handlers: Record<string, (r: Request) => Response | Promise<Response>> = {};
 const originalServe = Deno.serve.bind(Deno);
 let current = '';

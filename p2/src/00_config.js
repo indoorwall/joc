@@ -11,6 +11,8 @@
   const CFG = {
     saveVersion: 2,
     claveGuardado: 'del_barrio_al_negocio_p2',
+    // Partidas múltiples: la ranura 1 usa la clave de siempre (las partidas antiguas siguen ahí). +3 con el pack «+3 carreras».
+    ranuras: { gratis: 2, extra: 3 },
     // Claves que ha usado P1 a lo largo de sus versiones (de la más nueva a la más antigua). Solo se leen.
     clavesP1: ['del_barrio_al_negocio_p1_v5', 'del_barrio_al_negocio_p1_v4', 'del_barrio_al_negocio_p1_v3', 'del_barrio_al_negocio_p1_v2', 'del_barrio_al_negocio_p1_v1'],
     deporte: 'futbol',

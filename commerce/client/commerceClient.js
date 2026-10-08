@@ -46,23 +46,63 @@ export function createCommerceClient({ backend, storage, platform = 'mock', conf
       if (!isOnline()) throw err('offline');
       const r = await backend.signUp({ method, email });
       if (r.pending) return { pending: r.pending };   // web: redirección (Apple/Google) o «revisa tu correo» (enlace mágico)
-      st.account = { id: r.userId, token: r.token, method: r.method || method, email: email || null };
-      save(); await api.track('account_created', { source: method });
+      st.account = { id: r.userId, token: r.token, method: r.method || method, email: r.email || email || null };
+      st.profile = null; save(); await api.track('account_created', { source: method });
+      await api.loadProfile().catch(() => null);
       return api.sync();
     },
     async signIn({ email }) {
       if (!isOnline()) throw err('offline');
       const r = await backend.signIn({ email });
-      st.account = { id: r.userId, token: r.token, method: r.method, email };
-      save(); return api.sync();
+      st.account = { id: r.userId, token: r.token, method: r.method, email: r.email || email };
+      st.profile = null; save(); await api.loadProfile().catch(() => null); return api.sync();
     },
+    // ---- Email con código de 6 cifras (crear cuenta o entrar en otro dispositivo) ----
+    async requestCode({ email, intent = 'signup' }) {
+      if (!isOnline()) throw err('offline');
+      if (!backend.requestCode) throw err('not_supported');
+      return backend.requestCode({ email: String(email || '').trim(), intent });
+    },
+    async verifyCode({ email, code, intent = 'signup' }) {
+      if (!isOnline()) throw err('offline');
+      const r = await backend.verifyCode({ email: String(email || '').trim(), code: String(code || '').trim(), intent });
+      st.account = { id: r.userId, token: r.token, method: r.method || 'email', email: r.email || email };
+      st.profile = null; save();
+      if (r.isNew) await api.track('account_created', { source: 'email' });
+      await api.sync(); await api.loadProfile();
+      return { isNew: !!r.isNew };
+    },
+    // ---- Perfil (edad, país, términos, control parental). Lo valida el servidor. ----
+    profile: () => (st.account && st.profile && st.profile.__uid === st.account.id ? st.profile : null),
+    isMinor: () => { const p = api.profile(); return !!(p && p.isMinor); },
+    async loadProfile() {
+      if (!st.account || !backend.profile) return null;
+      if (!isOnline()) return api.profile();
+      const p = await backend.profile(token());
+      st.profile = Object.assign({ __uid: st.account.id }, p); save(); return api.profile();
+    },
+    async updateProfile(patch) {
+      if (!st.account) throw err('account_required');
+      if (!isOnline()) throw err('offline');
+      const p = await backend.updateProfile(token(), patch);
+      st.profile = Object.assign({ __uid: st.account.id }, p); save(); return api.profile();
+    },
+    // ---- Carreras en la nube (solo datos de juego; nunca compras) ----
+    async getSaves() { if (!st.account) throw err('account_required'); if (!isOnline()) throw err('offline'); return backend.getSaves(token()); },
+    async putSaves(blob) {
+      if (!st.account) throw err('account_required'); if (!isOnline()) throw err('offline');
+      const r = await backend.putSaves(token(), blob);
+      st.cloudAt = r.at || new Date().toISOString(); save(); return r;
+    },
+    lastCloudSave: () => (st.account ? st.cloudAt || null : null),
+    async exportData() { if (!st.account) throw err('account_required'); if (!isOnline()) throw err('offline'); return backend.exportData(token()); },
     // Sesión que llega de fuera (Supabase Auth en la web tras la redirección; token renovado)
     async useSession(sess) {
       if (!sess) return null;
       st.account = { id: sess.userId, token: sess.token, method: sess.method, email: sess.email || null };
-      save(); return api.sync();
+      save(); await api.loadProfile().catch(() => null); return api.sync();
     },
-    signOut() { st.account = null; save(); if (backend.signOut) backend.signOut(); },
+    signOut() { st.account = null; st.profile = null; st.cloudAt = null; save(); if (backend.signOut) backend.signOut(); },
     // Sincroniza con el servidor; offline devuelve la caché (se revalida al volver)
     async sync() {
       if (!st.account) return [];
@@ -92,6 +132,9 @@ export function createCommerceClient({ backend, storage, platform = 'mock', conf
     async purchase(sku, { consentWithdrawal = false } = {}) {
       if (!isOnline()) throw err('offline');
       if (!st.account) throw err('account_required');
+      const prof = api.profile();
+      if (backend.profile && (!prof || prof.needsProfile)) throw err('profile_required');
+      if (prof && !prof.canPurchase) throw err('parental_consent_required');
       const product = getProduct(sku); if (!product) throw err('unknown_product');
       const s = api.state(sku); if (!s.purchasable) throw err(s.blocked || 'not_purchasable', { requires: s.requires });
       const route = api.route(sku);
@@ -124,7 +167,7 @@ export function createCommerceClient({ backend, storage, platform = 'mock', conf
       await api.track('promo_redeemed', {});
       return r;
     },
-    async deleteAccount() { if (!st.account) return; await backend.deleteAccount(token()); st = { account: null, cache: { userId: null, entitlements: [], syncedAt: null } }; save(); },
+    async deleteAccount() { if (!st.account) return; await backend.deleteAccount(token()); st = { account: null, profile: null, cache: { userId: null, entitlements: [], syncedAt: null } }; save(); if (backend.signOut) try { backend.signOut(); } catch (_) {} },
     async track(name, props) { const e = sanitizeEvent(name, props); if (!e || !backend.track) return; try { await backend.track(token(), e.name, e.props); } catch (_) { /* la telemetría nunca rompe el juego */ } },
     // Solo para pruebas: borra la caché local (no las compras, que están en la cuenta)
     clearCache() { st.cache = { userId: null, entitlements: [], syncedAt: null }; save(); },

@@ -138,24 +138,148 @@
     return s;
   }
 
-  // ---- Guardado en el navegador ----
+  // ---- Guardado en el navegador (partidas múltiples) ----
+  // Cada carrera vive en su ranura. La ranura 0 usa la clave de siempre: una partida de antes de las ranuras
+  // aparece sola como «Carrera 1». El índice guarda la ranura activa, el nombre de cada carrera y cuándo se guardó.
   const LS = () => { try { return globalThis.localStorage || null; } catch (_) { return null; } };
+  const R = () => CFG.ranuras;
+  const totalRanuras = () => R().gratis + R().extra;
+  const claveRanura = i => (i === 0 ? CFG.claveGuardado : `${CFG.claveGuardado}_r${i}`);
+  const CLAVE_INDICE = CFG.claveGuardado + '_partidas', CLAVE_PAPELERA = CFG.claveGuardado + '_papelera';
+  const okRanura = i => Number.isInteger(i) && i >= 0 && i < totalRanuras();
+  function indice() {
+    const ls = LS(); let x = null;
+    try { x = JSON.parse((ls && ls.getItem(CLAVE_INDICE)) || 'null'); } catch (_) { x = null; }
+    if (!x || typeof x !== 'object') x = {};
+    if (!okRanura(x.activa)) x.activa = 0;
+    if (!x.meta || typeof x.meta !== 'object' || Array.isArray(x.meta)) x.meta = {};
+    return x;
+  }
+  function escribirIndice(x) { const ls = LS(); if (!ls) return false; try { ls.setItem(CLAVE_INDICE, JSON.stringify(x)); return true; } catch (_) { return false; } }
+  // Ranuras que puedes usar: 2 gratis + 3 con «+3 carreras» (o el Founder Pack). Lo decide la CUENTA, no la partida.
+  function ranurasMax() { return R().gratis + (P2.tieneEnt('slots.extra_3') ? R().extra : 0); }
+  const ranuraActiva = () => indice().activa;
+  function usarRanura(i) {
+    if (!okRanura(i) || i >= ranurasMax()) return false;
+    const x = indice(); x.activa = i; return escribirIndice(x);
+  }
   function guardar(s) {
     const ls = LS(); if (!ls || !s) return false;
-    try { ls.setItem(CFG.claveGuardado, JSON.stringify(s)); return true; } catch (_) { return false; }
+    const x = indice(), i = x.activa;
+    if (i >= ranurasMax()) return false;   // ranura de pago sin el pack (p. ej. tras un reembolso): se conserva, no se escribe
+    try { ls.setItem(claveRanura(i), JSON.stringify(s)); } catch (_) { return false; }
+    x.meta[i] = Object.assign({}, x.meta[i], { guardadoEn: Date.now() });
+    x.borradas = (x.borradas || []).filter(k => k !== i);
+    escribirIndice(x);
+    return true;
   }
-  function cargar() {
-    const ls = LS(); if (!ls) return null;
+  function leer(i) {
+    const ls = LS(); if (!ls || !okRanura(i)) return null;
     let raw = null;
-    try { raw = ls.getItem(CFG.claveGuardado); } catch (_) { return null; }
+    try { raw = ls.getItem(claveRanura(i)); } catch (_) { return null; }
     if (!raw) return null;
     try {
       const s = migrateSave(JSON.parse(raw));
       if (s) return s;
     } catch (_) { /* se guarda una copia abajo */ }
-    // No se pudo leer: se aparta una copia (nunca se borra) y se empieza de nuevo
-    try { ls.setItem(CFG.claveGuardado + '_copia_' + Date.now(), raw); ls.removeItem(CFG.claveGuardado); } catch (_) {}
+    // No se pudo leer: se aparta una copia (nunca se borra) y la ranura queda libre
+    try { ls.setItem(claveRanura(i) + '_copia_' + Date.now(), raw); ls.removeItem(claveRanura(i)); } catch (_) {}
     return null;
+  }
+  // Carga la carrera activa (o la de la ranura i, que pasa a ser la activa)
+  function cargar(i) {
+    if (i != null) { if (!usarRanura(i)) return null; }
+    const a = ranuraActiva();
+    if (a >= ranurasMax()) return null;
+    return leer(a);
+  }
+  // Resumen para la lista «Mis carreras» (sin cargar la interfaz)
+  function resumenPartida(s) {
+    if (!s) return null;
+    const of = s.contrato && P2.OFERTAS ? P2.OFERTAS[s.contrato.oferta] : null;
+    return { nombre: s.nombre, semana: s.semana, fase: s.fase, edad: s.edad, dinero: s.p.dinero, club: of ? of.club : null,
+      patrimonio: P2.patrimonio ? P2.patrimonio(s) : s.p.dinero, look: s.look, trofeos: (s.trofeos || []).length, empresas: (s.negocios || []).length };
+  }
+  function listarPartidas() {
+    const x = indice(), max = ranurasMax(), ls = LS(), out = [];
+    for (let i = 0; i < totalRanuras(); i++) {
+      let s = null, raw = null;
+      try { raw = ls && ls.getItem(claveRanura(i)); } catch (_) { raw = null; }
+      if (raw) { try { s = migrateSave(JSON.parse(raw)); } catch (_) { s = null; } }
+      const m = x.meta[i] || {};
+      out.push({ i, n: i + 1, existe: !!s, rota: !!raw && !s, bloqueada: i >= max, de_pago: i >= R().gratis, activa: x.activa === i,
+        titulo: m.titulo || (s ? `Carrera de ${s.nombre}` : `Carrera ${i + 1}`), guardadoEn: m.guardadoEn || null, resumen: resumenPartida(s) });
+    }
+    return out;
+  }
+  function renombrarPartida(i, titulo) {
+    if (!okRanura(i)) return false;
+    const t = String(titulo || '').replace(/\s+/g, ' ').trim().slice(0, 30);
+    const x = indice(); x.meta[i] = Object.assign({}, x.meta[i]);
+    if (t) x.meta[i].titulo = t; else delete x.meta[i].titulo;
+    return escribirIndice(x);
+  }
+  // Borrar es siempre una decisión del jugador. La última carrera borrada se guarda en la papelera para «Deshacer».
+  function borrarPartida(i) {
+    const ls = LS(); if (!ls || !okRanura(i)) return false;
+    let raw = null; try { raw = ls.getItem(claveRanura(i)); } catch (_) { return false; }
+    if (!raw) return false;
+    const x = indice();
+    try { ls.setItem(CLAVE_PAPELERA, JSON.stringify({ i, raw, meta: x.meta[i] || {}, at: Date.now() })); ls.removeItem(claveRanura(i)); } catch (_) { return false; }
+    delete x.meta[i]; x.borradas = [...new Set([...(x.borradas || []), i])]; escribirIndice(x);
+    return true;
+  }
+  function papelera() { const ls = LS(); try { const p = JSON.parse((ls && ls.getItem(CLAVE_PAPELERA)) || 'null'); return p && okRanura(p.i) ? p : null; } catch (_) { return null; } }
+  // Deshacer: vuelve a su ranura si está libre; si no, a la primera libre que puedas usar
+  function deshacerBorrado() {
+    const ls = LS(), p = papelera(); if (!ls || !p) return -1;
+    const libres = listarPartidas().filter(r => !r.existe && !r.rota && !r.bloqueada).map(r => r.i);
+    const j = libres.includes(p.i) ? p.i : libres[0];
+    if (j == null) return -1;
+    try { ls.setItem(claveRanura(j), p.raw); ls.removeItem(CLAVE_PAPELERA); } catch (_) { return -1; }
+    const x = indice(); x.meta[j] = p.meta || {}; x.borradas = (x.borradas || []).filter(k => k !== j); escribirIndice(x);
+    return j;
+  }
+  // Copiar una carrera a otra ranura libre (probar otro camino sin perder el tuyo)
+  function copiarPartida(i, j) {
+    const ls = LS(); if (!ls || !okRanura(i) || !okRanura(j) || i === j || j >= ranurasMax()) return false;
+    let raw = null; try { raw = ls.getItem(claveRanura(i)); if (!raw || ls.getItem(claveRanura(j))) return false; } catch (_) { return false; }
+    const s = migrateSave(JSON.parse(raw)); if (!s) return false;
+    s.tele = P2.nuevaTele ? P2.nuevaTele() : s.tele;   // otra carrera: otro informe de prueba
+    try { ls.setItem(claveRanura(j), JSON.stringify(s)); } catch (_) { return false; }
+    const x = indice(); x.meta[j] = { titulo: `${(x.meta[i] && x.meta[i].titulo) || `Carrera de ${s.nombre}`} (copia)`.slice(0, 30), guardadoEn: Date.now() }; x.borradas = (x.borradas || []).filter(k => k !== j); escribirIndice(x);
+    return true;
+  }
+  const primeraLibre = () => { const r = listarPartidas().find(x => !x.existe && !x.rota && !x.bloqueada); return r ? r.i : -1; };
+  // Copia de todas las carreras para guardarla en la cuenta (la nube). Solo datos de juego.
+  function exportarPartidas() {
+    const ls = LS(), x = indice(), ranuras = [];
+    for (let i = 0; i < totalRanuras(); i++) { let raw = null; try { raw = ls && ls.getItem(claveRanura(i)); } catch (_) { raw = null; } if (raw) ranuras.push({ i, data: raw, titulo: (x.meta[i] || {}).titulo || null, guardadoEn: (x.meta[i] || {}).guardadoEn || null }); }
+    return { v: 1, saveVersion: CFG.saveVersion, activa: x.activa, ranuras, borradas: (x.borradas || []).filter(i => !ranuras.some(r => r.i === i)) };
+  }
+  // Las ranuras borradas aquí ya se han borrado también en la nube
+  function limpiarBorradas(lista) { const x = indice(); x.borradas = (x.borradas || []).filter(i => !(lista || []).includes(i)); escribirIndice(x); }
+  // Traer carreras de la cuenta. Por defecto solo rellena ranuras vacías o más antiguas que la copia; nunca escribe algo
+  // que no sea una partida válida. Las ranuras de pago solo se escriben si las tienes (si no, se quedan en la nube).
+  function importarPartidas(blob, { forzar = false } = {}) {
+    const ls = LS(), r = { escritas: [], omitidas: [], invalidas: [] };
+    if (!ls || !blob || !Array.isArray(blob.ranuras)) return r;
+    const x = indice(), max = ranurasMax();
+    for (const it of blob.ranuras) {
+      if (!it || !okRanura(it.i)) { r.invalidas.push(it && it.i); continue; }
+      if (it.i >= max) { r.omitidas.push(it.i); continue; }
+      let s = null; try { s = migrateSave(JSON.parse(it.data)); } catch (_) { s = null; }
+      if (!s) { r.invalidas.push(it.i); continue; }
+      let local = null; try { local = ls.getItem(claveRanura(it.i)); } catch (_) { local = null; }
+      const tLocal = (x.meta[it.i] || {}).guardadoEn || 0;
+      if (local && !forzar && !((it.guardadoEn || 0) > tLocal)) { r.omitidas.push(it.i); continue; }
+      try { ls.setItem(claveRanura(it.i), JSON.stringify(s)); } catch (_) { r.invalidas.push(it.i); continue; }
+      x.meta[it.i] = { titulo: typeof it.titulo === 'string' ? it.titulo.slice(0, 30) : undefined, guardadoEn: it.guardadoEn || Date.now() };
+      x.borradas = (x.borradas || []).filter(k => k !== it.i);
+      r.escritas.push(it.i);
+    }
+    escribirIndice(x);
+    return r;
   }
   // Busca una partida de P1 en todas sus claves conocidas, de la más nueva a la más antigua.
   // Solo lee: nunca escribe ni borra el guardado original.
@@ -169,5 +293,7 @@
 
   function anotar(s, ic, t) { s.diario.push({ semana: s.semana, ic, t }); if (s.diario.length > 150) s.diario.shift(); }
 
-  Object.assign(P2, { nuevaPartida, migrateSave, rellenar, validar, desdeP1, guardar, cargar, partidaP1, anotar });
+  Object.assign(P2, { nuevaPartida, migrateSave, rellenar, validar, desdeP1, guardar, cargar, partidaP1, anotar,
+    ranurasMax, ranuraActiva, usarRanura, listarPartidas, renombrarPartida, borrarPartida, papelera, deshacerBorrado, copiarPartida, primeraLibre,
+    exportarPartidas, importarPartidas, limpiarBorradas, resumenPartida, claveRanura, totalRanuras });
 })(globalThis.P2 = globalThis.P2 || {});

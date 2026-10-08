@@ -153,6 +153,21 @@ export function createPgRepo({ pool }) {
     },
     async insertAdReward(r) { await this.q('insert into ad_rewards (id, user_id, placement, at) values ($1,$2,$3,$4)', [r.id, r.userId, r.placement, r.at]); },
     async countAdRewards(userId, sinceMs) { return Number((await this.q('select count(*) from ad_rewards where user_id = $1 and at >= $2', [userId, new Date(sinceMs).toISOString()])).rows[0].count); },
+    // --- perfil y carreras en la nube ---
+    async getProfile(userId) { return row((await this.q('select * from profiles where user_id = $1', [userId])).rows[0]); },
+    async upsertProfile(userId, f) {
+      const COLS = { displayName: 'display_name', country: 'country', ageBand: 'age_band', isMinor: 'is_minor', marketingOptIn: 'marketing_opt_in', termsVersion: 'terms_version',
+        termsAcceptedAt: 'terms_accepted_at', parentalStatus: 'parental_status', parentEmail: 'parent_email', parentalRequestedAt: 'parental_requested_at', parentalDecidedAt: 'parental_decided_at' };
+      const ks = Object.keys(f).filter(k => COLS[k]); if (!ks.length) return;
+      const cols = ks.map(k => COLS[k]), vals = ks.map(k => f[k]);
+      await this.q(`insert into profiles (user_id, ${cols.join(', ')}) values ($1, ${cols.map((_, i) => `$${i + 2}`).join(', ')})
+        on conflict (user_id) do update set ${cols.map(c => `${c} = excluded.${c}`).join(', ')}`, [userId, ...vals]);
+    },
+    async listGameSaves(userId) { return rows((await this.q('select slot, data, updated_at from game_saves where user_id = $1 order by slot', [userId])).rows); },
+    async upsertGameSave(userId, slot, data, at) {
+      await this.q('insert into game_saves (user_id, slot, data, updated_at) values ($1,$2,$3,$4) on conflict (user_id, slot) do update set data = excluded.data, updated_at = excluded.updated_at', [userId, slot, JSON.stringify(data), at]);
+    },
+    async deleteGameSave(userId, slot) { await this.q('delete from game_saves where user_id = $1 and slot = $2', [userId, slot]); },
     async deleteAccount(userId, refHash) { await this.q('select delete_account($1, $2)', [userId, refHash]); },
     // --- utilidades de pruebas y operación ---
     async addAdmin(userId) { await this.q('insert into admin_users (user_id) values ($1) on conflict do nothing', [userId]); },

@@ -61,7 +61,7 @@ export async function runEdge(check) {
     check('[e2e] remote-config público y sin datos internos (sin liveModeAllowed, refunds…)', cfg.status === 200 && cfg.body.environment === 'staging' && !('liveModeAllowed' in cfg.body) && !('refunds' in cfg.body));
     const anon = await F('checkout-session', { method: 'POST', body: JSON.stringify({ sku: 'pack_debut', consentWithdrawal: true }) });
     check('[e2e] Sin cuenta no se compra: «Crea una cuenta para proteger y restaurar tus compras…»', anon.status === 401 && /Crea una cuenta/.test(anon.body.message));
-    const soon = await F('checkout-session', { method: 'POST', headers: auth, body: JSON.stringify({ sku: 'pack_street', consentWithdrawal: true }) });
+    const soon = await F('checkout-session', { method: 'POST', headers: auth, body: JSON.stringify({ sku: 'sport_tennis', consentWithdrawal: true }) });
     check('[e2e] «coming_soon» → 403 (no se cobra)', soon.status === 403 && soon.body.error === 'coming_soon');
     const co = await F('checkout-session', { method: 'POST', headers: auth, body: JSON.stringify({ sku: 'pack_debut', consentWithdrawal: true, price: 1, amountMinor: 1, userId: '22222222-2222-4222-8222-222222222222' }) });
     const order = co.body && (await pool.query('select * from orders where id = $1', [co.body.orderId])).rows[0];
@@ -88,11 +88,28 @@ export async function runEdge(check) {
     await F('stripe-webhook', { method: 'POST', headers: { 'stripe-signature': rf.header }, body: rf.raw });
     check('[e2e] Reembolso → entitlement revocado', !(await F('entitlements', { headers: auth })).body.entitlements.includes('cosmetic.debut_pack'));
     const sf = await F('storefront', { method: 'POST', body: JSON.stringify({ game: { hitos: { contrato: 1 } } }) });
-    check('[e2e] Tienda sin cuenta: catálogo con estados (Debut comprable, Street próximamente)', sf.status === 200 && sf.body.products.find(p => p.sku === 'pack_debut').purchasable && sf.body.products.find(p => p.sku === 'pack_street').blocked === 'coming_soon');
+    check('[e2e] Tienda sin cuenta: catálogo con estados (Debut comprable, Tenis próximamente)', sf.status === 200 && sf.body.products.find(p => p.sku === 'pack_debut').purchasable && sf.body.products.find(p => p.sku === 'sport_tennis').blocked === 'coming_soon');
     const adm = await F('admin', { method: 'POST', headers: auth, body: JSON.stringify({ action: 'grant', userId: U, entitlementId: 'sport.climbing', reason: 'hack' }) });
     check('[e2e] Admin: un usuario normal recibe 403', adm.status === 403);
     const err500 = await F('restore', { method: 'POST', headers: auth, body: '{}' });
     check('[e2e] Restaurar responde con la lista de entitlements', err500.status === 200 && Array.isArray(err500.body.entitlements));
+    // ---------- Cuenta: perfil, carreras en la nube y descarga de datos ----------
+    await pool.query('delete from public.profiles where user_id = $1', [U]); await pool.query('delete from public.game_saves where user_id = $1', [U]);
+    const pr0 = await F('profile', { headers: auth });
+    check('[e2e] Perfil: sin edad ni términos → hay que completarlo', pr0.status === 200 && pr0.body.needsProfile === true && !pr0.body.canPurchase);
+    const prBad = await F('profile', { method: 'PATCH', headers: auth, body: JSON.stringify({ country: 'XX' }) });
+    check('[e2e] Perfil: país inventado → 400', prBad.status === 400 && prBad.body.error === 'invalid_country');
+    const pr1 = await F('profile', { method: 'PATCH', headers: auth, body: JSON.stringify({ displayName: 'Web', country: 'ES', ageBand: '18p', acceptTerms: '2026-10-08' }) });
+    check('[e2e] Perfil completo (PATCH) → puede comprar', pr1.status === 200 && pr1.body.canPurchase && !pr1.body.needsProfile);
+    const prAge = await F('profile', { method: 'PATCH', headers: auth, body: JSON.stringify({ ageBand: 'u13' }) });
+    check('[e2e] La edad no se cambia después → 409', prAge.status === 409 && prAge.body.error === 'age_locked');
+    const sv = await F('game-saves', { method: 'PUT', headers: auth, body: JSON.stringify({ ranuras: [{ i: 0, data: JSON.stringify({ saveVersion: 2, semana: 7 }), guardadoEn: 1000, titulo: 'Nube' }] }) });
+    const sg = await F('game-saves', { headers: auth });
+    check('[e2e] Carreras en la nube: subir (PUT) y bajar (GET)', sv.status === 200 && sv.body.guardadas.includes(0) && sg.status === 200 && sg.body.ranuras.length === 1 && JSON.parse(sg.body.ranuras[0].data).semana === 7 && sg.body.ranuras[0].titulo === 'Nube');
+    const sNo = await F('game-saves', { headers: { 'Content-Type': 'application/json' } });
+    check('[e2e] Carreras en la nube: sin sesión → 401', sNo.status === 401);
+    const ex = await F('account-export', { headers: auth });
+    check('[e2e] Descargar mis datos: perfil, compras y carreras', ex.status === 200 && ex.body.profile.displayName === 'Web' && Array.isArray(ex.body.purchases.orders) && ex.body.careers.length === 1);
     // ---------- Navegador real sobre el BUILD WEB (Stripe Checkout por redirección) ----------
     let pw = null; try { pw = (await import('playwright')).default; } catch (_) { try { pw = (await import('/opt/node22/lib/node_modules/playwright/index.js')).default; } catch (_) { pw = null; } }
     if (pw) {

@@ -51,6 +51,9 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     const product = productOrThrow(sku);
     // UE: contenido digital entregado al momento → consentimiento expreso de perder el desistimiento (requiere revisión legal)
     req(consentWithdrawal === true || !config.requireWithdrawalConsent, 'withdrawal_consent_required', 400);
+    // Menores de 13: sin el permiso de su madre, padre o tutor no se abre ningún pago (lo decide el perfil del SERVIDOR)
+    const prof = repo.getProfile ? await repo.getProfile(user.id) : null;
+    req(!(prof && prof.ageBand === 'u13' && prof.parentalStatus !== 'approved'), 'parental_consent_required', 403);
     const ents = await entitlementsOf(user.id);
     const st = productState(product, userCtx(user, ents, { currency }), config);
     req(st.purchasable, st.blocked || 'not_purchasable', st.blocked === 'owned' ? 409 : 403, { requires: st.requires });

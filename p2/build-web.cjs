@@ -9,7 +9,7 @@ const url = env('SUPABASE_URL'), key = env('SUPABASE_PUBLISHABLE_KEY') || env('S
 if (!/^https:\/\/|^http:\/\/(127\.0\.0\.1|localhost)/.test(url) || !key) { console.error('Faltan SUPABASE_URL y SUPABASE_PUBLISHABLE_KEY'); process.exit(1); }
 if (/sb_secret_|service_role|sk_(test|live)_/.test(key)) { console.error('¡Esa clave es SECRETA! El cliente solo lleva la publishable.'); process.exit(1); }
 const MODS = ['catalog/catalog.js', 'core/money.js', 'core/entitlements.js', 'core/orders.js', 'core/config.js', 'core/visibility.js', 'core/router.js', 'core/stripeSignature.js',
-  'core/analytics.js', 'core/service.js', 'core/prestige.js', 'core/sports.js', 'core/ads.js', 'client/providers.js', 'client/httpBackend.js', 'client/webAuth.js', 'client/commerceClient.js'];
+  'core/analytics.js', 'core/service.js', 'core/accounts.js', 'core/prestige.js', 'core/sports.js', 'core/ads.js', 'client/providers.js', 'client/httpBackend.js', 'client/webAuth.js', 'client/commerceClient.js'];
 const root = path.join(__dirname, '..'), dir = path.join(__dirname, 'src');
 let commerce = bundle(MODS, path.join(root, 'commerce')).replace("P2C.BUILD = 'mock';", "P2C.BUILD = 'web';");
 const cfg = `globalThis.P2C_WEB = ${JSON.stringify({ supabaseUrl: url, functionsUrl: `${url}/functions/v1`, publishableKey: key, environment: appEnv })};`;

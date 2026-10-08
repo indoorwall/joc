@@ -40,7 +40,7 @@ export async function runContract(name, makeRepo, check) {
     await buy(c, U, 'remove_ads');
     check(T + 'Stripe Customer: uno por usuario (no se crea en cada compra)', c.stripe.calls.filter(x => x[0] === 'createCustomer').length === 1);
     check(T + 'Producto inexistente → error', await err(c.svc.createCheckout(U, { sku: 'pack_gratis_hack', consentWithdrawal: true })) === 'unknown_product');
-    check(T + 'Producto «coming_soon» no se puede cobrar', await err(c.svc.createCheckout(U, { sku: 'pack_street', consentWithdrawal: true })) === 'coming_soon');
+    check(T + 'Producto «coming_soon» no se puede cobrar', await err(c.svc.createCheckout(U, { sku: 'sport_tennis', consentWithdrawal: true })) === 'coming_soon');
     check(T + 'Producto «draft» no se puede cobrar', await err(c.svc.createCheckout(U, { sku: 'season_pass', consentWithdrawal: true })) !== null);
     check(T + 'Producto solo-promo no se puede cobrar', await err(c.svc.createCheckout(U, { sku: 'promo_press', consentWithdrawal: true })) === 'promo_only');
     check(T + 'Sin sesión no hay checkout', await err(c.svc.createCheckout(null, { sku: 'pack_debut', consentWithdrawal: true })) === 'auth_required');

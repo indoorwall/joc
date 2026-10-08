@@ -3,6 +3,7 @@
 // @deno-types="npm:@types/pg@8.11.10"
 import pg from 'npm:pg@8.13.1';
 import { createCommerceService } from './commerce/core/service.js';
+import { createAccountService } from './commerce/core/accounts.js';
 import { createPgRepo } from './commerce/core/pgRepo.js';
 import { createStripeApi } from './commerce/core/stripeApi.js';
 import { resolveConfig } from './commerce/core/config.js';
@@ -45,4 +46,9 @@ export async function sessionUser(req: Request) {
   if (!u?.id || u.is_anonymous) return null;   // las compras requieren identidad persistente (Apple, Google o email)
   const p = await db().query('select is_tester, is_minor from profiles where user_id = $1', [u.id]);
   return { id: u.id as string, isTester: !!p.rows[0]?.is_tester, isMinor: !!p.rows[0]?.is_minor };
+}
+// Cuentas: perfil (edad, términos, control parental) y carreras en la nube. Misma lógica que el backend simulado.
+export async function accounts() {
+  const commerce = await service();
+  return createAccountService({ repo: createPgRepo({ pool: db() }), commerce });
 }

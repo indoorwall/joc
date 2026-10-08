@@ -792,3 +792,63 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
 .btn.peligro { color: #d93025; }
 .inp { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 2px solid #e2dcf7; font: inherit; }
 .celePack svg { max-height: 220px; }
+
+/* ---------- Mis carreras y Mi cuenta ---------- */
+.carreras > p, .cuentaP > p { color: var(--ink); font-weight: 700; font-size: 14px; margin: 4px 0 12px; }
+.carLista { display: grid; gap: 10px; margin: 10px 0; }
+.carrera { display: grid; grid-template-columns: 58px 1fr; gap: 6px 10px; align-items: center; background: #fff; color: var(--ink); border-radius: 18px; padding: 10px; text-align: left; border: 3px solid transparent; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.carrera.act { border-color: var(--gold); }
+.carrera.bloq { opacity: .82; }
+.carrera.vacia { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; border: 3px dashed #b9b2e6; background: rgba(255,255,255,.7); color: var(--ink); box-shadow: none; cursor: pointer; font: inherit; width: 100%; min-height: 64px; }
+.carrera.vacia small { color: var(--dim); }
+.carrera.vacia.lock { border-color: var(--gold); background: #fffaf0; }
+.carAva { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; background: var(--panel); border: 3px solid var(--gold); }
+.carAva svg { width: 100%; height: 100%; display: block; }
+.carTx { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.carTx b { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.carTx small { font-size: 12.5px; color: var(--dim); line-height: 1.35; }
+.carBtns, .carNota { grid-column: 1 / -1; }
+.carBtns { display: flex; gap: 6px; flex-wrap: wrap; }
+.carBtns .btn.g { flex: 1; min-width: 140px; }
+.deshacer { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.fila2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.fila2 .btn { min-height: 46px; font-size: 14px; }
+.chk { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--dim); margin-top: 10px; text-align: left; }
+.chk input { width: 20px; height: 20px; flex: none; }
+.nubeMsg { color: var(--ink); font-weight: 800; }
+.ventajas { list-style: none; padding: 0; margin: 8px 0; text-align: left; display: grid; gap: 6px; font-weight: 800; font-size: 14px; }
+.ventajas li { background: var(--panel); border-radius: 12px; padding: 7px 10px; }
+.btn.apple { background: #000; box-shadow: 0 4px 0 #444; }
+.btn.google { background: #fff; color: #1f1f1f; border: 2px solid #dadce0; box-shadow: 0 4px 0 #dadce0; }
+.btn.google::before { content: 'G'; font-weight: 900; color: #4285f4; margin-right: 6px; }
+.btn.apple::before { content: '●'; margin-right: 6px; }
+.modal.cuenta { text-align: left; }
+.modal.cuenta h2, .modal.cuenta .copaGrande { text-align: center; }
+.modal.cuenta .inp { width: 100%; box-sizing: border-box; margin-top: 6px; }
+.modal.ocupado { opacity: .7; pointer-events: none; }
+.hojaSis small.eti { display: block; text-align: center; }
+.radios { display: grid; gap: 6px; margin: 10px 0; font-size: 14px; }
+.radios label { display: flex; gap: 8px; align-items: center; background: var(--panel); border-radius: 12px; padding: 8px 10px; }
+.bandeja { display: grid; gap: 2px; background: #fffbea; border: 2px dashed var(--gold); border-radius: 14px; padding: 10px 12px; margin: 10px 0; font-size: 14px; }
+.bandeja small { font-weight: 900; color: var(--gold-d); font-size: 11px; letter-spacing: .04em; }
+.bandeja .cod { font-size: 20px; letter-spacing: .18em; color: var(--ink); }
+.inp.codigo { font-size: 26px; letter-spacing: .5em; text-align: center; font-weight: 900; }
+.campo { display: grid; gap: 4px; margin: 10px 0; font-size: 13px; font-weight: 800; color: var(--dim); }
+.campo b { color: var(--ink); font-size: 15px; }
+.campo small { font-weight: 600; }
+select.inp { background: #fff; }
+.segEdad { display: grid; gap: 6px; }
+.segEdad button { border: 2px solid var(--line); background: #fff; border-radius: 12px; padding: 10px; font: inherit; font-weight: 800; color: var(--ink); cursor: pointer; min-height: 44px; text-align: left; }
+.segEdad button.sel { border-color: var(--blue); background: #eef3ff; }
+.enlace { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); text-decoration: underline; cursor: pointer; font-weight: 800; }
+.legal ul { padding-left: 18px; margin: 6px 0; font-size: 14px; line-height: 1.45; }
+.cuentaHead { display: flex; gap: 12px; align-items: center; }
+.cuentaHead > div:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cuentaHead b { font-size: 18px; }
+.cuentaHead small { color: var(--dim); font-size: 12.5px; overflow-wrap: anywhere; }
+.card.aviso { border: 3px solid var(--gold); }
+.introCuenta .small { text-align: center; }
+.mundoAcc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+.mundoAcc button { border: 0; border-radius: 14px; background: var(--panel); padding: 10px 4px; font: inherit; font-size: 22px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--ink); min-height: 64px; }
+.mundoAcc span { font-size: 12px; font-weight: 900; }
+.flash.quieta { position: static; margin-top: 14px; }

@@ -6,10 +6,10 @@ import { priceFor } from './money.js';
 
 const clone = x => JSON.parse(JSON.stringify(x));
 const EMPTY = () => ({ orders: {}, payments: [], events: {}, grants: [], refunds: [], disputes: {}, purchaseEvents: [], accounts: {}, promos: {}, redemptions: [],
-  rate: {}, analytics: [], admins: [], adminActions: [], receipts: {}, adRewards: [], profiles: {}, providerIds: [], prices: {} });
+  rate: {}, analytics: [], admins: [], adminActions: [], receipts: {}, adRewards: [], profiles: {}, providerIds: [], prices: {}, gameSaves: {} });
 
 export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
-  let S = state ? clone(state) : EMPTY();
+  let S = state ? Object.assign(EMPTY(), clone(state)) : EMPTY();
   let queue = Promise.resolve(), inTx = false;
   const inRange = (at, { from, to } = {}) => (!from || at >= from) && (!to || at < to);
   if (!state) for (const p of catalog.products) for (const [cur, v] of Object.entries(p.prices || {})) if (v != null) S.prices[`${p.id}|${cur}`] = { amountMinor: v, currency: cur };
@@ -136,6 +136,13 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
       S.rate[k] = (S.rate[k] || 0) + 1; return S.rate[k] <= max;
     },
 
+    // --- perfil y carreras en la nube ---
+    async getProfile(userId) { return S.profiles[userId] ? clone(S.profiles[userId]) : null; },
+    async upsertProfile(userId, f) { S.profiles[userId] = Object.assign(S.profiles[userId] || { userId, createdAt: new Date().toISOString() }, clone(f)); },
+    async listGameSaves(userId) { return clone(Object.entries(S.gameSaves[userId] || {}).map(([slot, r]) => ({ slot: Number(slot), data: r.data, updatedAt: r.updatedAt }))); },
+    async upsertGameSave(userId, slot, data, at) { (S.gameSaves[userId] = S.gameSaves[userId] || {})[slot] = { data: clone(data), updatedAt: at }; },
+    async deleteGameSave(userId, slot) { if (S.gameSaves[userId]) delete S.gameSaves[userId][slot]; },
+
     // --- analítica, admin, recibos, anuncios ---
     async insertAnalytics(e) { S.analytics.push(clone(e)); },
     async listAnalytics(r = {}) { return clone(S.analytics.filter(e => inRange(e.at, r))); },
@@ -147,7 +154,7 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
     async insertAdReward(r) { S.adRewards.push(clone(r)); },
     async countAdRewards(userId, sinceMs) { return S.adRewards.filter(r => r.userId === userId && Date.parse(r.at) >= sinceMs).length; },
     async deleteAccount(userId, refHash) {
-      delete S.profiles[userId]; delete S.accounts[userId];
+      delete S.profiles[userId]; delete S.accounts[userId]; delete S.gameSaves[userId];
       for (const e of S.purchaseEvents) if (e.userId === userId) e.userId = null;
       for (const a of S.adminActions) if (a.targetUserId === userId) Object.assign(a, { targetUserId: null, data: Object.assign({}, a.data, { userRefHash: refHash }) });
       S.redemptions = S.redemptions.filter(r => r.userId !== userId);
