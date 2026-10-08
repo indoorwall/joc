@@ -229,7 +229,7 @@ function enClub(oferta = 'puerto', seed = 5) {
 
   // Navegación progresiva
   const nv = P2.nuevaPartida({ seed: 95 });
-  check('Al empezar se ven Inicio, Relaciones, Tienda, Inversiones, Patrimonio, Personaje, Mi historia, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,inversiones,patrimonio,personaje,historia,hitos,ajustes');
+  check('Al empezar se ven Inicio, Relaciones, Tienda, Inversiones, Patrimonio, Premium, Personaje, Mi historia, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,inversiones,patrimonio,premium,personaje,historia,hitos,ajustes');
   check('Relaciones y Tienda están disponibles desde el inicio (antes que Empresa)', ['relaciones', 'tienda'].every(id => nv.secciones.includes(id)) && !nv.secciones.includes('empresa'));
   nv.p.nivel = 56; P2.firmar(nv, 'puerto', null); const nuevas = P2.revisarSecciones(nv, null).map(x => x.id);
   check('Al firmar se abren Liga y Marcas (y se avisa)', nuevas.includes('liga') && nuevas.includes('marcas') && !P2.seccionesVisibles(nv).some(x => x.id === 'empresa') && nv.seccionesNuevas.includes('liga'));
@@ -377,6 +377,21 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Copas: la convocatoria para el Mundial pide nivel y reputación de élite', P2.CONVOCATORIA.nivel >= 70 && P2.CONVOCATORIA.rep >= 50);
   check('Copas y promociones: se guardan con la partida', (() => { const x = enClub('costaReal', sdA || 300); finLiga(x); const m = P2.migrateSave(JSON.parse(JSON.stringify(x))); return JSON.stringify(m.temporada.promocion) === JSON.stringify(x.temporada.promocion) && JSON.stringify(m.temporada.copas) === JSON.stringify(x.temporada.copas); })());
 
+  // ---------- Comercio: comprar nunca da ventajas (gameplay) ----------
+  {
+    const juega = conTodo => {
+      const x = P2.nuevaPartida({ seed: 270 }); const orig = P2.tieneEnt;
+      if (conTodo) P2.tieneEnt = () => true;   // como si tuviera TODOS los packs, deportes, expansiones, Prestige y sin anuncios
+      try { for (let w = 0; w < 60; w++) { resolverTodo(x); P2.jugarSemana(x, P2.POLITICAS.equilibrada.accion(x)) || P2.jugarSemana(x, 'descansar'); } } finally { P2.tieneEnt = orig; }
+      const z = JSON.parse(JSON.stringify(x)); delete z.tele; return z;
+    };
+    const a = juega(false), b = juega(true);
+    check('Comercio: tenerlo TODO comprado no cambia nivel, reputación, marca, dinero ni resultados (60 semanas idénticas)', a.p.nivel === b.p.nivel && a.p.rep === b.p.rep && a.p.marca === b.p.marca && a.p.dinero === b.p.dinero && JSON.stringify(a.temporadasJugadas) === JSON.stringify(b.temporadasJugadas) && JSON.stringify(a.stats) === JSON.stringify(b.stats));
+    check('Comercio: la partida entera es idéntica con o sin compras (salvo lo cosmético)', JSON.stringify(Object.assign({}, a, { look: null, mon: null, monVariante: null })) === JSON.stringify(Object.assign({}, b, { look: null, mon: null, monVariante: null })), Object.keys(a).filter(k => JSON.stringify(a[k]) !== JSON.stringify(b[k])).map(k => k + ':' + JSON.stringify(a[k]).slice(0, 120) + ' VS ' + JSON.stringify(b[k]).slice(0, 120)).join(' ## '));
+    check('Comercio: los cosméticos de pack se desbloquean con el entitlement y no antes', (() => { const x = P2.nuevaPartida({ seed: 271 }); const it = P2.itemLook('ropa', 'debut'); const antes = P2.bloqueoLook(x, it, 'ropa'); const o = P2.tieneEnt; P2.tieneEnt = e => e === 'cosmetic.debut_pack'; const despues = P2.bloqueoLook(x, it, 'ropa'); P2.tieneEnt = o; return !!antes && despues === null; })());
+    check('Comercio: la partida NO guarda compras (la fuente de verdad es la cuenta)', !/entitlement|cosmetic\.|stripe/i.test(JSON.stringify(P2.nuevaPartida({ seed: 272 }))));
+  }
+
   // ---------- Variedad semanal ----------
   const vv = P2.nuevaPartida({ seed: 240 }), nombres = [];
   for (let w = 0; w < 8; w++) { nombres.push(P2.varianteSemana(vv, 'entrenar').n); vv.semana++; }
@@ -429,7 +444,10 @@ function enClub(oferta = 'puerto', seed = 5) {
   const ri = P2.iapIntencion(i1, 'debut', 'si');
   check('Una compra simulada no cobra nada ni toca la economía, el inventario o el azar', ri && ri.cargo === 0 && JSON.stringify({ p: i1.p, acum: i1.acum, inv: i1.inventario, rng: i1.rng, temporada: i1.temporada }) === fi);
   const html = fs.readFileSync(path.join(__dirname, '..', 'p2', 'del_barrio_p2.html'), 'utf8');
-  check('Ninguna compra ni anuncio real: sin conexiones, SDK, checkout ni pagos en el juego', !/fetch\(|XMLHttpRequest|sendBeacon|PaymentRequest|stripe|admob|googletag|StoreKit|billingclient|WebSocket/i.test(html));
+  // El prototipo publicado es SIMULADO: sin red, sin SDK de pago ni de anuncios, sin claves. (El build web real es aparte.)
+  check('Ninguna compra ni anuncio real: sin conexiones de red, sin SDK de pago/anuncios y sin claves en el juego', !/fetch\(|XMLHttpRequest|sendBeacon|PaymentRequest|WebSocket|EventSource|admob|googletag|adsbygoogle|js\.stripe\.com|api\.stripe\.com|checkout\.stripe\.com|loadStripe|SKPaymentQueue|BillingClient/i.test(html));
+  check('Sin secretos en el juego (ni claves de Stripe ni de Supabase)', !/sk_(test|live)_[A-Za-z0-9]{6,}|rk_(test|live)_|whsec_(?!mock_local|test_fake)[A-Za-z0-9]{6,}|sb_secret_|service_role_key|SUPABASE_SERVICE_ROLE/i.test(html));
+  check('El comercio del prototipo es el simulado (backend en el navegador, Stripe falso)', /P2C\.BUILD = 'mock'/.test(html) && !/createHttpBackend|createStripeApi|createPgRepo/.test(html));
   check('No se vende poder ni dinero del juego: los packs son solo estética (y apoyo)', P2.IAP_PRODUCTS.every(I => I.contenido.every(c => Array.isArray(c) ? !!P2.itemLook(c[0], c[1]) : ['skin', 'sinAnuncios', 'espacios', 'texto'].includes(c.tipo))));
   const cosmeticos = P2.IAP_PRODUCTS.flatMap(I => I.contenido.filter(Array.isArray));
   const g1 = P2.nuevaPartida({ seed: 207 }), g2 = P2.nuevaPartida({ seed: 207 });
@@ -775,13 +793,57 @@ let informe;
   check('UI: «Ver anuncio» abre la simulación con la recompensa (sin vídeo ni espera)', (await page.textContent('.modal')).includes('SIMULACIÓN DE ANUNCIO') && (await page.textContent('.modal')).includes('20–30 segundos'));
   await page.tap('[data-act="rwOk"]');
   check('UI: tras aceptar, el reloj sale con el precio rebajado', (await page.textContent('.prod[data-id="relojDep"] .precio')).includes('162'));
+  // ---------- Premium: comercio real (simulado en el navegador, mismo servicio que el servidor) ----------
+  const din0 = await page.evaluate(() => ({ d: __P2.S.p.dinero, n: __P2.S.p.nivel, r: __P2.S.p.rep, m: __P2.S.p.marca }));
   await page.tap('.iapCard [data-act="iap"]');
-  const mtx = await page.textContent('.modal');
-  check('UI: la prueba de compra dice el precio, «TEST» y que no se cobrará nada', mtx.includes('PRUEBA DE COMPRA') && mtx.includes('No se realizará ningún cargo') && /0,99 €/.test(mtx));
-  const din0 = await page.evaluate(() => __P2.S.p.dinero);
-  await page.tap('[data-act="iapResp"][data-v="si"]');
-  check('UI: responder «Sí, lo compraría» no cobra ni cambia el dinero del juego', await page.evaluate(d => __P2.S.p.dinero === d && __P2.S.tele.mon.cuentas.iap_intent_yes === 1, din0));
-  await page.tap('[data-act="iapCerrar"]');
+  const fx = await page.textContent('.pmFicha');
+  check('UI Premium: la oferta abre la ficha con nombre, precio REAL, qué incluye, «solo aspecto» y permanente', fx.includes('Pack Debut') && /0,99 €/.test(fx) && fx.includes('dinero real') && fx.includes('Incluye') && fx.includes('Solo aspecto') && fx.includes('Compra permanente'));
+  check('UI Premium: «Comprar» desactivado hasta marcar la casilla (sin preselección) y «No, gracias» igual de visible', await page.locator('[data-act="pmComprar"]').isDisabled() && !(await page.locator('[data-act="pmConsent"]').isChecked()) && await page.locator('.pmBotones [data-act="pmCerrar"]').isVisible());
+  check('UI Premium: sin cuentas atrás ni urgencia falsa', !/quedan \d|solo hoy|termina en|últimas unidades|oferta expira/i.test(fx));
+  await page.click('[data-act="pmConsent"]', { force: true });
+  await page.click('[data-act="pmComprar"]', { force: true });
+  check('UI Premium: invitado → «Crea una cuenta para proteger y restaurar tus compras en cualquier dispositivo»', (await page.textContent('.modal')).includes('Crea una cuenta para proteger y restaurar tus compras en cualquier dispositivo') && await page.locator('[data-act="pmCerrar"]').isVisible());
+  await page.click('[data-act="pmCrear"][data-v="email"]', { force: true });
+  await page.waitForFunction(() => !__P2.COM.isGuest());
+  await page.click('[data-act="pmComprar"]', { force: true });
+  await page.waitForSelector('.pmCheckout');
+  const ck = await page.textContent('.pmCheckout');
+  check('UI Premium: checkout de prueba (Stripe TEST simulado): no pide tarjeta, no cobra, enseña la referencia', ck.includes('STRIPE TEST') && ck.includes('no se pide ninguna tarjeta') && /Referencia de la orden: [A-Z0-9]{10}/.test(ck));
+  await page.click('[data-act="pmPagar"][data-v="paid"]', { force: true });
+  check('UI Premium: «Estamos verificando tu compra…» (espera al servidor, no a la página de éxito)', (await page.textContent('.modal')).includes('Estamos verificando tu compra'));
+  await page.waitForSelector('.cele-premium', { timeout: 15000 });
+  check('UI Premium: compra confirmada → gran momento «¡DESBLOQUEADO!» y el Pack Debut puesto', (await page.textContent('.cele-premium')).includes('Pack Debut') && await page.evaluate(() => __P2.P2.tieneEnt('cosmetic.debut_pack') && __P2.S.look.ropa === 'debut' && __P2.S.look.calzado === 'debut'));
+  check('UI Premium: comprar no toca el juego (dinero del juego, nivel, reputación y marca iguales)', await page.evaluate(a => __P2.S.p.dinero === a.d && __P2.S.p.nivel === a.n && __P2.S.p.rep === a.r && __P2.S.p.marca === a.m, din0));
+  await page.click('[data-act="celeOk"]', { force: true });
+  await ir(page, 'premium');
+  await page.waitForSelector('.pmTabs');
+  await page.waitForFunction(() => /Completada/.test(document.body.textContent));
+  const mc = await page.textContent('#main');
+  check('UI Premium: «Mis compras» con producto, fecha, proveedor, estado y referencia', mc.includes('Pack Debut') && mc.includes('Completada') && /ref\. [A-Z0-9]{10}/.test(mc) && mc.includes('Restaurar compras'));
+  await page.evaluate(() => { __P2.COM.clearCache(); __P2.render(); });
+  check('UI Premium: con la caché del navegador borrada el pack no aparece…', await page.evaluate(() => !__P2.P2.tieneEnt('cosmetic.debut_pack')));
+  await page.click('[data-act="pmRestaurar"]', { force: true });
+  await page.waitForFunction(() => __P2.P2.tieneEnt('cosmetic.debut_pack'));
+  check('UI Premium: …y «Restaurar compras» lo recupera de la cuenta sin pagar', await page.evaluate(() => __P2.P2.tieneEnt('cosmetic.debut_pack') && __P2.COM.backend._repo.dump().payments.length === 1));
+  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'prestige_world_football_president' }; __P2.render(); });
+  check('UI Premium: Prestige avisa «La compra NO garantiza ganar»', (await page.textContent('.pmFicha')).includes('La compra NO garantiza ganar'));
+  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'prestige_world_climbing_president' }; __P2.render(); });
+  check('UI Premium: dependencia antes de pagar: «Necesitas la expansión Escalada» + botón para verla', (await page.textContent('.pmFicha')).includes('Necesitas la expansión') && (await page.textContent('.pmFicha')).includes('Escalada') && await page.locator('.pmReq [data-act="pmVer"][data-id="sport_climbing"]').count() === 1 && await page.locator('[data-act="pmComprar"]').count() === 0);
+  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'pack_street' }; __P2.render(); });
+  check('UI Premium: «Próximamente» no se puede comprar', (await page.textContent('.pmFicha')).includes('Próximamente') && await page.locator('[data-act="pmComprar"]').count() === 0);
+  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados' }; __P2.render(); });
+  await ir(page, 'premium');
+  check('UI Premium: pestañas Destacados, Packs, Deportes, Expansiones, Prestige, Bundles y Comprado; precios reales con estilo propio', await page.locator('.pmTabs button').count() === 7 && (await page.locator('.precioReal').count()) >= 0 && !(await page.textContent('#main')).includes('gemas'));
+  await ir(page, 'semana');
+  check('UI Premium: la insignia Debut se ve junto a tu semana', (await page.textContent('#top')).includes('🌟'));
+  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'remove_ads', consent: true }; __P2.render(); });
+  await page.click('[data-act="pmComprar"]', { force: true });
+  await page.waitForSelector('.pmCheckout');
+  await page.click('[data-act="pmPagar"][data-v="paid"]', { force: true });
+  await page.waitForSelector('.cele-premium', { timeout: 15000 });
+  await page.click('[data-act="celeOk"]', { force: true });
+  check('UI Premium: «Quitar anuncios» quita los obligatorios (los voluntarios siguen)', await page.evaluate(() => { const S = __P2.S; S.tele.mon.intersticialPend = 'test'; S.tele.mon.intersticialMs = null; return __P2.P2.intersticialAhora(S) === null && __P2.P2.REWARDED && true; }));
+  await page.evaluate(() => { __P2.ui.pm = null; __P2.ui.vista = 'semana'; __P2.render(); });
   await page.tap('.prod[data-id="relojDep"] .deseo').catch(() => {});
   await ir(page, 'inversiones');
   check('UI: «Inversiones» enseña el camino con lo desbloqueado y lo que falta', await page.locator('.inv').count() >= 8 && (await page.textContent('#main')).includes('Segunda inversión'));

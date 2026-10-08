@@ -3,11 +3,13 @@
 import { runContract } from './contract.mjs';
 import { createMemoryRepo } from '../../commerce/core/memoryRepo.js';
 import { runUnit } from './unit.mjs';
+import { runClient } from './client.mjs';
 
 let ok = 0, total = 0;
 const check = (t, c, extra) => { total++; if (c) ok++; console.log(`${c ? 'OK   ' : 'FALLA'} ${t}${!c && extra != null ? ' — ' + extra : ''}`); };
 
 await runUnit(check);
+await runClient(check);
 await runContract('memoria', async () => createMemoryRepo(), check);
 if (process.env.DATABASE_URL) {
   const { runPg } = await import('./pg.mjs');

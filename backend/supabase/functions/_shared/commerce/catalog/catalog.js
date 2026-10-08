@@ -118,7 +118,8 @@ export const PRODUCTS = [
     includes: ['Propietario de club', 'Imperio inmobiliario', 'Agencia de deportistas', 'Organizador de eventos'], assets: { ic: '👑' } }),
   // ---------- Prestige Careers ----------
   ...PRESTIGE_LIST.map(([id, n, ic, price, reqAll, status, reqExtra]) => P({ id: `prestige_${id}`, type: 'PRESTIGE_CAREER', status: status || 'coming_soon', priceEUR: price, entitlements: [`prestige.${id}`],
-    requires: reqAll || reqExtra ? Object.assign({}, reqAll ? { all: reqAll } : {}, reqExtra || {}) : null, name: n, description: 'Desbloquea la campaña jugable para intentar conseguir este cargo. La compra NO garantiza ganar.',
+    requires: reqAll || reqExtra ? Object.assign({}, reqAll ? { all: reqAll } : {}, reqExtra || {}) : null, name: n, description: 'Carrera Prestige: una campaña nueva para optar a este cargo con lo que has construido en tu carrera.',
+    disclaimer: 'Desbloquea la campaña jugable para intentar conseguir este cargo. La compra NO garantiza ganar.',
     includes: ['Campaña jugable: elegibilidad, candidatura, apoyos, campaña, votación, mandato y reelección'], prestige: id, assets: { ic } })),
   P({ id: 'prestige_bundle', type: 'BUNDLE', priceEUR: 399, entitlements: ['prestige.world_football_president', 'prestige.league_president', 'prestige.national_federation', 'prestige.national_coach', 'prestige.sporting_director', 'prestige.agent', 'prestige.referee', 'prestige.media_personality'],
     bundleContents: ['prestige_world_football_president', 'prestige_league_president', 'prestige_national_federation', 'prestige_national_coach', 'prestige_sporting_director', 'prestige_agent', 'prestige_referee', 'prestige_media_personality'],

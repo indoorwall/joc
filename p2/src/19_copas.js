@@ -51,7 +51,7 @@
         const m = mj(s), gana = m && m.tipo === 'final' ? m.p >= 0.6 : azar(s, `${c.id}|final|${T.num}`) < prob(s);
         c.estado = gana ? 'campeon' : 'subcampeon';
         aplicar(s, gana ? C.gana : C.pierde);
-        if (gana) { (s.trofeos = s.trofeos || []).push({ ic: C.ic, n: C.n, semana: s.semana }); P2.celebrar(s, Object.assign({ tipo: 'titulo', n: C.n, ic: C.ic }, C.gana)); }
+        if (gana) { (s.trofeos = s.trofeos || []).push({ id: c.id, ic: C.ic, n: C.n, semana: s.semana }); P2.celebrar(s, Object.assign({ tipo: 'titulo', n: C.n, ic: C.ic }, C.gana)); }
         R.grandes = (R.grandes || []).concat({ ic: gana ? C.ic : '😖', titulo: gana ? `¡CAMPEONES DE LA ${C.n.toUpperCase()}!` : `Final perdida: ${C.n}`, bien: gana,
           texto: gana ? `${efectoTxt(C.gana)}.` : `Subcampeones. ${efectoTxt(C.pierde)}. La prensa no habla de otra cosa.` });
         R.lineas.push([gana ? C.ic : '😖', gana ? `¡Ganáis la final de la ${C.n}!` : `Perdéis la final de la ${C.n}.`, gana ? 'bien' : 'mal']);
@@ -114,7 +114,7 @@
     R.lineas.push([X.ic, `${X.n}: ${gana ? '¡la ganáis!' : 'la perdéis.'}`, gana ? 'bien' : 'mal']);
     if (pr.clase === 'titulo') {
       aplicar(s, gana ? { dinero: 1500, rep: 4, marca: 3, confianza: 6 } : { rep: 1, confianza: -3 });
-      if (gana) { (s.trofeos = s.trofeos || []).push({ ic: '👑', n: `Liga · ${LIGAS[T.liga].corto}`, semana: s.semana }); P2.celebrar(s, { tipo: 'titulo', n: `Liga · ${LIGAS[T.liga].n}`, ic: '👑', dinero: 1500, rep: 4, marca: 3 }); }
+      if (gana) { (s.trofeos = s.trofeos || []).push({ id: 'liga', ic: '👑', n: `Liga · ${LIGAS[T.liga].corto}`, semana: s.semana }); P2.celebrar(s, { tipo: 'titulo', n: `Liga · ${LIGAS[T.liga].n}`, ic: '👑', dinero: 1500, rep: 4, marca: 3 }); }
       R.grandes = (R.grandes || []).concat({ ic: gana ? '👑' : '🥈', titulo: gana ? '¡CAMPEONES DE LIGA!' : 'Subcampeones de liga', bien: gana, texto: gana ? '+1.500 €, +4 reputación, +3 marca. Y la temporada que viene, Copa de Europa.' : 'Tan cerca… Aun así, la temporada que viene jugáis la Copa de Europa.' });
     } else if (pr.clase === 'ascenso' && !gana) { aplicar(s, { rep: -1, confianza: -5 }); R.grandes = (R.grandes || []).concat({ ic: '😖', titulo: 'Os quedáis a las puertas', bien: false, texto: 'Perdéis la promoción: seguís en la misma categoría. −5 de confianza del míster.' }); }
     else if (pr.clase === 'ascenso' && gana) R.grandes = (R.grandes || []).concat({ ic: '🎉', titulo: '¡ASCENSO!', bien: true, texto: `Ganáis la promoción: la temporada que viene jugáis en ${LIGAS[LIGAS[T.liga].sube].n}.` });

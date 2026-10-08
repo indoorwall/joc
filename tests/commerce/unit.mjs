@@ -27,7 +27,7 @@ export async function runUnit(check) {
   check('Catálogo: el Prestige Bundle no incluye carreras futuras (8 con nombre)', getProduct('prestige_bundle').entitlements.length === 8);
   check('Catálogo: vertical slice — Pack Debut active; Escalada y Presidente Mundial en testing', getProduct('pack_debut').status === 'active' && getProduct('sport_climbing').status === 'testing' && getProduct('prestige_world_football_president').status === 'testing');
   check('Catálogo: Presidente Mundial de Escalada requiere sport.climbing; Comité Mundial requiere 2 deportes', getProduct('prestige_world_climbing_president').requires.all.includes('sport.climbing') && getProduct('prestige_world_sports_committee').requires.anyCount.n === 2);
-  check('Catálogo: Prestige avisa de que comprar NO garantiza ganar', PRODUCTS.filter(p => p.type === 'PRESTIGE_CAREER').every(p => /NO garantiza ganar/.test(p.description)));
+  check('Catálogo: Prestige avisa de que comprar NO garantiza ganar', PRODUCTS.filter(p => p.type === 'PRESTIGE_CAREER').every(p => /NO garantiza ganar/.test(p.disclaimer)));
   check('Catálogo: sin marcas oficiales sin licencia (FIFA, FIBA, IFSC, COI/IOC, UEFA)', !/\b(FIFA|FIBA|IFSC|IOC|COI|UEFA)\b/.test(JSON.stringify(CATALOG)));
   check('Catálogo: ningún entitlement es de tipo poder (solo cosmetic/ads/slots/sport/expansion/prestige)', Object.values(ENTITLEMENTS).every(e => ['cosmetic', 'ads', 'slots', 'sport', 'expansion', 'prestige'].includes(e.kind)));
   check('Catálogo: sin moneda premium (gemas, diamantes, tokens)', !/gema|diamante|token|coins?\b/i.test(PRODUCTS.map(p => p.name + p.description).join(' ')));

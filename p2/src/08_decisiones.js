@@ -319,13 +319,14 @@
     { id: 'inversiones', ic: '📈', n: 'Inversiones', grupo: 'imperio', cond: () => true },
     { id: 'empresa', ic: '💼', n: 'Empresa', grupo: 'imperio', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
     { id: 'patrimonio', ic: '💰', n: 'Patrimonio', grupo: 'imperio', cond: () => true },
+    { id: 'premium', ic: '💎', n: 'Premium', grupo: 'imperio', cond: () => true, d: 'Packs, deportes y carreras con dinero real. Solo identidad y más juego: nunca ventajas.' },
     { id: 'personaje', ic: '🧍', n: 'Personaje', grupo: 'perfil', cond: () => true },
     { id: 'historia', ic: '🏆', n: 'Mi historia', grupo: 'perfil', cond: () => true },
     { id: 'hitos', ic: '🏅', n: 'Hitos', grupo: 'perfil', cond: () => true },
     { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
   const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'vida', ic: '❤️', n: 'Vida' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
-  const BASICAS = ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'];
+  const BASICAS = ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes', 'premium'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {
     s.secciones = Array.isArray(s.secciones) ? s.secciones : BASICAS.slice();

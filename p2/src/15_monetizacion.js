@@ -249,7 +249,7 @@
   // ---------- Anuncio obligatorio simulado (muy limitado) ----------
   function intersticialAhora(s) {
     const m = M(s), C = MONETIZATION.interstitial;
-    if (!activa() || !C.activo || !m.intersticialPend || m.sinAnuncios || s.pendiente) return null;
+    if (!activa() || !C.activo || !m.intersticialPend || m.sinAnuncios || P2.tieneEnt('ads.remove_interstitial') || s.pendiente) return null;
     const ms = (s.tele && s.tele.msActivo) || 0;
     if (m.intersticialMs != null && ms - m.intersticialMs < C.minutosEntre * 60000) { teleMon(s, 'interstitial_skipped', { momento: m.intersticialPend, motivo: 'frecuencia' }); m.intersticialPend = null; return null; }
     return m.intersticialPend;

@@ -94,7 +94,7 @@
     const SEC = P2.SECCIONES.find(x => x.id === ui.vista);
     if (ui.vista !== 'semana') return `<button class="atras" data-act="vista" data-v="semana">‹ Jugar</button><div class="hwho"><b>${SEC ? `${SEC.ic} ${esc(SEC.id === 'relaciones' ? 'Vida' : SEC.id === 'personaje' ? 'Perfil' : SEC.n)}` : ''}</b></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>`;
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
-      <div class="hwho"><b>Semana ${s.semana} <span class="vidasTop">${'❤️'.repeat(P2.vidas(s).n)}</span></b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>
+      <div class="hwho"><b>Semana ${s.semana} ${insignias()}<span class="vidasTop">${'❤️'.repeat(P2.vidas(s).n)}</span></b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>
       <button class="mundoBtn" data-act="mundo" aria-label="Mi mundo">🌍${hayNovedad(s) ? '<i aria-label="hay novedades"></i>' : ''}</button>
       <div class="ener" aria-label="Energía ${Math.round(s.p.energia)}">⚡<div class="bar"><i style="width:${Math.round(s.p.energia)}%"></i></div>${Math.round(s.p.energia)}</div>`;
   }
@@ -160,10 +160,12 @@
   const precioTxt = p => `${String(p.toFixed(2)).replace('.', ',')} €`;
   function htmlIapCard(s, id, donde) {
     const I = P2.IAP_PRODUCTS.find(x => x.id === id); if (!I) return '';
+    const sku = OLD_IAP[id], Pc = sku && P2C.getProduct(sku);
+    if (Pc && Pc.entitlements.every(e => P2.tieneEnt(e))) return '';   // lo que ya tienes no se vuelve a ofrecer
     P2.iapMostrado(s, id, donde);
     return `<div class="card iapCard rz-${I.rareza || 'raro'}">${donde === 'momento' ? `<small class="mom">${TITULO_MOMENTO[I.momentoOferta] || '🎉'}</small>` : ''}
       <div class="fila"><div class="iapPrev">${P2.avatarSVG(s, lookPack(s, I), 'busto')}</div><div><b>${I.ic} ${esc(I.nombre.toUpperCase())}</b><p class="small">${esc(I.descripcion)}</p></div></div>
-      <button class="btn full iapBtn" data-act="iap" data-id="${I.id}">Ver · ${precioTxt(I.precio)} <span class="lab">🧪 TEST · sin cargo</span></button>
+      <button class="btn full iapBtn" data-act="iap" data-id="${I.id}">Ver · ${realTxt(((P2C.getProduct(OLD_IAP[I.id]) || {}).prices || {}).EUR || Math.round(I.precio * 100))} <span class="lab">💎 Premium</span></button>
       ${donde === 'momento' ? '<button class="btn w full" data-act="iapNo">No, gracias</button>' : ''}</div>`;
   }
   // Cómo te quedaría el pack (vista previa)
@@ -386,7 +388,7 @@
       ${htmlOfertaEspecial(s, tile)}
       <div class="cats" role="tablist">${P2.CATEGORIAS_TIENDA.map(c => `<button role="tab" aria-selected="${c.id === cat}" data-act="cat" data-v="${c.id}" class="${c.id === cat ? 'sel' : ''}"><span>${c.ic}</span>${c.n}</button>`).join('')}</div>
       <div class="prods">${prods.map(tile).join('')}</div>
-      ${htmlCosas(s)}${htmlColecciones(s)}${htmlPremium(s)}`;
+      ${htmlCosas(s)}${htmlColecciones(s)}${htmlPremiumTienda(s)}`;
   }
   function htmlOfertaEspecial(s, tile) {
     if (!P2.MONETIZATION.activa) return '';
@@ -402,12 +404,12 @@
       return `<div class="kv"><span>${C.ic} <b>${esc(C.n)}</b> <span class="small">${C.items.map(id => `${P2.producto(id).ic}`).join(' ')}</span></span><b>${ok ? `✅ ${esc(C.premioN)}` : `${p.tengo}/${p.total}`}</b></div>`;
     }).join('')}</div>`;
   }
-  // Estilo premium: solo variante C del test y solo como prueba de intención (sin cargo)
-  function htmlPremium(s) {
+  // Escaparate «Estilo premium» dentro de la Tienda (variante C del test): lleva a la ficha de Premium
+  function htmlPremiumTienda(s) {
     if (!P2.MONETIZATION.activa) return '';
     const l = P2.IAP_PRODUCTS.filter(I => I.categoria === 'cosmetico' && P2.iapEnVariante(s, I.id) && s.monVariante === 'C');
     if (!l.length) return '';
-    return `<div class="sec"><span>⭐ Estilo premium</span><span class="lab">🧪 TEST · sin cargo</span></div><p class="small blanco">Solo estética. Lo que ayuda a jugar se compra siempre con dinero del juego.</p>${l.map(I => htmlIapCard(s, I.id, 'tienda')).join('')}`;
+    return `<div class="sec"><span>⭐ Estilo premium</span><span class="lab">💎 dinero real</span></div><p class="small blanco">Solo estética. Lo que ayuda a jugar se compra siempre con dinero del juego.</p>${l.map(I => htmlIapCard(s, I.id, 'tienda')).join('')}`;
   }
   // Tus cosas: lo que llevas puesto en cada hueco y tu colección
   function htmlCosas(s) {
@@ -447,7 +449,7 @@
     const sa = P2.iapEnVariante(s, 'sinAnuncios');
     return `<div class="overlay" role="dialog" aria-label="Anuncio simulado"><div class="modal">
       <small class="lab">🧪 MONETIZATION LAB</small><h2>📺 Anuncio</h2><p>En la versión gratuita aquí aparecería un anuncio breve.</p>
-      <button class="btn full" data-act="interOk">Continuar</button>${sa ? '<button class="btn w full" data-act="iap" data-id="sinAnuncios">🚫 Sin anuncios · 2,99 € <span class="lab">🧪 TEST</span></button>' : ''}</div></div>`;
+      <button class="btn full" data-act="interOk">Continuar</button>${sa ? `<button class="btn w full" data-act="iap" data-id="sinAnuncios">🚫 Quitar anuncios · ${realTxt(P2C.getProduct('remove_ads').prices.EUR)} <span class="lab">💎 Premium</span></button>` : ''}</div></div>`;
   }
   function htmlDeseoAviso(s) {
     const a = P2.monEstado(s).deseoAviso, P = P2.producto(a.id);
@@ -531,7 +533,7 @@
   function htmlAjustes(s) {
     const B = ui.balance;
     const lab = P2.MONETIZATION.activa ? P2.IAP_PRODUCTS.filter(I => P2.iapEnVariante(s, I.id) && (I.categoria !== 'cosmetico') && (I.id !== 'founder' || ((s.tele || {}).msActivo || 0) >= P2.MONETIZATION.iap.minutosFounder * 60000)) : [];
-    return `${htmlInforme(s)}${lab.length ? `<div class="sec"><span>🧪 Productos en prueba</span><span>variante ${esc(s.monVariante || '')}</span></div><p class="small blanco">No se cobra nada: solo queremos saber si te interesarían.</p>${lab.map(I => htmlIapCard(s, I.id, 'ajustes')).join('')}` : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
+    return `${htmlInforme(s)}<div class="card"><h2>💎 Premium y compras</h2><p class="small">Packs, deportes y carreras. Tus compras están en tu cuenta (simulada en esta versión).</p><button class="btn full" data-act="vista" data-v="premium">Abrir Premium · Mis compras · Restaurar</button></div>${lab.length && false ? '' : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
       <div class="sec">Copia de seguridad</div><p class="small">Copia este código para guardar la partida fuera del navegador.</p>
       <textarea id="codigo" readonly>${esc(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}</textarea>
       <textarea id="importar" placeholder="Pega aquí un código para cargarlo"></textarea>
@@ -593,6 +595,7 @@
       <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
         ${kv('🚗 Vehículos', H.vehiculos.length ? H.vehiculos.map(P => P.ic).join(' ') : '—')}${kv('🏠 Viviendas', H.viviendas.map(P => P.ic).join(' → '))}
         ${kv('🏆 Títulos', H.trofeos.length ? H.trofeos.map(x => `${x.ic} ${esc(x.n)}`).join(', ') : '—')}
+        ${VITRINA.some(([e]) => P2.tieneEnt(e)) ? kv('💎 Vitrina', VITRINA.filter(([e]) => P2.tieneEnt(e)).map(([, ic, n]) => `${ic} ${esc(n)}`).join(', ')) : ''}
         ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
@@ -799,6 +802,10 @@
         <div class="estrellas" aria-hidden="true">${Array.from({ length: 5 }, (_, i) => `<i style="--i:${i}">⭐</i>`).join('')}</div>`;
     } else if (c.tipo === 'salvados') {
       h = `<small class="eti">🛟 ¡SALVADOS!</small><div class="copaGrande flota">🛟</div><h2>${esc(c.club)} sigue en ${esc(c.liga)}</h2><p>Sufrimiento hasta el final, pero la categoría se queda en casa.</p>`;
+    } else if (c.tipo === 'premium') {
+      const iap = SKU_IAP[c.sku] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[c.sku]);
+      h = `<small class="eti">💎 ¡DESBLOQUEADO!</small>${iap && iap.contenido.some(Array.isArray) ? `<div class="iapPrev grande celePack">${P2.avatarSVG(s, null, 'cuerpo')}</div>` : `<div class="copaGrande">${c.ic}</div>`}<h2>${esc(c.n)}</h2>
+        <div class="chipsCele">${(c.includes || []).slice(0, 6).map(x => `<span>${esc(x)}</span>`).join('')}</div><p class="small">Ya está en tu cuenta. Si cambias de móvil o empiezas otra carrera, lo recuperas con «Restaurar compras».</p>`;
     } else if (c.tipo === 'convocatoria') {
       h = `<small class="eti">🌍 ¡CONVOCATORIA!</small><div class="copaGrande">🌍</div><h2>¡Te llama la selección!</h2><p>La temporada que viene juegas el Mundial. Si llegáis a la final, la juegas tú.</p>`;
     }
@@ -931,7 +938,7 @@
   // ---- Mi mundo: todo lo demás, con iconos grandes ----
   const MUNDO = [['personaje', '👤', 'Perfil', '#8b5cf6'], ['relaciones', '❤️', 'Vida', '#ff4f8b'], ['tienda', '🛍️', 'Tienda', '#d94bff'], ['inversiones', '📈', 'Inversiones', '#12bfae'],
     ['liga', '📊', 'Liga', '#2f7bff', 'Al fichar'], ['marcas', '🤝', 'Marcas', '#ff9a2e', 'Al fichar'], ['empresa', '💼', 'Empresa', '#0b8a7e', 'Más adelante'], ['patrimonio', '💰', 'Patrimonio', '#e8a000'],
-    ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
+    ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['premium', '💎', 'Premium', '#111827'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
   function htmlMundo(s) {
     const vis = P2.seccionesVisibles(s).map(x => x.id), av = avisos(s), nuevas = s.seccionesNuevas || [];
     return `<div class="velo" data-act="cerrarMundo"><div class="hoja" role="dialog" aria-label="Mi mundo"><div class="asa"></div><h3>🌍 Mi mundo</h3>
@@ -956,6 +963,128 @@
   const foto = s => ({ dinero: s.p.dinero, energia: s.p.energia, nivel: s.p.nivel, rep: s.p.rep, marca: s.p.marca || 0, confianza: s.confianza });
   function fiestasDe(hitos, desb) { return (hitos || []).map(H => ({ tipo: 'hito', H })).concat((desb || []).filter(x => x.id !== 'empresa').map(x => ({ tipo: 'nuevo', x }))); }
 
+
+  // =====================================================================
+  // 💎 PREMIUM: comercio real (aquí, SIMULADO: backend en el navegador y Stripe falso, sin red ni cobro)
+  // La partida no es la fuente de verdad: la cuenta sí. El juego pregunta P2.tieneEnt('…').
+  // =====================================================================
+  const almacen = (() => { try { const k = '__dban_t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; } catch (_) { const m = new Map(); return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k) }; } })();
+  let COM = null;
+  function comercio() {
+    if (COM || !globalThis.P2C) return COM;
+    const be = P2C.createMockBackend({ storage: almacen });
+    COM = P2C.createCommerceClient({ backend: be, storage: almacen, platform: 'mock', config: { rewarded: { minigameLife: true } } });
+    COM.backend = be;
+    P2.tieneEnt = e => COM.has(e);
+    return COM;
+  }
+  comercio();
+  const realTxt = m => (globalThis.P2C ? P2C.formatMinor(m) : `${(m / 100).toFixed(2).replace('.', ',')} €`);
+  const OLD_IAP = { debut: 'pack_debut', street: 'pack_street', pro: 'pack_pro', luxury: 'pack_luxury', founder: 'founder_pack', sinAnuncios: 'remove_ads', espacios: 'extra_save_slots_3' };
+  const SKU_IAP = Object.fromEntries(Object.entries(OLD_IAP).map(([k, v]) => [v, k]));
+  const PM_TABS = [['destacados', '✨ Destacados'], ['packs', '🧢 Packs'], ['deportes', '🏅 Deportes'], ['expansiones', '🏗️ Expansiones'], ['prestige', '🎖️ Prestige'], ['bundles', '🎁 Bundles'], ['comprado', '🧾 Comprado']];
+  const PM_TIPOS = { packs: ['COSMETIC_PACK', 'SUPPORTER_PACK', 'REMOVE_ADS', 'SAVE_SLOTS'], deportes: ['SPORT_EXPANSION'], expansiones: ['SYSTEM_EXPANSION'], prestige: ['PRESTIGE_CAREER'], bundles: ['BUNDLE'] };
+  const TIPO_TXT = { COSMETIC_PACK: 'Pack cosmético', SUPPORTER_PACK: 'Pack de apoyo', REMOVE_ADS: 'Sin anuncios', SAVE_SLOTS: 'Ranuras de carrera', SPORT_EXPANSION: 'Deporte', SYSTEM_EXPANSION: 'Expansión', PRESTIGE_CAREER: 'Prestige Career', BUNDLE: 'Bundle', PROMO: 'Promoción' };
+  const ESTADO_TXT = { CREATED: 'Creada', PENDING: 'Pendiente', PAID: 'Pagada', FULFILLED: 'Completada', FAILED: 'Fallida', CANCELLED: 'Cancelada', REFUNDED: 'Reembolsada', PARTIALLY_REFUNDED: 'Reembolso parcial', DISPUTED: 'En disputa', REVOKED: 'Revocada' };
+  function ctxJuego(s) {
+    const club = s && s.contrato ? String((P2.OFERTAS[s.contrato.oferta] || {}).club || '').replace(/B$/, '') : null;
+    return { hitos: (s && s.hitos) || {}, trophies: ((s && s.trofeos) || []).map(x => x.id).filter(Boolean), club };
+  }
+  const nombreEnt = e => ((P2C.CATALOG.entitlements[e] || {}).n || e);
+  // Si una compra se reembolsa, lo que llevabas puesto de ese pack vuelve a lo básico
+  function limpiarLook(s) {
+    if (!s || !s.look) return;
+    for (const [cap] of P2.CAPAS_LOOK) { const it = P2.itemLook(cap, s.look[cap]); if (it && P2.bloqueoLook(s, it, cap)) s.look[cap] = P2.LOOK_INICIAL[cap]; }
+  }
+  async function pmAsync(fn) {
+    try { await fn(); } catch (e) { ui.pm = Object.assign(ui.pm || {}, { error: e.code || e.message }); }
+    limpiarLook(S); if (S) P2.guardar(S); render();
+  }
+  const pmErrorTxt = c => ({ account_required: 'Necesitas una cuenta.', offline: 'Sin conexión: puedes seguir jugando, pero las compras necesitan internet.', owned: 'Ya es tuyo.', coming_soon: 'Todavía no está disponible.',
+    requires: 'Te falta un requisito.', withdrawal_consent_required: 'Marca la casilla para continuar.', promo_invalid: 'Ese código no existe.', promo_already_redeemed: 'Ya has usado ese código.', promo_exhausted: 'Ese código ya no tiene canjes.',
+    promo_expired: 'Ese código ha caducado.', rate_limited: 'Demasiados intentos. Prueba en unos minutos.', provider_unavailable: 'Este método de pago no está disponible aquí.' }[c] || 'Algo ha fallado. No se ha cobrado nada.');
+  function pmCard(x) {
+    const P = x.product, st = x.state, ic = (P.assets && P.assets.ic) || '💎';
+    const etiqueta = st.owned ? '<span class="pmEstado ok">✓ Tuyo</span>' : P.status === 'coming_soon' ? '<span class="pmEstado">Próximamente</span>' : st.blocked === 'requires' ? '<span class="pmEstado">🔒 Requisito</span>' : st.price ? `<span class="precioReal">${realTxt(st.price.amountMinor)}</span>` : '';
+    return `<button class="pmCard ${st.owned ? 'tuyo' : ''}" data-act="pmVer" data-id="${esc(P.id)}"><span class="pmIc" style="background:${esc((P.assets && P.assets.color) || '#7c5cff')}">${ic}</span>
+      <span class="pmTx"><b>${esc(P.name)}</b><small>${esc(TIPO_TXT[P.type] || '')}${P.cosmeticOnly ? ' · solo aspecto' : ''}${st.partiallyOwned ? ' · ya tienes una parte' : ''}</small></span>${etiqueta}</button>`;
+  }
+  function htmlPremium(s) {
+    const C = comercio(); if (!C) return '<div class="card"><p>La tienda Premium no está disponible.</p></div>';
+    const pm = ui.pm || (ui.pm = { tab: 'destacados' });
+    const store = C.store(ctxJuego(s));
+    const tabs = `<div class="pmTabs" role="tablist">${PM_TABS.map(([k, n]) => `<button role="tab" aria-selected="${pm.tab === k}" class="${pm.tab === k ? 'sel' : ''}" data-act="pmTab" data-v="${k}">${n}</button>`).join('')}</div>`;
+    const cabecera = `<div class="card pmHead"><h2>💎 Premium</h2><p class="small">Gratis para jugar. Aquí solo hay <b>identidad</b> y <b>más juego</b>: nunca nivel, victorias, ascensos ni dinero del juego.</p>
+      <p class="small pmModo">🧪 Versión de prueba: compras <b>simuladas</b> (Stripe en modo test, sin red). No se cobra nada.</p>
+      ${C.isGuest() ? `<button class="btn w full" data-act="pmCuenta">🔐 Crear cuenta para proteger tus compras</button>` : `<p class="small">Cuenta: <b>${esc(C.account().email || 'sin email')}</b> · ${esc(C.account().method)} (simulada)</p>`}</div>`;
+    let cuerpo = '';
+    if (pm.tab === 'comprado') cuerpo = htmlMisCompras(s, C);
+    else {
+      const lista = pm.tab === 'destacados' ? (store.featured.length ? store.featured.map(p => store.products.find(x => x.product.id === p.id)).filter(Boolean) : store.products.filter(x => x.state.purchasable).slice(0, 3))
+        : store.products.filter(x => (PM_TIPOS[pm.tab] || []).includes(x.product.type));
+      cuerpo = `<div class="pmLista">${lista.map(pmCard).join('') || '<p class="small blanco">Nada por aquí todavía. Lo que se puede comprar aparece según avanzas en tu carrera.</p>'}</div>`;
+      if (pm.tab === 'destacados' && C.entitlements().length) cuerpo += `<div class="card"><h3>✓ Ya tienes</h3><p class="small">${C.entitlements().map(e => esc(nombreEnt(e))).join(' · ')}</p></div>`;
+    }
+    return cabecera + tabs + cuerpo;
+  }
+  function htmlMisCompras(s, C) {
+    if (C.isGuest()) return `<div class="card"><h3>🧾 Mis compras</h3><p>${esc(C.terms.accountPrompt)}</p><button class="btn full" data-act="pmCuenta">Crear cuenta</button><button class="btn w full" data-act="pmEntrar">Ya tengo cuenta</button></div>`;
+    const H = ui.pm.hist;
+    const filas = H ? (H.orders.length ? H.orders.map(o => `<div class="lin"><span class="ic">${o.status === 'FULFILLED' ? '✅' : /REFUND|REVOK/.test(o.status) ? '↩️' : o.status === 'FAILED' || o.status === 'CANCELLED' ? '✖️' : '⏳'}</span><span><b>${esc(o.name)}</b> · ${esc(realTxt(o.amountMinor))}<br><span class="small">${esc(new Date(o.date).toLocaleDateString('es-ES'))} · ${esc(o.provider === 'stripe' ? 'Stripe (simulado)' : o.provider)} · ${esc(ESTADO_TXT[o.status] || o.status)} · ref. ${esc(o.orderRef)}</span></span></div>`).join('') : '<p class="small">Todavía no has comprado nada.</p>')
+      + (H.other || []).map(g => `<div class="lin"><span class="ic">🎁</span><span>${esc(nombreEnt(g.entitlementId))}<br><span class="small">${esc(g.source === 'promo' ? 'Código promocional' : g.source === 'admin' ? 'Regalo del equipo' : g.source)} · ${esc(g.status === 'active' ? 'activo' : g.status)}</span></span></div>`).join('') : '<p class="small">Cargando…</p>';
+    return `<div class="card"><h3>🧾 Mis compras</h3>${filas}<p class="small">¿Problemas con una compra? Escríbenos con la <b>referencia de la orden</b>. Nunca te pediremos datos de tu tarjeta.</p></div>
+      <div class="card"><h3>🔄 Restaurar</h3><p class="small">Tus compras están en tu cuenta, no en la partida: si cambias de móvil o empiezas otra carrera, las recuperas aquí sin volver a pagar.</p>
+        <button class="btn full" data-act="pmRestaurar">Restaurar compras</button><button class="btn w full" data-act="pmSync">Sincronizar compras</button>${C.lastSync() ? `<p class="small">Última sincronización: ${esc(new Date(C.lastSync()).toLocaleString('es-ES'))}</p>` : ''}</div>
+      <div class="card"><h3>🎟️ Código promocional</h3><div class="fila"><input id="pmPromo" class="inp" maxlength="40" placeholder="CÓDIGO" autocomplete="off"><button class="btn" data-act="pmPromo">Canjear</button></div>${ui.pm.promoMsg ? `<p class="small">${esc(ui.pm.promoMsg)}</p>` : ''}</div>
+      <div class="card"><h3>👤 Cuenta</h3><p class="small">${esc(C.account().email || '')} · ${esc(C.account().method)} (simulada)</p><button class="btn w full" data-act="pmSalir">Cerrar sesión</button><button class="btn w full peligro" data-act="pmBorrarCuenta">Eliminar cuenta</button>
+        <p class="small">Eliminar la cuenta borra tus datos personales. Los registros contables de las compras se conservan anonimizados porque la ley lo exige.</p></div>`;
+  }
+  // Ficha y pasos de compra (capa encima del juego)
+  function htmlPmCapa(s) {
+    const C = comercio(), pm = ui.pm; if (!C || !pm) return '';
+    const P = pm.sku && P2C.getProduct(pm.sku);
+    const err = pm.error ? `<p class="pmErr" role="alert">${esc(pmErrorTxt(pm.error))}</p>` : '';
+    if (pm.paso === 'cuenta') return `<div class="overlay" role="dialog" aria-label="Crear cuenta"><div class="modal"><h2>🔐 Crea una cuenta</h2><p>${esc(C.terms.accountPrompt)}</p>
+      <button class="btn full" data-act="pmCrear" data-v="apple"> Continuar con Apple</button><button class="btn full" data-act="pmCrear" data-v="google">G Continuar con Google</button><button class="btn full" data-act="pmCrear" data-v="email">✉️ Enlace mágico por email</button>
+      <p class="small">🧪 Simulado: no se crea ninguna cuenta real ni se envían datos. Puedes seguir jugando sin cuenta.</p>${err}<button class="btn w full" data-act="pmCerrar">Ahora no</button></div></div>`;
+    if (pm.paso === 'entrar') return `<div class="overlay" role="dialog" aria-label="Entrar"><div class="modal"><h2>🔐 Entrar</h2><p class="small">Usa el email de tu cuenta (simulada).</p><input id="pmEmail" class="inp" type="email" placeholder="tu@email" autocomplete="email">${err}
+      <button class="btn full" data-act="pmEntrarOk">Entrar</button><button class="btn w full" data-act="pmCerrar">Cancelar</button></div></div>`;
+    if (!P) return '';
+    const st = C.state(P.id, ctxJuego(s)), price = st.price ? realTxt(st.price.amountMinor) : '';
+    if (pm.paso === 'checkout') return `<div class="overlay" role="dialog" aria-label="Pago"><div class="modal pmCheckout"><small class="eti">🔒 CHECKOUT DE PRUEBA · STRIPE TEST (SIMULADO)</small>
+      <h2>${esc(P.name)}</h2><div class="pmTotal"><span>Total</span><b>${price}</b></div><p class="small">Aquí, en el juego real, se abriría la página segura de Stripe. En esta versión de prueba <b>no se pide ninguna tarjeta y no se cobra nada</b>.</p>
+      <p class="small">Referencia de la orden: <b>${esc(pm.orderRef || '')}</b></p>
+      <button class="btn full" data-act="pmPagar" data-v="paid">Pagar ${price} (simulado)</button><button class="btn w full" data-act="pmPagar" data-v="failed">Simular pago rechazado</button><button class="btn w full" data-act="pmPagar" data-v="cancel">Cancelar</button></div></div>`;
+    if (pm.paso === 'verificando') return `<div class="overlay" role="dialog" aria-label="Verificando"><div class="modal"><div class="pmSpin" aria-hidden="true"></div><h2>${esc(C.terms.verifying)}</h2><p class="small">Esperamos la confirmación del servidor (el webhook de Stripe). Volver de la página de pago no concede nada por sí solo.</p><p class="small">Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
+    if (pm.paso === 'lento') return `<div class="overlay" role="dialog"><div class="modal"><h2>⏳ Casi…</h2><p>${esc(C.terms.slow)}</p><button class="btn full" data-act="pmSync">Sincronizar compras</button><button class="btn w full" data-act="pmCerrar">Cerrar</button><p class="small">Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
+    if (pm.paso === 'error') return `<div class="overlay" role="dialog"><div class="modal"><h2>No se ha completado</h2><p>No se ha cobrado nada.</p><p class="small">Ref. ${esc(pm.orderRef || '')}</p><button class="btn full" data-act="pmCerrar">Volver</button></div></div>`;
+    // Ficha del producto: todo antes de pagar
+    const iap = SKU_IAP[P.id] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[P.id]);
+    const prev = iap && iap.contenido.some(Array.isArray) ? `<div class="iapPrev grande">${P2.avatarSVG(s, lookPack(s, iap), 'cuerpo')}</div>` : `<div class="grande peq">${(P.assets && P.assets.ic) || '💎'}</div>`;
+    const req = st.requires && !st.requires.ok ? `<div class="pmReq">🔒 ${st.requires.missing.length ? `Necesitas ${st.requires.missing.map(e => `la expansión <b>${esc(nombreEnt(e))}</b>`).join(' y ')}.` : ''}${st.requires.anyCount ? ` Necesitas al menos ${st.requires.anyCount.n} deportes.` : ''}
+      ${st.requires.missing.map(e => { const R = P2C.PRODUCTS.find(x => x.entitlements.length === 1 && x.entitlements[0] === e); return R ? `<button class="btn w" data-act="pmVer" data-id="${esc(R.id)}">Ver ${esc(R.name)}</button>` : ''; }).join('')}</div>` : '';
+    const puede = st.purchasable;
+    return `<div class="overlay" role="dialog" aria-label="${esc(P.name)}"><div class="modal pmFicha">${prev}<small class="eti">${esc(TIPO_TXT[P.type] || '')}</small><h2>${esc(P.name)}</h2>
+      ${price ? `<div class="pmPrecio"><b>${price}</b><span>dinero real · pago único</span></div>` : ''}
+      <p>${esc(P.description)}</p>
+      ${P.includes.length ? `<div class="pmIncluye"><b>Incluye</b><ul>${P.includes.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
+      ${P.cosmeticOnly ? `<p class="small">✨ ${esc(C.terms.cosmetic)}</p>` : ''}${P.type === 'PRESTIGE_CAREER' ? `<p class="pmAviso">⚠️ ${esc(C.terms.prestige)}</p>` : ''}
+      ${P.oneTime ? `<p class="small">♾️ ${esc(C.terms.permanent)}</p>` : ''}${req}
+      ${st.owned ? '<p class="pmOk">✓ Ya es tuyo.</p>' : P.status === 'coming_soon' ? '<p class="pmProx">Próximamente: todavía no se puede comprar.</p>' : ''}
+      ${puede ? `<label class="pmConsent"><input type="checkbox" data-act="pmConsent" ${pm.consent ? 'checked' : ''}> ${esc(C.terms.withdrawal)} <span class="small">(texto pendiente de revisión legal)</span></label>` : ''}
+      ${err}
+      <div class="pmBotones">${puede ? `<button class="btn full" data-act="pmComprar" ${pm.consent ? '' : 'disabled'}>Comprar · ${price}</button>` : ''}<button class="btn w full" data-act="pmCerrar">${puede ? 'No, gracias' : 'Cerrar'}</button></div>
+      ${puede ? '<p class="small">🧪 Simulado: no se cobra nada. En la versión real, el pago lo procesa Stripe (o la tienda de tu móvil).</p>' : ''}</div></div>`;
+  }
+  // Insignias y vitrina (lo que se ve de las compras en el juego)
+  const INSIGNIAS = [['cosmetic.founder_pack', '🏅', 'Founder'], ['cosmetic.debut_pack', '🌟', 'Debut'], ['cosmetic.press_badge', '📰', 'Prensa']];
+  const insignias = () => INSIGNIAS.filter(([e]) => P2.tieneEnt(e)).map(([, ic, n]) => `<span class="insignia" title="Insignia ${n}" aria-label="Insignia ${n}">${ic}</span>`).join('');
+  const VITRINA = [['cosmetic.debut_pack', '⚽', 'Balón firmado de tu debut'], ['cosmetic.founder_pack', '🏛️', 'Placa conmemorativa Founder'], ['cosmetic.press_badge', '📰', 'Acreditación de prensa']];
+  function equiparPack(sku) {
+    const iap = SKU_IAP[sku] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[sku]); if (!iap || !S) return;
+    for (const c of iap.contenido) if (Array.isArray(c)) P2.ponerLook(S, c[0], c[1]);
+  }
+
   // ---------- Render ----------
   function render() {
     if (!S) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
@@ -970,10 +1099,10 @@
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = '';
     const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
-      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones }[ui.vista] || (() => '');
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones, premium: htmlPremium }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
-    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && !cele && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
-    const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
+    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && !cele && !(ui.pm && (ui.pm.sku || ui.pm.paso)) && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
+    const capa = ui.pm && (ui.pm.sku || ui.pm.paso) ? htmlPmCapa(S) : ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
     const mundo = ui.mundo ? htmlMundo(S) : '';
     $('main').innerHTML = cele ? htmlCele(S, cele) : (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + V(S) + capa + mundo;
     ui.flash = '';
@@ -1076,7 +1205,33 @@
         guardarYPintar(); break; }
       case 'premioVisto': { const tp = P2.monEstado(S).temporadaPremio; if (tp) tp.visto = true; guardarYPintar(); break; }
       // Compras con dinero real: SOLO prueba de intención. Nunca hay checkout ni cargo
-      case 'iap': if (P2.iapClic(S, id)) { ui.iap = id; ui.iapResp = null; ui.inter = false; guardarYPintar(); } break;
+      case 'iap': if (P2.iapClic(S, id)) { ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { sku: OLD_IAP[id] || id, paso: null, error: null, consent: false }); ui.inter = false; comercio() && COM.track('product_view', { sku: ui.pm.sku, source: 'oferta' }); guardarYPintar(); } break;
+      // ---- Premium ----
+      case 'pmTab': ui.pm = Object.assign(ui.pm || {}, { tab: b.dataset.v }); if (b.dataset.v === 'comprado' && !COM.isGuest()) pmAsync(async () => { ui.pm.hist = await COM.history(); }); else render(); break;
+      case 'pmVer': { const P = P2C.getProduct(id); ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { sku: id, paso: null, error: null, consent: false });
+        COM.track(P && P.type === 'BUNDLE' ? 'bundle_view' : P && P.type === 'PRESTIGE_CAREER' ? 'prestige_view' : P && P.type === 'SYSTEM_EXPANSION' ? 'expansion_view' : 'product_view', { sku: id }); render(); break; }
+      case 'pmConsent': ui.pm.consent = !!b.checked; ui.pm.error = null; render(); break;
+      case 'pmCerrar': ui.pm = { tab: (ui.pm && ui.pm.tab) || 'destacados', hist: ui.pm && ui.pm.hist }; COM.track('checkout_cancelled', {}); render(); break;
+      case 'pmCuenta': ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { paso: 'cuenta', error: null }); COM.track('account_prompt', {}); render(); break;
+      case 'pmEntrar': ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { paso: 'entrar', error: null }); render(); break;
+      case 'pmEntrarOk': { const em = ($('pmEmail') || {}).value || ''; pmAsync(async () => { await COM.signIn({ email: em.trim() }); ui.pm.paso = null; ui.pm.hist = await COM.history(); }); break; }
+      case 'pmCrear': pmAsync(async () => { await COM.createAccount({ method: b.dataset.v, email: b.dataset.v === 'email' ? `${(S && S.nombre || 'jugador').toLowerCase().replace(/[^a-z0-9]/g, '')}@ejemplo.test` : null }); ui.pm.paso = null; ui.pm.error = null; }); break;
+      case 'pmComprar': { const sku = ui.pm.sku;
+        if (COM.isGuest()) { ui.pm.paso = 'cuenta'; COM.track('account_prompt', { sku }); render(); break; }
+        pmAsync(async () => { const r = await COM.purchase(sku, { consentWithdrawal: !!ui.pm.consent }); Object.assign(ui.pm, { paso: 'checkout', orderId: r.orderId, orderRef: r.orderRef, error: null }); }); break; }
+      case 'pmPagar': { const out = b.dataset.v, orderId = ui.pm.orderId, sku = ui.pm.sku;
+        ui.pm.paso = 'verificando'; render();
+        pmAsync(async () => {
+          await COM.backend.completeCheckout(orderId, out);
+          const o = await COM.waitForOrder(orderId, { tries: 30, intervalMs: 300 });
+          if (o.status === 'FULFILLED') { const P = P2C.getProduct(sku); equiparPack(sku); ui.pm = { tab: 'comprado' }; ui.celes = (ui.celes || []).concat({ tipo: 'premium', sku, n: P.name, ic: (P.assets && P.assets.ic) || '💎', includes: P.includes }); ui.confeti = true; ui.pm.hist = await COM.history(); }
+          else ui.pm.paso = o.status === 'SLOW' ? 'lento' : 'error';
+        }); break; }
+      case 'pmRestaurar': pmAsync(async () => { await COM.restore(); ui.pm.hist = await COM.history(); ui.flash = '✅ Compras restauradas desde tu cuenta.'; }); break;
+      case 'pmSync': pmAsync(async () => { await COM.sync(); ui.pm.hist = await COM.history(); if (ui.pm.paso === 'lento') ui.pm.paso = null; ui.flash = '🔄 Compras sincronizadas.'; }); break;
+      case 'pmPromo': { const code = ($('pmPromo') || {}).value || ''; pmAsync(async () => { const r = await COM.redeem(code); ui.pm.promoMsg = `🎁 Canjeado: ${r.granted.map(nombreEnt).join(', ')}`; ui.pm.hist = await COM.history(); }).then(() => { if (ui.pm.error) { ui.pm.promoMsg = pmErrorTxt(ui.pm.error); ui.pm.error = null; render(); } }); break; }
+      case 'pmSalir': COM.signOut(); ui.pm = { tab: 'comprado' }; limpiarLook(S); guardarYPintar(); break;
+      case 'pmBorrarCuenta': if (confirm('¿Eliminar tu cuenta? Perderás el acceso a tus compras en otros dispositivos. Tu partida sigue en este.')) pmAsync(async () => { await COM.deleteAccount(); ui.pm = { tab: 'comprado' }; }); break;
       case 'iapResp': if (P2.iapIntencion(S, ui.iap, b.dataset.v)) { ui.iapResp = b.dataset.v; if (ui.iapCard === ui.iap) ui.iapCard = null; guardarYPintar(); } break;
       case 'iapCerrar': ui.iap = null; ui.iapResp = null; render(); break;
       case 'iapNo': ui.iapCard = null; render(); break;
@@ -1126,11 +1281,13 @@
     document.addEventListener('change', e => { const x = e.target; if (S && x.classList && x.classList.contains('respuesta')) { P2.responderTest(S, x.dataset.q, x.value); P2.guardar(S); } });
     render();
     const a = $('arranque'); if (a) a.remove();
+    // Revalida las compras con la cuenta al arrancar (offline: se usa la caché)
+    if (comercio() && !COM.isGuest()) COM.sync().then(() => { limpiarLook(S); if (S) P2.guardar(S); render(); }).catch(() => {});
   }
 
   // Ganchos de depuración (como window.__P1)
   globalThis.__P2 = {
-    P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
+    P2, get S() { return S; }, set S(v) { S = v; }, render, ui, get COM() { return comercio(); },
     nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; }, informe: () => P2.informeTest(S),
     ir: v => irA(v), etapa: () => etapa(S), ui2: ui,
     jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),

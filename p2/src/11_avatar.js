@@ -63,6 +63,9 @@
         { id: 'premium', n: 'Fondo Premium', req: { premium: 'luxury' } }, { id: 'founder', n: 'Fondo Founder', req: { premium: 'founder' } }]),
   };
   const itemLook = (cap, id) => (ITEMS[cap] || []).find(x => x.id === id);
+  // Packs del prototipo → entitlements reales del catálogo (commerce/catalog)
+  const PREMIUM_ENT = { debut: 'cosmetic.debut_pack', street: 'cosmetic.street_pack', pro: 'cosmetic.pro_pack', luxury: 'cosmetic.luxury_pack', founder: 'cosmetic.founder_pack' };
+  P2.PREMIUM_ENT = PREMIUM_ENT;
   function bloqueoLook(s, it, cap) {
     if (!it || !it.req) return null;
     if (s && Array.isArray(s.lookDesbloqueos) && s.lookDesbloqueos.includes(`${cap || ''}:${it.id}`)) return null;   // comprado en la Tienda
@@ -71,7 +74,7 @@
     if (it.req.tienda) return `Tienda: ${P2.producto ? (P2.producto(it.req.tienda) || { n: '' }).n : ''}`;
     if (it.req.anuncio) return 'Recompensa de temporada';
     if (it.req.coleccion) return `Completa la colección ${(P2.COLECCIONES || []).find(c => c.id === it.req.coleccion) ? P2.COLECCIONES.find(c => c.id === it.req.coleccion).n : ''}`;
-    if (it.req.premium) { const I = (P2.IAP_PRODUCTS || []).find(x => x.id === it.req.premium); return `${I ? I.nombre : 'Pack'} (premium)`; }
+    if (it.req.premium) { const E = PREMIUM_ENT[it.req.premium]; if (E && P2.tieneEnt(E)) return null; const I = (P2.IAP_PRODUCTS || []).find(x => x.id === it.req.premium); return `💎 ${I ? I.nombre : 'Pack'} (Premium)`; }
     return null;
   }
   function ponerLook(s, cap, id) {

@@ -9,6 +9,9 @@
 
   // Partida nueva + variante del test de monetización (se asigna una vez y se guarda)
   // Grandes momentos para celebrar en pantalla (ascenso, contrato, negocio, título, patrocinio). Solo los pinta la interfaz.
+  // ¿Tiene la CUENTA este entitlement? (compras reales). La partida nunca es la fuente de verdad: lo conecta
+  // la interfaz con el cliente de comercio. Sin comercio (tests, Node) siempre es false.
+  P2.tieneEnt = P2.tieneEnt || (() => false);
   function celebrar(s, c) { const l = s.celebraciones = Array.isArray(s.celebraciones) ? s.celebraciones : []; l.push(Object.assign({ semana: s.semana }, c)); if (l.length > 6) l.shift(); }
   P2.celebrar = celebrar;
   function nuevaPartida(opc = {}) { const s = partidaBase(opc); if (P2.asignarVariante) P2.asignarVariante(s); return s; }
@@ -20,7 +23,7 @@
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
-      secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
+      secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes', 'premium'],   // pestañas visibles (se abren al avanzar)
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
       deseoActual: null,

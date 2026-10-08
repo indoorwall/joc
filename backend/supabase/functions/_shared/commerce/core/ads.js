@@ -1,5 +1,5 @@
 // COPIA GENERADA de commerce/core/ads.js (node commerce/tools/sync-backend.mjs). No editar aquí.
-// Anuncios: interfaz AdProvider + MockAdProvider (preparado para AdMob o mediación, sin SDK hoy).
+// Anuncios: interfaz AdProvider + MockAdProvider (preparado para un SDK de anuncios real o mediación; hoy sin SDK).
 // Regla: un anuncio con recompensa NUNCA repite un partido, cambia un resultado, evita un descenso,
 // recupera una prueba ni borra una mala decisión.
 export const REWARDED_PLACEMENTS = ['store_discount', 'store_special_offer', 'small_energy', 'offline_business_bonus', 'cosmetic_reward'];
