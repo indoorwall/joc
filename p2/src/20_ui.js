@@ -6,7 +6,7 @@
   'use strict';
   const { CFG, OFERTAS, OBJETIVOS, LIGAS, MARCAS, NEGOCIOS, HITOS, OPORTUNIDADES, esc, eur, nf, fmt, clamp } = P2;
   let S = null;
-  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '', look: null, capa: 'pelo', nombre: 'Alex' };
+  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '', look: null, capa: 'piel', nombre: 'Alex' };
   const $ = id => document.getElementById(id);
 
   // ---------- Utilidades de pintado ----------
@@ -568,7 +568,8 @@
     return `<div class="lookTop"><div class="lookPrev">${P2.avatarSVG(sv, L, 'cuerpo')}</div>
         <div class="lookInfo"><span class="small">Elige cada capa. ${s ? 'Algunas prendas se ganan con los hitos o en la Tienda.' : 'Más adelante podrás cambiarlo tocando tu cara arriba; algunas prendas se ganan con los hitos.'}</span>
         <button class="btn w" data-act="lookAzar">🎲 Al azar</button></div></div>
-      <div class="lookTabs" role="tablist">${P2.CAPAS_LOOK.map(([k, ic, n]) => `<button role="tab" aria-selected="${k === cap}" data-act="capa" data-v="${k}" class="${k === cap ? 'sel' : ''}"><span>${ic}</span>${n}</button>`).join('')}</div>
+      <div class="lookGrupos" role="tablist">${P2.GRUPOS_LOOK.map(([g, ic, n]) => `<button role="tab" aria-selected="${g === capa[4]}" data-act="grupoLook" data-v="${g}" class="${g === capa[4] ? 'sel' : ''}"><span>${ic}</span>${n}</button>`).join('')}</div>
+      <div class="lookTabs" role="tablist">${P2.CAPAS_LOOK.filter(c => c[4] === capa[4]).map(([k, ic, n]) => `<button role="tab" aria-selected="${k === cap}" data-act="capa" data-v="${k}" class="${k === cap ? 'sel' : ''}"><span>${ic}</span>${n}</button>`).join('')}</div>
       <div class="lookGrid">${items.map(it => { const bl = s ? P2.bloqueoLook(s, it, cap) : null, puesto = L[cap] === it.id;
         return `<button class="lk ${puesto ? 'sel' : ''}" data-act="look" data-c="${cap}" data-v="${it.id}" ${bl ? 'disabled' : ''} aria-pressed="${puesto}">${P2.avatarSVG(sv, Object.assign({}, L, { [cap]: it.id }), vista)}<b>${esc(it.n)}</b>${bl ? `<span>🔒 ${esc(bl)}</span>` : ''}</button>`; }).join('')}</div>`;
   }
@@ -629,6 +630,7 @@
     switch (a) {
       case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n, look: ui.look }); ui.vista = 'semana'; guardarYPintar(); window.scrollTo(0, 0); break; }
       case 'capa': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = b.dataset.v; render(); break;
+      case 'grupoLook': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = (P2.CAPAS_LOOK.find(c => c[4] === b.dataset.v) || P2.CAPAS_LOOK[0])[0]; render(); break;
       case 'look': if ($('nombre')) ui.nombre = $('nombre').value;
         if (S) { if (P2.ponerLook(S, b.dataset.c, b.dataset.v)) guardarYPintar(); }
         else { const it = P2.itemLook(b.dataset.c, b.dataset.v); if (it && !it.req) { ui.look = Object.assign({}, ui.look, { [b.dataset.c]: b.dataset.v }); render(); } }

@@ -7,22 +7,37 @@
   'use strict';
   const { esc } = P2;
 
-  const PIEL = ['#ffe3c8', '#f6c9a0', '#e2a877', '#c48650', '#8f5b35', '#5e3b22'];
-  const COLOR_PELO = { negro: '#22201f', castano: '#6b4226', rubio: '#e8c36a', pelirrojo: '#c4512b', canoso: '#cfcfcf', azul: '#2f7bf5', rosa: '#ff6fb5', verde: '#3ccf6e' };
+  const PIEL = ['#ffe3c8', '#f6c9a0', '#e2a877', '#c48650', '#8f5b35', '#5e3b22', '#fff1e4', '#3f2615', '#f2c4b0', '#d8b48a'];
+  const COLOR_OJOS = { marron: '#5a3418', miel: '#a8742a', verde: '#3f8f4f', azul: '#3d7bff', gris: '#7d8aa0', negro: '#1a1414' };
+  const COLOR_PELO = { negro: '#22201f', castano: '#6b4226', rubio: '#e8c36a', pelirrojo: '#c4512b', canoso: '#cfcfcf', azul: '#2f7bf5', rosa: '#ff6fb5', verde: '#3ccf6e', platino: '#f1ead2', cobrizo: '#9a4a1e', morado: '#8b5cf6', blanco: '#f7f7f7' };
   const COLOR_ROPA = { rojo: '#e23b3b', azul: '#2f6fe0', verde: '#22a35a', amarillo: '#f6c623', negro: '#2a2d34', blanco: '#f4f4f4', morado: '#7b4bd6', naranja: '#ff8a2a' };
   const FONDO_LOOK = { azul: '#bfe0ff', verde: '#c6f0d2', naranja: '#ffd9b3', morado: '#dccbff', rosa: '#ffd0e6' };
-  const LOOK_INICIAL = { piel: '1', pelo: 'corto', colorPelo: 'castano', cara: 'nada', ropa: 'camiseta', colorRopa: 'azul', pantalon: 'chandal', calzado: 'deportivas', cabeza: 'nada', gafas: 'nada', extra: 'nada', fondo: 'azul' };
-  const VISTA_LOOK = { busto: '6 -12 88 88', cuerpo: '0 -16 100 176', torso: '8 52 84 64', piernas: '14 92 72 64' };
+  const LOOK_INICIAL = { piel: '1', pelo: 'corto', colorPelo: 'castano', cara: 'nada', ropa: 'camiseta', colorRopa: 'azul', pantalon: 'chandal', calzado: 'deportivas', cabeza: 'nada', gafas: 'nada', extra: 'nada', fondo: 'azul',
+    edad: 'joven', complexion: 'normal', ojos: 'redondos', colorOjos: 'marron', cejas: 'normales', rasgo: 'nada', piercing: 'nada', tatuaje: 'nada' };
+  const VISTA_LOOK = { cara: '16 18 68 52', busto: '6 -12 88 88', cuerpo: '0 -16 100 176', torso: '8 52 84 64', piernas: '14 92 72 64' };
 
   // Capas y prendas (datos). req.hito: se desbloquea al conseguir ese hito
-  const CAPAS = [['pelo', '💇', 'Pelo', 'busto'], ['colorPelo', '🎨', 'Color de pelo', 'busto'], ['piel', '✋', 'Piel', 'busto'], ['cara', '🧔', 'Cara', 'busto'],
-    ['ropa', '👕', 'Ropa', 'torso'], ['colorRopa', '🖌️', 'Color', 'torso'], ['pantalon', '👖', 'Pantalón', 'piernas'], ['calzado', '👟', 'Calzado', 'piernas'],
-    ['cabeza', '🧢', 'Cabeza', 'busto'], ['gafas', '🕶️', 'Gafas', 'busto'], ['extra', '🎒', 'Extras', 'cuerpo'], ['fondo', '🖼️', 'Fondo', 'busto']];
+  // [capa, icono, nombre, vista previa, grupo del editor]
+  const CAPAS = [['piel', '✋', 'Piel', 'busto', 'cara'], ['edad', '🎂', 'Edad', 'cara', 'cara'], ['ojos', '👁️', 'Ojos', 'cara', 'cara'], ['colorOjos', '🎨', 'Color de ojos', 'cara', 'cara'],
+    ['cejas', '〰️', 'Cejas', 'cara', 'cara'], ['cara', '🧔', 'Barba y bigote', 'busto', 'cara'], ['rasgo', '✨', 'Rasgos', 'cara', 'cara'], ['piercing', '💍', 'Piercings', 'cara', 'cara'],
+    ['pelo', '💇', 'Peinado', 'busto', 'pelo'], ['colorPelo', '🎨', 'Color de pelo', 'busto', 'pelo'],
+    ['complexion', '💪', 'Complexión', 'cuerpo', 'cuerpo'], ['tatuaje', '🖋️', 'Tatuajes', 'torso', 'cuerpo'],
+    ['ropa', '👕', 'Ropa', 'torso', 'ropa'], ['colorRopa', '🖌️', 'Color', 'torso', 'ropa'], ['pantalon', '👖', 'Pantalón', 'piernas', 'ropa'], ['calzado', '👟', 'Calzado', 'piernas', 'ropa'],
+    ['cabeza', '🧢', 'Cabeza', 'busto', 'extras'], ['gafas', '🕶️', 'Gafas', 'busto', 'extras'], ['extra', '🎒', 'Extras', 'cuerpo', 'extras'], ['fondo', '🖼️', 'Fondo', 'busto', 'extras']];
+  const GRUPOS_LOOK = [['cara', '🙂', 'Cara'], ['pelo', '💇', 'Pelo'], ['cuerpo', '💪', 'Cuerpo'], ['ropa', '👕', 'Ropa'], ['extras', '🧢', 'Extras']];
   const ITEMS = {
-    piel: [0, 1, 2, 3, 4, 5].map(i => ({ id: String(i), n: `Tono ${i + 1}` })),
-    pelo: [['corto', 'Corto'], ['largo', 'Largo'], ['coleta', 'Coleta'], ['rizos', 'Rizos'], ['rapado', 'Rapado'], ['calvo', 'Sin pelo'], ['mono', 'Moño'], ['tupe', 'Tupé'], ['trenzas', 'Trenzas'], ['afro', 'Afro'], ['cresta', 'Cresta']].map(([id, n]) => ({ id, n }))
+    piel: [6, 0, 8, 1, 9, 2, 3, 4, 5, 7].map((i, k) => ({ id: String(i), n: `Tono ${k + 1}` })),
+    edad: [['joven', 'Joven'], ['adulto', 'Adulto/a'], ['maduro', 'Maduro/a'], ['veterano', 'Veterano/a']].map(([id, n]) => ({ id, n })),
+    ojos: [['redondos', 'Redondos'], ['grandes', 'Grandes'], ['almendrados', 'Almendrados'], ['pequenos', 'Pequeños'], ['caidos', 'Caídos'], ['pestanas', 'Con pestañas']].map(([id, n]) => ({ id, n })),
+    colorOjos: [['marron', 'Marrones'], ['miel', 'Miel'], ['verde', 'Verdes'], ['azul', 'Azules'], ['gris', 'Grises'], ['negro', 'Negros']].map(([id, n]) => ({ id, n })),
+    cejas: [['normales', 'Normales'], ['finas', 'Finas'], ['gruesas', 'Gruesas'], ['arqueadas', 'Arqueadas'], ['rectas', 'Rectas'], ['corte', 'Con corte']].map(([id, n]) => ({ id, n })),
+    rasgo: [['nada', 'Nada'], ['lunar', 'Lunar'], ['cicatriz', 'Cicatriz'], ['hoyuelos', 'Hoyuelos'], ['sonrojo', 'Mejillas rojas'], ['ojeras', 'Ojeras'], ['pecasFuertes', 'Muchas pecas'], ['lagrima', 'Lágrima tatuada']].map(([id, n]) => ({ id, n })),
+    piercing: [['nada', 'Nada'], ['oreja', 'Aro en la oreja'], ['orejas', 'Varios en las orejas'], ['nariz', 'Aro en la nariz'], ['septum', 'Septum'], ['ceja', 'En la ceja'], ['labio', 'En el labio'], ['combo', 'Oreja + nariz']].map(([id, n]) => ({ id, n })),
+    complexion: [['delgada', 'Delgada'], ['normal', 'Normal'], ['atletica', 'Atlética'], ['fuerte', 'Fuerte']].map(([id, n]) => ({ id, n })),
+    tatuaje: [['nada', 'Nada'], ['antebrazo', 'Estrella en el antebrazo'], ['rosa', 'Rosa en el antebrazo'], ['manga', 'Brazo entero'], ['tribal', 'Brazaletes tribales'], ['cuello', 'Cuello'], ['mano', 'Mano'], ['ambos', 'Los dos brazos']].map(([id, n]) => ({ id, n })),
+    pelo: [['corto', 'Corto'], ['largo', 'Largo'], ['coleta', 'Coleta'], ['rizos', 'Rizos'], ['rapado', 'Rapado'], ['calvo', 'Sin pelo'], ['mono', 'Moño'], ['tupe', 'Tupé'], ['trenzas', 'Trenzas'], ['afro', 'Afro'], ['cresta', 'Cresta'], ['bob', 'Melena corta'], ['rastas', 'Rastas'], ['raya', 'Raya al lado'], ['mohicano', 'Mohicano'], ['mono2', 'Dos moños']].map(([id, n]) => ({ id, n }))
       .concat([{ id: 'degradado', n: 'Degradado Pro', req: { premium: 'pro' } }]),
-    colorPelo: [['negro', 'Negro'], ['castano', 'Castaño'], ['rubio', 'Rubio'], ['pelirrojo', 'Pelirrojo'], ['canoso', 'Canoso'], ['azul', 'Azul eléctrico'], ['rosa', 'Rosa chicle'], ['verde', 'Verde']].map(([id, n]) => ({ id, n })),
+    colorPelo: [['negro', 'Negro'], ['castano', 'Castaño'], ['rubio', 'Rubio'], ['pelirrojo', 'Pelirrojo'], ['canoso', 'Canoso'], ['azul', 'Azul eléctrico'], ['rosa', 'Rosa chicle'], ['verde', 'Verde'], ['platino', 'Platino'], ['cobrizo', 'Cobrizo'], ['morado', 'Morado'], ['blanco', 'Blanco']].map(([id, n]) => ({ id, n })),
     cara: [['nada', 'Nada'], ['pecas', 'Pecas'], ['pintura', 'Pintura de guerra'], ['bigote', 'Bigote'], ['perilla', 'Perilla'], ['barba', 'Barba']].map(([id, n]) => ({ id, n })),
     ropa: [{ id: 'camiseta', n: 'Camiseta' }, { id: 'tirantes', n: 'Tirantes' }, { id: 'hawaiana', n: 'Hawaiana' }, { id: 'sudadera', n: 'Sudadera' }, { id: 'chaqueta', n: 'Chaqueta' }, { id: 'plumas', n: 'Plumas' },
       { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } },
@@ -73,6 +88,10 @@
     if (Math.random() < 0.6) L.gafas = 'nada';
     if (Math.random() < 0.5) L.extra = 'nada';
     if (Math.random() < 0.5) L.cara = 'nada';
+    if (Math.random() < 0.7) L.edad = 'joven';
+    if (Math.random() < 0.6) L.rasgo = 'nada';
+    if (Math.random() < 0.6) L.piercing = 'nada';
+    if (Math.random() < 0.6) L.tatuaje = 'nada';
     return L;
   }
   function validarLook(L) {
@@ -127,6 +146,10 @@
     const RV = VAR_ROPA[L.ropa]; if (RV) { L.ropa = RV.base; if (RV.c1) { c1 = RV.c1; c2 = RV.c2; } }
     const CV = VAR_CABEZA[L.cabeza]; if (CV) L.cabeza = 'gorra';
     const pelo2 = L.pelo; if (pelo2 === 'degradado') L.pelo = 'rapado';
+    // Complexión: hombros, brazos y torso más estrechos o más anchos
+    const dx = { delgada: -2, normal: 0, atletica: 1.5, fuerte: 3 }[L.complexion] || 0, gb = { delgada: -1, normal: 0, atletica: 0.5, fuerte: 1.5 }[L.complexion] || 0;
+    const xa = 20 - dx, xb = 69 + dx, wa = 11 + gb;
+    const tinta = '#1d2a55';
     const marca = s && s.patros && s.patros.length ? P2.MARCAS.find(m => m.id === s.patros[0].id) : null;
     let h = '';
     if (modo === 'busto') {
@@ -142,6 +165,9 @@
     if (L.pelo === 'coleta') h += `<path d="M70 24 Q94 28 86 64 Q80 44 68 36Z" fill="${hc}"/>`;
     if (L.pelo === 'trenzas') h += `<path d="M25 46 L21 92 M75 46 L79 92" stroke="${hc}" stroke-width="9" stroke-linecap="round"/><circle cx="21" cy="92" r="3" fill="#e23b3b"/><circle cx="79" cy="92" r="3" fill="#e23b3b"/>`;
     if (L.pelo === 'mono') h += `<circle cx="50" cy="11" r="9" fill="${hc}"/>`;
+    if (L.pelo === 'mono2') h += `<circle cx="30" cy="16" r="8" fill="${hc}"/><circle cx="70" cy="16" r="8" fill="${hc}"/>`;
+    if (L.pelo === 'bob') h += `<path d="M22 42 Q22 12 50 12 Q78 12 78 42 L78 64 Q66 70 60 62 L40 62 Q34 70 22 64Z" fill="${hc}"/>`;
+    if (L.pelo === 'rastas') h += [26, 34, 66, 74].map((x, i) => `<path d="M${x} 36 Q${x + (i < 2 ? -3 : 3)} 62 ${x + (i < 2 ? -1 : 1)} 86" stroke="${hc}" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M${x - 2} 50 h4 M${x - 2} 64 h4 M${x - 2} 78 h4" stroke="${oscurecer(hc, 0.7)}" stroke-width="1.2"/>`).join('');
     const pStreet = L.pantalon === 'street'; if (pStreet) L.pantalon = 'vaquero';
     const pc = pStreet ? '#2a2d34' : { chandal: '#4a5260', vaquero: '#3d5f9e', traje: '#2b2f3a', corto: rc, falda: rc }[L.pantalon] || '#4a5260';
     if (L.pantalon === 'corto') h += `<rect x="38" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="53" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="34" y="104" width="32" height="18" rx="4" fill="${pc}"/><line x1="50" y1="110" x2="50" y2="122" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>`;
@@ -165,16 +191,24 @@
     else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
     const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
     const tc = RV && RV.tc ? RV.tc : L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
-    h += `<rect x="20" y="74" width="11" height="34" rx="5.5" fill="${sk}"/><rect x="69" y="74" width="11" height="34" rx="5.5" fill="${sk}"/>`;
-    if (!sinMangas) h += `<rect x="20" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="69" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
-    h += `<circle cx="25.5" cy="110" r="5.5" fill="${sk}"/><circle cx="74.5" cy="110" r="5.5" fill="${sk}"/>`;
-    if (L.extra === 'reloj') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/>`;
-    if (L.extra === 'relojDep') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/>`;
-    if (L.extra === 'relojPro') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/>`;
-    if (L.extra === 'relojPremium') h += `<rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/>`;
+    h += `<rect x="${xa}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/><rect x="${xb - gb}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/>`;
+    // Tatuajes en los brazos (se ven por debajo de la manga, o enteros con tirantes)
+    const ca = xa + wa / 2, cb = xb - gb + wa / 2, tat = L.tatuaje;
+    if (tat === 'antebrazo' || tat === 'ambos') h += `<path d="M${ca} 94 l1.6 3.3 3.6 .5 -2.6 2.5 .6 3.6 -3.2 -1.7 -3.2 1.7 .6 -3.6 -2.6 -2.5 3.6 -.5Z" fill="none" stroke="${tinta}" stroke-width="1"/>`;
+    if (tat === 'rosa') h += `<circle cx="${ca}" cy="97" r="2.6" fill="#d6283b" stroke="${tinta}" stroke-width=".8"/><path d="M${ca} 99.5 v6 M${ca} 102 l-2.4 -1.6" stroke="${tinta}" stroke-width="1"/>`;
+    if (tat === 'manga') h += `<path d="M${xa + 1} 78 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 86 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 94 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 102 q${wa / 2} 3 ${wa - 2} 0" stroke="${tinta}" stroke-width="1.6" fill="none" opacity=".85"/><circle cx="${ca}" cy="90" r="2" fill="${tinta}" opacity=".85"/>`;
+    if (tat === 'tribal' || tat === 'ambos') for (const c of tat === 'tribal' ? [ca, cb] : [cb]) h += `<path d="M${c - wa / 2 + .5} 99 h${wa - 1} M${c - wa / 2 + .5} 102 l2 -2 2 2 2 -2 2 2 2 -2" stroke="${tinta}" stroke-width="1.4" fill="none"/>`;
+    if (!sinMangas) h += `<rect x="${xa}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="${xb - gb}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
+    h += `<circle cx="${ca}" cy="110" r="5.5" fill="${sk}"/><circle cx="${cb}" cy="110" r="5.5" fill="${sk}"/>`;
+    if (tat === 'mano') h += `<path d="M${cb} 112.5 l-2.2 -2.2 a1.3 1.3 0 0 1 2.2 -1.3 a1.3 1.3 0 0 1 2.2 1.3Z" fill="${tinta}"/>`;
+    if (L.extra === 'reloj') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/></g>`;
+    if (L.extra === 'relojDep') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/></g>`;
+    if (L.extra === 'relojPro') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/></g>`;
+    if (L.extra === 'relojPremium') h += `<g transform="translate(${xa - 20} 0)"><rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/></g>`;
     h += `<rect x="44" y="58" width="12" height="16" rx="4" fill="${sk}"/>`;
+    if (tat === 'cuello') h += `<path d="M53 63 l1 2 2.2 .3 -1.6 1.5 .4 2.2 -2 -1 -2 1 .4 -2.2 -1.6 -1.5 2.2 -.3Z" fill="${tinta}"/>`;
     if (L.ropa === 'sudadera') h += `<path d="M34 72 Q50 56 66 72Z" fill="${rd}"/>`;
-    const ancho = L.ropa === 'plumas' ? 3 : 0;
+    const ancho = (L.ropa === 'plumas' ? 3 : 0) + dx;
     h += `<path d="M${30 - ancho} 78 Q${30 - ancho} 68 40 68 L60 68 Q${70 + ancho} 68 ${70 + ancho} 78 L${70 + ancho} 110 L${30 - ancho} 110Z" fill="${tc}"/>`;
     if (['camiseta', 'marca', 'equipacion', 'tirantes'].includes(L.ropa)) h += `<path d="M43 68 Q50 ${L.ropa === 'tirantes' ? 80 : 75} 57 68Z" fill="${sk}"/>`;
     if (L.ropa === 'tirantes') h += `<path d="M30 70 h6 M64 70 h6" stroke="${sk}" stroke-width="5"/>`;
@@ -195,18 +229,45 @@
     h += `<circle cx="25" cy="42" r="5" fill="${sk}"/><circle cx="75" cy="42" r="5" fill="${sk}"/><circle cx="50" cy="40" r="25" fill="${sk}"/>`;
     if (L.cara === 'barba') h += `<path d="M27 44 Q30 70 50 70 Q70 70 73 44 Q70 58 60 56 Q50 62 40 56 Q30 58 27 44Z" fill="${hc}"/>`;
     h += `<circle cx="35" cy="50" r="4" fill="#ff7b7b" opacity=".3"/><circle cx="65" cy="50" r="4" fill="#ff7b7b" opacity=".3"/>`;
+    const ed = L.edad, arr = oscurecer(sk, 0.72);
+    if (ed === 'adulto' || ed === 'maduro' || ed === 'veterano') h += `<path d="M41 51 q-2 4 0 7 M59 51 q2 4 0 7" stroke="${arr}" stroke-width="1" fill="none" opacity=".6"/>`;
+    if (ed === 'maduro' || ed === 'veterano') h += `<path d="M40 22 q10 -3 20 0 M42 26 q8 -2 16 0" stroke="${arr}" stroke-width="1" fill="none" opacity=".55"/><path d="M29 43 l-3 -2 M29 46 l-3 1 M71 43 l3 -2 M71 46 l3 1" stroke="${arr}" stroke-width="1" opacity=".6"/>`;
+    if (ed === 'veterano') h += `<path d="M33 49 q2 2 5 2 M62 51 q3 0 5 -2" stroke="${arr}" stroke-width="1" fill="none" opacity=".6"/>`;
+    const rg = L.rasgo;
+    if (rg === 'sonrojo') h += `<circle cx="35" cy="50" r="5" fill="#ff5a6e" opacity=".4"/><circle cx="65" cy="50" r="5" fill="#ff5a6e" opacity=".4"/>`;
+    if (rg === 'pecasFuertes') h += [[36, 47], [39, 49], [42, 47], [35, 51], [40, 52], [58, 47], [61, 49], [64, 47], [60, 52], [65, 51], [47, 46], [53, 46]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1" fill="#b5651d"/>`).join('');
+    if (rg === 'lunar') h += `<circle cx="61" cy="55" r="1.3" fill="#3b2412"/>`;
+    if (rg === 'ojeras') h += `<path d="M34 48 q5 3 10 0 M56 48 q5 3 10 0" stroke="#7a6a9a" stroke-width="1.4" fill="none" opacity=".5"/>`;
+    if (rg === 'lagrima') h += `<path d="M36 50 q-1.5 2.5 0 4 q1.5 -1.5 0 -4Z" fill="${tinta}"/>`;
     if (L.cara === 'pecas') h += [[40, 49], [43, 51], [38, 52], [60, 49], [57, 51], [62, 52]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#b5651d"/>`).join('');
     if (L.cara === 'pintura') h += `<path d="M30 47 h9 M30 51 h9 M61 47 h9 M61 51 h9" stroke="${O ? c1 : rc}" stroke-width="2.2" stroke-linecap="round"/>`;
+    const iris = COLOR_OJOS[L.colorOjos] || COLOR_OJOS.marron;
+    const ojoNormal = x => {
+      const f = L.ojos;
+      if (f === 'grandes') return `<ellipse cx="${x}" cy="43" rx="4.4" ry="5" fill="#fff" stroke="#222" stroke-width=".8"/><circle cx="${x + .5}" cy="43.5" r="3.2" fill="${iris}"/><circle cx="${x + .5}" cy="43.5" r="1.6" fill="#111"/><circle cx="${x + 1.6}" cy="42" r="1.1" fill="#fff"/>`;
+      if (f === 'almendrados') return `<path d="M${x - 4.5} 43.5 Q${x} 38.5 ${x + 4.5} 43 Q${x} 46.5 ${x - 4.5} 43.5Z" fill="#fff" stroke="#222" stroke-width="1"/><circle cx="${x}" cy="43" r="2.2" fill="${iris}"/><circle cx="${x}" cy="43" r="1.1" fill="#111"/><circle cx="${x + .8}" cy="42.2" r=".6" fill="#fff"/>`;
+      if (f === 'pequenos') return `<circle cx="${x}" cy="43" r="2.3" fill="${iris}"/><circle cx="${x}" cy="43" r="1.2" fill="#111"/><circle cx="${x + .7}" cy="42.3" r=".6" fill="#fff"/>`;
+      if (f === 'caidos') return `<circle cx="${x}" cy="44" r="3.2" fill="${iris}"/><circle cx="${x}" cy="44" r="1.6" fill="#111"/><circle cx="${x + 1}" cy="43" r=".9" fill="#fff"/><path d="M${x - 4} 41.5 Q${x} 40 ${x + 4} 42" stroke="#222" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+      const p = `<circle cx="${x}" cy="43" r="3.3" fill="${iris}"/><circle cx="${x}" cy="43" r="1.8" fill="#111"/><circle cx="${x + 1}" cy="42" r="1" fill="#fff"/>`;
+      return f === 'pestanas' ? p + `<path d="M${x - 3.5} 40 l-1.5 -2 M${x} 39.4 v-2.4 M${x + 3.5} 40 l1.5 -2" stroke="#222" stroke-width="1.2" stroke-linecap="round"/>` : p;
+    };
     const ojo = x => ene < 25 ? `<path d="M${x - 4} 44 h8" stroke="#222" stroke-width="2.4" stroke-linecap="round"/>`
       : fel > 75 ? `<path d="M${x - 4} 45 Q${x} 39 ${x + 4} 45" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
-        : `<circle cx="${x}" cy="43" r="3.3" fill="#222"/><circle cx="${x + 1}" cy="42" r="1" fill="#fff"/>`;
+        : ojoNormal(x);
     h += ojo(39) + ojo(61);
-    h += fel < 40 ? `<path d="M34 35 l7 -2 M66 35 l-7 -2" stroke="${hc}" stroke-width="2" stroke-linecap="round"/>` : `<path d="M34 34 q5 -3 9 0 M57 34 q5 -3 9 0" stroke="${hc}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    const ce = L.cejas, cw = { finas: 1.2, gruesas: 3.4 }[ce] || 2, cc = ['canoso', 'blanco', 'platino'].includes(L.colorPelo) ? '#9a9a9a' : hc;
+    if (fel < 40) h += `<path d="M34 35 l7 -2 M66 35 l-7 -2" stroke="${cc}" stroke-width="${cw}" stroke-linecap="round"/>`;
+    else if (ce === 'arqueadas') h += `<path d="M34 35 q4 -6 9 -1 M57 34 q5 -5 9 1" stroke="${cc}" stroke-width="${cw}" fill="none" stroke-linecap="round"/>`;
+    else if (ce === 'rectas') h += `<path d="M34 34 h9 M57 34 h9" stroke="${cc}" stroke-width="${cw + .4}" stroke-linecap="round"/>`;
+    else h += `<path d="M34 34 q5 -3 9 0 M57 34 q5 -3 9 0" stroke="${cc}" stroke-width="${cw}" fill="none" stroke-linecap="round"/>`;
+    if (ce === 'corte') h += `<path d="M61 31.5 l1.5 4" stroke="${sk}" stroke-width="1.6"/>`;
+    if (rg === 'cicatriz') h += `<path d="M36 30 l5 9" stroke="#e7a3a3" stroke-width="1.4" stroke-linecap="round"/><path d="M37 32 l2 -1 M38.5 35 l2 -1" stroke="#e7a3a3" stroke-width="1"/>`;
     if (ene < 25) h += `<path d="M34 48 q5 3 9 0 M57 48 q5 3 9 0" stroke="#7a6a9a" stroke-width="1.2" fill="none" opacity=".7"/>`;
     h += fel > 65 ? `<path d="M41 52 Q50 63 59 52Z" fill="#7a2a2a"/><path d="M44 57 Q50 61 56 57" fill="#ff7b8a"/>`
       : fel >= 40 ? `<path d="M43 54 Q50 59 57 54" stroke="#5a2a2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
         : `<path d="M43 58 Q50 52 57 58" stroke="#5a2a2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
     if (fel < 25) h += `<path d="M65 47 q2 4 0 6 q-2 -2 0 -6Z" fill="#59b7ff"/>`;
+    if (rg === 'hoyuelos') h += `<path d="M39 54 q-1 2 0 3 M61 54 q1 2 0 3" stroke="${arr}" stroke-width="1.2" fill="none"/>`;
     if (L.cara === 'bigote') h += `<path d="M41 51 Q50 46 59 51 Q50 54 41 51Z" fill="${hc}"/>`;
     if (L.cara === 'perilla') h += `<path d="M46 61 L54 61 L50 69Z" fill="${hc}"/>`;
     if (s && s.p && s.p.lesion > 0) h += `<g transform="rotate(-20 60 28)"><rect x="52" y="25" width="17" height="6" rx="3" fill="#f3c89a" stroke="#c99a6a" stroke-width=".8"/><path d="M58 26 v4 M62 26 v4" stroke="#c99a6a" stroke-width=".6"/></g>`;
@@ -217,7 +278,21 @@
     else if (L.pelo === 'calvo') h += `<ellipse cx="40" cy="24" rx="6" ry="3" fill="#fff" opacity=".35"/>`;
     else if (L.pelo === 'tupe') h += `<path d="M24 42 Q22 18 46 15 Q40 2 62 3 Q82 6 76 24 Q78 32 76 42 Q70 26 50 26 Q32 28 24 42Z" fill="${hc}"/>`;
     else if (L.pelo === 'afro') h += `<path d="M26 34 Q50 16 74 34 Q50 26 26 34Z" fill="${hc}"/>`;
+    else if (L.pelo === 'bob') h += `<path d="M24 44 Q20 12 50 12 Q80 12 76 44 Q72 26 50 24 Q30 26 24 44Z" fill="${hc}"/><path d="M28 30 Q40 20 56 22" stroke="#fff" stroke-width="1.5" opacity=".25" fill="none"/>`;
+    else if (L.pelo === 'rastas') h += `<path d="M24 40 Q22 14 50 13 Q78 14 76 40 Q70 24 50 24 Q30 24 24 40Z" fill="${hc}"/>` + [36, 43, 50, 57, 64].map(x => `<path d="M${x} 19 v6" stroke="${oscurecer(hc, 0.7)}" stroke-width="1.2"/>`).join('');
+    else if (L.pelo === 'raya') h += `<path d="M24 42 Q22 14 50 13 Q78 14 76 42 Q74 26 60 22 L58 16 Q46 26 30 28 Q26 32 24 42Z" fill="${hc}"/><path d="M58 15.5 l-1 4.5" stroke="${oscurecer(hc, 0.6)}" stroke-width="1.2"/>`;
+    else if (L.pelo === 'mohicano') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".35"/><path d="M43 26 Q42 6 50 2 Q58 6 57 26Z" fill="${hc}"/>`;
+    else if (L.pelo === 'mono2') h += flequillo;
     else if (L.pelo === 'cresta') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".5"/><path d="M42 26 L38 -2 L48 10 L50 -8 L54 10 L64 -2 L58 26Z" fill="${hc}"/>`;
+    if ((ed === 'maduro' || ed === 'veterano') && !['calvo', 'canoso', 'blanco', 'platino'].includes(L.pelo === 'calvo' ? 'calvo' : L.colorPelo)) h += `<path d="M25 38 q1 -6 4 -9 M75 38 q-1 -6 -4 -9" stroke="#d8d8d8" stroke-width="${ed === 'veterano' ? 4 : 2.5}" stroke-linecap="round" opacity=".9"/>`;
+    // Piercings (encima del pelo para que se vean)
+    const pc2 = '#c9cfdb', pg = '#ffc83d', pi = L.piercing, aro = (x, y, r, c) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#5a4a2a" stroke-width="2.6"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${c}" stroke-width="1.6"/>`;
+    if (pi === 'oreja' || pi === 'combo') h += aro(75.5, 48.5, 3, pg);
+    if (pi === 'orejas') h += aro(75.5, 48.5, 3, pg) + aro(24.5, 48.5, 3, pg) + `<circle cx="78" cy="40" r="1.4" fill="${pc2}" stroke="#555" stroke-width=".5"/><circle cx="79" cy="44" r="1.4" fill="${pc2}" stroke="#555" stroke-width=".5"/><circle cx="22" cy="41" r="1.4" fill="${pc2}" stroke="#555" stroke-width=".5"/>`;
+    if (pi === 'nariz' || pi === 'combo') h += aro(54, 50.5, 2.2, pc2);
+    if (pi === 'septum') h += `<path d="M47.5 50 q2.5 4.5 5 0" stroke="#555" stroke-width="2.6" fill="none"/><path d="M47.5 50 q2.5 4.5 5 0" stroke="${pc2}" stroke-width="1.6" fill="none"/>`;
+    if (pi === 'ceja') h += `<circle cx="64.5" cy="30.5" r="1.5" fill="${pc2}" stroke="#555" stroke-width=".5"/><circle cx="65.8" cy="35.5" r="1.5" fill="${pc2}" stroke="#555" stroke-width=".5"/>`;
+    if (pi === 'labio') h += aro(54.5, 60, 2.2, pc2);
     if (L.gafas === 'redondas') h += `<circle cx="39" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><circle cx="61" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><path d="M46 43 h8 M32 42 l-6 -2 M68 42 l6 -2" stroke="#222" stroke-width="2"/>`;
     else if (L.gafas === 'sol') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#111"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#111"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#111" stroke-width="2"/><path d="M33 40 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
     else if (L.gafas === 'temporada') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><path d="M47 41 h6" stroke="#d94bff" stroke-width="2"/><path d="M33 40 l5 0 M56 40 l5 0" stroke="#7fd8ff" stroke-width="1.5"/>`;
@@ -234,5 +309,5 @@
     return `<svg viewBox="${VISTA_LOOK[modo] || VISTA_LOOK.cuerpo}" class="avatar" aria-hidden="true">${h}</svg>`;
   }
 
-  Object.assign(P2, { LOOK_INICIAL, CAPAS_LOOK: CAPAS, ITEMS_LOOK: ITEMS, COLOR_PELO, COLOR_ROPA, PIEL, itemLook, bloqueoLook, ponerLook, lookAzar, validarLook, avatarSVG });
+  Object.assign(P2, { LOOK_INICIAL, CAPAS_LOOK: CAPAS, GRUPOS_LOOK, COLOR_OJOS, ITEMS_LOOK: ITEMS, COLOR_PELO, COLOR_ROPA, PIEL, itemLook, bloqueoLook, ponerLook, lookAzar, validarLook, avatarSVG });
 })(globalThis.P2 = globalThis.P2 || {});

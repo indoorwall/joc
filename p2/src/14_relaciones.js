@@ -11,15 +11,15 @@
 
   // look: apariencia del avatar de cada persona (mismo dibujo que tu personaje)
   const RELACIONES = [
-    { id: 'madre', n: 'Carmen', rol: 'Tu madre', tipo: 'familia', ic: '👩', inicial: 75, aparece: () => true, look: { piel: '1', pelo: 'mono', colorPelo: 'castano', ropa: 'chaqueta', colorRopa: 'morado', fondo: 'rosa' } },
-    { id: 'padre', n: 'Luis', rol: 'Tu padre', tipo: 'familia', ic: '👨', inicial: 60, aparece: () => true, look: { piel: '2', pelo: 'rapado', colorPelo: 'canoso', cara: 'bigote', ropa: 'camiseta', colorRopa: 'azul', fondo: 'azul' } },
-    { id: 'marc', n: 'Marc', rol: 'Mejor amigo', tipo: 'amigo', ic: '🧑', inicial: 70, aparece: () => true, look: { piel: '0', pelo: 'rizos', colorPelo: 'pelirrojo', ropa: 'sudadera', colorRopa: 'naranja', fondo: 'naranja' } },
-    { id: 'dani', n: 'Dani', rol: 'Amigo del barrio', tipo: 'amigo', ic: '🧑‍🦱', inicial: 55, aparece: () => true, look: { piel: '4', pelo: 'corto', colorPelo: 'negro', ropa: 'camiseta', colorRopa: 'verde', cabeza: 'gorra', fondo: 'verde' } },
-    { id: 'iker', n: 'Iker', rol: 'Compañero de equipo', tipo: 'companero', ic: '⚽', inicial: 50, aparece: s => !!s.temporada, look: { piel: '3', pelo: 'cresta', colorPelo: 'rubio', ropa: 'equipacion', fondo: 'azul' } },
+    { id: 'madre', n: 'Carmen', rol: 'Tu madre', tipo: 'familia', ic: '👩', inicial: 75, aparece: () => true, look: { piel: '1', pelo: 'mono', colorPelo: 'castano', ropa: 'chaqueta', colorRopa: 'morado', fondo: 'rosa', edad: 'maduro', ojos: 'pestanas', colorOjos: 'miel', piercing: 'orejas' } },
+    { id: 'padre', n: 'Luis', rol: 'Tu padre', tipo: 'familia', ic: '👨', inicial: 60, aparece: () => true, look: { piel: '2', pelo: 'rapado', colorPelo: 'canoso', cara: 'bigote', ropa: 'camiseta', colorRopa: 'azul', fondo: 'azul', edad: 'veterano', cejas: 'gruesas', complexion: 'fuerte' } },
+    { id: 'marc', n: 'Marc', rol: 'Mejor amigo', tipo: 'amigo', ic: '🧑', inicial: 70, aparece: () => true, look: { piel: '0', pelo: 'rizos', colorPelo: 'pelirrojo', ropa: 'sudadera', colorRopa: 'naranja', fondo: 'naranja', rasgo: 'pecasFuertes', colorOjos: 'verde' } },
+    { id: 'dani', n: 'Dani', rol: 'Amigo del barrio', tipo: 'amigo', ic: '🧑‍🦱', inicial: 55, aparece: () => true, look: { piel: '4', pelo: 'corto', colorPelo: 'negro', ropa: 'camiseta', colorRopa: 'verde', cabeza: 'gorra', fondo: 'verde', piercing: 'oreja', tatuaje: 'cuello' } },
+    { id: 'iker', n: 'Iker', rol: 'Compañero de equipo', tipo: 'companero', ic: '⚽', inicial: 50, aparece: s => !!s.temporada, look: { piel: '3', pelo: 'cresta', colorPelo: 'rubio', ropa: 'equipacion', fondo: 'azul', tatuaje: 'manga', complexion: 'atletica' } },
     { id: 'mister', rol: 'Entrenador', tipo: 'entrenador', ic: '👔', aparece: s => !!s.temporada, valor: s => s.confianza,
       nombre: s => ({ puerto: 'Míster Ruiz', atleticoB: 'Míster Gallardo', atletico: 'Míster Gallardo', sanroque: 'Míster Paco', costa: 'Míster Lago' }[P2.oferta(s) ? P2.oferta(s).club : ''] || 'Tu míster'),
-      look: { piel: '2', pelo: 'calvo', colorPelo: 'canoso', ropa: 'chaqueta', colorRopa: 'negro', gafas: 'redondas', fondo: 'morado' } },
-    { id: 'sonia', n: 'Sonia Vidal', rol: 'Representante', tipo: 'representante', ic: '🤝', inicial: 55, aparece: s => !!s.agente, look: { piel: '1', pelo: 'largo', colorPelo: 'negro', ropa: 'traje', pantalon: 'traje', gafas: 'sol', fondo: 'morado' } },
+      look: { piel: '2', pelo: 'calvo', colorPelo: 'canoso', ropa: 'chaqueta', colorRopa: 'negro', gafas: 'redondas', fondo: 'morado', edad: 'veterano', rasgo: 'cicatriz' } },
+    { id: 'sonia', n: 'Sonia Vidal', rol: 'Representante', tipo: 'representante', ic: '🤝', inicial: 55, aparece: s => !!s.agente, look: { piel: '1', pelo: 'largo', colorPelo: 'negro', ropa: 'traje', pantalon: 'traje', gafas: 'sol', fondo: 'morado', edad: 'adulto', piercing: 'nariz' } },
     { id: 'pareja', rol: 'Pareja', tipo: 'pareja', ic: '❤️', bloqueada: 'Más adelante' },
     { id: 'contactos', rol: 'Contactos de empresa', tipo: 'contacto', ic: '💼', bloqueada: 'Más adelante' },
   ];

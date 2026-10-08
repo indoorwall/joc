@@ -60,6 +60,13 @@ vez, sin comprar solo), ropa y accesorios que se ponen solos en el personaje, tu
 vehículo en escena, **🚗 Garaje** (activo, anteriores, valor, aspectos), **🏆 Colecciones** (Street, Profesional, Lujo → fondo),
 **🏆 Mi historia** (Perfil), regalos y planes con tu gente (dinero del juego) y 4 situaciones que llegan por lo que compras.
 
+**🧍 Personaje con muchas más opciones** (mismo estilo plano): 20 capas en 5 grupos (Cara, Pelo, Cuerpo, Ropa, Extras) y
+más de 180 opciones. Nuevas: edad (joven, adulto/a, maduro/a, veterano/a, con arrugas y canas), forma y color de ojos,
+cejas, rasgos (lunar, cicatriz, hoyuelos, ojeras, pecas, mejillas rojas, lágrima tatuada), piercings (oreja, varios, nariz,
+septum, ceja, labio), complexión (delgada, normal, atlética, fuerte), tatuajes (estrella, rosa, brazo entero, tribales,
+cuello, mano, los dos brazos), 5 peinados y 4 colores de pelo más, y 10 tonos de piel. Las opciones de la cara se ven con
+zoom en el editor. Todo es estética: no cambia nada del juego. Las personas de «Vida» también usan estas opciones.
+
 **📈 Inversiones desbloqueables** (Imperio → Inversiones, visible desde el principio): el camino de deportista a empresario
 como una escalera. 1) Peluquería en traspaso (se abre con las mismas reglas que Empresa: primer patrocinador o 10 partidos
 como profesional), 2) segunda inversión, eliges una (local propio, segunda peluquería o socio en la cafetería; se abre con la

@@ -427,3 +427,9 @@ textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; ma
 .inv.iprox .kv { border-color: rgba(255,255,255,.15); }
 .reqs { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; font-size: 13px; color: var(--dim); }
 .reqs .ok { color: #087a93; font-weight: 800; }
+
+/* Editor del personaje: grupos (Cara, Pelo, Cuerpo, Ropa, Extras) y capas de cada grupo */
+.lookGrupos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; }
+.lookGrupos button { border: 2px solid var(--line); background: var(--panel); border-radius: 12px; min-height: 48px; padding: 2px; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0; color: var(--ink); }
+.lookGrupos button span { font-size: 18px; }
+.lookGrupos button.sel { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 3px 0 #3b2a9e; }

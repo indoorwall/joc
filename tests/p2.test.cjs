@@ -298,6 +298,13 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('El míster es una relación (su valor es la confianza)', P2.valorRel(r3, 'mister') === Math.round(r3.confianza) && P2.personasVisibles(r3).some(R => R.id === 'iker'));
 
   {
+  // ---------- Personaje: más opciones (edad, ojos, cejas, rasgos, piercings, complexión, tatuajes) ----------
+  check('Personaje: 20 capas en 5 grupos y más de 170 opciones', P2.CAPAS_LOOK.length === 20 && P2.GRUPOS_LOOK.length === 5 && Object.values(P2.ITEMS_LOOK).reduce((a, l) => a + l.length, 0) >= 170);
+  check('Personaje: cada opción se dibuja sin errores en todas las vistas', (() => { try { for (const [c, l] of Object.entries(P2.ITEMS_LOOK)) for (const it of l) for (const m of ['busto', 'cuerpo', 'torso', 'piernas']) if (!/^<svg/.test(P2.avatarSVG({ p: { energia: 80 }, hitos: {} }, Object.assign({}, P2.LOOK_INICIAL, { [c]: it.id }), m))) return false; return true; } catch (e) { return false; } })());
+  check('Personaje: una partida antigua recibe los valores nuevos por defecto', (() => { const v = JSON.parse(JSON.stringify(P2.nuevaPartida({ seed: 230 }))); v.look = { pelo: 'afro', colorPelo: 'rubio' }; const m = P2.migrateSave(v); return m.look.pelo === 'afro' && m.look.edad === 'joven' && m.look.tatuaje === 'nada' && m.look.piercing === 'nada'; })());
+  check('Personaje: «Al azar» siempre da un look válido', Array.from({ length: 40 }, () => P2.lookAzar()).every(L => JSON.stringify(P2.validarLook(L)) === JSON.stringify(Object.assign({}, P2.LOOK_INICIAL, L))));
+  check('Personaje: la apariencia no cambia el juego (complexión y edad son solo estética)', (() => { const a = P2.nuevaPartida({ seed: 231 }), b = P2.nuevaPartida({ seed: 231 }); Object.assign(b.look, { complexion: 'fuerte', edad: 'veterano', tatuaje: 'manga' }); for (let w = 0; w < 10; w++) for (const g of [a, b]) { resolverTodo(g); P2.jugarSemana(g, P2.POLITICAS.equilibrada.accion(g)) || P2.jugarSemana(g, 'descansar'); } const z = g => { const x = JSON.parse(JSON.stringify(g)); delete x.look; delete x.tele; delete x.monVariante; return JSON.stringify(x); }; return z(a) === z(b); })());
+
   // ---------- P2.4 · Monetization Lab (todo simulado) ----------
   const MON = P2.MONETIZATION, RWC = MON.rewarded;
   const foto = s => JSON.stringify({ rng: s.rng, temporada: s.temporada, stats: s.stats, pruebas: s.pruebas, invitacion: s.invitacion, contrato: s.contrato, hitos: s.hitos, cola: s.cola, pendiente: s.pendiente, p: { nivel: s.p.nivel, rep: s.p.rep, marca: s.p.marca }, confianza: s.confianza, negocios: s.negocios });
@@ -524,15 +531,17 @@ let informe;
   const ir = async (pg, v) => { const g = await pg.evaluate(v => __P2.P2.SECCIONES.find(x => x.id === v).grupo, v); await pg.tap(`#nav [data-g="${g}"]`); const st = pg.locator(`.subtabs [data-v="${v}"]`); if (await st.count()) await st.tap(); };
   await page.goto(url);
   check('UI: arranca en la pantalla de inicio', await page.locator('[data-act="empezar"]').isVisible());
-  check('UI: al empezar se elige el personaje (12 capas y vista previa)', await page.locator('.lookTabs button').count() === 12 && await page.locator('.lookPrev svg').isVisible());
+  check('UI: al empezar se elige el personaje (5 grupos, 20 capas y vista previa)', await page.locator('.lookGrupos button').count() === 5 && P2.CAPAS_LOOK.length === 20 && await page.locator('.lookPrev svg').isVisible());
   await page.fill('#nombre', 'Vega');
-  await page.tap('.lookTabs [data-v="pelo"]'); await page.tap('.lk[data-c="pelo"][data-v="rizos"]');
-  await page.tap('.lookTabs [data-v="colorRopa"]'); await page.tap('.lk[data-c="colorRopa"][data-v="rojo"]');
-  await page.tap('.lookTabs [data-v="gafas"]'); await page.tap('.lk[data-c="gafas"][data-v="sol"]');
+  await page.tap('.lookGrupos [data-v="pelo"]'); await page.tap('.lookTabs [data-v="pelo"]'); await page.tap('.lk[data-c="pelo"][data-v="rizos"]');
+  await page.tap('.lookGrupos [data-v="ropa"]'); await page.tap('.lookTabs [data-v="colorRopa"]'); await page.tap('.lk[data-c="colorRopa"][data-v="rojo"]');
+  await page.tap('.lookGrupos [data-v="extras"]'); await page.tap('.lookTabs [data-v="gafas"]'); await page.tap('.lk[data-c="gafas"][data-v="sol"]');
+  await page.tap('.lookGrupos [data-v="cara"]'); await page.tap('.lookTabs [data-v="piercing"]'); await page.tap('.lk[data-c="piercing"][data-v="combo"]');
+  await page.tap('.lookGrupos [data-v="cuerpo"]'); await page.tap('.lookTabs [data-v="tatuaje"]'); await page.tap('.lk[data-c="tatuaje"][data-v="rosa"]');
   check('UI: en el inicio no se ofrecen prendas que exigen hitos', await page.locator('.lk[data-v="traje"], .lk[data-v="corona"]').count() === 0);
   check('UI: el nombre no se pierde al cambiar de capa', await page.inputValue('#nombre') === 'Vega');
   await page.tap('[data-act="empezar"]');
-  check('UI: la partida empieza con el personaje elegido', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.nombre === 'Vega'));
+  check('UI: la partida empieza con el personaje elegido (también piercing y tatuaje)', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.look.piercing === 'combo' && __P2.S.look.tatuaje === 'rosa' && __P2.S.nombre === 'Vega'));
   check('UI: tu cara sale en la cabecera', await page.locator('#top .hava svg').isVisible());
   check('UI: al empezar la barra tiene Inicio, Vida, Imperio y Perfil (Carrera aún no)', (await page.locator('#nav button').allTextContents()).map(x => x.replace(/[^A-Za-zñ]/g, '')).join() === 'Inicio,Vida,Imperio,Perfil');
   check('UI: el inicio enseña tu personaje, el objetivo, el dinero y el progreso', await page.locator('.hero .stage .pj svg').isVisible() && (await page.textContent('.hero')).includes('Consigue una prueba') && await page.locator('.hero .xp').isVisible() && await page.evaluate(() => document.body.dataset.etapa === 'barrio' && !!document.querySelector('#decor svg')));
@@ -559,7 +568,7 @@ let informe;
   check('UI: tras decidir, el botón sigue esperando a que elijas', await page.locator('#jugar').isDisabled() && (await page.textContent('#jugar')).includes('Elige'));
   // Personaje: cambiarlo luego desde la cabecera; las prendas de hitos se desbloquean
   await page.tap('#top .hava');
-  await page.tap('.lookTabs [data-v="ropa"]');
+  await page.tap('.lookGrupos [data-v="ropa"]'); await page.tap('.lookTabs [data-v="ropa"]');
   check('UI: el traje de empresario está bloqueado hasta tener empresa', await page.locator('.lk[data-v="traje"]').isDisabled());
   await page.tap('.lk[data-c="ropa"][data-v="sudadera"]');
   check('UI: cambiar de ropa desde «Tu personaje» se guarda', await page.evaluate(() => __P2.S.look.ropa === 'sudadera' && JSON.parse(localStorage.getItem('del_barrio_al_negocio_p2')).look.ropa === 'sudadera'));
