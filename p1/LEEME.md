@@ -462,7 +462,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-202 de 202 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+208 de 208 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -641,6 +641,22 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
      ayuda de la federación de 6.000 € por clasificarte para los Juegos.
    - Sin confeti cuando la noticia es mala: ni en el fallo del minijuego, ni en el resultado, ni en el desenlace, ni en el
      resto de ventanas de la semana en la que fallas un momento decisivo (también se quita el que quedara de antes).
+6r. **Si fallas mucho, bajas (más realista).**
+   - **Fútbol y baloncesto: confianza del club** (0–100, empieza en 60 con cada contrato; se ve en Carrera). Sube y baja
+     cada partido según tu nota (≥ 7: +3; 6–7: +1; 5–6: −1; < 5: −3) y mucho con los momentos decisivos (acierto +8/+12,
+     fallo −12/−18); al final de temporada, ascenso +15, quedarte a las puertas −5, descenso −10. Estar en el banquillo
+     resta, pero nunca por debajo de 40: a un suplente no lo echan por no jugar.
+     - Por debajo de 40: «El club ya no confía en mí» y −3 en la selección (juegas menos).
+     - 20 o menos a mitad de temporada: **el club te rescinde el contrato**: cartel con la indemnización (4 semanas de
+       sueldo) y lo que pierdes (sueldo del resto de temporada, opción a la prima de ascenso), −10 de ánimo y −5 de fama,
+       y **solo te llaman equipos de una categoría inferior** (en la más baja, los más flojos); no puedes seguir en tu club.
+     - 30 o menos al acabar la temporada: el club te deja ir en verano (misma rescisión).
+   - **Escalada, skate y surf:** 4 competiciones del equipo nacional seguidas en el 40 % de abajo → **te sacan del equipo
+     nacional** (pierdes la ayuda del resto del año, en euros, y la plaza para sus competiciones); 5 → el centro de
+     tecnificación te da de baja. La cuenta se reinicia cada año. Los momentos decisivos ahora solo salen en tu modalidad
+     principal (Campeonato de España y final de la Copa del Mundo) y en Europeo, Mundial, clasificatorio y Juegos.
+   - **Boxeo profesional:** 3 derrotas seguidas → el promotor te baja de cartel (bolsas −30 % durante 6 meses); 4 → sales
+     del ranking y necesitas otra vez 5 victorias para pelear por el título de Europa.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

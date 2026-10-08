@@ -250,7 +250,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     const r = await page.evaluate(() => {
       const G = __P1, out = {};
       G.CFG.club.probSuceso = 0;
-      const resolverTodo = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'eventoPatro' ? 'si' : e.tipo === 'mejora' ? 'aceptar' : ['fin', 'pantalla', 'retiro'].includes(e.tipo) ? 'ok' : e.tipo === 'ofertas' ? (e.ventana === 'invierno' || G.S.contrato.temporadasRestantes > 0 ? 'quedarse' : '0') : '0'); } };
+      const resolverTodo = () => { for (let g = 0; G.S.pendiente && g < 20; g++) { const e = G.S.pendiente; G.resolver(e.tipo === 'eventoPatro' ? 'si' : e.tipo === 'mejora' ? 'aceptar' : ['fin', 'pantalla', 'retiro'].includes(e.tipo) ? 'ok' : e.tipo === 'ofertas' ? (!e.rescision && (e.ventana === 'invierno' || G.S.contrato.temporadasRestantes > 0) ? 'quedarse' : '0') : '0'); } };
       const semana = a => { resolverTodo(); if (a) G.elegir(a); const ok = G.avanzarSemana(); return ok; };
       const cerrarPantallas = () => { while (G.S.pendiente && G.S.pendiente.tipo === 'pantalla') G.resolver('ok'); };
       function alClub(seed, idx) {
@@ -1635,6 +1635,58 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     });
     check('Juego más exigente: marcas que rompen tras 2 objetivos fallados, lesiones graves (más si vas agotado/a) y ofertas según tu nota', h.marcas && h.lesion && h.nota);
     check('Minijuegos: sin errores de JavaScript ni conexiones externas', errors.length === 0 && requests.every(u => u.startsWith('file:')), errors.join(' | '));
+    await ctx.close();
+  }
+
+  /* ---------- Rendimiento: si fallas mucho, bajas (rescisión, equipo nacional, promotor) ---------- */
+  {
+    const { ctx, page, errors } = await openPage(browser, { viewport: { width: 390, height: 760 } });
+    const r = await page.evaluate(() => {
+      const G = __P1, out = {}; G.silencio = true; G.CFG.club.probSuceso = 0;
+      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 30; g++) { const e = G.S.pendiente; if (e.tipo === 'ofertas' && e.rescision) return; G.resolver('0') || G.resolver('ok') || G.resolver('si') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('corto') || G.resolver('1'); } };
+      G.nueva(51, 'delantero', 'futbol'); G.S.p.rep = 45;
+      for (let i = 0; i < 300 && G.S.fase !== 'club'; i++) { limpiar(); G.elegir(G.S.fase === 'barrio' ? 'plaza' : 'entrenarSolo'); G.avanzarSemana(); }
+      // empezar a mitad de temporada con la confianza justo por encima del límite y jugar muy mal (agotado y con el ánimo por los suelos)
+      for (let i = 0; i < 40 && !(G.S.temporada.jornada >= 2 && G.S.temporada.jornada <= 12); i++) { limpiar(); G.elegir('normal'); G.avanzarSemana(); }
+      limpiar();
+      const S = G.S, club0 = S.contrato.clubId, liga0 = G.ligaDe(club0).L.fuerza, din0 = S.p.dinero;
+      // en la categoría más baja no hay nada inferior: entonces, equipos de esa misma categoría
+      const minLiga = Math.min(...Object.keys(S.mundo.clubs).map(id => G.ligaDe(id).L.fuerza)), baja = f => liga0 > minLiga ? f < liga0 : f <= liga0;
+      out.inicial = S.contrato.confianza === G.CFG.rendimiento.confianzaInicial || S.contrato.confianza > 0;
+      S.contrato.confianza = 24; let rescision = null, desen = null;
+      for (let i = 0; i < 6 && !rescision; i++) { S.p.energia = 5; S.p.fel = 0; S.p.nivel = G.club(club0).fuerza + 9; S.lesion = 0; G.elegir('normal'); G.avanzarSemana();
+        const cola = [G.S.pendiente].concat(G.S.cola).filter(Boolean); desen = desen || cola.find(e => e.tipo === 'desenlace' && /rescinde/.test(e.titulo)); rescision = cola.find(e => e.tipo === 'ofertas' && e.rescision);
+        if (!rescision) limpiar(); }
+      out.rescinde = !!rescision && !!desen && desen.gana.some(([x]) => /Indemnización/.test(x));
+      out.inferior = !!rescision && rescision.ofertas.length > 0 && rescision.ofertas.every(o => baja(G.ligaDe(o.clubId).L.fuerza));
+      out.sinSeguir = !!rescision && (() => { while (G.S.pendiente && G.S.pendiente.tipo !== 'ofertas') G.resolver('ok'); return !G.resolver('quedarse'); })();
+      out.firma = G.resolver('0') && G.S.contrato.clubId !== club0 && baja(G.ligaDe(G.S.contrato.clubId).L.fuerza) && G.S.contrato.confianza === G.CFG.rendimiento.confianzaInicial && !G.S.contrato.rescindido;
+      out.indemnizacion = G.S.p.dinero > din0;
+      // Banquillo: no te echan por no jugar (como mucho, el club deja de contar contigo)
+      G.S.contrato.confianza = 45; for (let i = 0; i < 6; i++) { limpiar(); G.S.p.nivel = 1; G.S.p.energia = 90; G.elegir('normal'); G.avanzarSemana(); }
+      out.banquillo = G.S.contrato.confianza >= G.CFG.rendimiento.aviso - 3 || G.S.ultimo.partido && G.S.ultimo.partido.rol !== 'banquillo';
+      // Individuales: malas competiciones del equipo nacional → fuera del equipo nacional (con lo que pierdes)
+      G.nueva(52, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.S.edad = 24; G.S.fase = 'escalador';
+      const E = G.S.esc; E.nacional = E.año; E.beca = 300; E.malas = 0;
+      const R = { opo: [], escLineas: [], eco: [], dep: [] }, cmu = { amb: 'mundo', mod: 'bloque', id: 'x' };
+      for (let k = 0; k < 4; k++) __P1.rendimientoInd(G.S, R, cmu, 90, 'clasificación', null);
+      const des2 = [G.S.pendiente].concat(G.S.cola).find(e => e && e.tipo === 'desenlace');
+      out.nacional = E.nacional === 0 && E.beca === 0 && !!des2 && /equipo nacional/.test(des2.titulo);
+      // Boxeo: derrotas seguidas → promotor y ranking
+      G.nueva(53, null, 'boxeo'); G.S.esc.box = { v: 6, d: 0, ko: 0, kod: 0 };
+      const cb = { amb: 'europa', mod: G.calendarioEsc()[0].mod };
+      for (let k = 0; k < 4; k++) __P1.rendimientoBox(G.S, { opo: [] }, cb, 2);
+      const B = G.S.esc.box;
+      out.box = B.castigo > G.S.semana && B.rank === 0 && [G.S.pendiente].concat(G.S.cola).filter(e => e && e.tipo === 'desenlace').length === 2;
+      G.silencio = false;
+      return out;
+    });
+    check('Rendimiento: con la confianza del club por los suelos te rescinden el contrato (con indemnización)', r.rescinde && r.indemnizacion, JSON.stringify(r));
+    check('Rendimiento: tras la rescisión solo te llaman equipos de una categoría inferior y no puedes seguir', r.inferior && r.sinSeguir && r.firma, JSON.stringify(r));
+    check('Rendimiento: estar en el banquillo no te echa del club', r.banquillo);
+    check('Rendimiento: en individuales, malas competiciones seguidas te sacan del equipo nacional', r.nacional);
+    check('Rendimiento: en boxeo, derrotas seguidas: el promotor te baja la bolsa y sales del ranking', r.box);
+    check('Rendimiento: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 
