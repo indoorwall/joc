@@ -8,6 +8,9 @@
   const { CFG } = P2;
 
   // Partida nueva + variante del test de monetización (se asigna una vez y se guarda)
+  // Grandes momentos para celebrar en pantalla (ascenso, contrato, negocio, título, patrocinio). Solo los pinta la interfaz.
+  function celebrar(s, c) { const l = s.celebraciones = Array.isArray(s.celebraciones) ? s.celebraciones : []; l.push(Object.assign({ semana: s.semana }, c)); if (l.length > 6) l.shift(); }
+  P2.celebrar = celebrar;
   function nuevaPartida(opc = {}) { const s = partidaBase(opc); if (P2.asignarVariante) P2.asignarVariante(s); return s; }
   function partidaBase(opc = {}) {
     const I = CFG.inicio, seed = (opc.seed >>> 0) || ((Date.now() ^ (Math.random() * 1e9)) >>> 0);
@@ -23,7 +26,7 @@
       deseoActual: null,
       vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
       mjSemana: null,               // objetivo personal de la Tienda (lista de deseos)
-      historiaCosas: [], trofeos: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
+      historiaCosas: [], trofeos: [], celebraciones: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
       seccionesNuevas: [],

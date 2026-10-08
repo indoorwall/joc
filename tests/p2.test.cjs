@@ -365,6 +365,8 @@ function enClub(oferta = 'puerto', seed = 5) {
     check(`Copas: ganar la final de ${P2.COMPETICIONES[id].n} da el título, premio y fama`, g.c.estado === 'campeon' && g.x.trofeos.some(tr => tr.n === P2.COMPETICIONES[id].n) && g.dd - pe.dd >= P2.COMPETICIONES[id].gana.dinero && g.dr > pe.dr);
     check(`Copas: perder la final de ${P2.COMPETICIONES[id].n} tiene consecuencias (sin título y menos reputación)`, pe.c.estado === 'subcampeon' && !pe.x.trofeos.some(tr => tr.n === P2.COMPETICIONES[id].n) && (pe.R.grandes || []).some(G => !G.bien && /Final perdida/.test(G.titulo)));
   }
+  check('Celebraciones: ganar una final, firmar un contrato o comprar un negocio deja un gran momento para animar (con el dinero)', (() => { const sd = buscaFinal('copa'); const g = finalCopa('copa', sd, 0.9), pe = finalCopa('copa', sd, 0.2); const c = g.x.celebraciones.find(x => x.tipo === 'titulo'); const k = enClub('puerto', 9); return c && c.dinero === P2.COMPETICIONES.copa.gana.dinero && !pe.x.celebraciones.some(x => x.tipo === 'titulo') && k.celebraciones.some(x => x.tipo === 'contrato' && x.sueldo > 0); })());
+  check('Celebraciones: la lista no crece sin fin (como mucho 6 pendientes)', (() => { const x = P2.nuevaPartida({ seed: 9 }); for (let i = 0; i < 20; i++) P2.celebrar(x, { tipo: 'titulo', n: 'x' }); return x.celebraciones.length === 6; })());
   check('Copas: la convocatoria para el Mundial pide nivel y reputación de élite', P2.CONVOCATORIA.nivel >= 70 && P2.CONVOCATORIA.rep >= 50);
   check('Copas y promociones: se guardan con la partida', (() => { const x = enClub('costaReal', sdA || 300); finLiga(x); const m = P2.migrateSave(JSON.parse(JSON.stringify(x))); return JSON.stringify(m.temporada.promocion) === JSON.stringify(x.temporada.promocion) && JSON.stringify(m.temporada.copas) === JSON.stringify(x.temporada.copas); })());
 
@@ -658,6 +660,8 @@ let informe;
   // Club, empresa y recarga
   await ir(page, 'semana');
   await page.evaluate(() => { const S = __P2.S; S.p.nivel = 58; __P2.P2.firmar(S, 'puerto', null); S.p.dinero = 9000; __P2.render(); });
+  check('UI: al firmar sale la animación del contrato (club, sueldo, duración, total, firma y prima)', await page.locator('.cele-contrato .contrato').isVisible() && await (async () => { const x = await page.textContent('.cele-contrato'); return x.includes('UD Puerto') && x.includes('/semana') && x.includes('Total del contrato') && x.includes('FIRMADO') && x.includes('Prima de fichaje'); })() && await page.locator('.cele .trazo').count() === 1);
+  await page.click('[data-act="celeOk"]', { force: true });
   check('UI: al firmar se celebra lo nuevo («NUEVO: Liga»)', await page.locator('.fiesta').isVisible() && (await page.textContent('.fiesta')).includes('Liga'));
   for (let g = 0; g < 4 && await page.locator('.fiesta').count(); g++) await page.tap('.fiesta [data-act="seguir"]');
   check('UI: en el club se juega con partido («¿Qué haces además del partido?»)', (await page.textContent('.pant h1')).includes('partido') && await page.evaluate(() => document.body.dataset.etapa === 'club'));
@@ -668,6 +672,8 @@ let informe;
   await page.tap('[data-act="comprar"][data-id="1"]');
   const c1 = await page.evaluate(() => ({ d: __P2.S.p.dinero, c: __P2.S.negocios[0].caja }));
   check('UI: comprar la peluquería desde «Empresa»', c1.c === 3000 - 1250 && c1.d === 9000 - 4500 - 3000, JSON.stringify(c1));
+  check('UI: al comprar el negocio sale la animación del local (persiana, «ABIERTO» y lo invertido)', await page.locator('.cele-negocio .local .persiana').count() === 1 && (await page.textContent('.cele-negocio')).includes('ABIERTO') && /7\.?500/.test(await page.textContent('.cele-negocio .bigMoney')));
+  await page.click('[data-act="celeOk"]', { force: true });
   await page.tap('[data-act="config"][data-c="precio"][data-v="caro"]');
   check('UI: cambiar el precio enseña la previsión al momento', (await page.textContent('.prev')).includes('clientes') && await page.evaluate(() => __P2.S.negocios[0].precio === 'caro'));
   await page.fill(`#imp_${await page.evaluate(() => __P2.S.negocios[0].id)}`, '500');
@@ -703,6 +709,11 @@ let informe;
   await page.click('[data-act="mjSimular"]', { force: true });
   check('UI: simular enseña si ha salido bien o mal (lo decide tu nivel) y no deja reintentar', (await page.textContent('.mj')).includes('Simulado') && await page.locator('[data-act="mjReintentar"]').count() === 0);
   await page.click('[data-act="mjFin"]', { force: true });
+  if (await page.locator('.cele-ascenso').count()) {
+    check('UI: al subir de categoría sale la animación del ascenso (escalera de categorías y prima)', await page.locator('.cele-ascenso .escalera .pelda.meta .ficha').isVisible() && (await page.textContent('.cele-ascenso')).includes('ASCENSO'));
+    await page.click('[data-act="celeOk"]', { force: true });
+  }
+  for (let g = 0; g < 4 && await page.locator('[data-act="celeOk"]').count(); g++) await page.click('[data-act="celeOk"]', { force: true });
   check('UI: después sigue la semana con el resultado del partido', await page.locator('.res .marcador').isVisible());
   for (let g = 0; g < 6 && await page.locator('[data-act="seguir"]').count(); g++) await page.click('[data-act="seguir"]', { force: true });
   // Promoción: te juegas la categoría en el minijuego
@@ -714,6 +725,7 @@ let informe;
   await page.evaluate(() => { __P2.ui.mj.res = [0.1, 0.1, 0.1]; __P2.ui.mj.p = 0.1; __P2.ui.mj.fase = 'fin'; __P2.render(); });
   check('UI: si pierdes la promoción puedes reintentar gastando una vida', (await page.textContent('.mj')).includes('Se escapa') && (await page.locator('[data-act="mjReintentar"]').count() + await page.locator('.rw[data-t="vida"]').count()) === 1);
   await page.click('[data-act="mjFin"]', { force: true });
+  for (let g = 0; g < 4 && await page.locator('[data-act="celeOk"]').count(); g++) await page.click('[data-act="celeOk"]', { force: true });
   check('UI: el resultado de la promoción sale en grande', await page.locator('.res').isVisible() && await page.evaluate(() => __P2.S.ultimo.lineas.some(l => /Promoción|Final por el título/.test(l[1]))));
   for (let g = 0; g < 6 && await page.locator('[data-act="seguir"]').count(); g++) await page.click('[data-act="seguir"]', { force: true });
   // Monetization Lab en la interfaz

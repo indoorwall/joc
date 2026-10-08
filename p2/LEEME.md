@@ -42,6 +42,12 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
   - Antes de jugar se ve **qué pasa si ganas y si pierdes**. Perder una final: sin título, menos reputación y marca, la
     prensa encima. Ganar: título en «Mi historia», premio, reputación y marca. Sin minijuego (bots, «Simular») lo decide el
     nivel, sin tocar el azar de la partida. Premios moderados: el simulador da como mucho +6 % de patrimonio a 80 semanas.
+- **Grandes momentos animados** (pantalla completa, con confeti, antes que nada más): **ascenso** (escalera de categorías con
+  tu club subiendo y la prima), **contrato** (el contrato del club con sueldo, duración, prima por victoria y **total del contrato**,
+  la firma que se dibuja, el sello «FIRMADO» y la prima de fichaje contando hacia arriba), **renovación**, **compra de negocio**
+  (el local abre la persiana y se enciende «ABIERTO», con lo invertido), **título** (copa que cae, lluvia de monedas, premio en
+  euros, reputación y marca) y, además, **nuevo patrocinador** (cheque a tu nombre) y **convocatoria con la selección**. La lógica
+  solo deja el aviso (`P2.celebrar`, como mucho 6 pendientes); la interfaz lo anima. Con «reducir movimiento» se ve quieto y completo.
 - **Vidas** (❤️, máximo 3, como en P1): **un reintento por momento decisivo**, nunca para deshacer una decisión. Se recupera
   1 cada 6 semanas y, sin vidas, con un anuncio simulado (+1, una vez por semana). *Cambio de criterio respecto a P2.4, que
   no tenía vidas: lo pidió el responsable del juego.*

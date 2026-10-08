@@ -195,6 +195,7 @@
     s.negocios.push(n);
     P2.tele(s, 'empresa', { caja });
     P2.anotar(s, T.ic, `Compro una ${T.n.toLowerCase()}: traspaso ${eur(traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
+    P2.celebrar(s, { tipo: 'negocio', n: T.n, ic: T.ic, invertido: traspaso + caja, texto: 'Ya eres empresario/a' });
     P2.conseguirHito(s, 'empresa', R);
     return n;
   }

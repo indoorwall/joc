@@ -75,6 +75,7 @@
     s.marcasFirmadas = s.marcasFirmadas || {}; s.marcasFirmadas[id] = (s.marcasFirmadas[id] || 0) + 1;
     sumarMarca(s, M.tier === 'grande' ? 4 : M.tier === 'deportiva' ? 2 : 1);
     P2.anotar(s, M.ic, `${C.renov ? 'Renuevo' : 'Firmo'} con ${M.n}: prima de ${eur(neto)} y ${eur(C.semanal)}/semana durante ${M.semanas} semanas. ${M.obligacion}.`);
+    P2.celebrar(s, { tipo: 'patrocinio', n: M.n, ic: M.ic, prima: neto, semanal: C.semanal, semanas: M.semanas, renov: C.renov });
     P2.tele(s, 'marcaFirmada', { id, renov: C.renov });
     P2.conseguirHito(s, 'patro', R);
     return true;

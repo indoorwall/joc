@@ -6,7 +6,7 @@
   'use strict';
   const { CFG, OFERTAS, OBJETIVOS, LIGAS, MARCAS, NEGOCIOS, HITOS, OPORTUNIDADES, esc, eur, nf, fmt, clamp } = P2;
   let S = null;
-  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '', look: null, capa: 'piel', nombre: 'Alex' };
+  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '', look: null, capa: 'piel', nombre: 'Alex', celes: [] };
   const $ = id => document.getElementById(id);
 
   // ---------- Utilidades de pintado ----------
@@ -727,6 +727,52 @@
     return `<div class="pant fiesta"><div class="rayos"></div><div class="grande">${F.x.ic}</div><small class="eti">🔓 NUEVO</small><h2>${esc(F.x.n)}</h2><p>${esc(F.x.d || '')} Lo tienes en 🌍 Mi mundo.</p>
       <button class="cta oro" data-act="verNuevo" data-v="${F.x.id}">Ver ahora</button><button class="masOps" data-act="seguir">Más tarde</button></div>`;
   }
+
+  // ---- Grandes momentos animados: ascenso, contrato, negocio, título, patrocinio, convocatoria ----
+  const TRAZO_FIRMA = 'M8 44 C 22 6, 40 70, 58 34 S 84 8, 98 40 S 128 66, 146 30 S 176 12, 190 42 S 222 58, 250 26';
+  const dinero = (v, signo = '+') => `<div class="bigMoney">${signo}<span data-cuenta="0|${Math.round(v)}|1">${eur(Math.round(v))}</span></div>`;
+  function htmlCele(s, c) {
+    const cerrar = `<button class="cta oro" data-act="celeOk">${c.tipo === 'titulo' ? '¡A celebrarlo! ▶' : c.tipo === 'ascenso' ? '¡A por la nueva categoría! ▶' : '¡Vamos! ▶'}</button>`;
+    let h = '';
+    if (c.tipo === 'contrato') {
+      const semT = (s.temporada && s.temporada.calendario ? s.temporada.calendario.length : 14), total = c.sueldo * semT * (c.temporadas || 1);
+      h = `<small class="eti">${c.renov ? '✍️ RENOVACIÓN FIRMADA' : c.amateur ? '✍️ FICHA FIRMADA' : '✍️ CONTRATO PROFESIONAL'}</small>
+        <div class="contrato" style="--c1:${esc(c.c1 || '#7c5cff')};--c2:${esc(c.c2 || '#fff')}">
+          <div class="cHead"><span class="escudo">${c.ic || '⚽'}</span><span><b>${esc(c.club)}</b><small>${esc(c.liga || '')}</small></span></div>
+          <div class="cFila" style="--i:0"><span>💶 ${c.amateur ? 'Dietas' : 'Sueldo'}</span><b>${eur(c.sueldo)}/semana</b></div>
+          <div class="cFila" style="--i:1"><span>📅 Duración</span><b>${c.temporadas} ${c.temporadas === 1 ? 'temporada' : 'temporadas'}</b></div>
+          ${c.primaVictoria ? `<div class="cFila" style="--i:2"><span>🏆 Prima por victoria</span><b>${eur(c.primaVictoria)}</b></div>` : ''}
+          <div class="cFila total" style="--i:3"><span>💰 Total del contrato</span><b>${eur(total)}</b></div>
+          <div class="cFirma"><svg viewBox="0 0 260 70" aria-hidden="true"><path class="trazo" d="${TRAZO_FIRMA}"/></svg><span>${esc(s.nombre || '')}</span></div>
+          <div class="sello">FIRMADO</div>
+        </div>
+        ${c.prima ? `${dinero(c.prima)}<p class="small">Prima de ${c.renov ? 'renovación' : 'fichaje'} (neto), ya en tu cuenta</p>` : ''}`;
+    } else if (c.tipo === 'ascenso') {
+      const L = Object.entries(P2.LIGAS).sort((a, b) => b[1].nivel - a[1].nivel), ia = L.findIndex(([k]) => k === c.a), id = L.findIndex(([k]) => k === c.de);
+      h = `<small class="eti">⬆️ ¡SUBIMOS DE CATEGORÍA!</small><h2>¡ASCENSO!</h2>
+        <div class="escalera">${L.map(([k, X], i) => `<div class="pelda ${k === c.a ? 'meta' : k === c.de ? 'origen' : ''}"><span>${esc(X.corto || X.n)}</span>${k === c.a ? `<b class="ficha" style="--d:${(id - ia) * 50}px">${c.ic || '⚽'} ${esc(c.club)}</b>` : ''}</div>`).join('')}</div>
+        <p>La temporada que viene: <b>${esc(P2.LIGAS[c.a].n)}</b>. Más público, más sueldo, más ojos mirando.</p>
+        ${c.prima ? `${dinero(c.prima)}<p class="small">Prima de ascenso</p>` : ''}`;
+    } else if (c.tipo === 'negocio') {
+      h = `<small class="eti">💼 ${esc((c.texto || '').toUpperCase())}</small>
+        <div class="local"><div class="toldo"></div><div class="rotulo">${c.ic} ${esc(c.n)}</div><div class="escaparate"><span class="abierto">ABIERTO</span><span class="persiana"></span></div></div>
+        <h2>¡${esc(c.n)} es tuya!</h2>
+        ${c.invertido ? `${dinero(c.invertido, '')}<p class="small">Lo que has invertido. Ahora, a que dé dinero.</p>` : ''}`;
+    } else if (c.tipo === 'titulo') {
+      h = `<small class="eti">🏆 ¡CAMPEONES!</small><div class="copaGrande">${c.ic || '🏆'}</div><h2>${esc(c.n)}</h2>
+        <div class="monedas" aria-hidden="true">${Array.from({ length: 14 }, (_, i) => `<i style="left:${(i * 37) % 100}%;animation-delay:${(i % 7) * 0.18}s">🪙</i>`).join('')}</div>
+        ${c.dinero ? `${dinero(c.dinero)}<p class="small">Premio por el título</p>` : ''}
+        <div class="chipsCele">${c.rep ? `<span>⭐ +${c.rep} reputación</span>` : ''}${c.marca ? `<span>📣 +${c.marca} marca</span>` : ''}<span>🏆 A tu vitrina</span></div>`;
+    } else if (c.tipo === 'patrocinio') {
+      h = `<small class="eti">🤝 ${c.renov ? 'PATROCINIO RENOVADO' : 'NUEVO PATROCINADOR'}</small>
+        <div class="cheque"><div class="chTop"><span>${c.ic}</span><b>${esc(c.n)}</b></div><div class="chFila">Páguese a: <b>${esc(s.nombre || '')}</b></div>
+          <div class="chImporte">${eur(c.prima)}</div><div class="cFirma mini"><svg viewBox="0 0 260 70" aria-hidden="true"><path class="trazo" d="${TRAZO_FIRMA}"/></svg></div></div>
+        ${dinero(c.prima)}<p class="small">Prima (neto) y después ${eur(c.semanal)}/semana durante ${c.semanas} semanas</p>`;
+    } else if (c.tipo === 'convocatoria') {
+      h = `<small class="eti">🌍 ¡CONVOCATORIA!</small><div class="copaGrande">🌍</div><h2>¡Te llama la selección!</h2><p>La temporada que viene juegas el Mundial. Si llegáis a la final, la juegas tú.</p>`;
+    }
+    return `<div class="pant cele cele-${esc(c.tipo)}"><div class="rayos"></div>${h}${cerrar}</div>`;
+  }
   // ---- Minijuegos: barra de tiempo (y esquina en el penalti); vidas para repetir ----
   const ESQ = [['izq', '⬅️', 'Izquierda'], ['centro', '⬆️', 'Centro'], ['dcha', '➡️', 'Derecha']];
   const corazones = s => { const v = P2.vidas(s); return `<span class="vidas" aria-label="${v.n} vidas">${'❤️'.repeat(v.n)}${'🤍'.repeat(Math.max(0, P2.VIDAS.max - v.n))}</span>`; };
@@ -807,8 +853,8 @@
   function contar() {
     if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     document.querySelectorAll('[data-cuenta]').forEach(el => {
-      const [a, b, din] = el.dataset.cuenta.split('|'), A = +a, B = +b, t0 = performance.now();
-      const paso = tt => { const p = Math.min(1, (tt - t0) / 700), v = A + (B - A) * (1 - Math.pow(1 - p, 3)); el.textContent = din === '1' ? eur(v) : nf(Math.round(v * 10) / 10); if (p < 1) requestAnimationFrame(paso); };
+      const [a, b, din] = el.dataset.cuenta.split('|'), A = +a, B = +b, grande = !!el.closest('.bigMoney'), t0 = performance.now() + (grande ? 1200 : 0), dur = grande ? 1500 : 700;   // el dinero grande cuenta cuando aparece
+      const paso = tt => { const p = Math.max(0, Math.min(1, (tt - t0) / dur)), v = A + (B - A) * (1 - Math.pow(1 - p, 3)); el.textContent = din === '1' ? eur(v) : nf(Math.round(v * 10) / 10); if (p < 1) requestAnimationFrame(paso); };
       requestAnimationFrame(paso);
     });
   }
@@ -827,16 +873,19 @@
     const nuevas = P2.revisarSecciones(S, null);
     if (nuevas.length) { ui.fiestas = (ui.fiestas || []).concat(fiestasDe([], nuevas)); if (!ui.paso) ui.paso = 'fiesta'; P2.guardar(S); }
     if (!P2.seccionesVisibles(S).some(x => x.id === ui.vista)) ui.vista = 'semana';
+    // Grandes momentos: se enseñan antes que nada (menos en mitad de un minijuego)
+    if (!ui.mj && Array.isArray(S.celebraciones) && S.celebraciones.length) { ui.celes = (ui.celes || []).concat(S.celebraciones); S.celebraciones = []; P2.guardar(S); ui.confeti = true; }
+    const cele = ui.celes && ui.celes.length ? ui.celes[0] : null;
     pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = '';
     const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
       relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
-    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
+    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && !cele && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
     const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
     const mundo = ui.mundo ? htmlMundo(S) : '';
-    $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + V(S) + capa + mundo;
+    $('main').innerHTML = cele ? htmlCele(S, cele) : (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + V(S) + capa + mundo;
     ui.flash = '';
     $('main').classList.remove('conBoton');
     document.body.classList.toggle('enSeccion', ui.vista !== 'semana');
@@ -889,6 +938,7 @@
       case 'mjSimular': { const J = ui.mj, ok = Math.random() < P2.probSimular(S); J.p = ok ? P2.P_SIM.acierto : P2.P_SIM.fallo; J.parada = !ok; J.simulado = true; J.fase = 'fin'; render(); break; }
       case 'mjReintentar': if (P2.usarVida(S)) { ui.mj.res = []; ui.mj.reintentos++; ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; guardarYPintar(); } break;
       case 'mjFin': { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos, simulado: !!J.simulado }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
+      case 'celeOk': ui.celes.shift(); if (ui.celes.length) ui.confeti = true; render(); window.scrollTo(0, 0); break;
       case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
         if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }
         render(); window.scrollTo(0, 0); break;

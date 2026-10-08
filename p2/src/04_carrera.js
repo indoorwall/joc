@@ -187,6 +187,7 @@
       s.stats.titularTemp = 0; s.stats.notasTemp = [];
     }
     s.amateurSemanas = 0;
+    P2.celebrar(s, { tipo: 'contrato', club: O.n, ic: O.ic, c1: O.c1, c2: O.c2, liga: (LIGAS[P2.ligaDeClub(s, O.club) || O.liga] || {}).n, sueldo: O.sueldo, prima: O.prima ? Math.round(O.prima * (1 - CFG.club.impuesto)) : 0, temporadas: O.temporadas, primaVictoria: O.primaVictoria || 0, amateur: !!O.amateur });
     P2.tele(s, 'club', { id });
     if (!O.amateur) P2.conseguirHito(s, 'contrato', R);
     P2.anotar(s, O.ic, `Firmo con ${O.n}: ${eur(O.sueldo)}/semana, ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}.`);
@@ -339,7 +340,7 @@
         s.primasCobradas[`asc-${T.liga}-${T.num}`] = prima; s.p.dinero += prima; s.acum.primas += prima;
       }
       P2.tele(s, 'categoria', { tipo: mov.miClub.tipo, a: mov.miClub.a });
-      if (mov.miClub.tipo === 'sube') { P2.anotarHistoria(s, 'ascenso'); P2.momentoMon(s, 'ascenso'); P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
+      if (mov.miClub.tipo === 'sube') { P2.celebrar(s, { tipo: 'ascenso', club: O.n.replace(/ \(.*\)/, ''), ic: O.ic, de: mov.miClub.de, a: mov.miClub.a, prima }); P2.anotarHistoria(s, 'ascenso'); P2.momentoMon(s, 'ascenso'); P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
       else if (mov.miClub.tipo === 'baja') { R.lineas.push(['📉', `Descenso: ${O.n.replace(/ \(.*\)/, '')} baja a ${aL.n}.`, 'mal']); s.p.rep = r1(clamp(s.p.rep - 2, 0, 100)); }
       else R.lineas.push(['🔒', `Acabáis en puestos de ascenso, pero un filial no puede jugar en la categoría de su primer equipo: sube el siguiente.`]);
       P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
@@ -379,6 +380,7 @@
     const O = oferta(s);
     s.contrato.sueldo = cond.sueldo; s.contrato.temporadasRestantes = cond.temporadas; s.contrato.renovado++;
     if (cond.prima) { const neto = Math.round(cond.prima * (1 - CFG.club.impuesto)); s.p.dinero += neto; s.acum.primas += neto; R && R.lineas.push(['✍️', `Prima de renovación: +${eur(neto)}.`, 'bien']); }
+    P2.celebrar(s, { tipo: 'contrato', renov: true, club: O.n, ic: O.ic, c1: O.c1, c2: O.c2, liga: (LIGAS[P2.ligaDeClub(s, O.club) || O.liga] || {}).n, sueldo: cond.sueldo, prima: cond.prima ? Math.round(cond.prima * (1 - CFG.club.impuesto)) : 0, temporadas: cond.temporadas, primaVictoria: O.primaVictoria || 0 });
     P2.anotar(s, '✍️', `Renuevo con ${O.n}: ${eur(cond.sueldo)}/semana.`);
     P2.tele(s, 'renovacion', { sueldo: cond.sueldo });
     nuevaTemporada(s, R);

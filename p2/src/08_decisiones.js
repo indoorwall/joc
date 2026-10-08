@@ -302,6 +302,7 @@
     }
     if (id === 'socio') { s.socio = P2.nuevaParticipacion(s, o.coste); t = 'Entras como socio/a en la cafetería: no decides nada; cada trimestre sabrás cómo va.'; }
     P2.anotar(s, o.ic, t);
+    P2.celebrar(s, { tipo: 'negocio', n: o.n, ic: o.ic, invertido: o.coste, texto: id === 'socio' ? 'Ahora eres socio/a' : id === 'local' ? 'El local ya es tuyo' : 'Tu segunda empresa' });
     P2.tele(s, 'segunda', { id });
     conseguirHito(s, 'inversion2', null);
     return t;
