@@ -35,7 +35,7 @@
       const neto = O.amateur ? bruto : Math.round(bruto * (1 - CFG.club.impuesto));
       s.p.dinero += neto; s.acum.sueldo += neto; s.acum.impuestos += bruto - neto;
       R.ingresos.push([O.amateur ? 'Dietas del club' : 'Sueldo (neto)', neto]);
-      const gv = O.amateur ? 20 : CFG.club.gastosVida;
+      const gv = O.amateur ? 20 : Math.max(10, CFG.club.gastosVida - P2.efectoTienda(s, 'gastosVida'));   // tu propia vivienda abarata vivir
       s.p.dinero -= gv; s.acum.gastos += gv; R.ingresos.push(['Gastos personales', -gv]);
     }
     if (s.fase === 'club') P2.semanaPatros(s, R);
@@ -45,7 +45,7 @@
 
     // Recuperación, lesiones
     const enEquipo = s.fase === 'club' || s.fase === 'amateur';
-    s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio) + P2.efectoPatro(s, 'recuperacion'), 0, CFG.energia.max);
+    s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio) + P2.efectoPatro(s, 'recuperacion') + P2.efectoTienda(s, 'recuperacion'), 0, CFG.energia.max);
     if (lesionInicio && s.p.lesion > 0) { s.p.lesion--; if (!s.p.lesion) R.lineas.push(['✅', 'Recuperado/a de la lesión.', 'bien']); }
 
     // Fin de la captación sin prueba: ruta amateur (nunca game over)
@@ -94,7 +94,7 @@
     P2.tele(s, 'decision', { tipo: ev.tipo, id: ev.id || ev.origen || ev.marca || null, op: opId });
     if (r.semana) s.pendiente = null; else P2.siguiente(s);
     P2.revisarSecciones(s, R);
-    s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, desbloqueos: R.desbloqueos, firma: r.firma || null };
+    s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, desbloqueos: R.desbloqueos, firma: r.firma || null, ir: r.ir || null };
     if (r.texto) P2.anotar(s, r.ic, r.texto);
     // Un acto de patrocinio ocupa la semana entera
     if (r.semana) { const W = jugarSemana(s, r.semana, { motivo: o.n.toLowerCase() }); if (W) { s.ultimaDecision.semanaJugada = true; W.lineas.unshift([r.ic, `${r.titulo}: ${r.texto}`]); } if (!s.pendiente) P2.siguiente(s); }

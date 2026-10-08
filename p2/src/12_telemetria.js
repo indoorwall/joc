@@ -16,7 +16,7 @@
   function codigo() { let c = ''; for (let i = 0; i < 5; i++) c += '0123456789ABCDEF'[Math.floor(Math.random() * 16)]; return 'TEST-' + c; }
   function nuevaTele() {
     return {
-      id: codigo(), version: 'P2.2', inicio: new Date().toISOString(), msActivo: 0, ultimoMs: null, interacciones: 0,
+      id: codigo(), version: 'P2.3', inicio: new Date().toISOString(), msActivo: 0, ultimoMs: null, interacciones: 0,
       momentos: { T0: { ms: 0, semana: 1 } },
       acciones: {}, decisiones: {}, registro: [], tiempos: [],
       rutas: [], prueba: null, pruebas: [], ofertas: [], clubes: [], contratos: [], partidos: { jugados: 0, titular: 0, suplente: 0, banquillo: 0 },
@@ -81,6 +81,9 @@
       case 'segunda': t.segunda = { s: sem, id: d.id }; break;
       case 'vista': t.vistas[d.id] = (t.vistas[d.id] || 0) + 1; t.ultimaPantalla = d.id; break;
       case 'porque': t.porque++; break;
+      case 'compra': t.compras = t.compras || []; t.compras.push({ s: sem, id: d.id, precio: d.precio }); break;
+      case 'ventaPosesion': t.ventasPosesion = (t.ventasPosesion || 0) + 1; break;
+      case 'relacion': t.relaciones = t.relaciones || {}; t.relaciones[d.id] = (t.relaciones[d.id] || 0) + d.d; break;
     }
   }
 
@@ -103,7 +106,7 @@
   function informeTest(s) {
     const t = T(s), L = [];
     const linea = (k, v) => L.push(`${k}: ${v}`);
-    L.push('TEST P2.2', `ID: ${t.id}`, '');
+    L.push('TEST P2.3', `ID: ${t.id}`, '');
     linea('Inicio', t.inicio.replace('T', ' ').slice(0, 16));
     linea('Duración real (sin pausas de más de 5 min)', duracion(t.msActivo));
     linea('Semanas jugadas', s.semana - 1);
@@ -134,6 +137,11 @@
       L.push(`  Crisis: ${t.empresa.crisis} · préstamos: ${t.empresa.prestamos}${t.empresa.venta ? ` · vendida en la semana ${t.empresa.venta}` : ''}${t.empresa.cierre ? ` · cerrada en la semana ${t.empresa.cierre}` : ''}`);
       L.push(`  Rentable: ${t.empresa.rentable ? `semana ${t.empresa.rentable}` : 'todavía no'}`);
     } else L.push('  No ha comprado empresa');
+    L.push('', 'Tienda:');
+    const cp = t.compras || [];
+    L.push(`  Compras: ${cp.length} (${eur(cp.reduce((a, c) => a + c.precio, 0))})${cp.length ? ` · ${cp.map(c => `${(P2.producto(c.id) || { n: c.id }).n} (sem. ${c.s})`).join(', ')}` : ''}`);
+    L.push('', 'Relaciones (valor final y cambio total):');
+    for (const R of P2.RELACIONES.filter(x => !x.bloqueada && x.aparece(s))) L.push(`  ${R.rol}: ${P2.valorRel(s, R.id)}/100${t.relaciones && t.relaciones[R.id] ? ` (${t.relaciones[R.id] > 0 ? '+' : ''}${t.relaciones[R.id]})` : ''}`);
     linea('\nSegunda inversión', t.segunda ? `${(P2.OPORTUNIDADES.find(o => o.id === t.segunda.id) || {}).n} (semana ${t.segunda.s})` : '—');
     L.push('', 'Momentos clave (tiempo real · semana de juego):');
     for (const [k, n] of MOMENTOS) { const m = t.momentos[k]; L.push(`  ${k} ${n}: ${m ? `${duracion(m.ms)} · semana ${m.semana}` : '—'}`); }

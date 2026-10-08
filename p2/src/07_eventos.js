@@ -188,6 +188,12 @@
       const x = elegir(s, l);
       if (x) { s.sucesosVistos[x.E.id] = s.semana; P2.encolar(s, { tipo: 'suceso', id: x.E.id }); }
     }
+    // Personas: solo cuando hay una situación (nunca mantenimiento semanal)
+    if (!s.pendiente && rnd(s) < CFG.sucesos.probRelacion) {
+      const l = SUCESOS.filter(E => E.ambito === 'relacion' && !E.soloAgenda && disponible(s, E) && (!E.rel || P2.relVisible(s, P2.persona(E.rel)))).map(E => ({ E, w: E.peso(s) }));
+      const x = elegir(s, l);
+      if (x) { s.sucesosVistos[x.E.id] = s.semana; P2.encolar(s, { tipo: 'suceso', id: x.E.id }); }
+    }
     for (const n of s.negocios) {
       if (rnd(s) >= CFG.sucesos.probEmpresa) continue;
       const l = SUCESOS.filter(E => E.ambito === 'empresa' && disponible(s, E, n)).map(E => ({ E, w: E.peso(s, n) }));

@@ -36,14 +36,15 @@
       .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } }]),
   };
   const itemLook = (cap, id) => (ITEMS[cap] || []).find(x => x.id === id);
-  function bloqueoLook(s, it) {
+  function bloqueoLook(s, it, cap) {
     if (!it || !it.req) return null;
+    if (s && Array.isArray(s.lookDesbloqueos) && s.lookDesbloqueos.includes(`${cap || ''}:${it.id}`)) return null;   // comprado en la Tienda
     if (it.req.hito && !(s && s.hitos && s.hitos[it.req.hito])) { const H = P2.HITOS.find(h => h.id === it.req.hito); return `Hito: ${H ? H.n : it.req.hito}`; }
     return null;
   }
   function ponerLook(s, cap, id) {
     const it = itemLook(cap, id);
-    if (!it || bloqueoLook(s, it)) return false;
+    if (!it || bloqueoLook(s, it, cap)) return false;
     s.look = Object.assign({}, LOOK_INICIAL, s.look || {}, { [cap]: id });
     return true;
   }

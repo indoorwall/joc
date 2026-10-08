@@ -185,7 +185,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   // Patrocinio: N semanas = N pagos; renovar sin prima completa
   const p = enClub('atleticoFilial', 71); p.p.rep = 60; p.p.marca = 60; p.p.nivel = 60; P2.firmarMarca(p, 'panaderia', null);
   const M = P2.MARCAS.find(m => m.id === 'panaderia'); let pagos = 0, sem = p.semana;
-  for (let w = 0; w < 25 && !(p.pendiente && p.pendiente.tipo === 'renovarMarca'); w++) {
+  for (let w = 0; w < 32 && !(p.pendiente && p.pendiente.tipo === 'renovarMarca'); w++) {
     if (p.pendiente) { const id = p.pendiente.tipo === 'acto' ? 'ir' : (P2.vistaPendiente(p).ops.find(o => ['fresco', 'no', 'esperar', 'seguir', 'renovar', 'parar'].includes(o.id) && !o.bloqueo) || P2.vistaPendiente(p).ops.find(o => !o.bloqueo)).id; P2.resolverDecision(p, id); }
     else P2.jugarSemana(p, 'descansar');
     if (p.semana !== sem) { pagos += (p.ultimo.ingresos || []).filter(([t]) => t.includes(M.n)).length; sem = p.semana; }
@@ -229,11 +229,73 @@ function enClub(oferta = 'puerto', seed = 5) {
 
   // Navegación progresiva
   const nv = P2.nuevaPartida({ seed: 95 });
-  check('Al empezar solo se ven Semana, Hitos y Ajustes', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,hitos,ajustes');
+  check('Al empezar se ven Inicio, Relaciones, Tienda, Patrimonio, Personaje, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,patrimonio,personaje,hitos,ajustes');
+  check('Relaciones y Tienda están disponibles desde el inicio (antes que Empresa)', ['relaciones', 'tienda'].every(id => nv.secciones.includes(id)) && !nv.secciones.includes('empresa'));
   nv.p.nivel = 56; P2.firmar(nv, 'puerto', null); const nuevas = P2.revisarSecciones(nv, null).map(x => x.id);
   check('Al firmar se abren Liga y Marcas (y se avisa)', nuevas.includes('liga') && nuevas.includes('marcas') && !P2.seccionesVisibles(nv).some(x => x.id === 'empresa') && nv.seccionesNuevas.includes('liga'));
   nv.hitos.patro = 5;
   check('Al abrirse el mercado aparece Empresa', P2.revisarSecciones(nv, null).map(x => x.id).join() === 'empresa');
+  check('Empresa se anuncia como gran desbloqueo («NUEVO: EMPRESA»)', [nv.pendiente].concat(nv.cola).some(e => e && e.tipo === 'desbloqueo' && e.seccion === 'empresa'));
+  check('Cada sección vive en uno de los 4 grupos de la barra (Inicio, Carrera, Imperio, Perfil)', P2.GRUPOS.length === 4 && P2.SECCIONES.every(x => P2.GRUPOS.some(g => g.id === x.grupo)));
+  // Partida antigua (P2.2) sin las secciones nuevas: se añaden sin avisos
+  const vieja = JSON.parse(JSON.stringify(P2.nuevaPartida({ seed: 97 }))); vieja.secciones = ['semana', 'hitos', 'ajustes']; delete vieja.inventario; delete vieja.relaciones; delete vieja.equipado;
+  const vm2 = P2.migrateSave(vieja); const av = P2.revisarSecciones(vm2, null);
+  check('Una partida de P2.2 se carga con Tienda y Relaciones, sin avisos de «nuevo»', vm2 && Array.isArray(vm2.inventario) && vm2.secciones.includes('tienda') && vm2.secciones.includes('relaciones') && !av.length && !(vm2.seccionesNuevas || []).length);
+
+  // ---------- Tienda ----------
+  const t1 = P2.nuevaPartida({ seed: 98 }); t1.p.dinero = 1000;
+  const dt0 = t1.p.dinero, bota = P2.producto('botas');
+  P2.comprar(t1, 'botas');
+  check('Comprar resta el dinero una sola vez', t1.p.dinero === dt0 - bota.precio, t1.p.dinero);
+  check('El producto queda en el inventario (y puesto en su hueco)', t1.inventario.some(x => x.id === 'botas') && t1.equipado.calzado === 'botas');
+  const d1 = t1.p.dinero;
+  check('No se puede comprar dos veces algo único', P2.comprar(t1, 'botas') === null && t1.p.dinero === d1 && t1.inventario.filter(x => x.id === 'botas').length === 1 && !!P2.bloqueoProducto(t1, bota));
+  check('Sin dinero no se compra (y no resta nada)', (() => { const x = P2.nuevaPartida({ seed: 99 }); x.p.dinero = 10; return P2.comprar(x, 'consola') === null && x.p.dinero === 10; })());
+  check('Lo que pide un hito está bloqueado hasta conseguirlo', !!P2.bloqueoProducto(t1, P2.producto('moto')) && /contrato/i.test(P2.bloqueoProducto(t1, P2.producto('moto'))));
+  P2.comprar(t1, 'bici');
+  const g1 = P2.migrateSave(JSON.parse(JSON.stringify(t1)));
+  check('Guardar/cargar conserva las compras y lo que llevas puesto', g1.inventario.map(x => x.id).join() === 'botas,bici' && g1.equipado.vehiculo === 'bici' && g1.acum.compras === bota.precio + 180);
+  const bici = t1.inventario.find(x => x.id === 'bici');
+  check('Los patrimoniales guardan precio de compra y valor actual', bici.precioCompra === 180 && bici.valorActual === 90);
+  check('El patrimonio incluye los activos patrimoniales (y no lo que no lo es)', P2.patrimonio(t1) === Math.round(t1.p.dinero + 90));
+  check('Efectos pequeños y coherentes: botas +3 % entreno, bici +1 energía', Math.abs(P2.efectoTienda(t1, 'entreno') - 0.03) < 1e-9 && P2.efectoTienda(t1, 'recuperacion') === 1);
+  const dv = t1.p.dinero; P2.venderPosesion(t1, bici.uid);
+  check('Vender un patrimonial devuelve su valor actual y lo saca del inventario', t1.p.dinero === dv + 90 && !t1.inventario.some(x => x.id === 'bici') && !t1.equipado.vehiculo);
+  const es = P2.nuevaPartida({ seed: 100 }); es.p.dinero = 2000; es.p.energia = 30;
+  P2.comprar(es, 'escapada');
+  check('Un consumible no va al inventario, aplica su efecto y no se repite hasta pasar su espera', es.p.energia === 70 && !es.inventario.length && P2.comprar(es, 'escapada') === null && P2.valorRel(es, 'marc') === 73);
+  check('Ningún producto es obligatorio: todos los efectos son pequeños', P2.PRODUCTOS.every(P => !P.ef || ((P.ef.entreno || 0) <= 0.06 && (P.ef.prensa || 0) <= 0.15 && (P.ef.recuperacion || 0) <= 4)));
+  check('Las 7 categorías tienen productos', P2.CATEGORIAS_TIENDA.length === 7 && P2.CATEGORIAS_TIENDA.every(c => P2.PRODUCTOS.some(P => P.cat === c.id)));
+  const lk = P2.nuevaPartida({ seed: 101 }); lk.p.dinero = 5000; lk.hitos.contrato = 3;
+  check('Una prenda de la Tienda desbloquea su ropa en el personaje', !P2.ponerLook(lk, 'ropa', 'traje') && P2.comprar(lk, 'outfit') && P2.ponerLook(lk, 'ropa', 'traje'));
+
+  // ---------- Relaciones ----------
+  const r1 = P2.nuevaPartida({ seed: 102 });
+  check('Al empezar se ven familia y amigos; compañero, míster y representante aparecen después', ['madre', 'padre', 'marc', 'dani'].every(id => P2.personasVisibles(r1).some(R => R.id === id && !R.bloqueada)) && !P2.personasVisibles(r1).some(R => ['iker', 'mister', 'sonia'].includes(R.id)));
+  check('Pareja y Contactos se ven bloqueados («más adelante»)', P2.personasVisibles(r1).filter(R => R.bloqueada).map(R => R.id).join() === 'pareja,contactos');
+  const v0 = P2.valorRel(r1, 'marc');
+  for (let i = 0; i < 30; i++) { r1.pendiente = null; r1.cola = []; P2.jugarSemana(r1, 'descansar'); }
+  check('No hay pérdida automática de relación (30 semanas sin decisiones: igual)', P2.valorRel(r1, 'marc') === v0 && P2.valorRel(r1, 'madre') === 75);
+  P2.cambiarRel(r1, 'madre', -10, 'Prueba');
+  const g2 = P2.migrateSave(JSON.parse(JSON.stringify(r1)));
+  check('Las relaciones se guardan (valor e historia)', P2.valorRel(g2, 'madre') === 65 && g2.relaciones.madre.historia[0].t === 'Prueba');
+  check('El estado se describe con palabras', P2.estadoRel(78) === 'Confía mucho en ti' && P2.estadoRel(20) === 'Relación rota');
+  // Consecuencia diferida: ayudar a Marc → semanas después te presenta a Pilar (una sola vez)
+  const r2 = P2.nuevaPartida({ seed: 103 }); r2.p.dinero = 500; r2.semana = 5;
+  P2.encolar(r2, { tipo: 'suceso', id: 'marcNegocio' }); P2.resolverDecision(r2, 'prestar');
+  check('Prestar a Marc: −200 € y +15 con Marc', r2.p.dinero === 300 && P2.valorRel(r2, 'marc') === 85);
+  let vistas = 0, devuelto = 0;
+  for (let i = 0; i < 25; i++) {
+    if (r2.pendiente) { if (r2.pendiente.id === 'marcPresenta') { vistas++; P2.resolverDecision(r2, 'interesa'); continue; } r2.pendiente = null; r2.cola = []; }
+    const R = P2.jugarSemana(r2, 'descansar'); if (R && R.lineas.some(l => /Marc te devuelve/.test(l[1]))) devuelto++;
+  }
+  check('La consecuencia diferida (Marc te devuelve el dinero) ocurre una sola vez', devuelto === 1);
+  check('Marc te presenta a Pilar una sola vez y recuerda de qué semana viene', vistas === 1 && r2.contactoNegocio && r2.descuentoTraspaso === 800 && /semana 5/.test(P2.SUCESOS.find(E => E.id === 'marcPresenta').texto(r2)));
+  check('Ese contacto abarata el traspaso', P2.capitalNecesario('peluqueria', 0, r2) === P2.capitalNecesario('peluqueria', 0) - 800);
+  check('Los eventos que solo lanza la agenda nunca salen al azar', P2.SUCESOS.filter(E => E.soloAgenda).every(E => E.ambito === 'relacion'));
+  check('Hay eventos de relación para familia, amigos, compañero y representante', ['madre', 'padre', 'marc', 'iker', 'sonia'].every(id => P2.EVENTOS_RELACION.some(E => E.rel === id)));
+  const r3 = enClub('puerto', 104);
+  check('El míster es una relación (su valor es la confianza)', P2.valorRel(r3, 'mister') === Math.round(r3.confianza) && P2.personasVisibles(r3).some(R => R.id === 'iker'));
 
   // Techo de sueldo por categoría
   const tp = enClub('puerto', 96); tp.contrato.sueldo = 440; P2.subirSueldo(tp, 1.4);
@@ -312,7 +374,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Registra prueba, club, partidos, empresa (caja) y segunda inversión', T.prueba && T.clubes.length && T.partidos.jugados > 5 && T.empresa.caja > 0 && T.segunda);
   P2.responderTest(full, 'p1', 8); P2.responderTest(full, 'p7', 'Más negocios'); P2.responderTest(full, 'p8', 'Quizá'); P2.responderTest(full, 'p2', 'En la liga');
   const inf = P2.informeTest(full);
-  check('El informe de prueba tiene las secciones pedidas', ['TEST P2.2', T.id, 'Duración real', 'Semanas jugadas', 'Ruta inicial', 'Prueba', 'Primer club', 'Decisiones semanales', 'Patrocinadores', 'Empresa', 'Caja inicial', 'Segunda inversión', 'Momentos clave', 'Hitos alcanzados', 'Pantallas más visitadas', 'Momento de salida', 'PREGUNTAS'].every(x => inf.includes(x)));
+  check('El informe de prueba tiene las secciones pedidas', ['TEST P2.3', 'Tienda', 'Relaciones', T.id, 'Duración real', 'Semanas jugadas', 'Ruta inicial', 'Prueba', 'Primer club', 'Decisiones semanales', 'Patrocinadores', 'Empresa', 'Caja inicial', 'Segunda inversión', 'Momentos clave', 'Hitos alcanzados', 'Pantallas más visitadas', 'Momento de salida', 'PREGUNTAS'].every(x => inf.includes(x)));
   check('Las respuestas a las preguntas salen en el informe', inf.includes('8') && inf.includes('Más negocios') && inf.includes('Quizá') && inf.includes('En la liga'));
   check('El informe no incluye el nombre del personaje', !inf.includes('Nombre Secreto'));
 }
@@ -338,6 +400,8 @@ let informe;
   const ctx = await b.newContext({ ...pw.devices['iPhone 13'] });
   const page = await ctx.newPage(); const errs = [];
   page.on('pageerror', e => errs.push(e.message)); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+  // Navegar como una persona: botón del grupo en la barra y, si hace falta, la pestaña de la sección
+  const ir = async (pg, v) => { const g = await pg.evaluate(v => __P2.P2.SECCIONES.find(x => x.id === v).grupo, v); await pg.tap(`#nav [data-g="${g}"]`); const st = pg.locator(`.subtabs [data-v="${v}"]`); if (await st.count()) await st.tap(); };
   await page.goto(url);
   check('UI: arranca en la pantalla de inicio', await page.locator('[data-act="empezar"]').isVisible());
   check('UI: al empezar se elige el personaje (12 capas y vista previa)', await page.locator('.lookTabs button').count() === 12 && await page.locator('.lookPrev svg').isVisible());
@@ -350,7 +414,8 @@ let informe;
   await page.tap('[data-act="empezar"]');
   check('UI: la partida empieza con el personaje elegido', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.nombre === 'Vega'));
   check('UI: tu cara sale en la cabecera', await page.locator('#top .hava svg').isVisible());
-  check('UI: al empezar la barra solo tiene Semana, Hitos y Ajustes', (await page.locator('#nav button').allTextContents()).map(x => x.replace(/[^A-Za-zñ]/g, '')).join() === 'Semana,Hitos,Ajustes');
+  check('UI: la barra tiene 4 botones grandes: Inicio, Carrera, Imperio y Perfil', (await page.locator('#nav button').allTextContents()).map(x => x.replace(/[^A-Za-zñ]/g, '')).join() === 'Inicio,Carrera,Imperio,Perfil');
+  check('UI: el inicio enseña tu personaje, el objetivo, el dinero y el progreso', await page.locator('.hero .stage svg').isVisible() && (await page.textContent('.hero')).includes('Consigue una prueba') && await page.locator('.hero .xp').isVisible() && await page.evaluate(() => document.body.dataset.etapa === 'barrio' && !!document.querySelector('#decor svg')));
   check('UI: el botón «Jugar semana» empieza desactivado hasta que eliges', await page.locator('#jugar').isDisabled());
   const box = await page.locator('.dec .opt').first().boundingBox(), vh = page.viewportSize().height;
   check('UI: la primera decisión se ve sin desplazarse en un iPhone 13', box && box.y + box.height < vh - 60, JSON.stringify(box));
@@ -380,8 +445,14 @@ let informe;
   check('UI: cambiar de ropa desde «Tu personaje» se guarda', await page.evaluate(() => __P2.S.look.ropa === 'sudadera' && JSON.parse(localStorage.getItem('del_barrio_al_negocio_p2')).look.ropa === 'sudadera'));
   // Club, empresa y recarga
   await page.evaluate(() => { const S = __P2.S; S.p.nivel = 58; __P2.P2.firmar(S, 'puerto', null); S.p.dinero = 9000; S.hitos.patro = 3; __P2.render(); });
-  check('UI: al firmar aparecen Liga y Marcas con la etiqueta «Nuevo»', await page.locator('#nav [data-v="liga"] em').isVisible() && await page.locator('#nav [data-v="marcas"]').isVisible());
-  await page.tap('[data-act="vista"][data-v="empresa"]');
+  check('UI: al firmar, «Carrera» avisa de lo nuevo', await page.locator('#nav [data-g="carrera"] em').isVisible());
+  await page.tap('#nav [data-g="carrera"]');
+  check('UI: en Carrera están Relaciones, Liga y Marcas', (await page.locator('.subtabs button').allTextContents()).map(x => x.replace(/Nuevo|[^A-Za-zñ]/g, '')).join() === 'Relaciones,Liga,Marcas');
+  check('UI: se ve el fondo de la etapa «club»', await page.evaluate(() => document.body.dataset.etapa === 'club'));
+  await ir(page, 'semana');
+  check('UI: al abrirse el mercado sale el gran aviso «NUEVO: EMPRESA»', await page.locator('.card.mega').isVisible() && (await page.textContent('.card.mega')).includes('NUEVO: EMPRESA'));
+  await page.tap('.card.mega [data-act="decidir"][data-id="ver"]');
+  check('UI: «Ver Empresa» te lleva a Empresa (dentro de Imperio)', await page.evaluate(() => __P2.ui.vista === 'empresa') && await page.locator('#nav [data-g="imperio"].sel').isVisible());
   await page.tap('[data-act="comprar"][data-id="1"]');
   const c1 = await page.evaluate(() => ({ d: __P2.S.p.dinero, c: __P2.S.negocios[0].caja }));
   check('UI: comprar la peluquería desde «Empresa»', c1.c === 3000 - 1250 && c1.d === 9000 - 4500 - 3000, JSON.stringify(c1));
@@ -395,8 +466,25 @@ let informe;
   const c3 = await page.evaluate(() => ({ d: __P2.S.p.dinero, c: __P2.S.negocios[0].caja }));
   check('UI: recargar no duplica dinero ni caja', JSON.stringify(c2) === JSON.stringify(c3));
   const malas = [];
-  for (const v of ['semana', 'liga', 'empresa', 'marcas', 'hitos', 'ajustes']) { await page.tap(`[data-act="vista"][data-v="${v}"]`); const tx = await page.evaluate(() => document.getElementById('main').innerText); const m = tx.match(/.{0,40}(undefined|NaN|\[object).{0,20}/); if (m) malas.push(v + ': ' + m[0]); }
+  for (const v of ['semana', 'relaciones', 'liga', 'marcas', 'tienda', 'empresa', 'patrimonio', 'personaje', 'hitos', 'ajustes']) { await ir(page, v); const tx = await page.evaluate(() => document.getElementById('main').innerText); const m = tx.match(/.{0,40}(undefined|NaN|\[object).{0,20}/); if (m) malas.push(v + ': ' + m[0]); }
   check('UI: ninguna vista muestra undefined/NaN', !malas.length, malas.join(' | '));
+  // Tienda: comprar, ver la celebración, inventario y patrimonio
+  await page.evaluate(() => { __P2.S.p.dinero = 5000; __P2.guardar(); });
+  await ir(page, 'tienda');
+  await page.tap('[data-act="cat"][data-v="vehiculos"]');
+  const dm = await page.evaluate(() => __P2.S.p.dinero);
+  await page.tap('[data-act="comprarP"][data-id="moto"]');
+  check('UI: lo caro pide confirmación (no se compra al primer toque)', await page.evaluate(dm => __P2.S.p.dinero === dm && !__P2.S.inventario.some(x => x.id === 'moto'), dm) && (await page.textContent('.prod.conf')).includes('Toca otra vez'));
+  await page.tap('[data-act="comprarP"][data-id="moto"]');
+  check('UI: al comprar sale «🎉 NUEVA COMPRA» y el dinero baja una vez', await page.locator('.compraOk').isVisible() && (await page.textContent('.compraOk')).includes('NUEVA COMPRA') && await page.evaluate(dm => __P2.S.p.dinero === dm - 1900, dm));
+  await page.tap('[data-act="cerrarCompra"]');
+  check('UI: la moto aparece en «Tus cosas» como vehículo', (await page.textContent('.cosas')).includes('Moto') && await page.locator('.prod.tuyo[data-id="moto"]').isDisabled());
+  await page.reload();
+  check('UI: recargar conserva la compra y no la duplica', await page.evaluate(dm => __P2.S.p.dinero === dm - 1900 && __P2.S.inventario.filter(x => x.id === 'moto').length === 1, dm));
+  await ir(page, 'patrimonio');
+  check('UI: el patrimonio incluye la moto (1.140 €)', (await page.textContent('.patri')).includes('1140'));
+  await ir(page, 'relaciones');
+  check('UI: Relaciones muestra tarjetas con nombre, valor y estado', await page.locator('.pers:not(.bloq)').count() >= 6 && (await page.textContent('#main')).includes('CARMEN') && (await page.textContent('#main')).includes('/100') && await page.locator('.pers.bloq').count() === 2);
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1);
   check('UI: sin desplazamiento horizontal', ancho);
   // Partida de P1 en el navegador → «Seguir con tu jugador de P1»
@@ -411,14 +499,14 @@ let informe;
   await p2.reload();
   check('UI: un guardado corrupto no rompe el juego y se aparta una copia', await p2.locator('[data-act="empezar"]').isVisible() && await p2.evaluate(() => Object.keys(localStorage).some(k => k.startsWith('del_barrio_al_negocio_p2_copia_'))));
   // Informe de prueba en Ajustes
-  await page.tap('[data-act="vista"][data-v="ajustes"]');
+  await ir(page, 'ajustes');
   await page.tap('#informeTest summary');
   await page.tap('[data-act="resp"][data-q="p1"][data-v="7"]');
   await page.tap('[data-act="resp"][data-q="p8"][data-v="Sí"]');
   await page.fill('#r_p2', 'Al principio'); await page.dispatchEvent('#r_p2', 'change');
   await page.tap('[data-act="informe"]');
   const inf = await page.inputValue('#textoInforme');
-  check('UI: «Informe de prueba» genera un texto copiable con ID, duración y respuestas', /TEST P2\.2/.test(inf) && /ID: TEST-[0-9A-F]{5}/.test(inf) && inf.includes('Duración real') && inf.includes('Al principio') && /\n   7\n/.test(inf) && inf.includes('Sí'));
+  check('UI: «Informe de prueba» genera un texto copiable con ID, duración y respuestas', /TEST P2\.3/.test(inf) && /ID: TEST-[0-9A-F]{5}/.test(inf) && inf.includes('Duración real') && inf.includes('Al principio') && /\n   7\n/.test(inf) && inf.includes('Sí'));
   check('UI: el informe cuenta las pantallas visitadas', /Pantallas más visitadas: .*ajustes/.test(inf));
   check('UI: sin errores de JavaScript', errs.length === 0, errs.join(' | '));
   await b.close();

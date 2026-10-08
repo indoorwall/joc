@@ -29,19 +29,81 @@
     return `${O.n} · semana ${s.semana}`;
   }
 
+  // ---------- Etapa (fondo y ambiente) ----------
+  const ETAPAS = { barrio: '🏘️ Barrio', club: '🏟️ Club', empresa: '🌃 Empresa', magnate: '👑 Magnate' };
+  function etapa(s) { if (!s) return 'barrio'; if (s.hitos.inversion2) return 'magnate'; if (s.negocios.length || s.socio) return 'empresa'; if (s.temporada) return 'club'; return 'barrio'; }
+  // Fondo decorativo por etapa: SVG simple, sin imágenes externas
+  function decorSVG(e) {
+    let x = '', seed = 7;
+    const r = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const edificio = (x0, w, h, c, luz, base = 300) => {
+      let v = `<rect x="${x0}" y="${base - h}" width="${w}" height="${h}" fill="${c}"/>`;
+      for (let yy = base - h + 8; yy < base - 10; yy += 12) for (let xx = x0 + 5; xx < x0 + w - 6; xx += 10) if (r() < 0.45) v += `<rect x="${xx}" y="${yy}" width="5" height="6" rx="1" fill="${luz}" opacity="${0.5 + r() * 0.5}"/>`;
+      return v;
+    };
+    const estrellas = n => Array.from({ length: n }, () => `<circle cx="${Math.round(r() * 400)}" cy="${Math.round(r() * 150)}" r="${(0.6 + r()).toFixed(1)}" fill="#fff" opacity="${(0.3 + r() * 0.6).toFixed(2)}"/>`).join('');
+    const defs = `<defs><linearGradient id="dgLuz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="dgOro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC83D" stop-opacity=".45"/><stop offset="1" stop-color="#FFC83D" stop-opacity="0"/></linearGradient></defs>`;
+    if (e === 'barrio') {
+      x = estrellas(18);
+      [[0, 60, 120], [62, 46, 160], [110, 70, 105], [300, 50, 150], [352, 48, 115]].forEach(([a, w, h]) => { x += edificio(a, w, h, '#241a63', '#FFD66B'); });
+      x += `<path d="M180 300 L196 228 L330 228 L350 300 Z" fill="#2c3fa8"/><path d="M188 300 L203 236 L323 236 L338 300" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2"/><line x1="263" y1="236" x2="265" y2="300" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>
+        <rect x="247" y="219" width="34" height="11" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2"/>
+        <line x1="150" y1="300" x2="150" y2="215" stroke="#9aa6ff" stroke-width="3"/><circle cx="150" cy="212" r="7" fill="#FFD66B"/><circle cx="150" cy="212" r="22" fill="#FFD66B" opacity=".18"/>`;
+    } else if (e === 'club') {
+      x = estrellas(10) + `<path d="M0 300 L0 190 Q200 130 400 190 L400 300 Z" fill="#20175c"/><path d="M0 300 L0 215 Q200 165 400 215 L400 300 Z" fill="#2b1f7a"/>
+        <path d="M40 300 L95 238 L305 238 L360 300 Z" fill="#2c3fa8"/><ellipse cx="200" cy="268" rx="28" ry="9" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="2"/><line x1="200" y1="238" x2="200" y2="300" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>`;
+      for (const [a, b] of [[30, 1], [370, -1]]) x += `<polygon points="${a},70 ${a + b * 120},300 ${a + b * 30},300" fill="url(#dgLuz)"/><line x1="${a}" y1="70" x2="${a}" y2="300" stroke="#8d95c9" stroke-width="4"/><rect x="${a - 14}" y="58" width="28" height="14" rx="3" fill="#fff"/><circle cx="${a}" cy="65" r="26" fill="#fff" opacity=".15"/>`;
+    } else {
+      const oro = e === 'magnate';
+      x = estrellas(oro ? 30 : 22) + `<circle cx="330" cy="60" r="${oro ? 24 : 18}" fill="${oro ? '#FFC83D' : '#e9e6ff'}" opacity=".85"/>` + (oro ? '<rect x="0" y="150" width="400" height="150" fill="url(#dgOro)"/>' : '');
+      [[0, 44, 140], [46, 36, 200], [84, 58, 160], [146, 40, 240], [190, 54, 180], [248, 34, 215], [286, 60, 150], [350, 50, 190]].forEach(([a, w, h], i) => { x += edificio(a, w, h, i % 2 ? '#1b1550' : '#251a6b', oro ? '#FFC83D' : (i % 3 ? '#7FD8FF' : '#FFD66B')); });
+      if (oro) x += '<polygon points="166,60 162,72 170,72" fill="#FFC83D"/><line x1="166" y1="72" x2="166" y2="62" stroke="#FFC83D" stroke-width="2"/>';
+    }
+    return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${defs}${x}</svg>`;
+  }
+
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
       <div class="hwho"><b>${esc(s.nombre)}</b><span>${esc(nombreFase(s))}</span></div>
       <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}${(s.secciones || []).includes('marcas') ? pill('📣', Math.floor(s.p.marca || 0)) : ''}</div>`;
   }
-  function htmlNav(s) {
-    const b = (v, ic, t, aviso) => `<button data-act="vista" data-v="${v}" class="${ui.vista === v ? 'sel' : ''}"><span>${ic}</span>${t}${(s.seccionesNuevas || []).includes(v) ? '<em>Nuevo</em>' : aviso ? '<i></i>' : ''}</button>`;
+  // Barra inferior: 4 grupos grandes (Inicio · Carrera · Imperio · Perfil); dentro, pestañas de cada sección
+  const grupoDe = v => (P2.SECCIONES.find(x => x.id === v) || { grupo: 'inicio' }).grupo;
+  function avisos(s) {
     const avisoEmp = s.negocios.some(n => n.crisis) || (!s.negocios.length && !P2.bloqueoCompra(s, 'peluqueria', 0)) || (s.oportunidadAbierta && !s.oportunidad);
     const avisoMarcas = s.fase === 'club' && MARCAS.some(M => !P2.bloqueoMarca(s, M));
-    const aviso = { semana: s.pendiente && ui.vista !== 'semana', empresa: avisoEmp, marcas: avisoMarcas };
-    const l = P2.seccionesVisibles(s);
-    return `<div class="tabs" style="grid-template-columns:repeat(${l.length},1fr)">${l.map(x => b(x.id, x.ic, x.n, aviso[x.id])).join('')}</div>`;
+    return { semana: s.pendiente && ui.vista !== 'semana', empresa: avisoEmp, marcas: avisoMarcas };
+  }
+  function htmlNav(s) {
+    const vis = P2.seccionesVisibles(s), av = avisos(s), nuevas = s.seccionesNuevas || [], g0 = grupoDe(ui.vista);
+    return `<div class="tabs">${P2.GRUPOS.map(g => {
+      const secs = vis.filter(x => x.grupo === g.id), nuevo = secs.some(x => nuevas.includes(x.id)), aviso = secs.some(x => av[x.id]);
+      return `<button data-act="grupo" data-g="${g.id}" class="g-${g.id} ${g0 === g.id ? 'sel' : ''}" aria-label="${g.n}"><span>${g.ic}</span>${g.n}${nuevo ? '<em>Nuevo</em>' : aviso ? '<i></i>' : ''}</button>`;
+    }).join('')}</div>`;
+  }
+  function htmlSubtabs(s) {
+    const g = grupoDe(ui.vista); if (g === 'inicio') return '';
+    const secs = P2.seccionesVisibles(s).filter(x => x.grupo === g), nuevas = s.seccionesNuevas || [];
+    return `<div class="subtabs g-${g}" role="tablist">${secs.map(x => `<button role="tab" aria-selected="${ui.vista === x.id}" data-act="vista" data-v="${x.id}" class="${ui.vista === x.id ? 'sel' : ''}">${x.ic} ${x.n}${nuevas.includes(x.id) ? '<em>Nuevo</em>' : ''}</button>`).join('')}</div>`;
+  }
+
+  // ---------- INICIO: tu personaje en su escenario, objetivo, dinero y progreso ----------
+  function htmlHero(s) {
+    const H = P2.siguienteHito(s), hechos = HITOS.filter(h => s.hitos[h.id]).length, e = etapa(s);
+    return `<div class="hero e-${e}"><div class="stage">${P2.avatarSVG(s, null, 'cuerpo')}</div>
+      <div class="heroInfo"><span class="etq">${ETAPAS[e]} · semana ${s.semana}</span>
+        <b class="obj">🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b>
+        <div class="xp" aria-label="Progreso del capítulo"><i style="width:${Math.round(100 * hechos / HITOS.length)}%"></i></div><small>${hechos} de ${HITOS.length} hitos</small>
+        <div class="saldo"><span class="oro">💶 ${esc(eur(s.p.dinero))}</span><span>🏦 ${esc(eur(P2.patrimonio(s)))}</span></div></div></div>`;
+  }
+  // Accesos rápidos (como en un juego: tus personas, la tienda, tu imperio)
+  function htmlAccesos(s) {
+    const vis = P2.seccionesVisibles(s).map(x => x.id);
+    const t = [['relaciones', '❤️', 'Relaciones', 'rel'], ['tienda', '🛍️', 'Tienda', 'tienda'], vis.includes('empresa') ? ['empresa', '💼', 'Empresa', 'emp'] : null, vis.includes('liga') ? ['liga', '📊', 'Liga', 'dep'] : ['hitos', '🏅', 'Hitos', 'dep']].filter(Boolean);
+    return `<div class="accesos">${t.map(([v, ic, n, c]) => `<button class="acc c-${c}" data-act="vista" data-v="${v}"><span>${ic}</span>${n}${(s.seccionesNuevas || []).includes(v) ? '<em>Nuevo</em>' : ''}</button>`).join('')}
+      ${vis.includes('empresa') ? '' : '<div class="acc lock"><span>🔒</span>Empresa</div>'}</div>`;
   }
 
   // ---------- SITUACIÓN ----------
@@ -75,16 +137,14 @@
         ${s.fase === 'amateur' ? `<p class="small">Repesca para ser profesional en ${CFG.amateur.repescaCada - ((s.amateurSemanas || 0) % CFG.amateur.repescaCada)} semanas.</p>` : ''}
         ${P.lesion ? `<p class="small">🤕 Lesionado/a: ${P.lesion} ${P.lesion === 1 ? 'semana' : 'semanas'}.</p>` : ''}`;
     }
-    const H = P2.siguienteHito(s);
-    return `<div class="card sit"><div class="escena">${escena}</div><div class="in"><h2>${titulo}</h2><div class="datos">${datos}</div>${extra}
-      ${H ? `<div class="prox">🎯 Siguiente hito: <b>${esc(H.n)}</b></div>` : ''}</div></div>`;
+    return `<div class="card sit"><div class="escena">${escena}</div><div class="in"><h2>${titulo}</h2><div class="datos">${datos}</div>${extra}</div></div>`;
   }
 
   // ---------- DECISIÓN ----------
   function htmlDecision(s) {
     const v = P2.vistaPendiente(s);
     if (v) {
-      return `<div class="sec"><span>Decisión</span></div><div class="card dec evento ${v.fiesta ? 'fiesta' : ''}"><h2><span>${v.ic}</span>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
+      return `<div class="sec"><span>Decisión</span></div><div class="card dec evento ${v.fiesta ? 'fiesta' : ''} ${v.grande ? 'mega' : ''}">${v.grande ? `<div class="megaTop">${decorSVG('empresa')}<span>🔓</span></div>` : ''}<h2><span>${v.ic}</span>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
         ${v.ops.map(o => opcion(o, 'decidir')).join('')}</div>`;
     }
     const l = P2.accionesDisponibles(s);
@@ -128,7 +188,7 @@
     }
     return h;
   }
-  const htmlDesbloqueo = x => `<div class="hito desb">🔓 <b>Nueva sección: ${x.ic} ${esc(x.n)}</b><br>${esc(x.d || '')} La tienes abajo, en la barra.</div>`;
+  const htmlDesbloqueo = x => `<div class="hito desb">🔓 <b>Nueva sección: ${x.ic} ${esc(x.n)}</b><br>${esc(x.d || '')} La tienes abajo, en «${esc((P2.GRUPOS.find(g => g.id === x.grupo) || { n: 'Inicio' }).n)}».</div>`;
   const htmlHito = H => `<div class="hito">🏅 <b>Hito: ${esc(H.n)}</b><br>Se abre: ${esc(H.abre)}</div>`;
 
   // ---------- Vistas ----------
@@ -218,6 +278,82 @@
     return h;
   }
 
+  // ---------- 🛍️ TIENDA ----------
+  const SLOTS = [['vehiculo', '🚗', 'Vehículo'], ['vivienda', '🏠', 'Vivienda'], ['movil', '📱', 'Móvil'], ['calzado', '👟', 'Calzado']];
+  function efectoTxt(P) {
+    const E = P.ef || {}, l = [];
+    if (E.entreno) l.push(`+${Math.round(E.entreno * 100)} % entreno`);
+    if (E.prensa) l.push(`+${Math.round(E.prensa * 100)} % redes`);
+    if (E.recuperacion) l.push(`+${E.recuperacion} energía/sem.`);
+    if (E.gastosVida) l.push(`−${E.gastosVida} €/sem. de gastos`);
+    if (P.patrimonial) l.push(`conserva ${Math.round(P.patrimonial * 100)} % de valor`);
+    if (P.look) l.push('nueva ropa para tu personaje');
+    if (P.consumible) l.push(`se repite cada ${P.enfria} sem.`);
+    return l.length ? l.join(' · ') : 'Colección: solo por gusto';
+  }
+  function htmlTienda(s) {
+    const cat = ui.cat || 'ropa', prods = P2.PRODUCTOS.filter(P => P.cat === cat && !P.inicial);
+    const tile = P => {
+      const tuyo = !P.consumible && P2.posee(s, P.id), bl = tuyo ? null : P2.bloqueoProducto(s, P), conf = ui.confirmar === P.id;
+      const estado = tuyo ? 'tuyo' : bl ? 'bloq' : conf ? 'conf' : '';
+      return `<button class="prod ${estado}" data-act="comprarP" data-id="${P.id}" ${tuyo || bl ? 'disabled' : ''}>
+        <span class="pic">${P.ic}</span><b>${esc(P.n)}</b><span class="pd">${esc(efectoTxt(P))}</span>
+        <span class="precio">${tuyo ? '✅ Es tuyo' : conf ? `¿Seguro? Toca otra vez` : `💶 ${esc(eur(P.precio))}`}</span>${bl ? `<span class="bl">🔒 ${esc(bl)}</span>` : ''}</button>`;
+    };
+    return `<div class="card tiendaTop"><div class="fila"><div><h2>🛍️ Tienda</h2><p class="small">Disfruta lo que ganas. Nada es obligatorio para competir; algunos objetos ayudan un poco.</p></div>
+        <div class="saldoBox"><small>Disponible</small><b class="oro">${esc(eur(s.p.dinero))}</b></div></div></div>
+      <div class="cats" role="tablist">${P2.CATEGORIAS_TIENDA.map(c => `<button role="tab" aria-selected="${c.id === cat}" data-act="cat" data-v="${c.id}" class="${c.id === cat ? 'sel' : ''}"><span>${c.ic}</span>${c.n}</button>`).join('')}</div>
+      <div class="prods">${prods.map(tile).join('')}</div>
+      ${htmlCosas(s)}`;
+  }
+  // Tus cosas: lo que llevas puesto en cada hueco y tu colección
+  function htmlCosas(s) {
+    const inv = s.inventario || [];
+    const otros = inv.filter(it => { const P = P2.producto(it.id); return P && !P.slot; });
+    const guardados = inv.filter(it => { const P = P2.producto(it.id); return P && P.slot && (s.equipado || {})[P.slot] !== P.id; });
+    const vender = it => { const P = P2.producto(it.id); return P.patrimonial ? `<button class="btn w mini" data-act="venderP" data-id="${it.uid}">${ui.venderP === it.uid ? '⚠️ Toca otra vez' : `Vender ${eur(it.valorActual)}`}</button>` : ''; };
+    return `<div class="sec"><span>🎒 Tus cosas</span><span>${inv.length} ${inv.length === 1 ? 'objeto' : 'objetos'}</span></div><div class="card cosas">
+      <div class="slots">${SLOTS.map(([k, ic, n]) => { const P = P2.equipado(s, k); return `<div class="slot ${P ? '' : 'vacio'}"><span class="sic">${P ? P.ic : ic}</span><small>${n}</small><b>${P ? esc(P.n) : '—'}</b></div>`; }).join('')}</div>
+      ${otros.length ? `<div class="coleccion">${otros.map(it => { const P = P2.producto(it.id); return `<span class="chip">${P.ic} ${esc(P.n)}${P.patrimonial ? ` · ${esc(eur(it.valorActual))}` : ''}</span>`; }).join('')}</div>` : ''}
+      ${inv.filter(it => P2.producto(it.id).patrimonial).map(it => { const P = P2.producto(it.id); return `<div class="kv"><span>${P.ic} ${esc(P.n)} <span class="small">compra ${esc(eur(it.precioCompra))}</span></span>${vender(it)}</div>`; }).join('')}
+      ${guardados.map(it => { const P = P2.producto(it.id); return `<div class="kv"><span>${P.ic} ${esc(P.n)} <span class="small">guardado</span></span><button class="btn w mini" data-act="equipar" data-id="${P.id}">Usar</button></div>`; }).join('')}
+      ${inv.length ? '' : '<p class="small">Aún no te has comprado nada. Vives en casa de tus padres y vas andando a todas partes.</p>'}</div>`;
+  }
+  function htmlNuevaCompra() {
+    const P = P2.producto(ui.nuevaCompra); if (!P) return '';
+    return `<div class="overlay" role="dialog" aria-label="Nueva compra"><div class="compraOk"><div class="rayos"></div><small>🎉 NUEVA COMPRA</small><div class="bigic">${P.ic}</div><h2>${esc(P.n)}</h2>
+      <p>${P.consumible ? 'Disfrutado. ' : 'Ahora es tuyo. '}${esc(efectoTxt(P))}.</p>
+      ${P.look ? '<button class="btn w full" data-act="vista" data-v="personaje">👕 Probármelo</button>' : ''}<button class="btn full" data-act="cerrarCompra">¡Genial!</button></div></div>`;
+  }
+
+  // ---------- ❤️ RELACIONES ----------
+  const caraDe = R => P2.avatarSVG({ p: { energia: 80 }, hitos: {} }, Object.assign({}, P2.LOOK_INICIAL, R.look || {}), 'busto');
+  function htmlRelaciones(s) {
+    const l = P2.personasVisibles(s);
+    const grupos = [['Familia', ['familia']], ['Amigos', ['amigo']], ['Tu equipo', ['companero', 'entrenador']], ['Tu carrera', ['representante']], ['Más adelante', ['pareja', 'contacto']]];
+    const card = R => {
+      if (R.bloqueada) return `<div class="pers bloq"><div class="pava">${R.ic}</div><div class="pinfo"><b>${esc(R.rol.toUpperCase())}</b><span class="estado">🔒 ${esc(R.bloqueada)}</span></div></div>`;
+      const v = P2.valorRel(s, R.id), x = (s.relaciones || {})[R.id], hist = x && x.historia ? x.historia.slice(-2).reverse() : [];
+      return `<div class="pers"><div class="pava">${caraDe(R)}</div><div class="pinfo"><b>${esc(P2.nombreRel(s, R).toUpperCase())}</b> <span class="rol">· ${esc(R.rol)}</span>
+        <div class="corazon">❤️ <b class="num">${v}</b>/100</div><div class="barra rel"><i style="width:${Math.max(3, v)}%"></i></div>
+        <span class="estado">«${esc(P2.estadoRel(v))}»</span>
+        ${R.id === 'mister' ? '<span class="hist">Sube con tus partidos y tus decisiones en el club.</span>' : hist.map(h => `<span class="hist">S${h.semana} · ${h.d > 0 ? '+' : ''}${h.d} · ${esc(h.t)}</span>`).join('')}</div></div>`;
+    };
+    return `<div class="card relTop"><h2>❤️ Tus personas</h2><p class="small">Cambian por lo que decides cuando pasa algo, nunca por no entrar: no se pierden solas. Algunas decisiones vuelven semanas después.</p></div>
+      ${grupos.map(([n, tipos]) => { const g = l.filter(R => tipos.includes(R.tipo)); return g.length ? `<div class="sec"><span>${n}</span></div>${g.map(card).join('')}` : ''; }).join('')}`;
+  }
+
+  // ---------- 💰 PATRIMONIO ----------
+  function htmlPatrimonio(s) {
+    const pos = P2.valorPosesiones(s), emp = s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0), soc = s.socio && !s.socio.vendida ? s.socio.valor : 0;
+    const pat = (s.inventario || []).filter(it => (P2.producto(it.id) || {}).patrimonial);
+    return `<div class="card patri"><small>TU PATRIMONIO</small><div class="big oro num">${esc(eur(P2.patrimonio(s)))}</div>
+        ${kv('💶 Dinero disponible', eur(s.p.dinero))}${kv('🏠 Tus cosas con valor', eur(pos))}${kv('💼 Empresas', s.negocios.length ? eur(emp) : '—')}${s.socio ? kv('🤝 Participación', s.socio.vendida ? 'vendida' : eur(soc)) : ''}
+        <p class="small">La ropa, el ocio y la tecnología no suman: son para disfrutar. Vehículos, vivienda y joyas conservan parte de lo que pagaste.</p></div>
+      ${pat.length ? `<div class="sec"><span>Posesiones</span></div><div class="card">${pat.map(it => { const P = P2.producto(it.id); return kv(`${P.ic} ${esc(P.n)}`, `${eur(it.precioCompra)} → <span class="oro2">${eur(it.valorActual)}</span>`); }).join('')}</div>` : ''}
+      <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>`;
+  }
+
   function htmlHitos(s) {
     const sig = P2.siguienteHito(s);
     return `<div class="card"><h2>🏅 Hitos del capítulo 1</h2><p class="small">Cada hito abre algo nuevo.</p>
@@ -271,29 +407,43 @@
     const items = P2.ITEMS_LOOK[cap].filter(it => s || !it.req);
     const sv = s || { p: { energia: 80 }, hitos: {} };
     return `<div class="lookTop"><div class="lookPrev">${P2.avatarSVG(sv, L, 'cuerpo')}</div>
-        <div class="lookInfo"><span class="small">Elige cada capa. ${s ? 'Algunas prendas se ganan con los hitos.' : 'Más adelante podrás cambiarlo tocando tu cara arriba; algunas prendas se ganan con los hitos.'}</span>
+        <div class="lookInfo"><span class="small">Elige cada capa. ${s ? 'Algunas prendas se ganan con los hitos o en la Tienda.' : 'Más adelante podrás cambiarlo tocando tu cara arriba; algunas prendas se ganan con los hitos.'}</span>
         <button class="btn w" data-act="lookAzar">🎲 Al azar</button></div></div>
       <div class="lookTabs" role="tablist">${P2.CAPAS_LOOK.map(([k, ic, n]) => `<button role="tab" aria-selected="${k === cap}" data-act="capa" data-v="${k}" class="${k === cap ? 'sel' : ''}"><span>${ic}</span>${n}</button>`).join('')}</div>
-      <div class="lookGrid">${items.map(it => { const bl = s ? P2.bloqueoLook(s, it) : null, puesto = L[cap] === it.id;
+      <div class="lookGrid">${items.map(it => { const bl = s ? P2.bloqueoLook(s, it, cap) : null, puesto = L[cap] === it.id;
         return `<button class="lk ${puesto ? 'sel' : ''}" data-act="look" data-c="${cap}" data-v="${it.id}" ${bl ? 'disabled' : ''} aria-pressed="${puesto}">${P2.avatarSVG(sv, Object.assign({}, L, { [cap]: it.id }), vista)}<b>${esc(it.n)}</b>${bl ? `<span>🔒 ${esc(bl)}</span>` : ''}</button>`; }).join('')}</div>`;
   }
   function htmlPersonaje(s) {
-    return `<div class="card"><h2>🧍 ${esc(s.nombre)}</h2>${htmlEditor(s, s.look)}</div>`;
+    return `<div class="card"><h2>🧍 ${esc(s.nombre)}</h2>${htmlEditor(s, s.look)}</div><div class="card">${htmlTresVariables(s)}</div>${htmlCosas(s)}`;
   }
 
   // ---------- Render ----------
   function render() {
-    if (!S) { $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
+    if (!S) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
     // Secciones abiertas por algo hecho fuera de la semana (firmar una marca, comprar…): se avisa aquí
     const nuevas = P2.revisarSecciones(S, null);
     if (nuevas.length) { ui.desbloqueos = (ui.desbloqueos || []).concat(nuevas); P2.guardar(S); }
+    if (!P2.seccionesVisibles(S).some(x => x.id === ui.vista)) ui.vista = 'semana';
+    pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
-    const V = { semana: () => htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje }[ui.vista] || (() => '');
-    $('main').innerHTML = V(S);
+    const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio }[ui.vista] || (() => '');
+    $('main').innerHTML = htmlSubtabs(S) + V(S) + (ui.nuevaCompra ? htmlNuevaCompra() : '');
     $('main').classList.toggle('conBoton', ui.vista === 'semana');
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
+  function pintarEtapa(e) {
+    if (document.body.dataset.etapa === e) return;
+    document.body.dataset.etapa = e;
+    const d = $('decor'); if (d) d.innerHTML = decorSVG(e);
+  }
+  function irA(v) {
+    ui.vista = v; ui.msg = ''; ui.confirmar = null; ui.ultimaDe = Object.assign(ui.ultimaDe || {}, { [grupoDe(v)]: v });
+    P2.tele(S, 'vista', { id: v });
+    if ((S.seccionesNuevas || []).includes(v)) S.seccionesNuevas = S.seccionesNuevas.filter(x => x !== v);
+    P2.guardar(S); render(); window.scrollTo(0, 0);
+  }
 
   function alPulsar(e) {
     if (S) P2.teleTiempo(S);
@@ -301,6 +451,8 @@
     const a = b.dataset.act, id = b.dataset.id, neg = b.dataset.neg;
     if (a !== 'reiniciar') ui.reinicio = false;
     if (a !== 'vender') ui.vender = null;
+    if (a !== 'comprarP') ui.confirmar = null;
+    if (a !== 'venderP') ui.venderP = null;
     switch (a) {
       case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n, look: ui.look }); ui.vista = 'semana'; guardarYPintar(); window.scrollTo(0, 0); break; }
       case 'capa': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = b.dataset.v; render(); break;
@@ -312,9 +464,18 @@
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
       case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
-      case 'vista': ui.vista = b.dataset.v; ui.msg = ''; P2.tele(S, 'vista', { id: ui.vista }); P2.guardar(S); if ((S.seccionesNuevas || []).includes(ui.vista)) { S.seccionesNuevas = S.seccionesNuevas.filter(x => x !== ui.vista); P2.guardar(S); } render(); window.scrollTo(0, 0); break;
+      case 'vista': ui.nuevaCompra = null; irA(b.dataset.v); break;
+      case 'grupo': { const g = b.dataset.g, vis = P2.seccionesVisibles(S).filter(x => x.grupo === g).map(x => x.id), u = (ui.ultimaDe || {})[g];
+        irA(vis.includes(u) ? u : vis[0] || 'semana'); break; }
+      case 'cat': ui.cat = b.dataset.v; render(); break;
+      case 'comprarP': { const P = P2.producto(id); if (!P) break;
+        if (P.precio >= 500 && ui.confirmar !== id) { ui.confirmar = id; render(); break; }   // lo caro se confirma: ¿coche o empresa?
+        ui.confirmar = null; if (P2.comprar(S, id)) { ui.nuevaCompra = id; guardarYPintar(); } break; }
+      case 'cerrarCompra': ui.nuevaCompra = null; render(); break;
+      case 'equipar': if (P2.equipar(S, id)) guardarYPintar(); break;
+      case 'venderP': if (ui.venderP !== id) { ui.venderP = id; render(); } else { ui.venderP = null; P2.venderPosesion(S, id); guardarYPintar(); } break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
-      case 'decidir': if (P2.resolverDecision(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
+      case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { if (r.ir) irA(r.ir); else { guardarYPintar(); window.scrollTo(0, 0); } } break; }
       case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
       case 'config': if (P2.configurar(S, neg, b.dataset.c, b.dataset.v)) guardarYPintar(); break;
       case 'empleados': { const n = S.negocios.find(x => x.id === neg); if (n && P2.configurar(S, neg, 'empleados', n.empleados + Number(b.dataset.v))) guardarYPintar(); break; }
@@ -361,6 +522,7 @@
   globalThis.__P2 = {
     P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
     nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; }, informe: () => P2.informeTest(S),
+    ir: v => irA(v), etapa: () => etapa(S),
     jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
     guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },

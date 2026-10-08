@@ -138,11 +138,20 @@
     if (s.oportunidadAbierta && !s.oportunidad) { const o = B.emp.segunda.map(id => OPORTUNIDADES.find(x => x.id === id)).find(o => s.p.dinero >= o.coste); if (o) P2.elegirOportunidad(s, o.id); }
   }
 
+  // Tienda (gasto opcional): «gasta» compra lo que le apetece guardando un colchón; «caprichos» casi sin colchón y a lo grande
+  const CONSUMO = { ahorra: null, gasta: { reserva: 1500, parte: 0.35 }, caprichos: { reserva: 400, parte: 0.8 } };
+  function comprarBot(s, B, log) {
+    const C = CONSUMO[B.consumo || 'ahorra']; if (!C) return;
+    const libre = Math.min(s.p.dinero - C.reserva, s.p.dinero * C.parte);
+    // Lo más caro que pueda permitirse (y que no tenga ya); los consumibles también
+    const l = P2.PRODUCTOS.filter(P => !P2.bloqueoProducto(s, P) && P.precio > 0 && P.precio <= libre).sort((a, b) => b.precio - a.precio);
+    if (l.length && P2.comprar(s, l[0].id)) { log.compras += l[0].precio; log.nCompras++; }
+  }
   function jugarPartida(B, seed, maxSemanas = 90, opc = {}) {
     if (typeof B === 'string') B = POLITICAS[B].bot;
     const s = P2.nuevaPartida({ seed, nombre: 'Bot' });
     const log = { seed, invitacion: null, via: null, score: null, ofertas: null, primerClub: null, contrato: null, empresa: null, rentable: null, capitulo: null,
-      energiaNeg: false, trabajos: 0, crisis: 0, atascos: 0, dineroEn: {}, nivelEn: {}, ligaMax: 1, ascensos: 0, descensos: 0, segunda: null, dineroOportunidad: null };
+      energiaNeg: false, trabajos: 0, crisis: 0, atascos: 0, dineroEn: {}, nivelEn: {}, ligaMax: 1, ascensos: 0, descensos: 0, segunda: null, dineroOportunidad: null, compras: 0, nCompras: 0 };
     const resolverTodo = () => {
       let g = 0;
       while (s.pendiente && g++ < 60) {
@@ -159,6 +168,7 @@
     for (let w = 0; s.semana <= maxSemanas && w < maxSemanas * 2 && (opc.seguir || !s.capitulo.completado); w++) {   // semanas reales (un evento puede ocupar varias)
       resolverTodo();
       gestionar(s, B);
+      comprarBot(s, B, log);
       resolverTodo();
       if (s.capitulo.completado && !log.capitulo) log.capitulo = s.capitulo.semana;
       if (s.capitulo.completado && !opc.seguir) break;
@@ -175,7 +185,7 @@
     }
     log.dinero = Math.round(s.p.dinero); log.patrimonio = P2.patrimonio(s); log.nivel = s.p.nivel; log.rep = s.p.rep; log.marca = P2.marcaPersonal(s);
     log.sueldo = s.contrato ? s.contrato.sueldo : 0; log.club = s.contrato ? s.contrato.oferta : null; log.negocios = s.negocios.length; log.segunda = s.oportunidad;
-    log.semanas = s.semana - 1; log.hitos = Object.keys(s.hitos).length; log.patros = s.patroHist.length + s.patros.length;
+    log.semanas = s.semana - 1; log.hitos = Object.keys(s.hitos).length; log.patros = s.patroHist.length + s.patros.length; log.posesiones = P2.valorPosesiones(s);
     log.socio = s.socio ? { valor: s.socio.valor, aportado: s.socio.aportado, dividendos: s.socio.dividendos } : null;
     return log;
   }
@@ -189,6 +199,7 @@
       empresaPct: pct(l, x => x.empresa != null), semanaEmpresa: r(media(l.filter(x => x.empresa).map(x => x.empresa))), contratoPct: pct(l, x => x.contrato != null), semanaContrato: r(media(l.filter(x => x.contrato).map(x => x.contrato))),
       patrimonio60: Math.round(media(l.map(x => x.dineroEn[60] || 0))), patrimonio80: Math.round(media(l.map(x => x.dineroEn[80] || 0))), patrimonioFinal: Math.round(media(l.map(x => x.patrimonio))),
       nivel: r(media(l.map(x => x.nivel))), marca: r(media(l.map(x => x.marca))), sueldoFinal: Math.round(media(l.map(x => x.sueldo))), ligaMax: r(media(l.map(x => x.ligaMax))),
+      compras: Math.round(media(l.map(x => x.compras))), nCompras: r(media(l.map(x => x.nCompras))), posesiones: Math.round(media(l.map(x => x.posesiones || 0))),
       crisis: r(media(l.map(x => x.crisis))), atascos: l.reduce((a, x) => a + x.atascos, 0), pruebasPct: pct(l, x => x.invitacion != null), trabajosMax: Math.max(0, ...l.map(x => x.trabajos)),
       ascensos: r(media(l.map(x => x.ascensos))), descensos: r(media(l.map(x => x.descensos))),
       dineroOportunidad: mediana(l.filter(x => x.dineroOportunidad != null).map(x => x.dineroOportunidad)),
@@ -247,6 +258,8 @@
     }
     // 6) Segunda inversión: las tres opciones con las mismas partidas
     const segundas = Object.fromEntries(['local', 'segunda', 'socio'].map(o => [o, resumen(jugar(Object.assign(crearBot('equilibrada', 'inteligente', 'locales'), { emp: Object.assign({}, EMPRESARIAL.inteligente, { segunda: [o] }) }), 110, { seguir: true }))]));
+    // 7) Tienda: el mismo jugador ahorrando, comprando con cabeza o a lo loco
+    const consumo = Object.fromEntries(Object.keys(CONSUMO).map(c => [c, resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: c }), 100, { seguir: true }))]));
     const pel = analisisPeluqueria();
     const R = rejilla, eq = deportivas.equilibrada;
     const comprobaciones = [
@@ -263,10 +276,12 @@
       ['La peluquería no tiene una única configuración óptima', pel.distintas >= 3],
       ['Todas las combinaciones firman contrato', Object.values(R).every(x => x.contratoPct >= 95)],
       ['Energía nunca negativa', Object.values(R).every(x => !x.energiaNegativa)],
+      ['Tienda: comprar retrasa la empresa (no la adelanta) pero no impide progresar', consumo.gasta.compras > 0 && consumo.gasta.semanaEmpresa >= consumo.ahorra.semanaEmpresa && consumo.gasta.capituloPct >= consumo.ahorra.capituloPct - 10 && consumo.caprichos.capituloPct >= 60],
+      ['Tienda: gastar a lo grande deja menos patrimonio (es un sumidero, no una inversión)', consumo.caprichos.patrimonio80 < consumo.ahorra.patrimonio80],
       ['Sin decisiones atascadas', Object.values(R).every(x => x.atascos === 0) && Object.values(deportivas).every(x => x.atascos === 0)],
     ];
     return { partidasPorCombinacion: n, marginales: { deportiva: marginal(0, ['trabajo', 'entreno', 'futbol', 'descanso', 'equilibrada']), empresarial: marginal(1, Object.keys(EMPRESARIAL)), comercial: marginal(2, Object.keys(COMERCIAL)) },
-      deportivasPuedenComprar: deportivas, cajas, rutas, mismaPartida, segundas, peluqueria: pel, rejilla, comprobaciones: comprobaciones.map(([t, ok]) => ({ t, ok })) };
+      deportivasPuedenComprar: deportivas, consumo, cajas, rutas, mismaPartida, segundas, peluqueria: pel, rejilla, comprobaciones: comprobaciones.map(([t, ok]) => ({ t, ok })) };
   }
 
   // Políticas con nombre (las usan los tests y la interfaz): todas con gestión inteligente y patrocinios locales
@@ -280,5 +295,5 @@
   };
   for (const P of Object.values(POLITICAS)) { P.accion = P.bot.dep.accion; P.oferta = P.bot.dep.clubes; }
 
-  Object.assign(P2, { DEPORTIVA, EMPRESARIAL, COMERCIAL, POLITICAS, crearBot, jugarPartida, runBalance, analisisPeluqueria, gestorListo, resumenPartidas: resumen });
+  Object.assign(P2, { DEPORTIVA, EMPRESARIAL, COMERCIAL, POLITICAS, CONSUMO, crearBot, jugarPartida, runBalance, analisisPeluqueria, gestorListo, resumenPartidas: resumen });
 })(globalThis.P2 = globalThis.P2 || {});

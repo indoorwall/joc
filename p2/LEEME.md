@@ -1,4 +1,4 @@
-# Del barrio al negocio · P2 (capítulo 1)
+# Del barrio al negocio · P2.3 (capítulo 1)
 
 Juego de gestión por decisiones, vertical para iPhone. **Empiezas como deportista → construyes tu carrera →
 ganas dinero → inviertes → creas tu primera empresa → se abre tu imperio.** No hay partidos jugables:
@@ -7,6 +7,61 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Abrir: [`del_barrio_p2.html`](del_barrio_p2.html) (un solo archivo, sin conexiones).
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
+
+## P2.3 · Identidad visual, Tienda y Relaciones
+
+Misma lógica, mismo balance deportivo y empresarial que P2.2. Cambia cómo se ve y vuelve «la vida» del personaje.
+
+**Aspecto de juego móvil (sin verde):** azul noche y morado oscuro con degradados, azul eléctrico de acento, oro para dinero
+y recompensas, y un color por categoría: deporte (azul), relaciones (rosa), empresa (turquesa) y tienda (magenta).
+Fondo SVG por etapa, sin imágenes externas: **barrio** (edificios, campo y plaza), **club** (estadio y focos),
+**empresa** (skyline nocturno) y **magnate** (skyline dorado). El inicio enseña tu personaje en su escenario, el objetivo
+(siguiente hito) con barra de progreso, el dinero y el patrimonio, y accesos grandes a Relaciones, Tienda, Empresa y Liga.
+
+**Navegación:** 4 botones grandes abajo. Dentro de cada uno, pestañas:
+
+| Botón | Secciones | Cuándo aparecen |
+|---|---|---|
+| 🏠 Inicio | La semana | Siempre |
+| ⚽ Carrera | Relaciones · Liga · Marcas | Relaciones siempre; Liga y Marcas al firmar |
+| 💼 Imperio | Tienda · Empresa · Patrimonio | Tienda y Patrimonio siempre; Empresa al abrirse el mercado |
+| 🧍 Perfil | Personaje · Hitos · Ajustes | Siempre |
+
+Empresa sigue llegando con las mismas reglas (primer patrocinador, o 10 partidos como profesional) y ahora se anuncia
+con una tarjeta grande **«🔓 NUEVO: EMPRESA»**. Peluquería, caja, empleados, sueldos, precios, publicidad, préstamos,
+crisis, valoración y segunda inversión no cambian.
+
+**🛍️ Tienda** (`13_tienda.js`, datos en `PRODUCTOS`): 7 categorías (ropa, accesorios, tecnología, vehículos, vivienda,
+ocio, equipamiento), unos 25 productos con precios que crecen con la carrera (los caros piden un hito). La mayoría son
+colección; algunos ayudan un poco y con sentido: botas (+3–6 % entreno), móvil (+5–15 % a prensa y redes), vehículo y
+pistola de masaje (+1–3 de energía por semana), piso propio (−25 €/semana de gastos). Nada es necesario para competir.
+Los caros (500 € o más) se confirman con un segundo toque. Al comprar sale **«🎉 NUEVA COMPRA»**. Vehículos, vivienda y
+joyas son **patrimoniales** (guardan `precioCompra` y `valorActual`, suman al patrimonio y se pueden vender por su valor);
+lo demás es gasto. Algunas prendas desbloquean ropa del personaje. **Tus cosas** enseña vehículo, vivienda, móvil, calzado
+y tu colección. El dinero disponible y el patrimonio se ven por separado (sección **Patrimonio**).
+
+**❤️ Relaciones** (`14_relaciones.js`, datos en `RELACIONES` y `EVENTOS_RELACION`): madre, padre, Marc (mejor amigo) y Dani
+desde el principio; Iker (compañero) y el míster al fichar (el valor del míster es su confianza); Sonia (representante)
+cuando tienes agente; pareja y contactos se ven bloqueados («más adelante»). Cada tarjeta: cara, nombre, papel,
+❤️ valor/100, estado («Confía mucho en ti»…) y los dos últimos motivos de cambio. **No hay botón de «hablar», ni
+mantenimiento semanal, ni pérdida automática**: solo cambian con decisiones en situaciones (un 30 % de las semanas sin
+otra decisión). Varias tienen consecuencias semanas después, y el juego dice de dónde vienen: prestar 200 € a Marc → te
+los devuelve (si seguís bien) y luego te presenta a Pilar, que traspasa su peluquería 800 € más barata; ayudar a Iker →
+un partido en el que te busca (más opciones de jugar y +0,5 de nota); prometer a tu padre que lo conseguirás → orgullo
+o decepción; negarte a la comisión de Sonia → puede dejarte. Con Sonia a 70 o más, tus renovaciones mejoran un poco.
+
+**Simulador:** nueva dimensión de consumo (`ahorra`, `gasta`, `caprichos`) con la equilibrada, 40 partidas, 100 semanas:
+
+| Consumo | Gastado en tienda | Empresa (semana) | Capítulo | Patrimonio sem. 80 |
+|---|---|---|---|---|
+| Ahorra | 0 € | 35,7 | 100 % (sem. 43) | 74.400 € |
+| Gasta (colchón 1.500 €) | 33.000 € | 47,4 | 100 % (sem. 55) | 43.300 € |
+| Caprichos | 46.600 € | 52,9 | 100 % (sem. 62) | 41.900 € |
+
+Comprar retrasa la empresa y el patrimonio, pero no impide progresar: «¿me compro el coche o guardo para la empresa?».
+
+**Guardado:** mismo `saveVersion 2`. Una partida de P2.2 se carga sin perder nada: se añaden inventario, relaciones y las
+secciones nuevas (sin avisos de «nuevo»).
 
 ## 0. Al empezar: tu personaje
 

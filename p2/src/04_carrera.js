@@ -59,7 +59,7 @@
         break;
       }
       case 'entrenar': {
-        const g = subirNivel(s, 2.6 * Math.pow(0.9, veces), techoBarrio);
+        const g = subirNivel(s, 2.6 * Math.pow(0.9, veces) * (1 + P2.efectoTienda(s, 'entreno')), techoBarrio);
         L.push(['🏃', g > 0 ? `Entrenas duro: nivel +${nf(g)}.` : 'Entrenas, pero ya estás en tu techo del barrio.']);
         W.push(`Nivel = 2,6 × 0,9^${veces}. Entrenar solo, sin club, tiene techo (${techoBarrio}).`);
         break;
@@ -94,14 +94,14 @@
       }
       case 'preparador': s.preparador = true; L.push(['🧑‍🏫', 'Sesión con preparador: ya sabes qué ejercicios te van a pedir (+3 en las pruebas).']); break;
       case 'entrenoExtra': {
-        const O = oferta(s), g = subirNivel(s, 0.6 * (O ? O.entreno : 1) * (1 + P2.efectoPatro(s, 'entreno')) * factorTecho(s), techoClub(s));
+        const O = oferta(s), g = subirNivel(s, 0.6 * (O ? O.entreno : 1) * (1 + P2.efectoPatro(s, 'entreno') + P2.efectoTienda(s, 'entreno')) * factorTecho(s), techoClub(s));
         s.confianza = clamp(s.confianza + 2, 0, 100); R.entrenoExtra = true;
         L.push(['🏋️', `Entreno extra: nivel +${nf(g)} y el míster lo valora (+2 confianza).`]);
         break;
       }
       case 'prensa': {
         const O = oferta(s), expo = (O ? O.exposicion : 1) * (s.temporada ? LIGAS[s.temporada.liga].exposicion || 1 : 1);
-        const g = P2.sumarMarca(s, (1.6 + rnd(s)) * expo); s.confianza = clamp(s.confianza - 1, 0, 100);
+        const g = P2.sumarMarca(s, (1.6 + rnd(s)) * expo * (1 + P2.efectoTienda(s, 'prensa'))); s.confianza = clamp(s.confianza - 1, 0, 100);
         L.push(['🎙️', `Atiendes a la prensa y subes contenido: +${nf(g)} de marca personal (−1 confianza del míster).${P.marca >= P2.techoMarca(s) ? ' Sin más prestigio deportivo, tu imagen ya no da para mucho más.' : ''}`]);
         W.push(`Marca personal = (1,6 + azar) × exposición ${nf(expo)}. Tiene un techo suave de ${P2.techoMarca(s)} (30 + tu reputación deportiva): por encima solo rinde un 15 %.`);
         break;
@@ -199,6 +199,7 @@
     partes.push(['Energía', em]);
     const m = s.semanaMods && s.semanaMods.semana === s.semana ? s.semanaMods : {};
     if (m.bonusSel) partes.push(['Hueco en el once', m.bonusSel]);
+    if (s.ayudaCompanero) partes.push(['Iker te busca', 3]);
     return { base: partes.reduce((a, [, v]) => a + v, 0), partes, umbral: r1(s.temporada.fuerzas[s.temporada.yo]) };
   }
   // Probabilidad de ser titular, en palabras (la fórmula queda para «¿Por qué?»)
@@ -238,7 +239,7 @@
     let nota = null, goles = 0;
     if (juega) {
       const ra = resultado === 'victoria' ? 0.4 : resultado === 'derrota' ? -0.4 : 0;
-      nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
+      nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) + (s.ayudaCompanero ? 0.5 : 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
       nota = r1(clamp(nota, 3, 10));
       const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
       if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
@@ -273,11 +274,12 @@
     let prima = 0;
     const clave = `${T.liga}-${T.num}-${pm(T)}`;
     if (juega && resultado === 'victoria' && O.primaVictoria && !s.primasCobradas[clave]) {
-      prima = Math.round(O.primaVictoria * (1 - CFG.club.impuesto));
+      prima = Math.round(O.primaVictoria * (1 - CFG.club.impuesto) * (1 - (s.agente ? s.comisionAgente || 0 : 0)));   // tu representante se lleva su parte
       s.primasCobradas[clave] = prima; P.dinero += prima; s.acum.primas += prima; s.acum.impuestos += O.primaVictoria - prima;
     }
     // Mejora con los entrenamientos del club
-    const gN = subirNivel(s, 0.35 * O.entreno * (1 + P2.efectoPatro(s, 'entreno')) * factorTecho(s), techoClub(s));
+    s.ayudaCompanero = 0;
+    const gN = subirNivel(s, 0.35 * O.entreno * (1 + P2.efectoPatro(s, 'entreno') + P2.efectoTienda(s, 'entreno')) * factorTecho(s), techoClub(s));
     P2.tele(s, 'partido', { rol, amateur: !!O.amateur });
     if (P.lesion > 0 && rol === 'lesionado') P.nivel = r1(Math.max(CFG.inicio.nivel, P.nivel - 0.2));
 
@@ -337,7 +339,8 @@
   function ofertasFinTemporada(s, media) {
     const O = oferta(s), l = [];
     if (s.contrato.temporadasRestantes <= 0 && s.confianza >= 45) {
-      const mejora = s.agente && s.confianza >= 65 ? 1.3 : 1.12;
+      // Una representante con la que te llevas bien pelea más tu renovación
+      const mejora = (s.agente && s.confianza >= 65 ? 1.3 : 1.12) + (s.agente && P2.valorRel(s, 'sonia') >= 70 ? 0.08 : 0);
       l.push({ id: 'renovar', n: `Renovar con ${O.n}`, sueldo: Math.max(s.contrato.sueldo, Math.min(topeSueldo(s), Math.round(s.contrato.sueldo * mejora))), prima: Math.round(O.prima * 0.5), temporadas: 2 });
     }
     if (O.club === 'atleticoB' && s.confianza >= 60 && s.p.nivel >= 58) l.push({ id: 'atleticoPrimero' });

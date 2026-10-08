@@ -173,30 +173,32 @@
   }
 
   // ---- Comprar (traspaso + caja inicial: más caja = más margen, pero tardas más en reunirla) ----
-  function capitalNecesario(tipo, i = 0) { const T = NEGOCIOS[tipo]; return T.traspaso + T.cajas[i]; }
+  // descuento: el traspaso más barato que consigues por un contacto (Marc te presenta a Pilar)
+  const traspasoPara = (s, tipo) => Math.max(0, NEGOCIOS[tipo].traspaso - ((s && !s.negocios.length && s.descuentoTraspaso) || 0));
+  function capitalNecesario(tipo, i = 0, s) { const T = NEGOCIOS[tipo]; return traspasoPara(s, tipo) + T.cajas[i]; }
   function bloqueoCompra(s, tipo, i) {
     if (!P2.tieneHito(s, 'contrato')) return 'Primero, un contrato profesional.';
     if (!mercadoAbierto(s)) return 'Tu asesor aún no te ha enseñado ningún traspaso.';
     if (s.negocios.length && !s.oportunidad) return 'Primero, que tu primera empresa funcione.';
-    if (s.p.dinero < capitalNecesario(tipo, i)) return `Necesitas ${eur(capitalNecesario(tipo, i))}.`;
+    if (s.p.dinero < capitalNecesario(tipo, i, s)) return `Necesitas ${eur(capitalNecesario(tipo, i, s))}.`;
     return null;
   }
   // El mercado de traspasos se abre con un patrocinador (tu asesor) o tras 10 partidos como profesional
-  const mercadoAbierto = s => P2.tieneHito(s, 'patro') || (P2.tieneHito(s, 'contrato') && s.stats.jugados >= 10) || s.negocios.length > 0;
+  const mercadoAbierto = s => P2.tieneHito(s, 'patro') || (P2.tieneHito(s, 'contrato') && s.stats.jugados >= 10) || s.negocios.length > 0 || (!!s.contactoNegocio && P2.tieneHito(s, 'contrato'));
   function comprarNegocio(s, tipo, i, R) {
     if (bloqueoCompra(s, tipo, i)) return false;
-    const T = NEGOCIOS[tipo], caja = T.cajas[i];
-    s.p.dinero -= T.traspaso + caja; s.acum.aportado += caja;
+    const T = NEGOCIOS[tipo], caja = T.cajas[i], traspaso = traspasoPara(s, tipo);
+    s.p.dinero -= traspaso + caja; s.acum.aportado += caja; s.descuentoTraspaso = 0;
     const n = nuevoNegocio(tipo, caja);
-    n.comprado = s.semana; n.invertido = T.traspaso + caja;
+    n.comprado = s.semana; n.invertido = traspaso + caja;
     ponerEnMarcha(n, R);
     s.negocios.push(n);
     P2.tele(s, 'empresa', { caja });
-    P2.anotar(s, T.ic, `Compro una ${T.n.toLowerCase()}: traspaso ${eur(T.traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
+    P2.anotar(s, T.ic, `Compro una ${T.n.toLowerCase()}: traspaso ${eur(traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
     P2.conseguirHito(s, 'empresa', R);
     return n;
   }
 
   Object.assign(P2, { ponerEnMarcha, aplicarMejoraInicial, nuevaParticipacion, semanaSocio, nuevoNegocio, calcularSemana, semanaNegocio, beneficioMedio, valorNegocio, aportar, retirar, configurar, pedirPrestamo, venderNegocio,
-    capitalNecesario, bloqueoCompra, comprarNegocio, mercadoAbierto, tipoDe });
+    capitalNecesario, traspasoPara, bloqueoCompra, comprarNegocio, mercadoAbierto, tipoDe });
 })(globalThis.P2 = globalThis.P2 || {});

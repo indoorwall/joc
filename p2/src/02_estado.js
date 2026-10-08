@@ -15,7 +15,9 @@
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
-      secciones: ['semana', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
+      secciones: ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
+      inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
+      relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
       seccionesNuevas: [],
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
@@ -46,7 +48,7 @@
       sucesosVistos: {},               // id → última semana (enfriamiento)
       ultimo: null,                    // consecuencias de la última semana
       diario: [],
-      acum: { sueldo: 0, primas: 0, patrocinio: 0, trabajo: 0, gastos: 0, impuestos: 0, aportado: 0, retirado: 0 },
+      acum: { sueldo: 0, primas: 0, patrocinio: 0, trabajo: 0, gastos: 0, impuestos: 0, aportado: 0, retirado: 0, compras: 0 },
       capitulo: { completado: false, semana: null },
       origen: opc.origen || 'nueva',
     };
@@ -105,6 +107,17 @@
     if (!Array.isArray(s.cola)) s.cola = [];
     s.diario = s.diario.slice(-150);
     if (P2.validarLook) s.look = P2.validarLook(s.look);
+    // Tienda y relaciones: solo lo que existe y con valores sanos
+    if (P2.producto) {
+      s.inventario = (Array.isArray(s.inventario) ? s.inventario : []).filter(it => it && P2.producto(it.id) && !P2.producto(it.id).consumible)
+        .map(it => Object.assign(it, { precioCompra: Math.max(0, +it.precioCompra || 0), valorActual: Math.max(0, +it.valorActual || 0) }));
+      const eq = s.equipado && typeof s.equipado === 'object' ? s.equipado : {};
+      for (const k of Object.keys(eq)) if (!s.inventario.some(it => it.id === eq[k] && P2.producto(it.id).slot === k)) delete eq[k];
+      s.equipado = eq;
+    }
+    if (!Array.isArray(s.lookDesbloqueos)) s.lookDesbloqueos = [];
+    if (!s.relaciones || typeof s.relaciones !== 'object' || Array.isArray(s.relaciones)) s.relaciones = {};
+    for (const k of Object.keys(s.relaciones)) { const x = s.relaciones[k]; if (!x || typeof x.v !== 'number' || !isFinite(x.v)) delete s.relaciones[k]; else { x.v = P2.clamp(Math.round(x.v), 0, 100); if (!Array.isArray(x.historia)) x.historia = []; } }
     s.saveVersion = CFG.saveVersion;
     return s;
   }

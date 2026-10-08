@@ -146,6 +146,14 @@
       },
       resolver(s, ev) { return { texto: ev.mov.tipo === 'sube' ? `${ev.club} sube a ${P2.LIGAS[ev.mov.a].n}.` : ev.mov.tipo === 'baja' ? `${ev.club} baja a ${P2.LIGAS[ev.mov.a].n}.` : 'El filial no puede subir.', titulo: 'Fin de temporada', ic: ev.mov.tipo === 'sube' ? '🎉' : '📉' }; },
     },
+    // Desbloqueo grande: Empresa (la segunda parte del juego)
+    desbloqueo: {
+      vista(s, ev) {
+        return { ic: '🔓', fiesta: true, grande: true, titulo: 'NUEVO: EMPRESA', texto: 'Tu asesor te enseña negocios en traspaso. A partir de ahora no solo eres deportista: puedes construir tu imperio. Tu dinero y la caja de la empresa irán por separado.',
+          ops: [op('ver', '💼 Ver Empresa', 'Mira la peluquería en traspaso', '', '', { prin: true }), op('luego', 'Más tarde', 'Sigues con tu semana', '', '')] };
+      },
+      resolver(s, ev, id) { s.seccionesNuevas = (s.seccionesNuevas || []).filter(x => id !== 'ver' || x !== 'empresa'); return { texto: id === 'ver' ? 'Abres Empresa.' : 'La tienes en «Imperio».', titulo: 'Empresa', ic: '💼', ir: id === 'ver' ? 'empresa' : null }; },
+    },
     // Una marca te llama: firmar, cambiar una por otra (si chocan o estás al máximo) o decir que no
     patroOferta: {
       vista(s, ev) {
@@ -299,22 +307,34 @@
   }
 
   // ---- Navegación progresiva: las secciones aparecen cuando tienen sentido ----
+  // grupo: botón de la barra inferior donde vive cada sección
   const SECCIONES = [
-    { id: 'semana', ic: '🏠', n: 'Semana', cond: () => true },
-    { id: 'liga', ic: '📊', n: 'Liga', cond: s => !!s.temporada, d: 'La clasificación, tu equipo y tu contrato.' },
-    { id: 'marcas', ic: '🤝', n: 'Marcas', cond: s => !!s.hitos.contrato, d: 'Patrocinadores: contratos con prima, pago semanal y actos.' },
-    { id: 'empresa', ic: '💼', n: 'Empresa', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
-    { id: 'hitos', ic: '🏅', n: 'Hitos', cond: () => true },
-    { id: 'ajustes', ic: '⚙️', n: 'Ajustes', cond: () => true },
+    { id: 'semana', ic: '🏠', n: 'Inicio', grupo: 'inicio', cond: () => true },
+    { id: 'relaciones', ic: '❤️', n: 'Relaciones', grupo: 'carrera', cond: () => true },
+    { id: 'liga', ic: '📊', n: 'Liga', grupo: 'carrera', cond: s => !!s.temporada, d: 'La clasificación, tu equipo y tu contrato.' },
+    { id: 'marcas', ic: '🤝', n: 'Marcas', grupo: 'carrera', cond: s => !!s.hitos.contrato, d: 'Patrocinadores: contratos con prima, pago semanal y actos.' },
+    { id: 'tienda', ic: '🛍️', n: 'Tienda', grupo: 'imperio', cond: () => true },
+    { id: 'empresa', ic: '💼', n: 'Empresa', grupo: 'imperio', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
+    { id: 'patrimonio', ic: '💰', n: 'Patrimonio', grupo: 'imperio', cond: () => true },
+    { id: 'personaje', ic: '🧍', n: 'Personaje', grupo: 'perfil', cond: () => true },
+    { id: 'hitos', ic: '🏅', n: 'Hitos', grupo: 'perfil', cond: () => true },
+    { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
-  const BASICAS = ['semana', 'hitos', 'ajustes'];
+  const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
+  const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {
     s.secciones = Array.isArray(s.secciones) ? s.secciones : BASICAS.slice();
     const nuevas = [];
-    for (const x of SECCIONES) if (!s.secciones.includes(x.id) && x.cond(s)) { s.secciones.push(x.id); nuevas.push(x); s.seccionesNuevas = (s.seccionesNuevas || []).concat(x.id); P2.anotar(s, '🔓', `Nueva sección: ${x.n}. ${x.d}`); }
-    if (R && R.desbloqueos) R.desbloqueos.push(...nuevas);
-    return nuevas;
+    for (const x of SECCIONES) if (!s.secciones.includes(x.id) && x.cond(s)) {
+      s.secciones.push(x.id); nuevas.push(x);
+      if (BASICAS.includes(x.id)) continue;   // las de siempre (partidas antiguas) no se anuncian
+      s.seccionesNuevas = (s.seccionesNuevas || []).concat(x.id); P2.anotar(s, '🔓', `Nueva sección: ${x.n}. ${x.d}`);
+      if (x.id === 'empresa') encolar(s, { tipo: 'desbloqueo', seccion: 'empresa' });   // la gran evolución del juego
+    }
+    const anunciadas = nuevas.filter(x => !BASICAS.includes(x.id));
+    if (R && R.desbloqueos) R.desbloqueos.push(...anunciadas);
+    return anunciadas;
   }
   const seccionesVisibles = s => SECCIONES.filter(x => (s.secciones || BASICAS).includes(x.id));
 
@@ -325,7 +345,8 @@
   }
 
   // Patrimonio = tu dinero + valor de tus empresas (+ participación)
-  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio && !s.socio.vendida ? s.socio.valor : 0)); }
+  // Patrimonio = dinero disponible + empresas + participación + tus cosas con valor (vehículo, vivienda, joyas…)
+  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio && !s.socio.vendida ? s.socio.valor : 0) + (P2.valorPosesiones ? P2.valorPosesiones(s) : 0)); }
 
-  Object.assign(P2, { SECCIONES, revisarSecciones, seccionesVisibles, encolar, siguiente, conseguirHito, revisarHitos, siguienteHito, DECISIONES, vistaPendiente, elegirOportunidad, patrimonio });
+  Object.assign(P2, { SECCIONES, GRUPOS, revisarSecciones, seccionesVisibles, encolar, siguiente, conseguirHito, revisarHitos, siguienteHito, DECISIONES, vistaPendiente, elegirOportunidad, patrimonio });
 })(globalThis.P2 = globalThis.P2 || {});

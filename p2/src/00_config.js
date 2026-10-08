@@ -83,7 +83,7 @@
       ventaUrgente: 0.7,
     },
 
-    sucesos: { probSemana: 0.45, probEmpresa: 0.35 },
+    sucesos: { probSemana: 0.45, probEmpresa: 0.35, probRelacion: 0.3 },
   };
 
   // ---- Ligas y equipos (ficticios). fuerza ≈ nivel medio del once ----
