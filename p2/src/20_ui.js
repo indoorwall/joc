@@ -219,7 +219,6 @@
   function htmlIntro() {
     const p1 = P2.partidaP1();
     return `<div class="intro"><div style="font-size:48px">⚽ → 💈 → 🏢</div><h1>Del barrio al negocio</h1><p>Capítulo 1</p>
-      <div class="ruta"><span>Barrio</span>→<span>Pruebas</span>→<span>Contrato</span>→<span>Temporada</span>→<span>Primera empresa</span>→<span>Tu imperio</span></div>
       <div class="card"><h3>Empiezas con 17 años</h3><p class="small">Tienes 8 semanas para que un club se fije en ti. Cada semana eliges una sola cosa. No hay una opción siempre buena: todo tiene ventaja, coste y riesgo.</p>
         <label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="${esc(ui.nombre)}"></div>
       <div class="card"><h3>Tu personaje</h3>${htmlEditor(null, ui.look || (ui.look = Object.assign({}, P2.LOOK_INICIAL)))}

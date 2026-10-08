@@ -133,7 +133,6 @@ nav#nav button i { position: absolute; top: 4px; right: 12%; width: 9px; height:
 .intro { text-align: center; padding-top: 30px; color: #fff; }
 .intro h1 { font-size: 30px; margin: 10px 0 4px; }
 .intro .card { text-align: left; color: var(--ink); }
-.ruta { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; font-size: 13px; font-weight: 800; color: rgba(255,255,255,.85); margin: 8px 0; }
 
 .fin { text-align: center; }
 .fin .big { font-size: 54px; }
