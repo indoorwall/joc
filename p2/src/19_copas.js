@@ -119,7 +119,8 @@
     } else if (pr.clase === 'ascenso' && !gana) { aplicar(s, { rep: -1, confianza: -5 }); R.grandes = (R.grandes || []).concat({ ic: '😖', titulo: 'Os quedáis a las puertas', bien: false, texto: 'Perdéis la promoción: seguís en la misma categoría. −5 de confianza del míster.' }); }
     else if (pr.clase === 'ascenso' && gana) R.grandes = (R.grandes || []).concat({ ic: '🎉', titulo: '¡ASCENSO!', bien: true, texto: `Ganáis la promoción: la temporada que viene jugáis en ${LIGAS[LIGAS[T.liga].sube].n}.` });
     else if (pr.clase === 'permanencia' && !gana) R.grandes = (R.grandes || []).concat({ ic: '📉', titulo: 'Descenso', bien: false, texto: `Perdéis la permanencia: bajáis a ${LIGAS[LIGAS[T.liga].baja].n}.` });
-    else if (pr.clase === 'permanencia' && gana) { aplicar(s, { confianza: 4 }); R.grandes = (R.grandes || []).concat({ ic: '😅', titulo: '¡SALVADOS!', bien: true, texto: 'Ganáis la permanencia en el último partido. +4 de confianza del míster.' }); }
+    else if (pr.clase === 'permanencia' && gana) { P2.celebrar(s, { tipo: 'salvados', club: P2.oferta(s).n.replace(/ \(.*\)/, ''), liga: LIGAS[T.liga].n }); }
+    if (pr.clase === 'permanencia' && gana) { aplicar(s, { confianza: 4 }); R.grandes = (R.grandes || []).concat({ ic: '😅', titulo: '¡SALVADOS!', bien: true, texto: 'Ganáis la permanencia en el último partido. +4 de confianza del míster.' }); }
     P2.finTemporada(s, R);
     return true;
   }

@@ -254,7 +254,9 @@
       if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
       if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
       s.stats.jugados++; s.stats.goles += goles; s.stats.notas.push(nota); s.stats.notasTemp.push(nota);
-      if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) s.stats.titular++; } else s.stats.suplente++;
+      if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) { s.stats.titular++; if (s.stats.titular === 1) P2.celebrar(s, { tipo: 'titular', club: O.n.replace(/ \(.*\)/, ''), ic: O.ic, c1: O.c1, c2: O.c2, dorsal: 2 + [...String(s.seed)].reduce((a, c) => a + c.charCodeAt(0), 0) % 22 }); } } else s.stats.suplente++;
+      if (goles && !O.amateur && s.stats.goles === goles) P2.celebrar(s, { tipo: 'gol', club: O.n.replace(/ \(.*\)/, ''), rival: P2.nombreEquipo(T, pj.rival), goles });
+      if (nota >= 9 && (s.mvpTemp || '') !== `${T.liga}-${T.num}`) { s.mvpTemp = `${T.liga}-${T.num}`; P2.celebrar(s, { tipo: 'mvp', nota, rival: P2.nombreEquipo(T, pj.rival) }); }
     }
     // Consecuencias: confianza, fama, interés, energía, lesión, primas
     const expo = O.exposicion * (LIGAS[T.liga].exposicion || 1);   // en categorías más altas te ve más gente

@@ -732,7 +732,7 @@
   const TRAZO_FIRMA = 'M8 44 C 22 6, 40 70, 58 34 S 84 8, 98 40 S 128 66, 146 30 S 176 12, 190 42 S 222 58, 250 26';
   const dinero = (v, signo = '+') => `<div class="bigMoney">${signo}<span data-cuenta="0|${Math.round(v)}|1">${eur(Math.round(v))}</span></div>`;
   function htmlCele(s, c) {
-    const cerrar = `<button class="cta oro" data-act="celeOk">${c.tipo === 'titulo' ? '¡A celebrarlo! ▶' : c.tipo === 'ascenso' ? '¡A por la nueva categoría! ▶' : '¡Vamos! ▶'}</button>`;
+    const cerrar = `<button class="cta oro" data-act="celeOk">${{ titulo: '¡A celebrarlo! ▶', ascenso: '¡A por la nueva categoría! ▶', coche: '¡Arrancar! ▶', casa: '¡Entrar! ▶', gol: '¡A celebrarlo! ▶', patrimonio: '¡A por más! ▶' }[c.tipo] || '¡Vamos! ▶'}</button>`;
     let h = '';
     if (c.tipo === 'contrato') {
       const semT = (s.temporada && s.temporada.calendario ? s.temporada.calendario.length : 14), total = c.sueldo * semT * (c.temporadas || 1);
@@ -768,6 +768,37 @@
         <div class="cheque"><div class="chTop"><span>${c.ic}</span><b>${esc(c.n)}</b></div><div class="chFila">Páguese a: <b>${esc(s.nombre || '')}</b></div>
           <div class="chImporte">${eur(c.prima)}</div><div class="cFirma mini"><svg viewBox="0 0 260 70" aria-hidden="true"><path class="trazo" d="${TRAZO_FIRMA}"/></svg></div></div>
         ${dinero(c.prima)}<p class="small">Prima (neto) y después ${eur(c.semanal)}/semana durante ${c.semanas} semanas</p>`;
+    } else if (c.tipo === 'patrimonio') {
+      h = `<small class="eti">🏦 ¡NUEVO RÉCORD!</small><h2>Tu patrimonio supera los ${eur(c.cifra)}</h2>
+        <div class="torres" aria-hidden="true">${[30, 48, 66, 84, 100].map((v, i) => `<span style="--h:${v}%;--i:${i}"><i>💶</i></span>`).join('')}</div>
+        ${dinero(c.total, '')}<p class="small">Todo lo que tienes: dinero, empresas, inversiones y cosas.</p>`;
+    } else if (c.tipo === 'coche') {
+      h = `<small class="eti">🔑 ${c.moto ? '¡TU PRIMERA MOTO!' : '¡TU PRIMER COCHE!'}</small>
+        <div class="carretera"><div class="cocheEntra">${vehiculoSVG(c.id, null)}</div><span class="llaves">🔑</span></div>
+        <h2>${esc(c.n)}</h2><p>Se acabó el autobús. ${c.moto ? 'Ahora llegas a todo antes.' : 'Ahora el barrio te ve llegar.'}</p>`;
+    } else if (c.tipo === 'casa') {
+      h = `<small class="eti">🏠 ¡TU PRIMERA CASA!</small>
+        <div class="casita"><div class="tejado"></div><div class="fachada"><span class="ventana v1"></span><span class="ventana v2"></span><span class="puerta"><i></i></span></div></div>
+        <h2>${esc(c.n)}</h2><p>Tus llaves, tu puerta, tus normas.</p>`;
+    } else if (c.tipo === 'venta') {
+      h = `<small class="eti">🤝 ¡VENDIDA CON BENEFICIO!</small>
+        <div class="local vendida"><div class="toldo"></div><div class="rotulo">${c.ic} ${esc(c.n)}</div><div class="escaparate"><span class="abierto">GRACIAS</span></div><div class="sello">VENDIDA</div></div>
+        ${dinero(c.precio)}<div class="chipsCele"><span>📈 Beneficio: +${eur(c.beneficio)}</span></div>`;
+    } else if (c.tipo === 'titular') {
+      h = `<small class="eti">🏟️ ¡ERES TITULAR!</small>
+        <div class="focos" aria-hidden="true"><i></i><i></i></div>
+        <div class="camiseta" style="--c1:${esc(c.c1 || '#7c5cff')};--c2:${esc(c.c2 || '#fff')}"><b>${c.dorsal}</b><span>${esc((s.nombre || '').toUpperCase().slice(0, 12))}</span></div>
+        <h2>Tu primer partido de titular</h2><p>Con ${esc(c.club)}. El míster confía en ti: ahora, a no soltar el puesto.</p>`;
+    } else if (c.tipo === 'gol') {
+      h = `<small class="eti">⚽ ¡TU PRIMER GOL!</small>
+        <div class="porteria golAnim"><span class="balonGol">⚽</span></div>
+        <h2>¡GOOOOL!</h2><p>Tu primer gol como profesional${c.rival ? `, contra ${esc(c.rival)}` : ''}. Este no se olvida.</p>`;
+    } else if (c.tipo === 'mvp') {
+      h = `<small class="eti">⭐ JUGADOR DEL PARTIDO</small><div class="copaGrande mvp">🏅</div><h2>MVP · nota ${nf(c.nota)}</h2>
+        <p>Partidazo${c.rival ? ` contra ${esc(c.rival)}` : ''}. Todo el mundo habla de ti.</p>
+        <div class="estrellas" aria-hidden="true">${Array.from({ length: 5 }, (_, i) => `<i style="--i:${i}">⭐</i>`).join('')}</div>`;
+    } else if (c.tipo === 'salvados') {
+      h = `<small class="eti">🛟 ¡SALVADOS!</small><div class="copaGrande flota">🛟</div><h2>${esc(c.club)} sigue en ${esc(c.liga)}</h2><p>Sufrimiento hasta el final, pero la categoría se queda en casa.</p>`;
     } else if (c.tipo === 'convocatoria') {
       h = `<small class="eti">🌍 ¡CONVOCATORIA!</small><div class="copaGrande">🌍</div><h2>¡Te llama la selección!</h2><p>La temporada que viene juegas el Mundial. Si llegáis a la final, la juegas tú.</p>`;
     }
@@ -933,7 +964,7 @@
     if (nuevas.length) { ui.fiestas = (ui.fiestas || []).concat(fiestasDe([], nuevas)); if (!ui.paso) ui.paso = 'fiesta'; P2.guardar(S); }
     if (!P2.seccionesVisibles(S).some(x => x.id === ui.vista)) ui.vista = 'semana';
     // Grandes momentos: se enseñan antes que nada (menos en mitad de un minijuego)
-    if (!ui.mj && Array.isArray(S.celebraciones) && S.celebraciones.length) { ui.celes = (ui.celes || []).concat(S.celebraciones); S.celebraciones = []; P2.guardar(S); ui.confeti = true; }
+    if (!ui.mj && Array.isArray(S.celebraciones) && S.celebraciones.length) { if (S.celebraciones.some(c => c.tipo === 'coche' || c.tipo === 'casa')) ui.nuevaCompra = null; ui.celes = (ui.celes || []).concat(S.celebraciones); S.celebraciones = []; P2.guardar(S); ui.confeti = true; }
     const cele = ui.celes && ui.celes.length ? ui.celes[0] : null;
     pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);

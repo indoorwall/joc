@@ -55,10 +55,17 @@
   }
 
   // ---------- Mi historia ----------
+  const UMBRALES_PATRIMONIO = [10000, 25000, 50000, 100000, 250000, 500000, 1000000, 5000000];
   function anotarHistoria(s, k, v) {
     const h = s.historia || (s.historia = { ascensos: 0, patrimonioMax: 0, semanaMax: 1 });
     if (k === 'ascenso') h.ascensos++;
-    if (k === 'semana') { const p = P2.patrimonio(s); if (p > h.patrimonioMax) { h.patrimonioMax = p; h.semanaMax = s.semana; } }
+    if (k === 'semana') {
+      const p = P2.patrimonio(s); if (p > h.patrimonioMax) { h.patrimonioMax = p; h.semanaMax = s.semana; }
+      // Récords de patrimonio: 10.000, 25.000, 50.000, 100.000 €… (una partida antigua empieza desde lo que ya tenía, sin repetir fiestas)
+      if (h.umbral == null) h.umbral = UMBRALES_PATRIMONIO.filter(u => u <= h.patrimonioMax && s.semana > 2).pop() || 0;
+      const u = UMBRALES_PATRIMONIO.filter(x => x > h.umbral && p >= x).pop();
+      if (u) { h.umbral = u; P2.celebrar(s, { tipo: 'patrimonio', cifra: u, total: Math.round(p) }); }
+    }
     return h;
   }
   function miHistoria(s) {

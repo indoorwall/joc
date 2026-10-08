@@ -167,6 +167,8 @@
     if (!n) return 0;
     const v = Math.round(valorNegocio(n) * factor);
     s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n);
+    const ben = v - (n.invertido || 0);
+    if (ben > 0) P2.celebrar(s, { tipo: 'venta', n: tipoDe(n).n, ic: tipoDe(n).ic, precio: v, beneficio: ben });
     P2.anotar(s, '🤝', `Vendo la ${tipoDe(n).n.toLowerCase()} por ${eur(v)}.`);
     P2.tele(s, 'venta', {});
     return v;

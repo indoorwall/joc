@@ -734,6 +734,50 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
 .porteria.tiros .hueco { font-size: 50px; min-height: 60px; }
 .porteria.tiros .hueco:not(:empty) { animation: salta .15s both; }
 
+/* Más grandes momentos: récord, coche, casa, venta, titular, gol, MVP, salvados */
+.torres { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 150px; margin: 8px auto; }
+.torres span { width: 40px; height: var(--h); border-radius: 10px 10px 4px 4px; background: linear-gradient(#5be3a8, #0f9d58); box-shadow: 0 4px 0 #0b7a44; display: grid; place-items: start center; transform-origin: bottom; animation: crece .6s calc(.2s + var(--i) * .15s) cubic-bezier(.3,1.4,.5,1) both; }
+.torres span i { font-style: normal; margin-top: -28px; font-size: 22px; }
+@keyframes crece { from { transform: scaleY(0); } }
+.carretera { position: relative; height: 150px; border-radius: 20px; overflow: hidden; background: linear-gradient(#cfeaff 0 62%, #5d6577 62% 100%); box-shadow: 0 4px 0 #e2dcf7; }
+.carretera::after { content: ''; position: absolute; left: 0; right: 0; bottom: 24px; height: 5px; background: repeating-linear-gradient(90deg, #fff 0 26px, transparent 26px 48px); }
+.cocheEntra { position: absolute; left: 50%; bottom: 18px; width: 200px; margin-left: -100px; animation: cocheLlega 1.1s .3s cubic-bezier(.2,1.1,.4,1) both; }
+.cocheEntra svg { width: 100%; height: auto; display: block; }
+@keyframes cocheLlega { from { transform: translateX(-140vw); } }
+.llaves { position: absolute; right: 14px; top: 10px; font-size: 34px; transform-origin: top center; animation: llaves 1s 1.4s ease-in-out both; }
+@keyframes llaves { 0% { opacity: 0; transform: rotate(0); } 30% { opacity: 1; transform: rotate(-25deg); } 60% { transform: rotate(20deg); } }
+.casita { width: 210px; margin: 10px auto; animation: entra .5s both; }
+.casita .tejado { height: 0; border-left: 115px solid transparent; border-right: 115px solid transparent; border-bottom: 70px solid #ff6b6b; margin: 0 -10px; }
+.casita .fachada { position: relative; height: 120px; background: #fff3d6; border-radius: 0 0 10px 10px; box-shadow: 0 6px 16px rgba(60,40,120,.15); }
+.ventana { position: absolute; top: 18px; width: 44px; height: 38px; border-radius: 6px; background: #ffe066; box-shadow: inset 0 0 0 4px #fff, 0 0 18px #ffd43b; animation: luz .8s 1.3s both; }
+.ventana.v1 { left: 18px; } .ventana.v2 { right: 18px; }
+@keyframes luz { from { background: #6b7a99; box-shadow: inset 0 0 0 4px #fff; } }
+.puerta { position: absolute; left: 50%; bottom: 0; width: 46px; height: 74px; margin-left: -23px; background: #3d2b1f; border-radius: 6px 6px 0 0; perspective: 300px; }
+.puerta i { position: absolute; inset: 0; background: #8b5e34; border-radius: 6px 6px 0 0; transform-origin: left; transform: rotateY(-70deg); animation: puerta .9s .7s ease-in-out both; }
+@keyframes puerta { from { transform: rotateY(0); } }
+.local.vendida { position: relative; }
+.local.vendida .sello { right: 20px; bottom: 26px; }
+.focos { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.focos i { position: absolute; top: -20px; width: 140px; height: 520px; background: linear-gradient(rgba(255,240,170,.55), transparent); filter: blur(4px); transform-origin: top center; animation: foco 2.4s ease-in-out infinite alternate; }
+.focos i:first-child { left: 8%; transform: rotate(-18deg); } .focos i:last-child { right: 8%; transform: rotate(18deg); animation-delay: -1.2s; }
+@keyframes foco { to { transform: rotate(0deg); } }
+.camiseta { position: relative; width: 170px; height: 180px; margin: 6px auto; background: var(--c1); border-radius: 26px 26px 18px 18px; box-shadow: inset 0 0 0 6px var(--c2), 0 10px 24px rgba(60,40,120,.2); display: grid; place-items: center; align-content: center; color: var(--c2); animation: giraCamiseta 1s .2s cubic-bezier(.3,1.3,.5,1) both; }
+.camiseta::before, .camiseta::after { content: ''; position: absolute; top: 10px; width: 50px; height: 70px; background: var(--c1); border-radius: 14px; box-shadow: inset 0 0 0 6px var(--c2); z-index: -1; }
+.camiseta::before { left: -34px; transform: rotate(28deg); } .camiseta::after { right: -34px; transform: rotate(-28deg); }
+.camiseta b { font-size: 72px; line-height: 1; font-weight: 900; -webkit-text-stroke: 2px rgba(0,0,0,.15); }
+.camiseta span { font-weight: 900; letter-spacing: .12em; font-size: 13px; }
+@keyframes giraCamiseta { from { transform: rotateY(180deg) scale(.4); opacity: 0; } }
+.porteria.golAnim { position: relative; overflow: hidden; height: 140px; }
+.balonGol { position: absolute; left: 62%; top: 30%; font-size: 40px; animation: balonGol .8s .3s cubic-bezier(.2,.8,.3,1) both; }
+@keyframes balonGol { from { transform: translate(-60vw, 70px) scale(2.2) rotate(-360deg); } }
+.porteria.golAnim::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 66% 40%, rgba(255,255,255,.7), transparent 40%); animation: red .5s 1s both; }
+@keyframes red { from { opacity: 0; } 40% { opacity: 1; } }
+.copaGrande.mvp { animation: copaCae .9s cubic-bezier(.3,1.5,.5,1) both, late 1.4s 1s ease-in-out infinite; }
+.estrellas { display: flex; justify-content: center; gap: 6px; font-size: 30px; }
+.estrellas i { font-style: normal; animation: salta .4s calc(.6s + var(--i) * .15s) both; }
+.copaGrande.flota { animation: copaCae .9s cubic-bezier(.3,1.5,.5,1) both, flota 2.6s 1s ease-in-out infinite; }
+@keyframes flota { 50% { transform: translateY(-8px) rotate(8deg); } }
+
 </style>
 </head>
 <body>
@@ -1706,7 +1750,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
       if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
       s.stats.jugados++; s.stats.goles += goles; s.stats.notas.push(nota); s.stats.notasTemp.push(nota);
-      if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) s.stats.titular++; } else s.stats.suplente++;
+      if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) { s.stats.titular++; if (s.stats.titular === 1) P2.celebrar(s, { tipo: 'titular', club: O.n.replace(/ \(.*\)/, ''), ic: O.ic, c1: O.c1, c2: O.c2, dorsal: 2 + [...String(s.seed)].reduce((a, c) => a + c.charCodeAt(0), 0) % 22 }); } } else s.stats.suplente++;
+      if (goles && !O.amateur && s.stats.goles === goles) P2.celebrar(s, { tipo: 'gol', club: O.n.replace(/ \(.*\)/, ''), rival: P2.nombreEquipo(T, pj.rival), goles });
+      if (nota >= 9 && (s.mvpTemp || '') !== `${T.liga}-${T.num}`) { s.mvpTemp = `${T.liga}-${T.num}`; P2.celebrar(s, { tipo: 'mvp', nota, rival: P2.nombreEquipo(T, pj.rival) }); }
     }
     // Consecuencias: confianza, fama, interés, energía, lesión, primas
     const expo = O.exposicion * (LIGAS[T.liga].exposicion || 1);   // en categorías más altas te ve más gente
@@ -2197,6 +2243,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (!n) return 0;
     const v = Math.round(valorNegocio(n) * factor);
     s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n);
+    const ben = v - (n.invertido || 0);
+    if (ben > 0) P2.celebrar(s, { tipo: 'venta', n: tipoDe(n).n, ic: tipoDe(n).ic, precio: v, beneficio: ben });
     P2.anotar(s, '🤝', `Vendo la ${tipoDe(n).n.toLowerCase()} por ${eur(v)}.`);
     P2.tele(s, 'venta', {});
     return v;
@@ -3891,6 +3939,12 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         const hechas = {};   // te lo pones al momento: «ahora tengo esto»
         for (const x of P.look) { const [cap, lid] = x.split(':'); if (!hechas[cap] && P2.ponerLook) { P2.ponerLook(s, cap, lid); hechas[cap] = 1; } }
       }
+      // Primera moto, primer coche, primera casa propia: gran momento
+      const COCHES = ['cocheUsado', 'deportivo', 'superdeportivo'], CASAS = ['piso', 'casaPremium', 'atico', 'villa', 'mansion'];
+      const yaTenia = l => (s.historiaCosas || []).some(x => l.includes(x));
+      if (COCHES.includes(P.id) && !yaTenia(COCHES)) P2.celebrar(s, { tipo: 'coche', id: P.id, n: P.n, ic: P.ic, precio });
+      else if (P.id === 'moto' && !yaTenia(['moto'].concat(COCHES))) P2.celebrar(s, { tipo: 'coche', id: P.id, n: P.n, ic: P.ic, precio, moto: true });
+      if (CASAS.includes(P.id) && !yaTenia(CASAS)) P2.celebrar(s, { tipo: 'casa', id: P.id, n: P.n, ic: P.ic, precio });
       s.historiaCosas = Array.from(new Set((s.historiaCosas || []).concat(P.id)));
     }
     if (P2.alComprar) P2.alComprar(s, P, precio);
@@ -4404,10 +4458,17 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   }
 
   // ---------- Mi historia ----------
+  const UMBRALES_PATRIMONIO = [10000, 25000, 50000, 100000, 250000, 500000, 1000000, 5000000];
   function anotarHistoria(s, k, v) {
     const h = s.historia || (s.historia = { ascensos: 0, patrimonioMax: 0, semanaMax: 1 });
     if (k === 'ascenso') h.ascensos++;
-    if (k === 'semana') { const p = P2.patrimonio(s); if (p > h.patrimonioMax) { h.patrimonioMax = p; h.semanaMax = s.semana; } }
+    if (k === 'semana') {
+      const p = P2.patrimonio(s); if (p > h.patrimonioMax) { h.patrimonioMax = p; h.semanaMax = s.semana; }
+      // Récords de patrimonio: 10.000, 25.000, 50.000, 100.000 €… (una partida antigua empieza desde lo que ya tenía, sin repetir fiestas)
+      if (h.umbral == null) h.umbral = UMBRALES_PATRIMONIO.filter(u => u <= h.patrimonioMax && s.semana > 2).pop() || 0;
+      const u = UMBRALES_PATRIMONIO.filter(x => x > h.umbral && p >= x).pop();
+      if (u) { h.umbral = u; P2.celebrar(s, { tipo: 'patrimonio', cifra: u, total: Math.round(p) }); }
+    }
     return h;
   }
   function miHistoria(s) {
@@ -4804,7 +4865,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     } else if (pr.clase === 'ascenso' && !gana) { aplicar(s, { rep: -1, confianza: -5 }); R.grandes = (R.grandes || []).concat({ ic: '😖', titulo: 'Os quedáis a las puertas', bien: false, texto: 'Perdéis la promoción: seguís en la misma categoría. −5 de confianza del míster.' }); }
     else if (pr.clase === 'ascenso' && gana) R.grandes = (R.grandes || []).concat({ ic: '🎉', titulo: '¡ASCENSO!', bien: true, texto: `Ganáis la promoción: la temporada que viene jugáis en ${LIGAS[LIGAS[T.liga].sube].n}.` });
     else if (pr.clase === 'permanencia' && !gana) R.grandes = (R.grandes || []).concat({ ic: '📉', titulo: 'Descenso', bien: false, texto: `Perdéis la permanencia: bajáis a ${LIGAS[LIGAS[T.liga].baja].n}.` });
-    else if (pr.clase === 'permanencia' && gana) { aplicar(s, { confianza: 4 }); R.grandes = (R.grandes || []).concat({ ic: '😅', titulo: '¡SALVADOS!', bien: true, texto: 'Ganáis la permanencia en el último partido. +4 de confianza del míster.' }); }
+    else if (pr.clase === 'permanencia' && gana) { P2.celebrar(s, { tipo: 'salvados', club: P2.oferta(s).n.replace(/ \(.*\)/, ''), liga: LIGAS[T.liga].n }); }
+    if (pr.clase === 'permanencia' && gana) { aplicar(s, { confianza: 4 }); R.grandes = (R.grandes || []).concat({ ic: '😅', titulo: '¡SALVADOS!', bien: true, texto: 'Ganáis la permanencia en el último partido. +4 de confianza del míster.' }); }
     P2.finTemporada(s, R);
     return true;
   }
@@ -5574,7 +5636,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const TRAZO_FIRMA = 'M8 44 C 22 6, 40 70, 58 34 S 84 8, 98 40 S 128 66, 146 30 S 176 12, 190 42 S 222 58, 250 26';
   const dinero = (v, signo = '+') => `<div class="bigMoney">${signo}<span data-cuenta="0|${Math.round(v)}|1">${eur(Math.round(v))}</span></div>`;
   function htmlCele(s, c) {
-    const cerrar = `<button class="cta oro" data-act="celeOk">${c.tipo === 'titulo' ? '¡A celebrarlo! ▶' : c.tipo === 'ascenso' ? '¡A por la nueva categoría! ▶' : '¡Vamos! ▶'}</button>`;
+    const cerrar = `<button class="cta oro" data-act="celeOk">${{ titulo: '¡A celebrarlo! ▶', ascenso: '¡A por la nueva categoría! ▶', coche: '¡Arrancar! ▶', casa: '¡Entrar! ▶', gol: '¡A celebrarlo! ▶', patrimonio: '¡A por más! ▶' }[c.tipo] || '¡Vamos! ▶'}</button>`;
     let h = '';
     if (c.tipo === 'contrato') {
       const semT = (s.temporada && s.temporada.calendario ? s.temporada.calendario.length : 14), total = c.sueldo * semT * (c.temporadas || 1);
@@ -5610,6 +5672,37 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         <div class="cheque"><div class="chTop"><span>${c.ic}</span><b>${esc(c.n)}</b></div><div class="chFila">Páguese a: <b>${esc(s.nombre || '')}</b></div>
           <div class="chImporte">${eur(c.prima)}</div><div class="cFirma mini"><svg viewBox="0 0 260 70" aria-hidden="true"><path class="trazo" d="${TRAZO_FIRMA}"/></svg></div></div>
         ${dinero(c.prima)}<p class="small">Prima (neto) y después ${eur(c.semanal)}/semana durante ${c.semanas} semanas</p>`;
+    } else if (c.tipo === 'patrimonio') {
+      h = `<small class="eti">🏦 ¡NUEVO RÉCORD!</small><h2>Tu patrimonio supera los ${eur(c.cifra)}</h2>
+        <div class="torres" aria-hidden="true">${[30, 48, 66, 84, 100].map((v, i) => `<span style="--h:${v}%;--i:${i}"><i>💶</i></span>`).join('')}</div>
+        ${dinero(c.total, '')}<p class="small">Todo lo que tienes: dinero, empresas, inversiones y cosas.</p>`;
+    } else if (c.tipo === 'coche') {
+      h = `<small class="eti">🔑 ${c.moto ? '¡TU PRIMERA MOTO!' : '¡TU PRIMER COCHE!'}</small>
+        <div class="carretera"><div class="cocheEntra">${vehiculoSVG(c.id, null)}</div><span class="llaves">🔑</span></div>
+        <h2>${esc(c.n)}</h2><p>Se acabó el autobús. ${c.moto ? 'Ahora llegas a todo antes.' : 'Ahora el barrio te ve llegar.'}</p>`;
+    } else if (c.tipo === 'casa') {
+      h = `<small class="eti">🏠 ¡TU PRIMERA CASA!</small>
+        <div class="casita"><div class="tejado"></div><div class="fachada"><span class="ventana v1"></span><span class="ventana v2"></span><span class="puerta"><i></i></span></div></div>
+        <h2>${esc(c.n)}</h2><p>Tus llaves, tu puerta, tus normas.</p>`;
+    } else if (c.tipo === 'venta') {
+      h = `<small class="eti">🤝 ¡VENDIDA CON BENEFICIO!</small>
+        <div class="local vendida"><div class="toldo"></div><div class="rotulo">${c.ic} ${esc(c.n)}</div><div class="escaparate"><span class="abierto">GRACIAS</span></div><div class="sello">VENDIDA</div></div>
+        ${dinero(c.precio)}<div class="chipsCele"><span>📈 Beneficio: +${eur(c.beneficio)}</span></div>`;
+    } else if (c.tipo === 'titular') {
+      h = `<small class="eti">🏟️ ¡ERES TITULAR!</small>
+        <div class="focos" aria-hidden="true"><i></i><i></i></div>
+        <div class="camiseta" style="--c1:${esc(c.c1 || '#7c5cff')};--c2:${esc(c.c2 || '#fff')}"><b>${c.dorsal}</b><span>${esc((s.nombre || '').toUpperCase().slice(0, 12))}</span></div>
+        <h2>Tu primer partido de titular</h2><p>Con ${esc(c.club)}. El míster confía en ti: ahora, a no soltar el puesto.</p>`;
+    } else if (c.tipo === 'gol') {
+      h = `<small class="eti">⚽ ¡TU PRIMER GOL!</small>
+        <div class="porteria golAnim"><span class="balonGol">⚽</span></div>
+        <h2>¡GOOOOL!</h2><p>Tu primer gol como profesional${c.rival ? `, contra ${esc(c.rival)}` : ''}. Este no se olvida.</p>`;
+    } else if (c.tipo === 'mvp') {
+      h = `<small class="eti">⭐ JUGADOR DEL PARTIDO</small><div class="copaGrande mvp">🏅</div><h2>MVP · nota ${nf(c.nota)}</h2>
+        <p>Partidazo${c.rival ? ` contra ${esc(c.rival)}` : ''}. Todo el mundo habla de ti.</p>
+        <div class="estrellas" aria-hidden="true">${Array.from({ length: 5 }, (_, i) => `<i style="--i:${i}">⭐</i>`).join('')}</div>`;
+    } else if (c.tipo === 'salvados') {
+      h = `<small class="eti">🛟 ¡SALVADOS!</small><div class="copaGrande flota">🛟</div><h2>${esc(c.club)} sigue en ${esc(c.liga)}</h2><p>Sufrimiento hasta el final, pero la categoría se queda en casa.</p>`;
     } else if (c.tipo === 'convocatoria') {
       h = `<small class="eti">🌍 ¡CONVOCATORIA!</small><div class="copaGrande">🌍</div><h2>¡Te llama la selección!</h2><p>La temporada que viene juegas el Mundial. Si llegáis a la final, la juegas tú.</p>`;
     }
@@ -5775,7 +5868,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (nuevas.length) { ui.fiestas = (ui.fiestas || []).concat(fiestasDe([], nuevas)); if (!ui.paso) ui.paso = 'fiesta'; P2.guardar(S); }
     if (!P2.seccionesVisibles(S).some(x => x.id === ui.vista)) ui.vista = 'semana';
     // Grandes momentos: se enseñan antes que nada (menos en mitad de un minijuego)
-    if (!ui.mj && Array.isArray(S.celebraciones) && S.celebraciones.length) { ui.celes = (ui.celes || []).concat(S.celebraciones); S.celebraciones = []; P2.guardar(S); ui.confeti = true; }
+    if (!ui.mj && Array.isArray(S.celebraciones) && S.celebraciones.length) { if (S.celebraciones.some(c => c.tipo === 'coche' || c.tipo === 'casa')) ui.nuevaCompra = null; ui.celes = (ui.celes || []).concat(S.celebraciones); S.celebraciones = []; P2.guardar(S); ui.confeti = true; }
     const cele = ui.celes && ui.celes.length ? ui.celes[0] : null;
     pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);

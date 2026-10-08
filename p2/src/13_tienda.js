@@ -102,6 +102,12 @@
         const hechas = {};   // te lo pones al momento: «ahora tengo esto»
         for (const x of P.look) { const [cap, lid] = x.split(':'); if (!hechas[cap] && P2.ponerLook) { P2.ponerLook(s, cap, lid); hechas[cap] = 1; } }
       }
+      // Primera moto, primer coche, primera casa propia: gran momento
+      const COCHES = ['cocheUsado', 'deportivo', 'superdeportivo'], CASAS = ['piso', 'casaPremium', 'atico', 'villa', 'mansion'];
+      const yaTenia = l => (s.historiaCosas || []).some(x => l.includes(x));
+      if (COCHES.includes(P.id) && !yaTenia(COCHES)) P2.celebrar(s, { tipo: 'coche', id: P.id, n: P.n, ic: P.ic, precio });
+      else if (P.id === 'moto' && !yaTenia(['moto'].concat(COCHES))) P2.celebrar(s, { tipo: 'coche', id: P.id, n: P.n, ic: P.ic, precio, moto: true });
+      if (CASAS.includes(P.id) && !yaTenia(CASAS)) P2.celebrar(s, { tipo: 'casa', id: P.id, n: P.n, ic: P.ic, precio });
       s.historiaCosas = Array.from(new Set((s.historiaCosas || []).concat(P.id)));
     }
     if (P2.alComprar) P2.alComprar(s, P, precio);

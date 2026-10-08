@@ -716,3 +716,47 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
 .porteria.tiros { display: grid; grid-template-columns: repeat(3, 1fr); place-items: center; }
 .porteria.tiros .hueco { font-size: 50px; min-height: 60px; }
 .porteria.tiros .hueco:not(:empty) { animation: salta .15s both; }
+
+/* Más grandes momentos: récord, coche, casa, venta, titular, gol, MVP, salvados */
+.torres { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 150px; margin: 8px auto; }
+.torres span { width: 40px; height: var(--h); border-radius: 10px 10px 4px 4px; background: linear-gradient(#5be3a8, #0f9d58); box-shadow: 0 4px 0 #0b7a44; display: grid; place-items: start center; transform-origin: bottom; animation: crece .6s calc(.2s + var(--i) * .15s) cubic-bezier(.3,1.4,.5,1) both; }
+.torres span i { font-style: normal; margin-top: -28px; font-size: 22px; }
+@keyframes crece { from { transform: scaleY(0); } }
+.carretera { position: relative; height: 150px; border-radius: 20px; overflow: hidden; background: linear-gradient(#cfeaff 0 62%, #5d6577 62% 100%); box-shadow: 0 4px 0 #e2dcf7; }
+.carretera::after { content: ''; position: absolute; left: 0; right: 0; bottom: 24px; height: 5px; background: repeating-linear-gradient(90deg, #fff 0 26px, transparent 26px 48px); }
+.cocheEntra { position: absolute; left: 50%; bottom: 18px; width: 200px; margin-left: -100px; animation: cocheLlega 1.1s .3s cubic-bezier(.2,1.1,.4,1) both; }
+.cocheEntra svg { width: 100%; height: auto; display: block; }
+@keyframes cocheLlega { from { transform: translateX(-140vw); } }
+.llaves { position: absolute; right: 14px; top: 10px; font-size: 34px; transform-origin: top center; animation: llaves 1s 1.4s ease-in-out both; }
+@keyframes llaves { 0% { opacity: 0; transform: rotate(0); } 30% { opacity: 1; transform: rotate(-25deg); } 60% { transform: rotate(20deg); } }
+.casita { width: 210px; margin: 10px auto; animation: entra .5s both; }
+.casita .tejado { height: 0; border-left: 115px solid transparent; border-right: 115px solid transparent; border-bottom: 70px solid #ff6b6b; margin: 0 -10px; }
+.casita .fachada { position: relative; height: 120px; background: #fff3d6; border-radius: 0 0 10px 10px; box-shadow: 0 6px 16px rgba(60,40,120,.15); }
+.ventana { position: absolute; top: 18px; width: 44px; height: 38px; border-radius: 6px; background: #ffe066; box-shadow: inset 0 0 0 4px #fff, 0 0 18px #ffd43b; animation: luz .8s 1.3s both; }
+.ventana.v1 { left: 18px; } .ventana.v2 { right: 18px; }
+@keyframes luz { from { background: #6b7a99; box-shadow: inset 0 0 0 4px #fff; } }
+.puerta { position: absolute; left: 50%; bottom: 0; width: 46px; height: 74px; margin-left: -23px; background: #3d2b1f; border-radius: 6px 6px 0 0; perspective: 300px; }
+.puerta i { position: absolute; inset: 0; background: #8b5e34; border-radius: 6px 6px 0 0; transform-origin: left; transform: rotateY(-70deg); animation: puerta .9s .7s ease-in-out both; }
+@keyframes puerta { from { transform: rotateY(0); } }
+.local.vendida { position: relative; }
+.local.vendida .sello { right: 20px; bottom: 26px; }
+.focos { position: absolute; inset: 0; pointer-events: none; z-index: -1; }
+.focos i { position: absolute; top: -20px; width: 140px; height: 520px; background: linear-gradient(rgba(255,240,170,.55), transparent); filter: blur(4px); transform-origin: top center; animation: foco 2.4s ease-in-out infinite alternate; }
+.focos i:first-child { left: 8%; transform: rotate(-18deg); } .focos i:last-child { right: 8%; transform: rotate(18deg); animation-delay: -1.2s; }
+@keyframes foco { to { transform: rotate(0deg); } }
+.camiseta { position: relative; width: 170px; height: 180px; margin: 6px auto; background: var(--c1); border-radius: 26px 26px 18px 18px; box-shadow: inset 0 0 0 6px var(--c2), 0 10px 24px rgba(60,40,120,.2); display: grid; place-items: center; align-content: center; color: var(--c2); animation: giraCamiseta 1s .2s cubic-bezier(.3,1.3,.5,1) both; }
+.camiseta::before, .camiseta::after { content: ''; position: absolute; top: 10px; width: 50px; height: 70px; background: var(--c1); border-radius: 14px; box-shadow: inset 0 0 0 6px var(--c2); z-index: -1; }
+.camiseta::before { left: -34px; transform: rotate(28deg); } .camiseta::after { right: -34px; transform: rotate(-28deg); }
+.camiseta b { font-size: 72px; line-height: 1; font-weight: 900; -webkit-text-stroke: 2px rgba(0,0,0,.15); }
+.camiseta span { font-weight: 900; letter-spacing: .12em; font-size: 13px; }
+@keyframes giraCamiseta { from { transform: rotateY(180deg) scale(.4); opacity: 0; } }
+.porteria.golAnim { position: relative; overflow: hidden; height: 140px; }
+.balonGol { position: absolute; left: 62%; top: 30%; font-size: 40px; animation: balonGol .8s .3s cubic-bezier(.2,.8,.3,1) both; }
+@keyframes balonGol { from { transform: translate(-60vw, 70px) scale(2.2) rotate(-360deg); } }
+.porteria.golAnim::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 66% 40%, rgba(255,255,255,.7), transparent 40%); animation: red .5s 1s both; }
+@keyframes red { from { opacity: 0; } 40% { opacity: 1; } }
+.copaGrande.mvp { animation: copaCae .9s cubic-bezier(.3,1.5,.5,1) both, late 1.4s 1s ease-in-out infinite; }
+.estrellas { display: flex; justify-content: center; gap: 6px; font-size: 30px; }
+.estrellas i { font-style: normal; animation: salta .4s calc(.6s + var(--i) * .15s) both; }
+.copaGrande.flota { animation: copaCae .9s cubic-bezier(.3,1.5,.5,1) both, flota 2.6s 1s ease-in-out infinite; }
+@keyframes flota { 50% { transform: translateY(-8px) rotate(8deg); } }

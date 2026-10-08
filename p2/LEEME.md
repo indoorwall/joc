@@ -57,6 +57,10 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
   la firma que se dibuja, el sello «FIRMADO» y la prima de fichaje contando hacia arriba), **renovación**, **compra de negocio**
   (el local abre la persiana y se enciende «ABIERTO», con lo invertido), **título** (copa que cae, lluvia de monedas, premio en
   euros, reputación y marca) y, además, **nuevo patrocinador** (cheque a tu nombre) y **convocatoria con la selección**. La lógica
+  y también: **récord de patrimonio** (10.000, 25.000, 50.000, 100.000 €… con torres de billetes), **primera moto o primer coche**
+  (el coche entra en la carretera y suenan las llaves), **primera casa** (se abre la puerta y se encienden las luces),
+  **venta de una empresa con beneficio** (sello «VENDIDA»), **primera titularidad** (tu camiseta con dorsal bajo los focos),
+  **primer gol como profesional**, **MVP** (nota 9 o más, una vez por temporada) y **salvados** en la promoción. La lógica
   solo deja el aviso (`P2.celebrar`, como mucho 6 pendientes); la interfaz lo anima. Con «reducir movimiento» se ve quieto y completo.
 - **Vidas** (❤️, máximo 3, como en P1): **un reintento por momento decisivo**, nunca para deshacer una decisión. Se recupera
   1 cada 6 semanas y, sin vidas, con un anuncio simulado (+1, una vez por semana). *Cambio de criterio respecto a P2.4, que
