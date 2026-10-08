@@ -1316,7 +1316,7 @@
         h = `<h2>${cu.doc === 'privacidad' ? '🔏 Privacidad' : '📄 Términos'}</h2><div class="legal">${LEGAL[cu.doc] || ''}</div><p class="small">Resumen. Borrador pendiente de revisión legal (versión ${esc(P2C.TERMS_VERSION)}).</p><button class="btn full" data-act="cuAtras">Volver</button>`; break;
       case 'datos':
         h = `<h2>📦 Tus datos</h2><p class="small">Todo lo que guardamos de tu cuenta: perfil, compras, lo que tienes desbloqueado y tus carreras.</p>
-          ${cu.datos ? `<a class="btn full" download="mis-datos-del-barrio.json" href="${esc(cu.datosUrl || '#')}">⬇️ Descargar (JSON)</a><textarea readonly rows="8" aria-label="Tus datos">${esc(cu.datos.slice(0, 3000))}${cu.datos.length > 3000 ? '\n…' : ''}</textarea>` : err ? '' : '<div class="pmSpin" aria-hidden="true"></div>'}
+          ${cu.datos ? `<a class="btn full" download="mis-datos-del-barrio.json" href="${esc(cu.datosUrl || '#')}">⬇️ Descargar (JSON)</a><button class="btn w full" data-act="cuCopiarDatos">📋 Copiar</button>${cu.copiado ? '<p class="pmOk">Copiado.</p>' : ''}<textarea id="cuDatosTxt" readonly rows="8" aria-label="Tus datos">${esc(cu.datos.slice(0, 3000))}${cu.datos.length > 3000 ? '\n…' : ''}</textarea>` : err ? '' : '<div class="pmSpin" aria-hidden="true"></div>'}
           ${err}<button class="btn w full" data-act="cuCerrar">Cerrar</button>`; break;
       case 'borrar':
         h = `<h2>⚠️ Eliminar tu cuenta</h2><p>Se borran tu perfil, tus carreras de la nube y el acceso a tus compras. <b>No se puede deshacer.</b></p>
@@ -1353,7 +1353,7 @@
     await cuDespuesPerfil();
   }
   function cuAlias() { return `${Math.random().toString(36).slice(2, 10)}@privaterelay.appleid.test`; }
-  const CU_CAPA = /^cu(Modo|Metodo|SistemaOk|PedirCodigo|Reenviar|Verificar|Atras|Edad|Terminos|Novedades|GuardarPerfil|TutorPedir|TutorSim|Seguir|SubirYa|Traer|BorrarOk)$/;
+  const CU_CAPA = /^cu(CopiarDatos|Modo|Metodo|SistemaOk|PedirCodigo|Reenviar|Verificar|Atras|Edad|Terminos|Novedades|GuardarPerfil|TutorPedir|TutorSim|Seguir|SubirYa|Traer|BorrarOk)$/;
   function cuAccion(a, b) {
     const cu = ui.cu;
     if (CU_CAPA.test(a) && !cu) return true;
@@ -1425,6 +1425,9 @@
       case 'cuEditar': ui.cu = { paso: 'perfil', editar: !(COM.profile() || {}).needsProfile, origen: 'cuenta', modo: 'crear' }; render(); return true;
       case 'cuCompras': ui.pant = null; ui.pm = { tab: 'comprado' }; if (S) { irA('premium'); pmAsync(async () => { ui.pm.hist = await COM.history(); }); } else { ui.pant = 'cuenta'; render(); } return true;
       case 'cuDatos': ui.cu = { paso: 'datos' }; cuAsync(async () => { const j = JSON.stringify(await COM.exportData(), null, 2); ui.cu.datos = j; try { ui.cu.datosUrl = URL.createObjectURL(new Blob([j], { type: 'application/json' })); } catch (_) { ui.cu.datosUrl = '#'; } }); return true;
+      case 'cuCopiarDatos': { const x = $('cuDatosTxt'); const fin = () => { cu.copiado = true; render(); };
+        if (navigator.clipboard) navigator.clipboard.writeText(cu.datos).then(fin).catch(() => { if (x) { x.select(); try { document.execCommand('copy'); } catch (_) {} } fin(); });
+        else { if (x) { x.select(); try { document.execCommand('copy'); } catch (_) {} } fin(); } return true; }
       case 'cuSalir': if (S) P2.guardar(S); COM.signOut(); limpiarLook(S); ui.flash = '👋 Has cerrado sesión. Tus carreras siguen en este dispositivo.'; comprobarRanura(); if (S) P2.guardar(S); render(); return true;
       case 'cuBorrar': ui.cu = { paso: 'borrar' }; render(); return true;
       case 'cuBorrarOk': {
