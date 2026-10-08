@@ -41,7 +41,9 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
   }
 
   // ---------------- Checkout (web: Stripe Checkout Session) ----------------
-  async function createCheckout(user, { sku, platform = 'web', currency = 'EUR', successUrl, cancelUrl, consentWithdrawal } = {}) {
+  /** @param {{id: string, isTester?: boolean}|null} user @param {{sku?: string, platform?: string, currency?: string, successUrl?: string, cancelUrl?: string, consentWithdrawal?: boolean}} [opts] */
+  async function createCheckout(user, opts = {}) {
+    const { sku, platform = 'web', currency = 'EUR', successUrl, cancelUrl, consentWithdrawal } = opts;
     req(user && user.id, 'auth_required', 401);
     await limit('checkout', user.id);
     req(config.commerceEnabled, 'commerce_disabled', 403);

@@ -10,6 +10,8 @@ import { canTransition, ORDER_STATES } from '../../commerce/core/orders.js';
 import { encodeForm, createStripeApi } from '../../commerce/core/stripeApi.js';
 import { PRESTIGE_CAREERS, PRESTIGE_STATES, prestigeState, startCandidacy, campaignWeek, election, officeWeek, eligibility } from '../../commerce/core/prestige.js';
 import { SPORTS, canPlaySport, registerSportModule, SPORT_MODULE_INTERFACE } from '../../commerce/core/sports.js';
+import { readFileSync, existsSync } from 'node:fs';
+import { SHARED, sharedContent } from '../../commerce/tools/sync-backend.mjs';
 import { placementAllowed, interstitialAllowed, createMockAdProvider, REWARDED_PLACEMENTS } from '../../commerce/core/ads.js';
 
 export async function runUnit(check) {
@@ -114,4 +116,13 @@ export async function runUnit(check) {
   check('Anuncios: «Quitar anuncios» quita solo los obligatorios; los recompensados siguen', !interstitialAllowed(['ads.remove_interstitial'], cfgAds) && interstitialAllowed([], cfgAds) && placementAllowed('store_discount', cfgAds));
   const ad = createMockAdProvider({ config: cfgAds });
   check('Anuncios: MockAdProvider recompensa sin red y respeta las reglas', (await ad.showRewarded('small_energy')).rewarded && !(await ad.showRewarded('change_result')).rewarded && !(await ad.showInterstitial(['ads.remove_interstitial'])).shown);
+
+  // ---------- Backend: copias y secretos ----------
+  const out = SHARED.filter(rel => { const f = new URL(`../../backend/supabase/functions/_shared/commerce/${rel}`, import.meta.url); return !existsSync(f) || readFileSync(f, 'utf8') !== sharedContent(rel); });
+  check('Backend: el núcleo copiado a las Edge Functions está al día (node commerce/tools/sync-backend.mjs)', out.length === 0, out.join());
+  const envEx = readFileSync(new URL('../../backend/.env.example', import.meta.url), 'utf8');
+  check('Backend: .env.example sin secretos reales (solo marcadores)', !/sk_(test|live)_[A-Za-z0-9]{8,}|whsec_[A-Za-z0-9]{8,}|sb_secret_[A-Za-z0-9]{8,}/.test(envEx) && /STRIPE_SECRET_KEY=/.test(envEx) && /STRIPE_WEBHOOK_SECRET=/.test(envEx));
+  const cfgToml = readFileSync(new URL('../../backend/supabase/config.toml', import.meta.url), 'utf8');
+  check('Backend: el webhook de Stripe no exige JWT (verifica la firma); el resto sí', /\[functions\.stripe-webhook\]\s*\nverify_jwt = false/.test(cfgToml) && !/\[functions\.checkout-session\]/.test(cfgToml));
+  check('Backend: .gitignore protege los .env', /\.env/.test(readFileSync(new URL('../../.gitignore', import.meta.url), 'utf8')));
 }

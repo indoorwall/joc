@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin de compras</title>
+<style>
+  :root { --bg: #f6f7fb; --card: #fff; --ink: #1d2033; --dim: #6b7085; --line: #e3e5ee; --acc: #5b4bff; --ok: #0f9d58; --bad: #d93025; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12131a; --card: #1c1e28; --ink: #eceef6; --dim: #9aa0b5; --line: #2c2f3d; } }
+  :root[data-theme="dark"] { --bg: #12131a; --card: #1c1e28; --ink: #eceef6; --dim: #9aa0b5; --line: #2c2f3d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  h1 { font-size: 20px; margin: 4px 0; } h2 { font-size: 16px; margin: 0 0 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; overflow-x: auto; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input, select, button { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); min-width: 0; }
+  input { flex: 1 1 180px; }
+  button { background: var(--acc); color: #fff; border: 0; cursor: pointer; } button.sec { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; } th, td { text-align: left; padding: 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .dim { color: var(--dim); font-size: 13px; }
+  pre { white-space: pre-wrap; font-size: 12px; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Admin de compras · Del barrio al negocio</h1>
+  <p class="dim">Herramienta interna. Cada acción queda auditada en <code>admin_actions</code>. Solo funciona con una cuenta incluida en <code>admin_users</code>; el servidor lo comprueba siempre.</p>
+  <section class="card" id="conexion">
+    <h2>Conexión</h2>
+    <div class="row"><input id="url" placeholder="SUPABASE_URL (https://xxxx.supabase.co)"><input id="key" placeholder="Clave publishable (sb_publishable_…)"></div>
+    <div class="row" style="margin-top:8px"><input id="email" placeholder="tu email de admin"><button id="login">Enviar enlace mágico</button><span id="who" class="dim"></span></div>
+  </section>
+  <section class="card">
+    <h2>Buscar usuario</h2>
+    <div class="row"><input id="q" placeholder="email, nombre o id"><button data-a="search">Buscar</button></div>
+    <div id="users"></div>
+  </section>
+  <section class="card">
+    <h2>Usuario</h2>
+    <div class="row"><input id="uid" placeholder="id de usuario"><button data-a="user">Ver compras y entitlements</button></div>
+    <div class="row" style="margin-top:8px"><input id="ent" placeholder="entitlement (p. ej. sport.climbing)"><input id="reason" placeholder="motivo (obligatorio)"><button data-a="grant">Conceder</button><button class="sec" data-a="revoke">Revocar</button></div>
+    <div id="detail"></div>
+  </section>
+  <section class="card">
+    <h2>Necesitan atención</h2>
+    <div class="row"><button data-a="attention">Órdenes pagadas sin entregar / en disputa</button><button class="sec" data-a="webhookErrors">Errores de webhook</button></div>
+    <div id="attention"></div>
+  </section>
+  <section class="card">
+    <h2>Informe</h2>
+    <div class="row"><input id="from" type="date"><input id="to" type="date"><button data-a="report">Ingresos, reembolsos y embudo</button></div>
+    <div id="report"></div>
+  </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const eur = m => (m == null ? '—' : (Number(m) / 100).toFixed(2).replace('.', ',') + ' €');
+  for (const k of ['url', 'key']) { try { $(k).value = localStorage.getItem('adm_' + k) || ''; } catch (_) {} $(k).addEventListener('change', () => { try { localStorage.setItem('adm_' + k, $(k).value.trim()); } catch (_) {} }); }
+  let sb = null;
+  const client = () => { if (!sb && $('url').value && $('key').value) sb = supabase.createClient($('url').value.trim(), $('key').value.trim()); return sb; };
+  async function refreshWho() { const c = client(); if (!c) return; const { data } = await c.auth.getUser(); $('who').textContent = data.user ? `Sesión: ${data.user.email}` : 'Sin sesión'; }
+  $('login').onclick = async () => { const c = client(); if (!c) return alert('Pon la URL y la clave publishable'); const { error } = await c.auth.signInWithOtp({ email: $('email').value.trim(), options: { emailRedirectTo: location.href } }); alert(error ? error.message : 'Revisa tu correo'); };
+  async function call(body) {
+    const c = client(); if (!c) throw new Error('Sin conexión');
+    const { data, error } = await c.functions.invoke('admin', { body });
+    if (error) throw new Error((error.context && await error.context.json().then(j => j.error).catch(() => null)) || error.message);
+    return data;
+  }
+  const table = (rows, cols) => rows && rows.length ? `<table><tr>${cols.map(([, h]) => `<th>${h}</th>`).join('')}</tr>${rows.map(r => `<tr>${cols.map(([k, , f]) => `<td>${f ? f(r[k], r) : esc(r[k])}</td>`).join('')}</tr>`).join('')}</table>` : '<p class="dim">Nada.</p>';
+  const actions = {
+    async search() { $('users').innerHTML = table(await call({ action: 'search', q: $('q').value }), [['user_id', 'Id'], ['email', 'Email'], ['display_name', 'Nombre']]); },
+    async user() {
+      const d = await call({ action: 'user', userId: $('uid').value.trim() });
+      $('detail').innerHTML = `<p><b>Entitlements activos:</b> ${d.entitlements.map(esc).join(', ') || '—'}</p>
+        ${table(d.orders, [['created_at', 'Fecha'], ['sku', 'Producto'], ['provider', 'Proveedor'], ['status', 'Estado', s => `<span class="${/FULFILLED/.test(s) ? 'ok' : /REFUND|REVOK|FAIL|DISPUT/.test(s) ? 'bad' : ''}">${esc(s)}</span>`], ['amount_minor', 'Importe', eur], ['id', 'Orden']])}
+        ${table(d.grants, [['granted_at', 'Concedido'], ['entitlement_id', 'Entitlement'], ['source', 'Fuente'], ['status', 'Estado'], ['revoke_reason', 'Motivo revocación']])}`;
+    },
+    async grant() { await call({ action: 'grant', userId: $('uid').value.trim(), entitlementId: $('ent').value.trim(), reason: $('reason').value.trim() }); await actions.user(); },
+    async revoke() { if (!confirm('¿Revocar este entitlement? Queda registrado.')) return; await call({ action: 'revoke', userId: $('uid').value.trim(), entitlementId: $('ent').value.trim(), reason: $('reason').value.trim() }); await actions.user(); },
+    async attention() {
+      const rows = await call({ action: 'attention' });
+      $('attention').innerHTML = table(rows, [['id', 'Orden'], ['sku', 'Producto'], ['status', 'Estado'], ['fulfillment_error', 'Error'], ['id', '', id => `<button class="sec" onclick="retry('${esc(id)}')">Reintentar entrega</button>`]]);
+    },
+    async webhookErrors() { $('attention').innerHTML = table(await call({ action: 'webhookErrors' }), [['received_at', 'Recibido'], ['provider', 'Proveedor'], ['type', 'Tipo'], ['event_id', 'Evento'], ['error', 'Error']]); },
+    async report() {
+      const r = await call({ action: 'report', from: $('from').value || null, to: $('to').value || null });
+      const block = (t, o) => `<h3>${t}</h3>` + table(Object.entries(o).map(([k, v]) => Object.assign({ k }, v)), [['k', ''], ['count', 'Ventas'], ['gross', 'Bruto', eur], ['tax', 'Impuestos', eur], ['fee', 'Comisión', eur], ['net', 'Neto', eur]]);
+      $('report').innerHTML = block('Por producto', r.bySku) + block('Por proveedor', r.byProvider) + block('Por país', r.byCountry) + `<p>Tasa de reembolso: <b>${(r.refundRate * 100).toFixed(1)} %</b></p><h3>Embudo</h3><pre>${esc(JSON.stringify(r.funnel, null, 2))}</pre>`;
+    },
+  };
+  window.retry = async id => { await call({ action: 'retry', orderId: id }); await actions.attention(); };
+  document.addEventListener('click', async e => { const a = e.target.closest('[data-a]'); if (!a) return; try { await actions[a.dataset.a](); } catch (err) { alert(err.message); } });
+  refreshWho();
+</script>
+</body>
+</html>

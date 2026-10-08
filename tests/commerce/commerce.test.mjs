@@ -12,6 +12,8 @@ await runContract('memoria', async () => createMemoryRepo(), check);
 if (process.env.DATABASE_URL) {
   const { runPg } = await import('./pg.mjs');
   await runPg(check);
+  const { runEdge } = await import('./edge.e2e.mjs');
+  await runEdge(check);
 } else console.log('(sin DATABASE_URL: se salta la suite contra PostgreSQL real)');
 
 console.log(`\n${ok} de ${total} comprobaciones superadas.`);

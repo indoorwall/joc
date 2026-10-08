@@ -1,0 +1,24 @@
+# Configuración de Supabase CLI para el backend de comercio. project_id se rellena con `supabase link`.
+project_id = "del-barrio-al-negocio"
+
+[functions.stripe-webhook]
+verify_jwt = false          # Stripe no manda JWT: se verifica la firma Stripe-Signature
+
+[functions.apple-notifications]
+verify_jwt = false          # Apple firma con JWS (verificado con su librería oficial)
+
+[functions.google-rtdn]
+verify_jwt = false          # Pub/Sub push (token / OIDC)
+
+[functions.remote-config]
+verify_jwt = false          # configuración pública, no secreta
+
+[functions.storefront]
+verify_jwt = false          # el catálogo se puede ver sin cuenta
+
+[auth]
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["https://TU-DOMINIO/"]
+
+[auth.email]
+enable_signup = true        # magic link (sin contraseña propia)
