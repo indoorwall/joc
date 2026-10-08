@@ -507,6 +507,7 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
     check('Con toques: comprar mejora, cambiar opción y hacer acción', n.mejoras.length === 1 && n.caja < caja0 && Object.keys(n.opc).length === 1 && Object.keys(n.cd).length === 1, JSON.stringify({ m: n.mejoras, opc: n.opc, cd: n.cd }));
     // Modo pruebas (en ⚙️ Partida)
     await page.evaluate(() => { __P1.S.hoja = 'ajustes'; __P1.render(); });
+    await page.locator('#pruebas summary').tap();
     const d0 = await st(page);
     await page.locator('[data-act="prueba"][data-v="dinero:100000"]').tap();
     await page.locator('[data-act="prueba"][data-v="caja"]').tap();

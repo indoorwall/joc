@@ -25,7 +25,7 @@
   /* Estilo «juego de móvil»: fondo oscuro según el deporte, paneles claros y redondeados,
      botones gruesos con relieve, HUD arriba y una sola acción principal: JUGAR SEMANA. */
   :root {
-    --bg1: #0f3d2c; --bg2: #072217; --acc: #2ecc71; --acc-d: #1b8a4a; --acc-soft: #e2f7ea;
+    --bg1: #0f3d2c; --bg2: #072217; --acc: #2ecc71; --acc-d: #1b8a4a; --acc-soft: #e2f7ea; --acc-txt: #fff; --acc-ink: #1b7a42;
     --card: #ffffff; --ink: #18213a; --dim: #66708a; --line: #e3e7ef; --panel: #f4f6fb;
     --gold: #ffcf3a; --gold-d: #c99700; --good: #1f9d55; --bad: #e0483a;
     --blue: #2f6fe4; --green: #1f9d55; --green2: #2ecc71; --amber: #f2a93b; --red: #e0483a; --purple: #7b61ff;
@@ -34,11 +34,11 @@
     --safe-top: env(safe-area-inset-top, 0px); --safe-bottom: env(safe-area-inset-bottom, 0px);
     color-scheme: light;
   }
-  body[data-dep="escalada"] { --bg1: #3a2a63; --bg2: #171230; --acc: #ff8a3d; --acc-d: #c4571a; --acc-soft: #ffeadb; }
-  body[data-dep="basket"] { --bg1: #6b2f12; --bg2: #2a1206; --acc: #ff8c1a; --acc-d: #c25e00; --acc-soft: #ffe9d1; }
-  body[data-dep="skate"] { --bg1: #2b2b33; --bg2: #101014; --acc: #e8ff3d; --acc-d: #a3b800; --acc-soft: #f6ffcc; }
-  body[data-dep="surf"] { --bg1: #0f5a7a; --bg2: #062433; --acc: #ffd166; --acc-d: #c99a1f; --acc-soft: #fff4d6; }
-  body[data-dep="boxeo"] { --bg1: #5c1220; --bg2: #1f060b; --acc: #ffd23f; --acc-d: #c49a00; --acc-soft: #fff6cf; }
+  body[data-dep="escalada"] { --bg1: #3a2a63; --bg2: #171230; --acc: #ff8a3d; --acc-d: #c4571a; --acc-soft: #ffeadb; --acc-ink: #b04a10; }
+  body[data-dep="basket"] { --bg1: #6b2f12; --bg2: #2a1206; --acc: #ff8c1a; --acc-d: #c25e00; --acc-soft: #ffe9d1; --acc-ink: #a84f00; }
+  body[data-dep="skate"] { --bg1: #2b2b33; --bg2: #101014; --acc: #e8ff3d; --acc-d: #a3b800; --acc-soft: #f6ffcc; --acc-txt: #1c1c22; --acc-ink: #4f5c00; }
+  body[data-dep="surf"] { --bg1: #0f5a7a; --bg2: #062433; --acc: #ffd166; --acc-d: #c99a1f; --acc-soft: #fff4d6; --acc-txt: #1f2a33; --acc-ink: #7a5900; }
+  body[data-dep="boxeo"] { --bg1: #5c1220; --bg2: #1f060b; --acc: #ffd23f; --acc-d: #c49a00; --acc-soft: #fff6cf; --acc-txt: #2a0a10; --acc-ink: #735a00; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; color: var(--ink); background: var(--bg2); }
   body { font-family: var(--f); font-size: 16px; line-height: 1.35; -webkit-text-size-adjust: 100%; overflow-x: hidden;
@@ -54,7 +54,7 @@
   #top:empty { display: none; }
   .hava { position: relative; width: 50px; height: 50px; flex: none; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 30px;
     border: 3px solid var(--gold); box-shadow: 0 3px 0 rgba(0,0,0,.35); }
-  .hava i { position: absolute; right: -6px; bottom: -4px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--acc); color: #fff; font-style: normal;
+  .hava i { position: absolute; right: -6px; bottom: -4px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--acc); color: var(--acc-txt); font-style: normal;
     font-size: 12px; font-weight: 900; display: grid; place-items: center; border: 2px solid #fff; padding: 0 4px; }
   .hwho { flex: 1; min-width: 0; }
   .hwho b { display: block; font-size: 17px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -65,18 +65,19 @@
   .pill.oro { color: var(--gold); }
   .pill.down { color: #ff9a8f; }
   .hbtns { display: flex; gap: 4px; }
-  .hbtns button { border: 0; background: rgba(255,255,255,.14); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 800; padding: 3px 8px; min-height: 26px; cursor: pointer; }
+  .hbtns button { border: 0; background: rgba(255,255,255,.14); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 800; padding: 3px 10px; min-height: 34px; min-width: 40px; cursor: pointer; position: relative; }
+  .hbtns button::after { content: ''; position: absolute; inset: -5px -2px; }
 
   main { padding: 0 12px calc(var(--safe-bottom) + 170px); }
 
   /* Nivel (pantalla) */
-  .mision { display: block; width: 100%; margin: 4px 0 10px; text-align: left; font: inherit; cursor: pointer; color: #fff;
+  .mision { display: block; width: 100%; margin: 2px 0 6px; text-align: left; font: inherit; cursor: pointer; color: #fff;
     background: rgba(0,0,0,.28); border: 2px solid rgba(255,255,255,.14); border-radius: 16px; padding: 6px 12px 8px; }
   .mision .pn { display: inline-block; font-size: 11px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); background: var(--gold); border-radius: 6px; padding: 1px 7px; }
   .mision b { display: inline; font-size: 16px; font-weight: 900; margin-left: 6px; }
   .mision .pb { height: 8px; background: rgba(255,255,255,.18); border-radius: 5px; overflow: hidden; margin-top: 6px; }
   .mision .pb i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), #ffe58a); border-radius: 5px; }
-  .mision p { margin: 5px 0 0; font-size: 13px; color: rgba(255,255,255,.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mision p { margin: 5px 0 0; font-size: 13px; color: rgba(255,255,255,.8); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
   /* Escena */
   .escena { position: relative; height: 114px; border-radius: 20px; overflow: hidden; border: 3px solid rgba(255,255,255,.22); box-shadow: 0 6px 0 rgba(0,0,0,.3); }
@@ -117,7 +118,7 @@
   .introLook .lookPrev { width: 84px; height: 148px; }
   .introOps { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
   .sw { display: flex; flex-wrap: wrap; gap: 6px; }
-  .sw button { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--line); cursor: pointer; padding: 0; }
+  .sw button { width: 38px; height: 38px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px var(--line); cursor: pointer; padding: 0; }
   .sw button.sel { box-shadow: 0 0 0 3px var(--acc); }
   .pelos { display: flex; flex-wrap: wrap; gap: 6px; }
   .pelos button { flex: 1 0 auto; min-height: 36px; padding: 4px 8px; border-radius: 10px; border: 2px solid var(--line); background: #fff; color: #15202b; font-weight: 800; font-size: 12px; cursor: pointer; }
@@ -129,7 +130,7 @@
   @keyframes salta { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
   @media (prefers-reduced-motion: reduce) { .escena .yo.salta { animation: none; } }
   button.pill { border: 0; cursor: pointer; font: inherit; }
-  .link { background: none; border: 0; padding: 0; color: var(--acc); font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
+  .link { background: none; border: 0; padding: 0; color: var(--acc-ink); font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
   .carta { background: #fffdf3; color: #2a2d34; border: 2px dashed #d9cfa8; text-align: left; font-size: 14px; }
   .carta p { margin: 6px 0; }
   textarea.codigo { width: 100%; min-height: 70px; margin: 8px 0; border-radius: 12px; border: 2px solid var(--line); padding: 8px; font-size: 11px; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
@@ -187,7 +188,7 @@
   .perfil .avs svg { width: 100%; height: 100%; } .perfil .tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; } .perfil .tx > span { font-size: 13px; color: var(--dim); }
   .seg.deportes { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .seg.tipos-post { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); } .seg.tipos-post button { font-size: 12px; line-height: 1.25; min-height: 52px; }
-  .mas-fama summary { cursor: pointer; font-weight: 800; color: var(--acc); padding: 10px 2px; min-height: 44px; }
+  .mas-fama summary { cursor: pointer; font-weight: 800; color: var(--acc-ink); padding: 10px 2px; min-height: 44px; }
   .post { background: var(--card); color: var(--ink); border-radius: 16px; padding: 10px 12px; margin: 8px 0; box-shadow: 0 3px 0 rgba(0,0,0,.2); }
   .post .ph2 { font-size: 13px; display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; } .post .ph2 span { color: var(--dim); font-size: 12px; margin-left: auto; }
   .post p { margin: 6px 0; font-size: 15px; } .post .pl { font-size: 13px; font-weight: 800; color: #d64570; } .post .pc { font-size: 12px; color: var(--dim); margin-top: 3px; }
@@ -208,8 +209,10 @@
   .prox .cu { font-weight: 900; color: var(--ink); margin-right: 4px; }
   .jugar { position: fixed; z-index: 24; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-bottom) + 84px); width: min(456px, calc(100% - 24px));
     display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 60px; border: 0; border-radius: 18px;
-    background: linear-gradient(var(--acc), var(--acc)); color: #fff; font-size: 22px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
-    box-shadow: 0 6px 0 var(--acc-d), 0 10px 18px rgba(0,0,0,.25); text-shadow: 0 2px 0 rgba(0,0,0,.2); }
+    background: linear-gradient(var(--acc), var(--acc)); color: var(--acc-txt); font-size: 22px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+    box-shadow: 0 6px 0 var(--acc-d), 0 10px 18px rgba(0,0,0,.25); text-shadow: 0 2px 0 rgba(0,0,0,.28); }
+  body[data-dep="skate"] .jugar, body[data-dep="surf"] .jugar, body[data-dep="boxeo"] .jugar { text-shadow: none; }
+  .jugar:disabled { color: #fff; }
   .jugar:active { transform: translate(-50%, 4px); box-shadow: 0 2px 0 var(--acc-d); }
   body.con-hoja .jugar { display: none; }
   .jugar:disabled { background: #b8bfcc; box-shadow: 0 6px 0 #8e95a3; cursor: not-allowed; }
@@ -218,13 +221,16 @@
 
   /* Última semana / partes */
   .entry { background: var(--card); border-radius: 18px; padding: 12px; margin: 12px 0; box-shadow: 0 5px 0 rgba(0,0,0,.25); }
+  .entry .eh .tag { display: inline-block; background: var(--acc-soft); color: var(--ink); border-radius: 6px; padding: 0 6px; margin-right: 6px; }
   .entry .eh { font-size: 12px; font-weight: 900; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
   .entry .el { display: flex; gap: 8px; padding: 3px 0; font-size: 14px; }
   .entry .el .i { flex: none; width: 22px; text-align: center; }
   .entry .mas { border: 0; background: none; color: var(--blue); font-weight: 800; font-size: 13px; padding: 4px 0; cursor: pointer; }
   .res { display: inline-block; font-size: 11px; font-weight: 900; color: #fff; border-radius: 6px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
   .res.victoria { background: var(--good); } .res.empate { background: #8a93a3; } .res.derrota { background: var(--bad); }
-  details.por summary { font-size: 13px; color: var(--blue); cursor: pointer; padding-top: 4px; font-weight: 800; }
+  details.por summary { font-size: 13px; color: var(--blue); cursor: pointer; padding-top: 4px; font-weight: 800; min-height: 36px; display: flex; align-items: center; }
+  .plegado summary { cursor: pointer; font-weight: 800; color: var(--dim); min-height: 44px; display: flex; align-items: center; }
+  .plegado > .card { box-shadow: none; border: 0; padding: 0; margin: 0; }
   details.por h4 { margin: 8px 0 2px; font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; }
   .rl { font-size: 13px; padding: 3px 0; border-bottom: 1px solid var(--line); }
   .rl:last-child { border-bottom: 0; }
@@ -263,13 +269,15 @@
   .lista .row:last-child { border-bottom: 0; }
   .btn { border: 0; border-radius: 14px; background: var(--blue); color: #fff; font-weight: 900; font-size: 15px; padding: 9px 14px; min-height: 44px; cursor: pointer; box-shadow: 0 4px 0 #1d4ea8; }
   .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #1d4ea8; }
-  .btn.g { background: var(--acc); box-shadow: 0 4px 0 var(--acc-d); } .btn.r { background: var(--bad); box-shadow: 0 4px 0 #a32c21; }
+  .btn.g { background: var(--acc); color: var(--acc-txt); box-shadow: 0 4px 0 var(--acc-d); text-shadow: 0 1px 0 rgba(0,0,0,.18); }
+  body[data-dep="skate"] .btn.g, body[data-dep="surf"] .btn.g, body[data-dep="boxeo"] .btn.g { text-shadow: none; } .btn.r { background: var(--bad); box-shadow: 0 4px 0 #a32c21; }
   .btn.w { background: #eef1f6; color: var(--ink); box-shadow: 0 4px 0 #cdd3de; }
   .btn.full { display: block; width: 100%; margin-top: 10px; min-height: 52px; font-size: 17px; }
   .btn:disabled { background: #dfe3ea; color: #8a92a3; cursor: not-allowed; box-shadow: 0 4px 0 #c5cbd6; }
   .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; margin: 6px 0; }
-  .seg button { min-width: 0; overflow-wrap: anywhere; }
-  @media (max-width: 340px) { .seg button { font-size: 13px; } }
+  .seg button { min-width: 0; overflow-wrap: normal; word-break: normal; hyphens: auto; -webkit-hyphens: auto; line-height: 1.15; }
+  @media (max-width: 400px) { .seg button { font-size: 13px; padding: 4px 2px; } }
+  @media (max-width: 340px) { .seg button { font-size: 12px; } }
   .seg button { min-height: 46px; border-radius: 12px; border: 2px solid var(--line); background: #fff; font-size: 14px; font-weight: 800; cursor: pointer; padding: 4px; box-shadow: 0 3px 0 var(--line); }
   .seg button.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
   .seg button:disabled { opacity: .45; }
@@ -320,7 +328,7 @@
   #modal:empty { display: none; }
   .pop { background: #fff; width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto; border-radius: 26px 26px 0 0; padding: 0 14px calc(var(--safe-bottom) + 16px); animation: sube .25s ease; }
   @keyframes sube { from { transform: translateY(40px); opacity: 0; } }
-  .pop .pi { width: 84px; height: 84px; margin: -6px auto 0; border-radius: 0 0 42px 42px; background: var(--acc); color: #fff; font-size: 44px; display: grid; place-items: center; box-shadow: 0 5px 0 var(--acc-d); }
+  .pop .pi { width: 84px; height: 84px; margin: -6px auto 0; border-radius: 0 0 42px 42px; background: var(--acc); color: var(--acc-txt); font-size: 44px; display: grid; place-items: center; box-shadow: 0 5px 0 var(--acc-d); }
   .pop h2 { text-align: center; margin: 12px 0 4px; font-size: 22px; font-weight: 900; }
   .pop .pd { text-align: center; color: var(--dim); margin: 0 0 12px; }
   .po { display: block; width: 100%; text-align: left; border: 2px solid var(--line); background: #fff; border-radius: 16px; padding: 12px; margin-top: 10px; cursor: pointer; font: inherit; min-height: 52px; box-shadow: 0 4px 0 var(--line); }
@@ -337,6 +345,7 @@
   .intro .card { color: var(--ink); }
   .intro input { width: 100%; font: inherit; font-size: 18px; padding: 12px; border-radius: 14px; border: 2px solid var(--line); background: #fff; }
   .intro .sec { color: var(--dim); margin-top: 14px; }
+  .card .sec { color: var(--dim); }
   .avas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
   .avas button { font-size: 30px; min-height: 56px; border-radius: 14px; border: 2px solid var(--line); background: #fff; cursor: pointer; box-shadow: 0 3px 0 var(--line); }
   .avas button.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
@@ -672,6 +681,7 @@ const CFG = {
     embajadorRepMin: 30, embajadorPorRep: 20, libroCapitulos: 6, libroPorRep: 300 },
   inmo: { gastosCompra: 0.10, gastosPct: 0.00015, tendencia: 0.0008, volatilidad: 0.004, comisionVenta: 0.05, impuestoAlquiler: 0.2,
     probInquilino: 0.5, anuncios: 5, renovarCada: 8, viviendaAhorro: 0.6, viviendaFel: 8 },
+  cocheVenta: 0.85,   // lo que te dan al vender un coche (de segunda mano)
   coches: {
     utilitario: { n: 'Utilitario', ic: '🚗', precio: 14000, fel: 5, rep: 1 },
     berlina: { n: 'Berlina', ic: '🚙', precio: 35000, fel: 8, rep: 2 },
@@ -1737,7 +1747,7 @@ function semanaClub(s, R, mods) {
       const sel = puntSeleccion(s, R.accionId), umbral = umbralTitular(s);
       P.seleccion = r1(sel); P.umbral = umbral;
       if (sel >= umbral) P.rol = 'titular';
-      else P.rol = rnd(s) < K.probJugarSuplente ? 'suplente' : 'banquillo';
+      else P.rol = rnd(s) < K.probJugarSuplente || (s.mj && s.mj.semana === s.semana && s.mj.motor === 'equipo') ? 'suplente' : 'banquillo';   // el momento decisivo lo juegas
       const extras = mods.map(([v, m]) => `${sg(v)} (${m})`).join(' ');
       R.dep.push([P.rol === 'titular' ? 'Eres titular' : P.rol === 'suplente' ? 'Sales desde el banquillo' : 'No llegas a jugar', '',
         `Selección = nivel ${nf(s.p.nivel)} + energía ${s.p.energia}/4${extras ? ' ' + extras : ''} = ${nf(sel)}. Para ser titular: fuerza del club ${mi.fuerza} + ${K.umbralSobreFuerza} = ${umbral}.${P.rol !== 'titular' ? ` Como suplente juegas el ${Math.round(K.probJugarSuplente * 100)} % de las veces.` : ''}`]);
@@ -1860,9 +1870,9 @@ function semanaClub(s, R, mods) {
   // Mercado de invierno y fin de temporada
   if (T.jornada === CFG.temporada.mercadoInvierno) abrirMercado(s, R, 'invierno');
   if (T.jornada >= CFG.temporada.jornadas) finTemporada(s, R);
-  else if (!c.mejora && condicionMejora(s).ok) {
+  else if (!c.mejora && T.jornada !== CFG.temporada.mercadoInvierno && condicionMejora(s).ok) {
     c.mejora = true;
-    encolar(s, { tipo: 'mejora', oferta: ofertaMejora(s) });
+    encolar(s, { tipo: 'mejora', oferta: ofertaMejora(s), clubId: c.clubId });
     R.opo.push(['📝 El club quiere mejorarme el contrato', 'Mi rendimiento les ha convencido.']);
   }
 }
@@ -1952,7 +1962,7 @@ function generarOfertas(s, max) {
 }
 function abrirMercado(s, R, ventana) {
   const c = s.contrato;
-  if (ventana === 'verano' && !c.rescindido && confianzaClub(s) <= CFG.rendimiento.noRenueva && s.edad < CFG.retiro.edadSinOfertas) { rescindir(s, R, 'verano'); return; }
+  if (ventana === 'verano' && !c.rescindido && confianzaClub(s) <= CFG.rendimiento.noRenueva && s.edad < CFG.retiro.edadSinOfertas) { rescindir(s, R, 'verano', c.temporadasRestantes <= 0); return; }
   if (c.rescindido) return;
   const ofertas = generarOfertas(s, (ventana === 'invierno' ? 2 : 3) + (rel(s, 'agente') ? 1 : 0));
   if (ventana === 'verano' && c.temporadasRestantes <= 0 && s.edad < CFG.retiro.edadSinRenovacion) {
@@ -1985,15 +1995,15 @@ function finTemporada(s, R) {
     if (c.primaAscenso) {
       if (tramo.pj >= CFG.club.partidosMinPrimaAscenso) {
         const imp = Math.round(c.primaAscenso * tipoImpuesto(c.primaAscenso));
-        s.p.dinero += c.primaAscenso - imp; s.acum.ingresosPers += c.primaAscenso - imp; s.acum.impuestos += imp;
+        s.p.dinero += c.primaAscenso - imp; s.acum.impuestos += imp;   // los ingresos se suman al pasar por R.eco
         info.primas.push(`Prima por ${z === 'campeon' ? 'título' : 'ascenso'}: +${cr(c.primaAscenso)} (−${cr(imp)} de impuestos)`);
         info.gana.push([`Prima del club por ${z === 'campeon' ? 'el título' : 'el ascenso'} (neta)`, c.primaAscenso - imp]);
         R.eco.push([`Prima por ${z === 'campeon' ? 'título' : 'ascenso'} (neta)`, c.primaAscenso - imp]);
       } else info.primas.push(`Sin prima por ascenso: necesitabas ${CFG.club.partidosMinPrimaAscenso} partidos jugados (tienes ${tramo.pj}).`);
     }
     if (c.subidaAscenso) { const antes = c.salario, it = infoLiga(T.liga), nueva = z === 'ascenso' && it.tier > 1 ? `${it.pais}-${it.tier - 1}` : T.liga;
-      c.salario = Math.max(antes, Math.min(red(c.salario * (1 + c.subidaAscenso / 100), 10), topeSueldoLiga(nueva))); info.primas.push(`Cláusula de ascenso: sueldo ${cr(antes)} → ${cr(c.salario)} (+${c.subidaAscenso} %)`);
-      if (c.salario > antes) info.gana.push([`Subida de sueldo: ${cr(antes)} → ${cr(c.salario)}/semana (un año)`, (c.salario - antes) * 52]); }
+      c.salario = Math.max(antes, Math.min(red(c.salario * (1 + c.subidaAscenso / 100), 10), topeSueldoLiga(nueva))); info.primas.push(c.salario > antes ? `Cláusula de ascenso: sueldo ${cr(antes)} → ${cr(c.salario)} (+${Math.round((c.salario / antes - 1) * 100)} %)` : `Cláusula de ascenso: ya cobras el máximo que paga la nueva liga`);
+      if (c.salario > antes) info.gana.push([`Subida de sueldo: ${cr(antes)} → ${cr(c.salario)}/semana (una temporada)`, (c.salario - antes) * CFG.temporada.jornadas]); }
     const F = CFG.desenlace;
     s.p.rep = clamp(s.p.rep + F.repSube, 0, 100); s.p.fel = clamp(s.p.fel + F.felSube, 0, 100); sumarSeg(s, alcance(s) * 2);
     info.efectos.push(`+${F.felSube} de ánimo y +${F.repSube} de fama: la ciudad lo celebra contigo`);
@@ -2001,10 +2011,10 @@ function finTemporada(s, R) {
     // ¿Os habéis quedado a las puertas? Lo que te pierdes, en euros
     const F = CFG.desenlace, linea = it0.tier === 1 ? 1 : CFG.temporada.ascienden, cerca = pos > linea && pos <= linea + F.puestosCerca;
     const lucha = mjs.some(m => m.que === 'ascenso' || m.que === 'titulo');
-    if (cerca || lucha) {
+    if ((cerca && it0.tier > 1) || lucha) {
       info.quedaste = it0.tier === 1 ? 'titulo' : 'ascenso';
       if (c.primaAscenso) info.pierde.push([`Prima del club por ${info.quedaste === 'titulo' ? 'el título' : 'el ascenso'}`, c.primaAscenso]);
-      if (c.subidaAscenso) info.pierde.push([`Subida de sueldo del ${c.subidaAscenso} % (un año)`, Math.round(c.salario * c.subidaAscenso / 100) * 52]);
+      if (c.subidaAscenso) { const sube = Math.min(red(c.salario * (1 + c.subidaAscenso / 100), 10), topeSueldoLiga(`${it0.pais}-${Math.max(1, it0.tier - 1)}`)) - c.salario; if (sube > 0) info.pierde.push([`Subida de sueldo que te da el ascenso (una temporada)`, sube * CFG.temporada.jornadas]); }
       if (primaMarcas) info.pierde.push([`Primas de tus marcas por ${info.quedaste === 'titulo' ? 'el título' : 'el ascenso'}`, primaMarcas]);
       s.p.fel = clamp(s.p.fel - F.felQueda, 0, 100); s.p.rep = clamp(s.p.rep - F.repQueda, 0, 100);
       info.efectos.push(`−${F.felQueda} de ánimo y −${F.repQueda} de fama: la afición está decepcionada`);
@@ -2013,7 +2023,7 @@ function finTemporada(s, R) {
       info.salvados = true; s.p.fel = clamp(s.p.fel + F.felSalva, 0, 100); info.efectos.push(`+${F.felSalva} de ánimo: ¡salvados en el último suspiro!`);
     }
   }
-  if (z === 'descenso' && c.bajadaDescenso) { const antes = c.salario; c.salario = red(c.salario * (1 - c.bajadaDescenso / 100), 10); info.primas.push(`Cláusula de descenso: sueldo ${cr(antes)} → ${cr(c.salario)} (−${c.bajadaDescenso} %)`); info.pierde.push([`Bajada de sueldo: ${cr(antes)} → ${cr(c.salario)}/semana (un año)`, (antes - c.salario) * 52]); }
+  if (z === 'descenso' && c.bajadaDescenso) { const antes = c.salario; c.salario = red(c.salario * (1 - c.bajadaDescenso / 100), 10); info.primas.push(`Cláusula de descenso: sueldo ${cr(antes)} → ${cr(c.salario)} (−${c.bajadaDescenso} %)`); info.pierde.push([`Bajada de sueldo: ${cr(antes)} → ${cr(c.salario)}/semana (una temporada)`, (antes - c.salario) * CFG.temporada.jornadas]); }
   if (z === 'descenso') { const F = CFG.desenlace; s.p.fel = clamp(s.p.fel - F.felBaja, 0, 100); s.p.rep = clamp(s.p.rep - F.repBaja, 0, 100); info.efectos.push(`−${F.felBaja} de ánimo y −${F.repBaja} de fama: descenso`); for (const pt of s.patros) pt.rel = Math.max(0, pt.rel - 10); if (s.patros.length) info.efectos.push('Tus marcas bajan la relación (−10): pagan por verte arriba'); }
   info.sueldo = [sueldoAntes, c.salario];
   { const F = CFG.rendimiento; sumarConfianza(s, z === 'ascenso' || z === 'campeon' ? F.ascenso : z === 'descenso' ? F.descenso : info.quedaste ? F.quedarse : 0); }
@@ -2064,10 +2074,11 @@ function nuevoTramo(s) {
 }
 function firmar(s, o, ventana) {
   const cambia = !s.contrato || s.contrato.clubId !== o.clubId;
-  const paisAntes = s.contrato ? miClub(s).pais : 'es';
+  const paisAntes = s.contrato ? miClub(s).pais : 'es', confAntes = !cambia && s.contrato ? s.contrato.confianza : null;
+  if (cambia) s.cola = s.cola.filter(e => e.tipo !== 'mejora');
   s.contrato = { clubId: o.clubId, salario: o.salario, temporadasRestantes: o.temporadas, fichaje: o.fichaje,
     primaVictoria: o.primaVictoria, primaGol: o.primaGol, primaAscenso: o.primaAscenso, subidaAscenso: o.subidaAscenso,
-    bajadaDescenso: o.bajadaDescenso, vida: o.vida, familia: o.familia, mejora: false, semanas: 0, confianza: CFG.rendimiento.confianzaInicial };
+    bajadaDescenso: o.bajadaDescenso, vida: o.vida, familia: o.familia, mejora: false, semanas: 0, confianza: confAntes != null ? confAntes : CFG.rendimiento.confianzaInicial };
   s.fase = 'club';
   s.prep = null;
   const msgs = [];
@@ -2081,7 +2092,7 @@ function firmar(s, o, ventana) {
     msgs.push(`Nuevo país: −4 en la selección durante 6 semanas (adaptación).`);
   }
   if (ventana === 'inicio') { iniciarTemporada(s, s.mundo.de[o.clubId], 0, CFG.temporada.añoInicio); nuevoTramo(s); }
-  else if (ventana === 'invierno' && cambia) { iniciarTemporada(s, s.mundo.de[o.clubId], s.temporada.jornada, s.temporada.año); nuevoTramo(s); }
+  else if (ventana === 'invierno' && cambia) { if (s.mundo.de[o.clubId] !== s.temporada.liga) iniciarTemporada(s, s.mundo.de[o.clubId], s.temporada.jornada, s.temporada.año); nuevoTramo(s); }   // en tu misma liga la tabla sigue igual
   else if (ventana === 'verano') arrancarNuevaTemporada(s);
   return msgs;
 }
@@ -2252,7 +2263,7 @@ const SUCESOS = {
     ops: [{ n: 'Descansar en casa', fx: () => [['⚡', 10], ['📋', 'Selección −3']], hacer(s) { aplicarFx(s, [['⚡', 10]]); if (s.fase === 'club') s.mods.push({ tipo: 'sel', v: -3, sem: 1, motivo: 'faltaste por resfriado' }); return 'Te recuperas antes.'; } },
           { n: 'Entrenar igual', fx: () => [['⚡', -15], ['😊', -3]], txt: 'Lo pasas fatal, pero no fallas.' }] },
   cita: { fases: ['barrio', 'prep', 'club'], ic: '💘', cond: s => !rel(s, 'pareja'), prep: s => ({ nombre: azar(s, CFG.nombres) }), t: (s, d) => `Conoces a ${d.nombre}`, d: 'Os habéis caído bien desde el primer momento.',
-    ops: [{ n: 'Pedirle una cita', fx: () => [['€', -40], ['😊', 10], ['❤️', 'nueva pareja']], hacer(s, d) { aplicarFx(s, [['€', -40], ['😊', 10]]); s.rel.push({ id: 'pareja', tipo: 'pareja', nombre: d.nombre, v: 60, semana: 0 }); return `Empiezas a salir con ${d.nombre}.`; } },
+    ops: [{ n: 'Pedirle una cita', fx: () => [['€', -40], ['😊', 10], ['❤️', 'nueva pareja']], hacer(s, d) { aplicarFx(s, [['€', -40], ['😊', 10]]); s.rel.push({ desde: s.semana, id: 'pareja', tipo: 'pareja', nombre: d.nombre, v: 60, semana: 0 }); return `Empiezas a salir con ${d.nombre}.`; } },
           { n: 'Ahora no', fx: () => [], txt: 'Prefieres centrarte en lo tuyo.' }] },
   fiestaAmigo: { fases: ['barrio', 'prep', 'club'], ic: '🎉', t: s => `${amigo(s)} te invita a una fiesta`, d: 'El sábado por la noche, en casa de unos amigos.',
     ops: [{ n: 'Ir', fx: () => [['😊', 8], ['⚡', -15], ['🧑‍🤝‍🧑', 6]], txt: 'Gran noche.' },
@@ -2264,7 +2275,7 @@ const SUCESOS = {
     ops: [{ n: '¡Genial!', fx: () => [['€', 150], ['😊', 5]], txt: '+150 € inesperados.' }] },
   multa: { fases: ['club'], ic: '🚓', cond: s => s.coches.length > 0, t: 'Multa de tráfico', d: 'Te pillan a 90 en una calle de 50.',
     ops: [{ n: 'Pagar', fx: () => [['€', -200]], txt: 'Pagas la multa con descuento.' },
-          { n: 'Recurrir', fx: () => [['€', '0 ó −300']], hacer(s) { if (rnd(s) < 0.5) return 'Te dan la razón: no pagas nada.'; aplicarFx(s, [['€', -300]]); return 'Pierdes el recurso: 300 € sin descuento.'; } }] },
+          { n: 'Recurrir', costeMax: 300, fx: () => [['€', '0 ó −300']], hacer(s) { if (rnd(s) < 0.5) return 'Te dan la razón: no pagas nada.'; aplicarFx(s, [['€', -300]]); return 'Pierdes el recurso: 300 € sin descuento.'; } }] },
   herencia: { fases: ['club'], ic: '📜', peso: 0.2, cond: s => s.edad >= 19, t: 'Herencia de un tío abuelo', d: 'Casi no lo conocías, pero se acordó de ti.',
     ops: [{ n: 'Aceptarla', fx: () => [['€', 3000], ['😊', 3]], txt: '+3.000 € de herencia.' }] },
   bajon: { fases: ['barrio', 'prep', 'club'], ic: '😞', cond: s => s.p.fel < 35, peso: 3, t: 'Estás en una mala racha', d: 'Duermes mal y nada te apetece.',
@@ -2272,7 +2283,7 @@ const SUCESOS = {
           { n: 'Encerrarte en casa', fx: () => [['😊', -5], ['⚡', 10]], txt: 'Descansas, pero sigues de bajón.' }] },
   // ---- Fútbol ----
   entrevista: { fases: ['club'], ic: '🎙️', t: 'Entrevista en la radio local', d: 'Quieren hablar contigo después del entrenamiento.',
-    ops: [{ n: 'Aceptar', fx: () => [['⭐', 3], ['⚡', -5]], txt: 'Buena entrevista.' }, { n: 'Rechazar', fx: () => [], txt: 'Prefieres centrarte en el fútbol.' }] },
+    ops: [{ n: 'Aceptar', fx: () => [['⭐', 3], ['⚡', -5]], txt: 'Buena entrevista.' }, { n: 'Rechazar', fx: () => [], hacer: () => `Prefieres centrarte en el ${TXE.deporte}.` }] },
   cena: { fases: ['club'], ic: '🍽️', t: 'Cena del equipo el sábado', d: 'El capitán organiza una cena para unir al vestuario.',
     ops: [{ n: 'Ir', fx: () => [['⚡', -10], ['😊', 4], ['📋', 'Selección +3 (2 sem)']], hacer(s) { aplicarFx(s, [['⚡', -10], ['😊', 4]]); s.mods.push({ tipo: 'sel', v: 3, sem: 2, motivo: 'buen ambiente en el vestuario' }); return 'Buen rollo con el grupo.'; } },
           { n: 'No ir', fx: () => [['📋', 'Selección −2 (2 sem)']], hacer(s) { s.mods.push({ tipo: 'sel', v: -2, sem: 2, motivo: 'el vestuario notó tu ausencia' }); return 'El vestuario lo nota.'; } }] },
@@ -2310,7 +2321,7 @@ const SUCESOS = {
   entrenadorNuevo: { fases: ['club'], ic: '🔄', t: 'Cambio de entrenador', d: 'El club destituye al míster. Llega uno nuevo.',
     ops: [{ n: 'A ver qué pasa', fx: () => [['📋', 'Selección ±5 (6 sem)']], hacer(s) { const v = rnd(s) < 0.5 ? 5 : -5; s.mods.push({ tipo: 'sel', v, sem: 6, motivo: v > 0 ? 'el nuevo míster confía en ti' : 'el nuevo míster no te conoce' }); return v > 0 ? 'Le gustas al nuevo míster.' : 'El nuevo míster no cuenta mucho contigo.'; } }] },
   // ---- Pareja ----
-  aniversario: { fases: ['barrio', 'prep', 'club'], ic: '💐', cond: s => !!rel(s, 'pareja'), t: s => `Aniversario con ${pareja(s)}`, d: 'Hoy hace un año… o eso dice el calendario.',
+  aniversario: { fases: ['barrio', 'prep', 'club'], ic: '💐', cond: s => !!rel(s, 'pareja') && s.semana - (rel(s, 'pareja').desde ?? -99) >= CFG.temporada.jornadas, t: s => `Aniversario con ${pareja(s)}`, d: 'Hoy hace un año… o eso dice el calendario.',
     ops: [{ n: 'Cena especial', fx: () => [['€', -120], ['❤️', 12], ['😊', 6]], txt: 'Noche perfecta.' },
           { n: 'Se te olvida', fx: () => [['❤️', -15], ['😊', -4]], txt: 'Mal, muy mal.' }] },
   discusion: { fases: ['barrio', 'prep', 'club'], ic: '😤', cond: s => !!rel(s, 'pareja'), t: s => `Discusión con ${pareja(s)}`, d: 'Por una tontería, pero acabáis a gritos.',
@@ -2341,13 +2352,14 @@ const SUCESOS = {
     ops: [{ n: 'Arreglarla', fx: () => [['€', -1500]], txt: 'Caldera nueva.' },
           { n: 'Dejarlo para luego', fx: () => [['😊', -6], ['🔑', 'El inquilino puede irse']], hacer(s, d) { const i = s.inmuebles.find(x => x.id === d.inm); aplicarFx(s, [['😊', -6]]); if (i.inquilino && rnd(s) < 0.5) { i.inquilino = false; return 'Tu inquilino se harta y se va.'; } return 'Va tirando.'; } }] },
   ofertaPiso: { fases: ['club'], ic: '💌', cond: s => s.inmuebles.length > 0, prep: s => ({ inm: inmAzar(s) }), t: (s, d) => `Te ofrecen comprar tu ${nomInm(s, d)}`, d: 'Pagan un 15 % por encima de lo que vale.',
-    ops: [{ n: 'Vender', fx: (s, d) => [['€', red((s.inmuebles.find(x => x.id === d.inm) || { valor: 0 }).valor * 1.15, 100)]], hacer(s, d) { const i = s.inmuebles.find(x => x.id === d.inm); const v = red(i.valor * 1.15, 100); s.p.dinero += v; s.inmuebles = s.inmuebles.filter(x => x !== i); return `Vendido por ${cr(v)}.`; } },
+    ops: [{ n: 'Vender', fx: (s, d) => { const i = s.inmuebles.find(x => x.id === d.inm) || { valor: 0 }, v = red(i.valor * 1.15, 100), h = Math.round(i.hipoteca ? i.hipoteca.deuda : 0); return [['€', v - h]].concat(h ? [['🏦', `Se cancela la hipoteca (${cr(h)})`]] : []); },
+      hacer(s, d) { const i = s.inmuebles.find(x => x.id === d.inm); const v = red(i.valor * 1.15, 100), h = Math.round(i.hipoteca ? i.hipoteca.deuda : 0); s.p.dinero += v - h; s.inmuebles = s.inmuebles.filter(x => x !== i); return `Vendido por ${cr(v)}${h ? `: pagas la hipoteca (${cr(h)}) y te quedan ${cr(v - h)}` : ''}.`; } },
           { n: 'No vender', fx: () => [], txt: 'Te lo quedas.' }] },
   zonaDeModa: { fases: ['club'], ic: '📈', cond: s => s.inmuebles.length > 0, prep: s => ({ inm: inmAzar(s) }), t: (s, d) => `La zona de tu ${nomInm(s, d)} se pone de moda`, d: 'Abren cafeterías y todo el mundo quiere vivir allí.',
     ops: [{ n: '¡Estupendo!', fx: () => [['🏠', 'Valor +8 %']], hacer(s, d) { const i = s.inmuebles.find(x => x.id === d.inm); i.valor = red(i.valor * 1.08, 100); return 'Tu propiedad vale un 8 % más.'; } }] },
   // ---- Clubes propios ----
   aficionFichaje: { fases: ['club'], ic: '📣', cond: s => s.clubes.length > 0, prep: s => ({ club: azar(s, s.clubes).clubId }), t: (s, d) => `La afición del ${club(s, d.club).nombre} pide un fichaje`, d: 'Quieren ver ambición en el palco.',
-    ops: [{ n: 'Fichar', fx: (s, d) => [['🏟️', `Caja −${cr(red(valorClub(s, d.club) * 0.02, 1000))}`], ['💪', 'Fuerza del club +2']], hacer(s, d) { const o = s.clubes.find(x => x.clubId === d.club), c = red(valorClub(s, d.club) * 0.02, 1000); o.caja -= c; club(s, d.club).fuerza += 2; return 'Fichaje estrella: el equipo mejora.'; } },
+    ops: [{ n: 'Fichar', fx: (s, d) => [['🏟️', `Caja −${cr(red(valorClub(s, d.club) * 0.02, 1000))}`], ['💪', 'Fuerza del club +1']], hacer(s, d) { const o = s.clubes.find(x => x.clubId === d.club), c = red(valorClub(s, d.club) * 0.02, 1000); o.caja -= c; const cl = club(s, d.club), max = infoLiga(s.mundo.de[cl.id]).L.fuerza + CFG.clubCompra.fuerzaMaxSobreLiga; if (cl.fuerza >= max) return 'Fichas, pero el equipo ya está al máximo para su liga: no mejora más.'; cl.fuerza = r1(Math.min(max, cl.fuerza + 1)); return 'Fichaje estrella: el equipo mejora.'; } },
           { n: 'No gastar', fx: () => [['⭐', -2]], txt: 'Pitos en el palco.' }] },
   inversorClub: { fases: ['club'], ic: '🤝', cond: s => s.clubes.length > 0, peso: 0.4, prep: s => ({ club: azar(s, s.clubes).clubId }), t: (s, d) => `Un inversor quiere comprar el ${club(s, d.club).nombre}`, d: 'Ofrece un 20 % más de lo que vale.',
     ops: [{ n: 'Vender', fx: (s, d) => [['€', red(valorClub(s, d.club) * 1.2, 1000)]], hacer(s, d) { const o = s.clubes.find(x => x.clubId === d.club), v = red(valorClub(s, d.club) * 1.2, 1000); s.p.dinero += v + o.caja; s.clubes = s.clubes.filter(x => x !== o); return `Vendes el club por ${cr(v)} (más su caja).`; } },
@@ -2401,7 +2413,7 @@ const SUCESOS = {
     ops: [{ n: 'Equiparla (chapas y taladro)', fx: () => [['€', -250], ['⚡', -10], ['⛰️', 'Proyecto: primera ascensión']], hacer(s) { aplicarFx(s, [['€', -250], ['⚡', -10]]); const z = s.esc.proy && s.esc.proy.tipo === 'via' ? s.esc.proy.zona : 'siurana'; nuevoProyecto(s, 'via', z, 2, true); return 'Ya es tu proyecto. Si la encadenas, le pondrás nombre y grado.'; } },
           { n: 'Dejarla para otros', fx: () => [], txt: 'Alguien la abrirá.' }] },
   expedicion: { dep: 'escalada', fases: ['club'], ic: '🏔️', peso: 0.5, cond: s => s.p.rep >= 50, t: 'Te invitan a una expedición a la Patagonia', d: 'Granito, viento y vivac durante semanas. El patrocinador paga el viaje.',
-    ops: [{ n: 'Ir', fx: () => [['⭐', 8], ['🧠', '+3 cabeza'], ['⚡', -30], ['😊', 10]], hacer(s) { aplicarFx(s, [['⭐', 8], ['⚡', -30], ['😊', 10]]); s.esc.at.cabeza = Math.min(techoAttr(s, 'cabeza') + 3, s.esc.at.cabeza + 3); s.esc.seg += 8000; return 'Una aventura inolvidable.'; } },
+    ops: [{ n: 'Ir', fx: () => [['⭐', 8], ['🧠', '+3 cabeza'], ['⚡', -30], ['😊', 10]], hacer(s) { aplicarFx(s, [['⭐', 8], ['⚡', -30], ['😊', 10]]); s.esc.at.cabeza = Math.max(s.esc.at.cabeza, Math.min(techoAttr(s, 'cabeza'), s.esc.at.cabeza + 3)); s.esc.seg += 8000; return 'Una aventura inolvidable.'; } },
           { n: 'No es el momento', fx: () => [], txt: 'Te centras en tu temporada.' }] },
   seleccionador: { dep: 'individual', fases: ['club'], ic: '🇪🇸', cond: s => s.p.rep >= 30 && s.esc.nacional !== s.esc.año && s.edad >= 15, t: 'El seleccionador te invita a una concentración', d: 'Tres días con el equipo nacional en un centro de alto rendimiento.',
     ops: [{ n: 'Ir', fx: () => [['🎯', '+1 técnica'], ['⚡', -10], ['⭐', 2], ['🇪🇸', 'Más opciones de entrar']], hacer(s) { s.esc.at.tecnica = Math.min(techoAttr(s, 'tecnica'), s.esc.at.tecnica + 1); aplicarFx(s, [['⚡', -10], ['⭐', 2]]); s.esc.puntosSel += 2; return 'El seleccionador toma nota.'; } },
@@ -2457,7 +2469,7 @@ function elegirSuceso(s) {
 }
 const textoSuceso = (s, e, d, k) => typeof e[k] === 'function' ? e[k](s, d) : e[k];
 // Lo que cuesta una opción de un imprevisto (los € negativos de sus efectos)
-function costeOpcion(s, o, d) { return o.fx(s, d).reduce((a, [ic, v]) => a + (ic === '€' && typeof v === 'number' && v < 0 ? -v : 0), 0); }
+function costeOpcion(s, o, d) { return (o.costeMax || 0) + o.fx(s, d).reduce((a, [ic, v]) => a + (ic === '€' && typeof v === 'number' && v < 0 ? -v : 0), 0); }
 // Una opción que no puedes pagar no se puede elegir (si ninguna se puede pagar, queda la más barata)
 function opcionPosible(s, e, k, d) {
   const costes = e.ops.map(o => costeOpcion(s, o, d)), c = costes[k];
@@ -2497,6 +2509,8 @@ function resolver(opcion) {
       revisarEscenario(s);
       msg = `${o.renovacion ? 'Renuevo con' : 'Firmo por'} el ${club(s, o.clubId).nombre}: ${cr(o.salario)}/semana. ${msgs.join(' ')}`; ic = '✍️';
     }
+  } else if (ev.tipo === 'mejora' && ev.clubId && (!s.contrato || ev.clubId !== s.contrato.clubId)) {
+    msg = '';   // era del club anterior: ya no vale
   } else if (ev.tipo === 'mejora') {
     const o = ev.oferta, N = CFG.negociacion, c = s.contrato;
     ic = '📝';
@@ -2507,7 +2521,7 @@ function resolver(opcion) {
       if (rnd(s) * 100 < prob) { c.salario = Math.max(o.salario, Math.min(red(o.salario * N.pedirMasFactor, 10), topeSueldo(s, c.clubId))); c.temporadasRestantes = o.temporadas; msg = `¡El club acepta! Firmo por ${cr(c.salario)} por semana (probabilidad ${prob} %).`; }
       else { c.salario = o.salario; c.temporadasRestantes = o.temporadas; s.mods.push({ tipo: 'sel', v: -N.tensionSeleccion, sem: N.tensionSemanas, motivo: 'relación tensa con el club' }); msg = `El club no acepta (probabilidad ${prob} %). Firmo la oferta inicial y la relación queda tensa: −${N.tensionSeleccion} en la selección durante ${N.tensionSemanas} semanas.`; }
     } else if (opcion === 'largo') {
-      const sal = red(o.salario * N.largoFactor, 10), prima = sal * N.largoPrimaSemanas;
+      const sal = Math.max(c.salario, red(o.salario * N.largoFactor, 10)), prima = sal * N.largoPrimaSemanas;
       c.salario = sal; c.temporadasRestantes = o.temporadas + N.largoTemporadas;
       const imp = Math.round(prima * tipoImpuesto(prima));
       s.p.dinero += prima - imp; s.acum.ingresosPers += prima - imp; s.acum.impuestos += imp;
@@ -2834,20 +2848,26 @@ function comprarCoche(tipo) {
   const s = S, T = CFG.coches[tipo];
   if (!T || s.p.dinero < T.precio || !desbloqueado(s, 'coches')) return false;
   s.p.dinero -= T.precio; s.acum.gastosPers += T.precio;
-  aplicarFx(s, [['😊', T.fel], ['⭐', T.rep]]);
+  // La ilusión y la fama de estrenar solo cuentan la primera vez que tienes ese tipo de coche
+  s.cochesTenidos = s.cochesTenidos || [];
+  const estreno = !s.cochesTenidos.includes(tipo);
+  if (estreno) { s.cochesTenidos.push(tipo); aplicarFx(s, [['😊', T.fel], ['⭐', T.rep]]); }
   s.coches.push({ id: 'k' + (s.idSeq++), tipo, valor: T.precio });
   anotar(s, T.ic, `Me compro un ${T.n.toLowerCase()} por ${cr(T.precio)}.`);
-  s.aviso = `¡${T.n} nuevo! +${T.fel} felicidad, +${T.rep} reputación.`;
+  s.aviso = estreno ? `¡${T.n} nuevo! +${T.fel} felicidad, +${T.rep} reputación.` : `${T.n} nuevo. Ya habías tenido uno: esta vez no da fama ni felicidad.`;
   comprobarLogros(s, null);
   guardar(); render();
   return true;
 }
+// Un coche de segunda mano se vende por menos de lo que vale (en cuanto sale del concesionario)
+const valorVentaCoche = k => red(k.valor * CFG.cocheVenta, 100);
 function venderCoche(id) {
   const s = S, k = s.coches.find(x => x.id === id);
   if (!k) return false;
-  s.p.dinero += k.valor;
+  const v = valorVentaCoche(k);
+  s.p.dinero += v;
   s.coches = s.coches.filter(x => x !== k);
-  anotar(s, '🏷️', `Vendo el ${CFG.coches[k.tipo].n.toLowerCase()} por ${cr(k.valor)}.`);
+  anotar(s, '🏷️', `Vendo el ${CFG.coches[k.tipo].n.toLowerCase()} por ${cr(v)}.`);
   guardar(); render();
   return true;
 }
@@ -2924,7 +2944,7 @@ function semanaClubes(s, R) {
     o.caja += ingresos - gastos;
     const max = infoLiga(s.mundo.de[c.id]).L.fuerza + K.fuerzaMaxSobreLiga;
     if (I.fuerza && c.fuerza < max) c.fuerza = r1(Math.min(max, c.fuerza + I.fuerza));
-    if (E.rep) s.p.rep = clamp(s.p.rep + E.rep, 0, 100);
+    if (E.rep && s.semana % 6 === 0) s.p.rep = clamp(s.p.rep + E.rep, 0, 100);   // la fama por el precio de las entradas se nota poco a poco (unas 3 veces por temporada)
     o.ultimo = { ingresos, gastos, resultado: ingresos - gastos, valor: v };
     R.neg.push([`🏟️ ${c.nombre}: ${ingresos - gastos >= 0 ? '+' : ''}${cr(ingresos - gastos)}`, `valor ${cr(v)}`,
       `Ingresos = valor × ${nf3(K.ingresos * 100)} % × entradas ${E.n.toLowerCase()} (${nf(E.ingresos)}) ± 10 %. Gastos = valor × ${nf3(K.gastos * 100)} % + inversión ${I.n.toLowerCase()} (${nf3(I.coste * 100)} %). Valor = ${cr(K.base)} × e^((fuerza ${nf(c.fuerza)} − 45) / ${K.escala}).`]);
@@ -3367,7 +3387,9 @@ const PANTALLAS = [
           ['Llega a 5.000.000 € de patrimonio', s => patrimonio(s) / 5000000]] },
 ];
 function pantallaActual(s) { const l = pantallas(s); return s.pantalla < l.length ? l[s.pantalla] : null; }
-function progresoObjetivos(s) { const P = pantallaActual(s); return P ? P.obj.map(([t, f]) => [t, clamp(f(s), 0, 1)]) : []; }
+// Al retirarte ya no puedes competir: los objetivos deportivos cuentan como cumplidos y quedan los de dinero y vida
+const OBJ_VIDA = /€|patrimonio|negocio|casa tuya|pareja|coche|hijo|propiedad|club de|tu propio/i;
+function progresoObjetivos(s) { const P = pantallaActual(s); return P ? P.obj.map(([t, f]) => [t, s.fase === 'retirado' && !OBJ_VIDA.test(t) ? 1 : clamp(f(s), 0, 1)]) : []; }
 function nivelDesbloqueo(s, clave) {
   if (esInd(s)) return CFG.escalada.desbloqueos[clave] || 1;
   return CFG.desbloqueos[clave] || (CFG.negocios[clave] && CFG.negocios[clave].pantalla) || 1;
@@ -3823,7 +3845,8 @@ function nombreComp(c, s) {
   const A = AMBITOS[c.amb], juv = s && s.edad < 20 && A.juvenil ? ` ${s.edad < 16 ? 'sub-16' : s.edad < 18 ? 'sub-18' : 'sub-20'}` : '';
   if (TX.nombreComp) return TX.nombreComp(c, juv);
   if (c.amb === 'jjoo') return `Juegos de Verano · ${MODS[c.mod].n.toLowerCase()}`;
-  return `${A.n}${juv} de ${MODS[c.mod].n.toLowerCase()}`;
+  const m = MODS[c.mod].n.toLowerCase();
+  return A.n.toLowerCase().includes(m) ? `${A.n}${juv}` : `${A.n}${juv} de ${m}`;
 }
 function mejorMundoReciente(s, mod) {
   const E = s.esc, fam = (MODS[mod] && MODS[mod].de) || [mod];
@@ -3837,9 +3860,9 @@ function reqComp(s, c) {
   if (c.amb !== 'auto' && c.amb !== 'esp' && c.amb !== 'cesp' && s.edad < 16) return 'Desde los 16 años.';
   if (TX.req) { const r = TX.req(s, c); if (r !== undefined) return r; }
   if (A.invitacion) return E.invit[c.id] === true ? null : E.invit[c.id] === false ? 'Rechazaste la invitación.' : 'Solo por invitación (fama 65 o un top 16 en Copa del Mundo).';
-  if (A.nacional && E.nacional !== E.año) return 'Solo con el equipo nacional.';
-  if ((c.amb === 'mundial' || c.amb === 'europeo') && !E.anual.cm) return 'La federación solo lleva a quien ha competido este año en la Copa del Mundo.';
-  if (c.amb === 'clasif' && mejorMundoReciente(s, c.mod) > 24) return 'Necesitas un top 24 en una Copa del Mundo de esta modalidad este año o el anterior.';
+  if (A.nacional && E.nacional !== E.año && !(c.amb === 'jjoo' && E.olimpico && E.olimpico.año === E.año)) return 'Solo con el equipo nacional.';
+  if ((c.amb === 'mundial' || c.amb === 'europeo') && !E.anual.cm) return `La federación solo lleva a quien ha competido este año en ${AMBITOS.mundo.n}.`;
+  if (c.amb === 'clasif' && mejorMundoReciente(s, c.mod) > 24) return `Necesitas un top 24 en ${AMBITOS.mundo.n} de esta modalidad este año o el anterior.`;
   if (c.amb === 'jjoo' && !(E.olimpico && E.olimpico.año === E.año && E.olimpico.mod === c.mod)) return 'Solo si te clasificas en el clasificatorio para los Juegos.';
   const coste = costeComp(s, c);
   if (coste > 0 && dineroEsc(s) < coste) return `Inscripción${coste > A.ins ? ' y viaje' : ''}: ${cr(coste)}.`;
@@ -3878,11 +3901,12 @@ function competirEsc(s, R, c) {
   const L = nivelMod(s, c.mod), media = TX.media ? TX.media(s, c, L) : A.media - (juv ? K.juvenilMenos : 0), pod = A.podio || 3;
   const fz = efectoForma(s, CFG.forma.escBajo, CFG.forma.escAlto), animo = (s.p.fel - 50) / 25, cab = (E.at.cabeza - 50) / 10 * A.presion, piel = E.piel < 30 ? -(30 - E.piel) / 5 : 0;
   const MD = MODS[c.mod], suerte = gauss(s) * (MD.suerte || 4), resbalon = !!MD.resbalon && rnd(s) < K.resbalon;
-  if (fz <= -2) R.opo.push(['😫', `Llego ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} a la ${A.n}: ${nf(r1(fz))} puntos por la falta de energía.`]);
-  const [bonoMJ, mjC] = bonoMJInd(s, A);
+  if (fz <= -2) R.opo.push(['😫', `Llego ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} a competir (${A.n}): ${nf(r1(fz))} puntos por la falta de energía.`]);
+  const [bonoMJ, mjC] = bonoMJInd(s, A, c);
   const score = L + fz + animo + cab + piel + suerte + bonoMJ - (resbalon ? 40 : 0);
   const z = (score - media) / A.sd, N = A.N, pos = clamp(1 + Math.round((N - 1) * (1 - phi(z))), 1, N);
-  const ronda = A.final && pos <= A.final ? 'final' : A.semi && pos <= A.semi ? 'semifinal' : 'clasificación';
+  let ronda = A.final && pos <= A.final ? 'final' : A.semi && pos <= A.semi ? 'semifinal' : 'clasificación';
+  if (depDe(s) === 'boxeo' && PRO_BOX.includes(c.amb) && pos > 1) ronda = 'clasificación';   // combate a dos: perder no es una final
   // Marca según la modalidad
   let marca;
   if (MD.marca) marca = MD.marca(s, z, L, suerte, ronda, resbalon, pos, N);
@@ -3913,7 +3937,7 @@ function competirEsc(s, R, c) {
   if (c.amb === 'clasif' && pos <= A.plazas) { E.olimpico = { año: E.año, mod: c.mod }; s.p.dinero += CFG.desenlace.ayudaJuegos; R.eco.push(['Ayuda de la federación por clasificarte para los Juegos', CFG.desenlace.ayudaJuegos]); R.opo.push(['🏅', `¡Plaza para los Juegos de Verano de ${SEDES_JJOO[E.año] || E.año} (${MODS[c.mod].n.toLowerCase()})!`]); celebrar = true; }
   const nombre = nombreComp(c, s);
   E.palmares.unshift({ año: E.año, mes: mesEsc(s), n: nombre, lugar: c.lugar, mod: c.mod, amb: c.amb, pos, N, ronda, marca }); E.palmares = E.palmares.slice(0, 40);
-  const ic = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : MODS[c.mod].ic;
+  const ic = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos <= pod ? '🥉' : MODS[c.mod].ic;
   if (TX.lineaComp) R.escLineas.push([ic, TX.lineaComp(s, c, pos, N, marca, dRep, nombre)]);
   else R.escLineas.push([ic, `${nombre} (${c.lugar}): ${ronda === 'clasificación' ? 'me quedo en la clasificación' : `llego a la ${ronda}`}, puesto ${pos} de ${N}. ${marca[0].toUpperCase() + marca.slice(1)}.${dRep ? ` +${dRep} reputación.` : ''}`]);
   R.dep.push([`${nombre}: ${pos}º de ${N}`, marca,
@@ -3928,7 +3952,7 @@ function competirEsc(s, R, c) {
     if (pos === 1) { E.becaOlimpica = { hasta: E.año + 4, mod: c.mod }; R.opo.push(['🥇', `¡Campeón/a de los Juegos! Premio de ${cr(A.premio[0])} y beca de ${cr(K.becaOlimpica)} al año hasta los Juegos de ${E.año + 4}.`]); }
     else if (E.becaOlimpica && E.becaOlimpica.hasta === E.año) { E.becaOlimpica = null; R.opo.push(['🎓', 'No repito el oro: pierdo la beca de los Juegos.']); }
   }
-  if (['mundo', 'mundial', 'jjoo'].includes(c.amb) && pos <= K.becaEstado.puesto && E.becaHasta < E.año + 1) {
+  if (['mundo', 'mundial', 'jjoo'].includes(c.amb) && ronda === 'final' && !(depDe(s) === 'boxeo' && PRO_BOX.includes(c.amb)) && pos <= K.becaEstado.puesto && E.becaHasta < E.año + 1) {
     E.becaHasta = E.año + 1;
     R.opo.push(['🎓', `¡Final en ${A.n}! El Estado me concede una beca de ${cr(K.becaEstado.mes)} al mes hasta final de ${E.año + 1}. Solo puedo gastarla en ${TX.deporte}.`]);
   }
@@ -3961,6 +3985,8 @@ function semanaEscalada(s, R) {
   const E = s.esc, K = CFG.escalada, energiaAntes = R.antes.energia;
   // Competición de la semana
   if (s.fase === 'escalador') { const c = compDeLaSemana(s); if (c) competirEsc(s, R, c); }
+  // Si jugaste el momento decisivo pero al final no compites (p. ej. te has quedado sin dinero para la inscripción), se avisa y no cuenta
+  if (s.mj && s.mj.semana === s.semana && s.mj.motor === 'individual' && !s.mj.usado) R.opo.push(['⚠️', `Al final no compito en ${s.mj.titulo}: ${s.p.dinero < 0 ? 'no me llega el dinero' : 'no he podido inscribirme'}. El momento decisivo no cuenta.`]);
   // La beca de los Juegos dura hasta los siguientes Juegos: si pasan sin un nuevo oro, se pierde
   if (E.becaOlimpica && E.becaOlimpica.hasta <= E.año && s.semanasAño >= K.semanaJJOO) { E.becaOlimpica = null; R.opo.push(['🎓', 'Pasan los Juegos sin un nuevo oro: se acaba mi beca de los Juegos.']); }
   // Lesión: riesgo si has entrenado con los dedos cargados o sin energía
@@ -4021,13 +4047,19 @@ function economiaEsc(s, R) {
   s.p.dinero -= gv.v; R.eco.push([`Gastos (${gv.motivo})`, -gv.v]);
 }
 // ---- Másters por invitación ----
-function invitadoMaster(s, c) { return s.edad >= 16 && (s.p.rep >= 65 || mejorMundoReciente(s, c.mod) <= 16 || nivelMod(s, c.mod) >= 75); }
+function invitadoMaster(s, c) {
+  if (depDe(s) === 'boxeo') return s.edad >= 18 && (s.p.rep >= 65 || (s.esc.mejor.europeo || 99) === 1);   // como dice su requisito
+  return s.edad >= 16 && (s.p.rep >= 65 || mejorMundoReciente(s, c.mod) <= 16 || nivelMod(s, c.mod) >= 75);
+}
 function buscarInvitaciones(s, R) {
   const E = s.esc;
-  for (const c of calendarioEsc(s, E.año)) {
-    if (c.amb !== 'master' || c.sem !== s.semanasAño + 2 || E.invit[c.id] !== undefined || !invitadoMaster(s, c)) continue;
+  const objetivo = s.semanasAño + 2, año = objetivo >= CFG.hipoteca.semanasAño ? E.año + 1 : E.año, sem = objetivo % CFG.hipoteca.semanasAño;
+  for (const c of calendarioEsc(s, año)) {
+    if (c.amb !== 'master' || c.sem !== sem || E.invit[c.id] !== undefined || !invitadoMaster(s, c)) continue;
     E.invit[c.id] = true;
-    for (const x of calendarioEsc(s, E.año)) if (x.sem === c.sem && x.id !== c.id) E.ins[x.id] = false;
+    const otra = calendarioEsc(s, año).some(x => x.sem === c.sem && x.id !== c.id && E.ins[x.id] === true);
+    if (otra) { E.invit[c.id] = false; R.opo.push(['💌', `Me invitan al ${nombreComp(c, s)} de ${c.lugar}, pero esa semana ya estoy inscrito/a en otra competición.`]); continue; }
+    for (const x of calendarioEsc(s, año)) if (x.sem === c.sem && x.id !== c.id) E.ins[x.id] = false;
     E.ins[c.id] = true;
     R.opo.push(['💌', `Me invitan al ${nombreComp(c, s)} de ${c.lugar} (viaje pagado, hasta ${cr(AMBITOS.master.premio[0])} de premio). Voy en 2 semanas; si no quiero ir, lo cancelo en Carrera.`]);
   }
@@ -4042,7 +4074,7 @@ function nuevoAñoEsc(s, R) {
   E.becaSaldo = 0;
   // Equipo nacional para el año que viene
   const ofrecer = s.fase === 'escalador' && s.edad >= 15 && (A.mejorEsp <= 3 || A.mejorMundo <= 30 || (E.puntosSel >= 2 && A.mejorEsp <= 8));
-  s.semanasAño = 0; E.año += 1; E.anual = nuevoAnual(); E.ins = {}; E.puntosSel = 0; E.malas = 0;
+  s.semanasAño = 0; E.año += 1; E.anual = nuevoAnual(); E.ins = {}; E.puntosSel = 0; E.malas = 0; E.avisoNac = false;
   cumpleaños(s, R);
   R.opo.push(['🎂', `Cumplo ${s.edad} años. Empieza ${E.año}.`]);
   if (s.fase === 'escalador') {
@@ -4075,7 +4107,7 @@ function tiersPatro(P) { return P.req === 'estrella' ? [1, 1] : P.tiers || [1, 5
 const hayRoca = () => Object.keys(ZONAS).length > 0;
 const REQ_ESC = {
   esp: [s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 10 || (hayRoca() && maxRoca(s) >= 14), () => `un top 10 en España${hayRoca() ? ` o ${GRADOS_VIA[14]} ${TX.enRoca}` : ''}`],
-  nacional: [s => !!s.esc.nacional || Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 3 || (hayRoca() && maxRoca(s) >= 16), () => `equipo nacional, un podio en España${hayRoca() ? ` o ${GRADOS_VIA[16]} ${TX.enRoca}` : ''}`],
+  nacional: [s => !!s.esc.nacional || !!s.esc.fueNacional || Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 3 || (hayRoca() && maxRoca(s) >= 16), () => `equipo nacional, un podio en España${hayRoca() ? ` o ${GRADOS_VIA[16]} ${TX.enRoca}` : ''}`],
   mundo: [s => !!s.esc.mejor.mundo || (hayRoca() && maxRoca(s) >= 18), () => `competir en ${AMBITOS.mundo.n}${hayRoca() ? ` o ${GRADOS_VIA[18]} ${TX.enRoca}` : ''}`],
   estrella: [s => (s.esc.mejor.mundo || 99) <= 8 || (s.esc.mejor.mundial || 99) <= 8 || (hayRoca() && s.esc.maxVia >= 20) || s.esc.medallas.length > 0, () => `una final de ${AMBITOS.mundo.n}${hayRoca() ? `, ${GRADOS_VIA[20]}` : ''} o una medalla`],
 };
@@ -4401,8 +4433,8 @@ function resolverEsc(s, ev, op) {
     return ['💌', `Rechazo la invitación al máster de ${ev.lugar}.`];
   }
   if (ev.tipo === 'nacional') {
-    if (op === 'si') { E.nacional = ev.año; E.beca = ev.beca; return ['🇪🇸', `Entro en el equipo nacional para ${ev.año}: ayuda de ${cr(ev.beca)}/semana y viajes pagados.`]; }
-    if (op === 'no') { E.nacional = 0; return ['🇪🇸', 'Rechazo el equipo nacional: más libertad para la roca.']; }
+    if (op === 'si') { E.nacional = ev.año; E.fueNacional = true; E.beca = ev.beca; return ['🇪🇸', `Entro en el equipo nacional para ${ev.año}: ayuda de ${cr(ev.beca)}/semana y viajes pagados.`]; }
+    if (op === 'no') { E.nacional = 0; return ['🇪🇸', `Rechazo el equipo nacional: ${TX.masTiempo.toLowerCase()}.`]; }
     return null;
   }
   if (ev.tipo === 'finEsc') return ['📅', ''];
@@ -4437,7 +4469,7 @@ const PANTALLAS_ESC = [
     obj: [['Consigue un patrocinador', s => s.patros.length || s.fase === 'retirado' ? 1 : 0],
           [`Podio en España o ${textoGrado(14)} en roca`, s => Math.min(s.esc.mejor.esp || 99, s.esc.mejor.cesp || 99) <= 3 ? 1 : Math.max(0, maxRoca(s) + 1) / 15]] },
   { n: 'Profesional', ic: '🧗', premio: [['€', 5000]], desbloquea: 'Peluquería, cafetería y tienda de material de escalada',
-    obj: [[`Entra en el equipo nacional o encadena ${textoGrado(16)} en roca`, s => s.esc.nacional || s.esc.mejor.mundo ? 1 : Math.max(0, maxRoca(s) + 1) / 17], ['Compra tu primer negocio', s => s.negocios.length ? 1 : 0]] },
+    obj: [[`Entra en el equipo nacional o encadena ${textoGrado(16)} en roca`, s => s.esc.nacional || s.esc.fueNacional || s.esc.mejor.mundo ? 1 : Math.max(0, maxRoca(s) + 1) / 17], ['Compra tu primer negocio', s => s.negocios.length ? 1 : 0]] },
   { n: 'Copa del Mundo', ic: '🌍', premio: [['€', 10000]], desbloquea: 'Inmobiliaria con hipotecas, rocódromo de bloque, lavandería y academia',
     obj: [['Compite en una Copa del Mundo', s => s.esc.mejor.mundo ? 1 : 0],
           [`Semifinal en Copa del Mundo, ${textoGrado(17)} en roca o 2 negocios`, s => (s.esc.mejor.mundo || 99) <= 24 || s.negocios.length >= 2 ? 1 : Math.max(Math.max(0, maxRoca(s) + 1) / 18, s.negocios.length / 2)],
@@ -4595,10 +4627,10 @@ function hojaCarreraEsc() {
   // Palmarés y encadenamientos
   if (E.palmares.length) h += `<div class="sec">Palmarés</div><div class="card"><table><tr class="hd"><td>Año</td><td>Competición</td><td class="n">Puesto</td></tr>
     ${E.palmares.slice(0, 12).map(p => `<tr><td>${p.año}</td><td>${esc(p.n)}<div class="small">${esc(p.lugar)} · ${esc(p.marca)}</div></td><td class="n">${p.pos <= 3 ? ['🥇', '🥈', '🥉'][p.pos - 1] : `${p.pos}º`}<div class="small">de ${p.N}</div></td></tr>`).join('')}</table>
-    ${E.medallas.length ? `<p class="small">🏅 Medallas: ${E.medallas.map(m => `${['oro', 'plata', 'bronce'][m.pos - 1]} en ${AMBITOS[m.amb].n} ${m.año} (${MODS[m.mod].n.toLowerCase()})`).join(' · ')}</p>` : ''}</div>`;
+    ${E.medallas.length ? `<p class="small">🏅 Medallas: ${E.medallas.map(m => `${['oro', 'plata', 'bronce'][Math.min(m.pos, 3) - 1]} en ${AMBITOS[m.amb].n} ${m.año} (${MODS[m.mod].n.toLowerCase()})`).join(' · ')}</p>` : ''}</div>`;
   if (E.envios.length) h += `<div class="sec">${TX.secEnvios}</div><div class="card lista">${E.envios.slice(0, 10).map(x => `<div class="row"><div class="ic">${x.fa ? '🆕' : '✅'}</div><div class="tx"><b>${esc(x.g)}${x.nombre ? ` · «${esc(x.nombre)}»` : ''}</b><span>${esc(x.zona)} · ${x.año}${x.fa ? ` · ${TX.primera}` : ''}</span></div></div>`).join('')}</div>`;
   // Retirada
-  if (s.fase === 'escalador') h += `<div class="sec">Retirada</div><div class="card"><p class="small">Puedes dejar la competición y el alto nivel desde los ${CFG.escalada.edadRetiro} años. A partir de los 34 se pierde un poco de nivel cada semana. Sin patrocinador ni beca, vivirás de tus negocios, tus casas y tu trabajo.</p>
+  if (s.fase === 'escalador') h += `<div class="sec">Retirada</div><div class="card"><p class="small">Puedes dejar la competición y el alto nivel desde los ${CFG.escalada.edadRetiro} años. A partir de los ${CFG.escalada.declive[0][0] + 1} se pierde un poco de nivel cada semana. Sin patrocinador ni beca, vivirás de tus negocios, tus casas y tu trabajo.</p>
     <button class="btn r full" data-act="retirarse" ${s.edad >= CFG.escalada.edadRetiro && !s.pendiente ? '' : 'disabled'}>👋 Retirarme${s.edad < CFG.escalada.edadRetiro ? ` (desde los ${CFG.escalada.edadRetiro})` : ''}</button></div>`;
   if (TX.gradosAyuda) h += `<div class="sec">${TX.secGrados}</div><div class="card"><p class="small">${typeof TX.gradosAyuda === 'function' ? TX.gradosAyuda() : TX.gradosAyuda}</p></div>`;
   return hoja(`${DEPORTES[depDe(s)].ic} Carrera`, h);
@@ -4768,13 +4800,13 @@ function semanaBanco(s, R) {
   }
   if (s.semana < B.plazo) return;
   if (-s.p.dinero < K.deudaMinima) {
-    s.p.dinero -= K.comision; s.acum.gastosPers += K.comision; B.sinBienes = 0;
+    s.p.dinero -= K.comision; B.sinBienes = 0;
     R.eco.push(['Comisión del banco por números rojos', -K.comision]);
     R.dep.push(['El banco cobra una comisión', `−${cr(K.comision)}`, `Debes menos de ${cr(K.deudaMinima)}: solo una comisión cada semana. Si la deuda llega a ${cr(K.deudaMinima)}, intereses y embargo.`]);
     return;
   }
   const int = Math.max(K.interesMin, Math.round(-s.p.dinero * K.interes));
-  s.p.dinero -= int; B.intereses += int; s.acum.gastosPers += int;
+  s.p.dinero -= int; B.intereses += int;
   R.eco.push([`Intereses del banco por números rojos (${Math.round(K.interes * 100)} % a la semana)`, -int]);
   R.dep.push(['El banco cobra intereses', `−${cr(int)}`, `Sigues en números rojos después del plazo: ${Math.round(K.interes * 100)} % de lo que debes cada semana (mínimo ${cr(K.interesMin)}) y embargo de tus bienes hasta cubrir la deuda.`]);
   const l = embargar(s);
@@ -4815,6 +4847,7 @@ function embargar(s) {
   for (const i of s.inmuebles.slice().sort((a, b) => (a.modo === 'vivienda') - (b.modo === 'vivienda') || a.valor - b.valor)) {
     if (deuda() <= 0) break;
     const deudaH = i.hipoteca ? Math.round(i.hipoteca.deuda) : 0, v = Math.round(i.valor * K.ventaForzosa);
+    if (v - deudaH <= 0) continue;   // subastarla no taparía nada: el banco no la toca
     s.p.dinero += v - deudaH; s.inmuebles = s.inmuebles.filter(x => x !== i);
     l.push(`Embargo: subastan tu ${CFG.inmuebles[i.tipo].n.toLowerCase()} de ${i.ciudad} por ${cr(v)}${deudaH ? ` (se cancela la hipoteca de ${cr(deudaH)})` : ''}${i.modo === 'vivienda' ? '. Te toca vivir de alquiler' : ''}.`);
   }
@@ -5315,8 +5348,8 @@ function htmlDecisiones(s, n, tipo) {
     <div class="sec">🔨 Mejoras (se pagan con la caja)</div><div class="card lista">${me}<p class="small">Son permanentes; la mitad de lo invertido suma al valor del negocio.</p></div>
     <div class="sec">📣 Acciones</div><div class="card lista">${ac}<p class="small">Se pagan con la caja y, después, hay que esperar unas semanas para repetirlas.</p></div>`;
 }
-function beneficioTipico(s, tipo) {
-  const T = CFG.negocios[tipo], n = { tipo, fama: 50, precio: 'normal', sueldo: 'basico', empleados: 1 };
+function beneficioTipico(s, tipo, fama = 50) {
+  const T = CFG.negocios[tipo], n = { tipo, fama, precio: 'normal', sueldo: 'basico', empleados: 1 };
   const d = demandaNegocio(s, n) / factorModsNegocio(s, n), cap = T.sueldos.basico.capacidad;
   n.empleados = clamp(Math.round(d / cap), 1, T.empleadosMax);
   const cl = Math.min(d, n.empleados * cap), ing = cl * T.precios.normal.precio;
@@ -5399,7 +5432,7 @@ function hojaBienes() {
     const n = negocioDe(s, k);
     if (n) return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Caja ${cr(n.caja)} · fama ${Math.round(n.fama)} · 🔨 ${(n.mejoras || []).length}/${DECISIONES[k].mejoras.length}${n.ultimo ? ` · última semana ${n.ultimo.resultado >= 0 ? '+' : ''}${cr(n.ultimo.resultado)}` : ''}</span></div><button class="btn w" data-act="hoja" data-v="negocio:${k}">Gestionar</button></div>`;
     const b = bloqueoNegocio(s, k);
-    return `<div class="row"><div class="ic" style="${b ? 'filter:grayscale(1);opacity:.5' : ''}">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Traspaso ${cr(T.precio)}${b ? ` · 🔒 ${esc(b)}` : ` · gana ~${cr(beneficioTipico(s, k))}/sem`}</span></div><button class="btn" data-act="hoja" data-v="negocio:${k}" ${b ? 'disabled' : ''}>Ver</button></div>`;
+    return `<div class="row"><div class="ic" style="${b ? 'filter:grayscale(1);opacity:.5' : ''}">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Traspaso ${cr(T.precio)}${b ? ` · 🔒 ${esc(b)}` : ` · al abrir ${beneficioTipico(s, k, CFG.negocioComun.famaInicial) >= 0 ? 'gana' : 'pierde'} ~${cr(Math.abs(beneficioTipico(s, k, CFG.negocioComun.famaInicial)))}/sem`}</span></div><button class="btn" data-act="hoja" data-v="negocio:${k}" ${b ? 'disabled' : ''}>Ver</button></div>`;
   }).join('')}</div>`;
   // Inmuebles
   h += `<div class="sec">Mis propiedades</div><div class="card lista">${s.inmuebles.length ? s.inmuebles.map(i => {
@@ -5427,8 +5460,8 @@ function hojaBienes() {
   }
   // Coches
   h += `<div class="sec">Coches</div><div class="card lista">${s.coches.map(k => { const T = CFG.coches[k.tipo];
-    return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Vale ${cr(k.valor)} (pierde ${nf3(CFG.cocheDeprecia * 100)} % por semana)</span></div><button class="btn w" data-act="venderCoche" data-id="${k.id}">Vender</button></div>`; }).join('')}
-    ${!desbloqueado(s, 'coches') ? `<p>🔒 ${esc(textoBloqueo(s, 'coches'))}</p>` : Object.entries(CFG.coches).map(([k, T]) => `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>${cr(T.precio)} · 😊 +${T.fel} · ⭐ +${T.rep}</span></div><button class="btn g" data-act="comprarCoche" data-v="${k}" ${s.p.dinero >= T.precio ? '' : 'disabled'}>Comprar</button></div>`).join('')}
+    return `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>Vale ${cr(k.valor)}, te darían ${cr(valorVentaCoche(k))} (pierde ${nf3(CFG.cocheDeprecia * 100)} % por semana)</span></div><button class="btn w" data-act="venderCoche" data-id="${k.id}">Vender</button></div>`; }).join('')}
+    ${!desbloqueado(s, 'coches') ? `<p>🔒 ${esc(textoBloqueo(s, 'coches'))}</p>` : Object.entries(CFG.coches).map(([k, T]) => `<div class="row"><div class="ic">${T.ic}</div><div class="tx"><b>${T.n}</b><span>${cr(T.precio)} · ${(s.cochesTenidos || []).includes(k) ? 'ya tuviste uno: sin fama extra' : `😊 +${T.fel} · ⭐ +${T.rep}`}</span></div><button class="btn g" data-act="comprarCoche" data-v="${k}" ${s.p.dinero >= T.precio ? '' : 'disabled'}>Comprar</button></div>`).join('')}
     <p class="small">Un coche alegra y da imagen, pero pierde valor y tiene mantenimiento.</p></div>`;
   // Clubes
   if (!esInd(s)) h += `<div class="sec">Clubes de ${TXE.deporte}</div><div class="card lista">${s.clubes.map(o => { const c = club(s, o.clubId);
@@ -5454,7 +5487,7 @@ function hojaNegocio(tipo) {
     return hoja(`${T.ic} ${T.n}`, `<div class="card" style="text-align:center"><div style="font-size:64px">${T.ic}</div><h3>${T.n} en traspaso</h3>
       <p>Precio: <b>${cr(T.precio)}</b> + dinero para su <b>caja</b>.</p>
       <p class="small">Cada semana: alquiler ${cr(T.alquiler)} + suministros y seguros ${cr(T.fijos)} + sueldos con Seguridad Social (${cr(T.sueldos.basico.coste)}–${cr(T.sueldos.bueno.coste)} por persona) + ${T.costePct ? `compras: el ${Math.round(T.costePct * 100)} % de lo que vendes` : `${cr(T.costeCliente)} por ${T.unidad.replace(/s$/, '')}`}. La caja va aparte de tu dinero.</p>
-      <p>Con la plantilla que tiene y precios normales ganaría unos <b>${cr(beneficioTipico(S, tipo))}/semana</b> (recuperas la inversión en ~${Math.max(1, Math.round(T.precio / Math.max(1, beneficioTipico(S, tipo))))} semanas).</p></div>
+      <p>${beneficioTipico(S, tipo, CFG.negocioComun.famaInicial) > 0 ? `Recién abierto, con la plantilla justa y precios normales, ganaría unos <b>${cr(beneficioTipico(S, tipo, CFG.negocioComun.famaInicial))}/semana</b>; con fama 50, unos ${cr(beneficioTipico(S, tipo))}/semana.` : `Recién abierto perdería unos <b>${cr(-beneficioTipico(S, tipo, CFG.negocioComun.famaInicial))}/semana</b> hasta que gane fama: usa la caja para aguantar y haz acciones para darlo a conocer.`}</p></div>
       ${b ? `<div class="card">🔒 ${esc(b)}</div>` : `<div class="sec">Caja inicial</div><div class="seg">${T.cajaOpciones.map(c => `<button data-act="caja" data-v="${c}" class="${s.cajaElegida === c ? 'sel' : ''}">${cr(c)}</button>`).join('')}</div>
       <div class="pbar"><i style="width:${pct(s.p.dinero, total)}%;background:var(--green2)"></i></div>
       <button class="btn g full" id="btnComprar" data-act="comprarNeg" data-v="${tipo}" ${s.p.dinero >= total ? '' : 'disabled'}>${s.p.dinero >= total ? `Comprar por ${cr(total)}` : `Te faltan ${cr(total - s.p.dinero)}`}</button>`}`);
@@ -5551,7 +5584,9 @@ function hojaPruebas() {
       ${b('semanas:5', '⏩ Avanzar 5 semanas', 'g')}${b('semanas:18', '⏩ Avanzar una temporada', 'g')}</div>
     <p class="small">Avanzar se para si aparece una decisión. Los atajos no cuentan como dinero ganado.</p></div>`;
 }
+let pruebasAbiertas = false;   // el modo pruebas sigue abierto mientras lo usas
 function accionPrueba(v) {
+  pruebasAbiertas = true;
   const s = S, PANTALLAS = pantallas(s), [k, n] = String(v).split(':'), num = Number(n) || 0;
   let txt = '';
   if (k === 'dinero') { s.p.dinero += num; txt = `+${cr(num)} a tu dinero.`; }
@@ -5607,7 +5642,7 @@ function hojaAjustes() {
     <div class="card"><p class="small">Empezar de cero borra la partida de este dispositivo; tu vida actual pasa al <button class="link" data-act="hoja" data-v="salon">salón de la fama</button>.</p>
     <button class="btn r full" data-act="reiniciar" id="btnReiniciar">${confirmarReinicio ? '⚠️ Toca otra vez para borrar la partida' : '🔄 Empezar una nueva vida'}</button>
     ${confirmarReinicio ? '<button class="btn w full" data-act="noReiniciar">Cancelar</button>' : ''}</div>
-    ${hojaPruebas()}
+    <details class="card plegado" id="pruebas" ${pruebasAbiertas ? 'open' : ''}><summary>🧪 Modo pruebas (atajos para probar el juego)</summary>${hojaPruebas()}</details>
     <p class="note">Clubes, ciudades y estadios ficticios. Importes de juego, provisionales: no son precios ni salarios reales.</p>`);
 }
 
@@ -5643,7 +5678,7 @@ function popup() {
     const o = ev.oferta, N = CFG.negociacion, c = s.contrato, prob = clamp(s.p.rep, N.probMin, N.probMax), salL = red(o.salario * N.largoFactor, 10);
     return `<div class="pi">✍️</div><h2>El club quiere mejorarte el contrato</h2><p class="pd">Ahora cobras ${cr(c.salario)}. Te ofrecen ${cr(o.salario)}/semana y ${o.temporadas} temporadas.</p>
       <button class="po" data-act="resolver" data-v="aceptar"><b>🤝 Aceptar</b>${chips([['💶', `${cr(o.salario)}/sem`], ['✅', 'seguro']])}</button>
-      <button class="po" data-act="resolver" data-v="pedir"><b>🎲 Pedir un ${Math.round((N.pedirMasFactor - 1) * 100)} % más</b>${chips([['🍀', `${prob} %: ${cr(red(o.salario * N.pedirMasFactor, 10))}/sem`], ['😠', `si falla: −${N.tensionSeleccion} selección ${N.tensionSemanas} sem`]])}</button>
+      ${Math.min(red(o.salario * N.pedirMasFactor, 10), topeSueldo(s, c.clubId)) <= o.salario ? '' : `<button class="po" data-act="resolver" data-v="pedir"><b>🎲 Pedir más</b>${chips([['🍀', `${prob} %: ${cr(Math.min(red(o.salario * N.pedirMasFactor, 10), topeSueldo(s, c.clubId)))}/sem`], ['😠', `si falla: −${N.tensionSeleccion} selección ${N.tensionSemanas} sem`]])}</button>`}
       <button class="po" data-act="resolver" data-v="largo"><b>🔒 Contrato largo con prima</b>${chips([['€', salL * N.largoPrimaSemanas], ['📄', `+${N.largoTemporadas} temporadas`], ['💶', `${cr(salL)}/sem`]])}</button>`;
   }
   if (ev.tipo === 'suceso') {
@@ -5690,7 +5725,7 @@ function popup() {
       ${htmlDesenlaceFin(s, ev)}
       <p class="pd"><b>${ban}</b> · ${esc(mi.nombre)} en ${esc(i.L.n)}${ev.ligaNueva !== ev.liga ? `<br>La próxima temporada: ${esc(nombreLiga(ev.ligaNueva))}` : ''}</p>
       <div class="chips" style="justify-content:center">${chip('👕', `${t.pj} partidos`)}${chip(TXE.icGol, `${t.goles} ${TXE.uGol(2)}`)}${chip('⭐', `nota ${t.pj ? nf(t.sumaNota / t.pj) : '—'}`)}${chip('🎂', `${s.edad} años`)}</div>
-      ${(ev.gana && ev.gana.length) || (ev.pierde && ev.pierde.length) ? '' : ev.primas.map(p => `<p class="small">💰 ${esc(p)}</p>`).join('')}
+      ${((ev.gana && ev.gana.length) || (ev.pierde && ev.pierde.length) ? ev.primas.filter(p => /^Sin prima|ya cobras el máximo/.test(p)) : ev.primas).map(p => `<p class="small">💰 ${esc(p)}</p>`).join('')}
       <div style="margin-top:10px">${tablaHTML(ev.liga, ev.tabla, ev.clubId)}</div>
       <button class="btn w full" data-act="resolver" data-v="tarjeta">📸 Ver mi tarjeta de la temporada</button>
       <button class="btn g full" data-act="resolver" data-v="ok">Continuar</button>`;
@@ -6042,6 +6077,9 @@ function prepararMomento(s, P, yo) {
 }
 // Escalada: en una final, si vas 2º, 3º o 4º (no en Mundiales, Europeos ni Juegos)
 function prepararMomentoEsc(s, c, pos, ronda, antes, nombre) {
+  const pm = s.esc && s.esc.palmares[0];
+  if (pm && /KO/.test(pm.marca || '')) return;   // un KO no se remonta en el último asalto
+  if (s.semanasAño >= CFG.hipoteca.semanasAño - 1) return;   // la última semana del año ya está cerrada
   if (ronda !== 'final' || pos < 2 || pos > 4 || !['auto', 'esp', 'cesp', 'europa', 'mundo', 'master'].includes(c.amb) || rnd(s) >= CFG.momentos.probEsc) return;
   encolar(s, { tipo: 'momento', dep: depDe(s), motor: 'individual', clase: 'final', amb: c.amb, mod: c.mod, pos, nombre, semana: s.semana, año: s.esc.año, antes });
 }
@@ -6057,7 +6095,8 @@ function resolverMomento(s, ev, op) {
   if (ev.tipo === 'momentoRes') return op === 'ok' || op === '0' ? ['', ''] : null;
   const J = jugadaDe(ev), o = J.ops.find(x => x.id === op) || ((op === 'ok' || op === '0') ? J.ops[0] : null);
   if (!o) return null;
-  const ok = rnd(s) < probJugada(s, ev, o), titulo = J.t(ev);
+  let ok = rnd(s) < probJugada(s, ev, o);
+  const titulo = J.t(ev);
   let texto = ok ? o.ok : o.mal, marcador = '';
   if (ev.motor === 'equipo' || ev.dep === 'futbol') {
     let gf = ev.gf, gc = ev.gc;
@@ -6068,13 +6107,16 @@ function resolverMomento(s, ev, op) {
     const T = s.temporada, h = ev.casa ? ev.yo : ev.rival, a = ev.casa ? ev.rival : ev.yo, c = s.contrato;
     if (T && T.año === ev.año && T.tabla[h] && T.tabla[a] && (gf !== ev.gf || gc !== ev.gc)) corregirPartido(T, h, a, ev.casa ? ev.gf : ev.gc, ev.casa ? ev.gc : ev.gf, ev.casa ? gf : gc, ev.casa ? gc : gf);
     const antes = resultadoDe(ev.gf, ev.gc), despues = resultadoDe(gf, gc), tramo = tramoActual(s);
-    if (ok && o.gol) { const n = o.pts || 1; s.stats.goles += n; if (tramo) tramo.goles += n; s.patroTemp.goles += n; const pg = ((c && c.primaGol) || 0) * n; if (pg) { s.p.dinero += pg; texto += ` Prima por ${TXE.uGol(n)}: +${cr(pg)}.`; } }
+    if (ok && o.gol) { const n = o.pts || 1; s.stats.goles += n; if (tramo) tramo.goles += n; s.patroTemp.goles += n; const pg = ((c && c.primaGol) || 0) * n; if (pg) { const net = Math.round(pg * (1 - tipoImpuesto(pg))); s.p.dinero += net; s.acum.ingresosPers += net; s.acum.impuestos += pg - net; texto += ` Prima por ${TXE.uGol(n)}: +${cr(net)} netos.`; } }
     if (ok && o.asist) { s.stats.asist++; if (tramo) tramo.asist++; }
     if (o.amarilla) s.mods.push({ tipo: 'sel', v: -2, sem: 1, motivo: 'amarilla por la falta táctica' });
     const pv = (c && c.primaVictoria) || 0;
-    if (pv && despues === 'victoria' && antes !== 'victoria') { s.p.dinero += pv; texto += ` Prima por victoria: +${cr(pv)}.`; }
-    if (pv && antes === 'victoria' && despues !== 'victoria') { s.p.dinero -= pv; texto += ` Adiós a la prima por victoria (−${cr(pv)}).`; }
+    const pvNeta = Math.round(pv * (1 - tipoImpuesto((c && c.salario || 0) + pv)));
+    if (pv && despues === 'victoria' && antes !== 'victoria') { s.p.dinero += pvNeta; s.acum.ingresosPers += pvNeta; texto += ` Prima por victoria: +${cr(pvNeta)} netos.`; }
+    if (pv && antes === 'victoria' && despues !== 'victoria') { s.p.dinero -= pvNeta; s.acum.ingresosPers -= pvNeta; texto += ` Adiós a la prima por victoria (−${cr(pvNeta)}).`; }
     s.p.rep = clamp(s.p.rep + (ok ? 2 + (o.rep || 0) : -1), 0, 100); s.p.fel = clamp(s.p.fel + (ok ? 5 : -3), 0, 100);
+    sumarConfianza(s, ok ? 3 : -3);
+    if (ok && despues === 'derrota') { texto += ' Pero no basta: perdéis igual.'; ok = false; }
     const yoN = club(s, ev.yo).nombre, rv = club(s, ev.rival).nombre;
     marcador = ev.casa ? `${yoN} ${gf}-${gc} ${rv}` : `${rv} ${gc}-${gf} ${yoN}`;
     const e = s.log.find(x => x.semana === ev.semana);
@@ -6097,11 +6139,16 @@ function cambiarPuestoEsc(s, ev, nuevo) {
   const E = s.esc, A = AMBITOS[ev.amb], K = CFG.escalada, mismoAño = ev.año === E.año;
   const dPremio = premioDe(s, ev, nuevo) - premioDe(s, ev, ev.pos), pod = A.podio || 3;
   if (TX.cambioPuesto) TX.cambioPuesto(s, ev, nuevo);
-  if (dPremio > 0) { const imp = Math.round(dPremio * tipoImpuesto(dPremio)); s.p.dinero += dPremio - imp; s.acum.impuestos += imp; } else s.p.dinero += dPremio;
+  // mismo tipo de impuesto que se aplicó al premio: lo que se suma o se quita es el neto
+  const tipo = tipoImpuesto(Math.max(premioDe(s, ev, nuevo), premioDe(s, ev, ev.pos)));
+  let primas = 0;
+  if (ORDEN_AMB.indexOf(ev.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) primas += Math.round(pt.primaPodio * K.factorPrima[ev.amb]);
+  const dPrimas = nuevo <= pod && ev.pos > pod ? primas : nuevo > pod && ev.pos <= pod ? -primas : 0;
+  const bruto = dPremio + dPrimas, neto = Math.round(bruto * (1 - tipo));
+  s.p.dinero += neto; if (bruto > 0) { s.acum.ingresosPers += neto; s.acum.impuestos += bruto - neto; }
   if (mismoAño) E.anual.premios += dPremio;
   if (nuevo <= pod && ev.pos > pod) {
     E.podios++; if (mismoAño) E.anual.podios++;
-    if (ORDEN_AMB.indexOf(ev.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) s.p.dinero += Math.round(pt.primaPodio * K.factorPrima[ev.amb]);
   }
   if (nuevo > pod && ev.pos <= pod) { E.podios--; if (mismoAño) E.anual.podios--; }
   E.mejor[ev.amb] = Math.min(ev.antes.mejor || 99, nuevo);
@@ -6174,8 +6221,8 @@ function momentoDecisivo(s) {
     const coste = costeComp(s, c);
     if (coste > 0 && dineroEsc(s) < coste) return null;
     const A = AMBITOS[c.amb];
-    const juegos = c.amb === 'jjoo' ? 'medalla en los Juegos' : c.amb === 'clasif' ? `plaza para los Juegos (top ${A.plazas})` : (A.final === 2 ? 'ganar el combate' : 'podio');
-    return Object.assign(base, { motor: 'individual', dif, amb: c.amb, mod: c.mod, titulo: nombreComp(c, s), lugar: c.lugar,
+    const juegos = c.amb === 'jjoo' ? 'medalla en los Juegos' : c.amb === 'clasif' ? `plaza para los Juegos (top ${A.plazas})` : dep === 'boxeo' && PRO_BOX.includes(c.amb) ? 'ganar el combate' : dep === 'boxeo' ? 'medalla' : 'podio';
+    return Object.assign(base, { motor: 'individual', dif, amb: c.amb, mod: c.mod, compId: c.id, titulo: nombreComp(c, s), lugar: c.lugar,
       juegas: juegos, siFallas: c.amb === 'clasif' ? 'te quedas sin Juegos hasta el siguiente ciclo' : 'bajas puestos y tus marcas lo notan' });
   }
   if (s.fase !== 'club' || !s.temporada || !s.contrato) return null;
@@ -6185,7 +6232,7 @@ function momentoDecisivo(s) {
   const pp = proximoPartido(s);
   if (!pp) return null;
   const yo = s.contrato.clubId, orden = clasificacion(T), pos = orden.indexOf(yo) + 1, i = infoLiga(T.liga);
-  const pts = id => T.tabla[id].pts, alcance = TXE.ptsTabla[0] * (J - T.jornada);
+  const pts = id => T.tabla[id].pts, alcance = (TXE.ptsTabla[0] - TXE.ptsTabla[2]) * (J - T.jornada);   // en baloncesto perder también da 1 punto
   let que = null, otro;
   const linea = i.tier === 1 ? 1 : K.ascienden;
   otro = orden[pos <= linea ? linea : linea - 1];
@@ -6208,7 +6255,8 @@ function mjParams(s, ev) {
   let skill;
   if (ev.motor === 'equipo') skill = (s.p.nivel - club(s, ev.rival).fuerza) / 15;
   else {
-    const A = AMBITOS[ev.amb], L = nivelMod(s, ev.mod), media = TX.media ? TX.media(s, { amb: ev.amb, mod: ev.mod }, L) : A.media;
+    const A = AMBITOS[ev.amb], L = nivelMod(s, ev.mod), juv = s.edad < 20 && A.juvenil;
+    const media = TX.media ? TX.media(s, { amb: ev.amb, mod: ev.mod }, L) : A.media - (juv ? CFG.escalada.juvenilMenos : 0);
     skill = (L - media) / (A.sd * 1.5);
   }
   skill = clamp(skill, -1, 1);
@@ -6236,7 +6284,7 @@ function resolverMinijuego(s, ev, op) {
   else if (/^res:/.test(op)) score = clamp(Number(op.slice(4)) || 0, 0, 1);
   else return null;
   const K = CFG.minijuegos, ok = score >= K.exito, perfecto = score >= K.perfecto, desastre = score < K.desastre;
-  s.mj = { semana: s.semana, score, ok, perfecto, desastre, simulado, dif: ev.dif, motor: ev.motor, que: ev.que || null, amb: ev.amb || null, titulo: ev.titulo };
+  s.mj = { semana: s.semana, score, ok, perfecto, desastre, simulado, dif: ev.dif, motor: ev.motor, que: ev.que || null, amb: ev.amb || null, compId: ev.compId || null, titulo: ev.titulo };
   if (ev.motor === 'equipo' && s.temporada) (s.mjTemp = s.mjTemp || []).push({ año: s.temporada.año, que: ev.que, ok });
   s.cont.mj = (s.cont.mj || 0) + 1;
   if (ok) s.cont.mjOk = (s.cont.mjOk || 0) + 1;
@@ -6269,8 +6317,9 @@ function efectoMJEquipo(s, gUs, gThem) {
   return [gUs, gThem, mj];
 }
 // Efecto en una competición individual: puntos en desviaciones típicas de la competición
-function bonoMJInd(s, A) {
-  const mj = s.mj && s.mj.semana === s.semana && s.mj.motor === 'individual' ? s.mj : null;
+function bonoMJInd(s, A, c) {
+  const mj = s.mj && s.mj.semana === s.semana && s.mj.motor === 'individual' && (!s.mj.compId || !c || s.mj.compId === c.id) ? s.mj : null;
+  if (mj) mj.usado = true;
   if (!mj) return [0, null];
   return [A.sd * (mj.ok ? (mj.perfecto ? 1.4 : 0.9) : (mj.desastre ? -1.8 : -1.1)), mj];
 }
@@ -6282,7 +6331,7 @@ function prepararFirma(s, d) {
   const nombre = s.nombre || 'Tu nombre', cl = [];
   if (d.tipo === 'club') {
     const c = s.contrato, mi = miClub(s), F = CFG.rendimiento;
-    cl.push(['💶', `Sueldo: <b>${cr(c.salario)}/semana</b> (unos ${cr(c.salario * 52)} al año, antes de impuestos)`]);
+    cl.push(['💶', `Sueldo: <b>${cr(c.salario)}/semana</b> (unos ${cr(c.salario * CFG.temporada.jornadas)} por temporada, antes de impuestos)`]);
     cl.push(['📄', `Duración: <b>${c.temporadasRestantes} ${c.temporadasRestantes === 1 ? 'temporada' : 'temporadas'}</b>`]);
     if (d.fichaje) cl.push(['🎁', `${d.fichajeTxt || 'Prima de fichaje'}: <b>${cr(d.fichaje)}</b> al firmar`]);
     if (c.primaVictoria) cl.push(['🏆', `Prima por victoria: <b>${cr(c.primaVictoria)}</b>`]);
@@ -6342,24 +6391,36 @@ function revisarConfianza(s, R, P, juega) {
   if (ahora <= F.rescinde && T && T.jornada < CFG.temporada.jornadas && !c.rescindido) rescindir(s, R, 'invierno');
 }
 // El club te rescinde el contrato: indemnización y solo te llaman equipos de una categoría inferior
-function rescindir(s, R, ventana) {
+function rescindir(s, R, ventana, acabado) {
   const F = CFG.rendimiento, c = s.contrato, mi = miClub(s), i = ligaDe(s, mi.id), T = s.temporada;
+  if (acabado) {   // el contrato ya terminaba: no te renuevan (sin indemnización)
+    c.rescindido = true;
+    const ofertas = ofertasRebaja(s, s.edad >= 34 ? 1 : 3);
+    if (!ofertas.length) { retirarse(s, true, R); return; }
+    R.opo.push(['🚪', `El ${mi.nombre} no me renueva (confianza ${confianzaClub(s)}/100).`]);
+    encolar(s, { tipo: 'desenlace', bien: false, titulo: `🚪 El ${mi.nombre} no te renueva`, sub: `Tu contrato acaba y la confianza del club está en ${confianzaClub(s)}/100.`, gana: [], pierde: [],
+      efectos: [ofertas.some(o => ligaDe(s, o.clubId).L.fuerza < i.L.fuerza) ? `Solo te llaman equipos de una categoría inferior a ${i.L.n}` : `Solo te llaman los equipos más flojos de ${i.L.n}`] });
+    encolar(s, { tipo: 'ofertas', ventana, ofertas, rescision: true });
+    return;
+  }
   const ind = c.salario * F.indemnizacion, imp = Math.round(ind * tipoImpuesto(ind));
-  s.p.dinero += ind - imp; R.eco.push([`Indemnización del ${mi.nombre} (${F.indemnizacion} semanas)`, ind - imp]);
+  s.p.dinero += ind - imp; s.acum.impuestos += imp; R.eco.push([`Indemnización del ${mi.nombre} (${F.indemnizacion} semanas)`, ind - imp]);
   const quedan = ventana === 'invierno' && T ? CFG.temporada.jornadas - T.jornada : 0;
   s.p.fel = clamp(s.p.fel - 10, 0, 100); s.p.rep = clamp(s.p.rep - 5, 0, 100);
   c.rescindido = true; c.temporadasRestantes = 0;
-  const ofertas = ofertasRebaja(s, 3), hayInferior = ofertas.some(o => ligaDe(s, o.clubId).L.fuerza < i.L.fuerza);
+  const ofertas = ofertasRebaja(s, s.edad >= 34 ? 1 : 3), hayInferior = ofertas.some(o => ligaDe(s, o.clubId).L.fuerza < i.L.fuerza);
   R.opo.push(['✂️', `El ${mi.nombre} me rescinde el contrato (confianza ${confianzaClub(s)}/100).`]);
   const pierde = [];
   if (quedan) pierde.push([`Sueldo del resto de la temporada (${quedan} semanas)`, c.salario * quedan]);
-  if (c.primaAscenso) pierde.push(['Opción a la prima de ascenso', c.primaAscenso]);
+  if (c.primaAscenso && ventana === 'invierno') pierde.push(['Opción a la prima de ascenso', c.primaAscenso]);
   encolar(s, { tipo: 'desenlace', bien: false, titulo: `✂️ El ${mi.nombre} te rescinde el contrato`, sub: `Demasiados partidos malos: la confianza del club cae a ${confianzaClub(s)}/100.`,
     gana: [[`Indemnización (${F.indemnizacion} semanas de sueldo, neta)`, ind - imp]], pierde,
     efectos: [hayInferior ? `Solo te llaman equipos de una categoría inferior a ${i.L.n}` : `Solo te llaman los equipos más flojos de ${i.L.n}`, '−10 de ánimo y −5 de fama', 'La prensa: «Otro que no aguanta la presión»'] });
+  if (!ofertas.length) { s.cola = s.cola.filter(e => !(e.tipo === 'desenlace' && /rescinde/.test(e.titulo))); if (s.pendiente && s.pendiente.tipo === 'desenlace' && /rescinde/.test(s.pendiente.titulo)) s.pendiente = s.cola.shift() || null; retirarse(s, true, R); return; }
   encolar(s, { tipo: 'ofertas', ventana, ofertas, rescision: true });
 }
 function ofertasRebaja(s, n) {
+  if (s.edad >= CFG.retiro.edadSinOfertas) return [];
   const yo = s.contrato.clubId, f0 = ligaDe(s, yo).L.fuerza, i0 = ligaDe(s, yo);
   const ligaF = id => ligaDe(s, id).L.fuerza;
   let cands = Object.values(s.mundo.clubs).filter(c => c.id !== yo && ligaF(c.id) < f0 - 2 && ligaF(c.id) >= f0 - 16);
@@ -6372,19 +6433,20 @@ function ofertasRebaja(s, n) {
 function rendimientoInd(s, R, c, pos, ronda, mj) {
   const F = CFG.rendimiento, E = s.esc, A = AMBITOS[c.amb];
   if (s.fase !== 'escalador' || ORDEN_AMB.indexOf(c.amb) < 1 || (depDe(s) === 'boxeo' && PRO_BOX.includes(c.amb))) return;
-  if (!A.nacional) return;   // a la federación solo le importan sus competiciones (Copa de Europa, del Mundo, Europeo, Mundial…)
   const bien = ronda !== 'clasificación' || pos <= (A.podio || 3), mal = ronda === 'clasificación' && pos > (A.N || 20) * 0.6;   // malo de verdad: en el 40 % de abajo
-  E.malas = bien ? 0 : (E.malas || 0) + (mal ? 1 : 0) + (mj && !mj.ok ? 1 : 0);
-  if (E.nacional === E.año && E.malas === F.malasNacional - 1) R.opo.push(['⚠️', 'La federación me avisa: otra mala competición y me saca del equipo nacional.']);
-  if (E.nacional === E.año && E.malas >= F.malasNacional) {
+  const suma = (mal ? 1 : 0) + (mj && !mj.ok ? 1 : 0);
+  E.malasCentro = bien ? 0 : (E.malasCentro || 0) + suma;   // el centro de tecnificación mira todas tus competiciones
+  if (A.nacional) E.malas = bien ? 0 : (E.malas || 0) + suma;   // la federación, solo las suyas
+  if (A.nacional && E.nacional === E.año && E.malas >= F.malasNacional - 1 && E.malas < F.malasNacional && !E.avisoNac) { E.avisoNac = true; R.opo.push(['⚠️', 'La federación me avisa: otra mala competición y me saca del equipo nacional.']); }
+  if (E.nacional === E.año && E.malas >= F.malasNacional && !(E.olimpico && E.olimpico.año === E.año)) {
     const semanas = Math.max(0, CFG.hipoteca.semanasAño - s.semanasAño), perdida = E.beca * semanas;
-    E.nacional = 0; E.beca = 0; E.malas = 0; s.p.fel = clamp(s.p.fel - 8, 0, 100);
+    E.nacional = 0; E.beca = 0; E.malas = 0; E.avisoNac = false; s.p.fel = clamp(s.p.fel - 8, 0, 100);
     R.opo.push(['🇪🇸', 'La federación me saca del equipo nacional por malos resultados.']);
     encolar(s, { tipo: 'desenlace', bien: false, titulo: '🇪🇸 Te sacan del equipo nacional', sub: `${F.malasNacional} competiciones seguidas sin pasar el corte.`,
       gana: [], pierde: perdida ? [['Ayuda del equipo nacional (resto del año)', perdida]] : [],
-      efectos: ['Sin viajes pagados ni plaza para Copa de Europa, Copa del Mundo, Europeo y Mundial hasta que te vuelvan a llamar', '−8 de ánimo'] });
-  } else if (E.equipo === 'centro' && E.malas >= F.malasCentro) {
-    E.equipo = 'club'; E.malas = 0; s.p.fel = clamp(s.p.fel - 5, 0, 100);
+      efectos: [`Sin viajes pagados ni plaza para ${AMBITOS.europa.n}, ${AMBITOS.mundo.n}, ${AMBITOS.europeo.n} y ${AMBITOS.mundial.n} hasta que te vuelvan a llamar`, '−8 de ánimo'] });
+  } else if (E.equipo === 'centro' && E.malasCentro >= F.malasCentro) {
+    E.equipo = 'club'; E.malasCentro = 0; s.p.fel = clamp(s.p.fel - 5, 0, 100);
     R.opo.push(['🏛️', 'El centro de tecnificación me da de baja: vuelvo al equipo del club.']);
     encolar(s, { tipo: 'desenlace', bien: false, titulo: '🏛️ El centro de tecnificación te da de baja', sub: 'Demasiadas competiciones malas seguidas.', gana: [], pierde: [],
       efectos: ['Vuelves al equipo del club: entrenas peor (calidad 1,0 en vez de 1,2)', '−5 de ánimo'] });
@@ -6394,11 +6456,11 @@ function rendimientoInd(s, R, c, pos, ronda, mj) {
 function rendimientoBox(s, R, c, pos) {
   const F = CFG.rendimiento, B = s.esc.box;
   if (!B || !PRO_BOX.includes(c.amb)) return;
-  if (B.rank == null) B.rank = B.v - (pos === 1 ? 1 : 0);
+  if (B.rank == null) B.rank = B.v;   // se llama antes de sumar este combate al récord
   if (pos === 1) { B.racha = 0; B.rank++; return; }
   B.racha = (B.racha || 0) + 1;
   if (B.racha === F.boxCastigo) {
-    B.castigo = s.semana + F.boxCastigoSemanas;
+    B.castigo = s.semana + F.boxCastigoSemanas; B.castigoSem = s.semana;
     encolar(s, { tipo: 'desenlace', bien: false, titulo: '📉 Tu promotor te baja de cartel', sub: `${B.racha} derrotas seguidas. Récord ${recordBox(s)}.`, gana: [],
       pierde: [[`Bolsas un ${Math.round((1 - F.boxBolsa) * 100)} % más bajas durante ${Math.round(F.boxCastigoSemanas / 4.33)} meses (aprox.)`, Math.round(premioDe(s, c, 1) * (1 - F.boxBolsa) * 3)]],
       efectos: ['Combates de relleno, lejos de la televisión', 'Una derrota más y sales del ranking'] });
@@ -6438,7 +6500,7 @@ function htmlDesenlaceFin(s, ev) {
 // Individuales: tras una competición con momento decisivo, su desenlace con el dinero delante
 function desenlaceInd(s, c, pos, N, premio, primas, imp, mj) {
   const A = AMBITOS[c.amb], pod = A.podio || 3, F = CFG.desenlace, E = s.esc;
-  const meta = c.amb === 'clasif' ? A.plazas : A.final === 2 ? 1 : pod, logrado = pos <= meta;
+  const meta = c.amb === 'clasif' ? A.plazas : depDe(s) === 'boxeo' && PRO_BOX.includes(c.amb) ? 1 : pod, logrado = pos <= meta;
   const gana = [], pierde = [], efectos = [];
   if (premio) gana.push([`Premio (${pos}º)`, premio]);
   if (c.amb === 'clasif' && pos <= A.plazas) gana.push(['Ayuda de la federación por clasificarte', F.ayudaJuegos]);
@@ -6657,7 +6719,7 @@ function redes(s) { if (!s.redes) s.redes = { seg: CFG.redes.segInicial, feed: [
 function seguidores(s) { return esInd(s) && s.esc ? s.esc.seg : redes(s).seg; }
 function sumarSeg(s, v) { v = Math.round(v); if (esInd(s) && s.esc) s.esc.seg = Math.max(0, s.esc.seg + v); else redes(s).seg = Math.max(0, redes(s).seg + v); return v; }
 const fmtSeg = n => n >= 1e6 ? `${nf(r1(n / 1e6))} M` : n >= 1000 ? `${nf(r1(n / 1000))} mil` : `${n}`;
-const arroba = s => '@' + String(s.nombre || 'tu').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '') + (esInd(s) ? '_climb' : '_' + (s.dorsal || 10));
+const arroba = s => '@' + String(s.nombre || 'tu').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '') + (esInd(s) ? '_' + ({ skate: 'sk8', surf: 'surf', boxeo: 'box' }[s.deporte] || 'climb') : '_' + (s.dorsal || 10));
 function alcance(s) { return 150 + s.p.rep * 25 + seguidores(s) * 0.012; }
 function comentarios(s, tono) {
   const C = CFG.redes.comentarios, l = [].concat(C[tono] || [], C.siempre), out = [];
@@ -6676,7 +6738,7 @@ const POSTS = {
     hacer(s) { const g = postear(s, '📸', azar(s, ['Hoy toca sufrir 💪', 'Entreno de los duros. Mañana más.', 'Sin excusas.']), alcance(s), 'bien'); aplicarFx(s, [['⭐', s.p.rep < 60 ? 1 : 0]]); return `Foto entrenando: +${fmtSeg(g)} seguidores.`; } },
   reto: { ic: '😂', n: 'Reto viral', d: '12 % de hacerse viral (muchos seguidores y fama); 15 % de hacer el ridículo.', fx: () => [['🚀', '12 %: viral'], ['🤡', '15 %: ridículo']],
     hacer(s) { const u = rnd(s), R0 = redes(s);
-      if (u < CFG.redes.probViral) { R0.virales++; const g = postear(s, '🚀', azar(s, ['El reto del balón en la papelera 🗑️⚽', 'Intentando el reto del momento… ¡a la primera!', 'Mi abuela y yo hacemos el baile de moda']), alcance(s) * 8, 'viral'); aplicarFx(s, [['⭐', 3], ['😊', 5]]); return `¡Se hace viral! +${fmtSeg(g)} seguidores, +3 de fama.`; }
+      if (u < CFG.redes.probViral) { R0.virales++; const g = postear(s, '🚀', azar(s, [esInd(s) ? 'El reto del momento… ¡a la primera! 🎯' : `El reto del balón en la papelera 🗑️${TXE.icGol}`, 'Intentando el reto del momento… ¡a la primera!', 'Mi abuela y yo hacemos el baile de moda']), alcance(s) * 8, 'viral'); aplicarFx(s, [['⭐', 3], ['😊', 5]]); return `¡Se hace viral! +${fmtSeg(g)} seguidores, +3 de fama.`; }
       if (u < CFG.redes.probViral + 0.15) { const g = postear(s, '🤡', azar(s, ['Intentando el reto… y me como la pared', 'El baile de moda (no sale como esperaba)']), alcance(s) * 0.3, 'mal'); aplicarFx(s, [['⭐', -2], ['😊', -4]]); return `Haces el ridículo: −2 de fama y −4 de ánimo (+${fmtSeg(g)} seguidores, eso sí).`; }
       const g = postear(s, '😂', azar(s, ['Reto aceptado ✅', 'Probando el reto que me pasasteis']), alcance(s) * 1.5, 'bien'); aplicarFx(s, [['⭐', 1]]); return `Reto cumplido: +${fmtSeg(g)} seguidores.`; } },
   picar: { ic: '🔥', n: 'Picar a tu rival', d: 'Mucho alcance, pero 35 % de polémica (−4 fama, −5 ánimo).', fx: () => [['📈', 'mucho alcance'], ['💥', '35 %: polémica']],
@@ -6684,10 +6746,9 @@ const POSTS = {
       if (rnd(s) < CFG.redes.probPolemica) { redes(s).polemicas++; const g = postear(s, '💥', `${quien}, sigue soñando 😴`, alcance(s) * 2, 'polemica'); aplicarFx(s, [['⭐', -4], ['😊', -5]]); if (r) r.amigo = false; return `Se monta una polémica: −4 de fama y −5 de ánimo (+${fmtSeg(g)} seguidores de curiosos).`; }
       const g = postear(s, '🔥', `A ver si este año ${quien} me alcanza 😏`, alcance(s) * 2.5, 'bien'); aplicarFx(s, [['⭐', 2], ['😊', 2]]); return `Tu pique triunfa: +${fmtSeg(g)} seguidores y +2 de fama.`; } },
   marca: { ic: '🤝', n: 'Publi de tu marca', d: 'Cobras y tu marca te quiere más; da menos seguidores.', bloqueo: s => (s.patros || []).length ? null : 'Necesitas un patrocinador.', fx: s => [['€', pagoPost(s)], ['🤝', '+6 relación']],
-    hacer(s) { const pt = s.patros[0], v = pagoPost(s); for (const p of s.patros) p.rel = Math.min(100, p.rel + 6); s.p.dinero += v; const g = postear(s, '🤝', `Con ${pt.marca} todo sale mejor ${pt.ic} #publi`, alcance(s) * 0.7, 'publi'); return `Publi de ${pt.marca}: +${cr(v)} y tus marcas, contentas (+${fmtSeg(g)} seguidores).`; } },
+    hacer(s) { const pt = s.patros[0], v = pagoPost(s); for (const p of s.patros) p.rel = Math.min(100, p.rel + 6); const g = postear(s, '🤝', `Con ${pt.marca} todo sale mejor ${pt.ic} #publi`, alcance(s) * 0.7, 'publi'); return `Publi de ${pt.marca}: +${cr(v)} y tus marcas, contentas (+${fmtSeg(g)} seguidores).`; } },
   personal: { ic: '🏡', n: 'Tu vida personal', d: '+4 de ánimo; 10 % de salir en la prensa rosa.', fx: () => [['😊', 4], ['📰', '10 %: prensa rosa']],
     hacer(s) { const pa = rel(s, 'pareja'), txt = pa ? `Domingo con ${pa.nombre} ❤️` : azar(s, ['Comida de domingo con la familia 🥘', 'Con los de siempre 🍻', 'Mi perro manda en casa 🐶']);
-      aplicarFx(s, [['😊', 4]]);
       if (rnd(s) < 0.1) { const g = postear(s, '📰', txt, alcance(s) * 1.6, 'rosa'); aplicarFx(s, [['⭐', 1], ['😊', -3]]); return `La prensa rosa se hace eco: +1 de fama, pero te agobia (+${fmtSeg(g)} seguidores).`; }
       const g = postear(s, '🏡', txt, alcance(s) * 1.2, 'bien'); return `Publicas un momento personal: +4 de ánimo y +${fmtSeg(g)} seguidores.`; } },
 };
@@ -6718,7 +6779,7 @@ function usosFama(s) {
     if (s.fase === 'barrio') u(CFG.barrio.repOjeador, 'Un ojeador viene a verte');
     u(0, 'Los clubes piden fama para ficharte y renovarte (cada club, la suya)');
     u(0, `Negociar el sueldo: tu fama es la probabilidad de que acepten (entre ${CFG.negociacion.probMin} y ${CFG.negociacion.probMax} %)`);
-    u(30, 'Un representante quiere llevar tu carrera'); u(40, 'Te pueden nombrar capitán'); u(45, 'Selección sub-21 (hasta los 21 años)'); u(60, 'Anuncios de televisión');
+    u(30, 'Un representante quiere llevar tu carrera'); u(40, 'Te pueden nombrar capitán'); u(45, `Selección ${TXE.sub || 'sub-21'}`); u(60, 'Anuncios de televisión');
   } else {
     if (s.fase === 'rocodromo') u(CFG.escalada.repEquipo, 'Un equipo de competición te ficha');
     u(30, 'El seleccionador te llama'); u(50, 'Expediciones pagadas'); u(65, 'Invitación a los Másteres internacionales'); u(70, 'Documental sobre tu vida');
@@ -6963,7 +7024,7 @@ function htmlGeneracion(s) {
   if (!l.length) return '';
   const dinero = Math.min(K.herenciaMax, Math.max(0, red(patrimonio(s) * K.herenciaPct, 100)));
   return `<div class="sec">👪 Siguiente generación</div><div class="card"><p class="small">Tu vida entra en el salón de la fama y sigues jugando con tu hijo o hija desde el principio: hereda ${cr(dinero)} y un apellido conocido (+${Math.round(s.p.rep * K.famaPct)} de fama).</p>
-    ${l.map(h => `<button class="btn g full" data-act="generacion" data-id="${h.id}">▶ Jugar como ${esc(h.nombre)} (${h.edad} años)</button>`).join('')}</div>`;
+    ${l.map(h => `<button class="btn g full" data-act="generacion" data-id="${h.id}">▶ Jugar como ${esc(h.nombre)}</button>`).join('')}</div>`;
 }
 
 // ---- Sonido (generado en el propio juego, sin archivos) ----
@@ -7167,6 +7228,7 @@ let nombresDe = null;
 const NOMBRES_NEG_BASE = Object.fromEntries(Object.entries(CFG.negocios).map(([k, N]) => [k, { n: N.n, ic: N.ic }]));
 const NOMBRES_NEG = {
   basket: { academia: { n: 'Academia de baloncesto', ic: '🏀' } },
+  escalada: { academia: { n: 'Academia deportiva', ic: '🏅' } },
 };
 function aplicarNombres(dep) {
   const pl = ACCIONES.plaza; Object.assign(pl, TXE.plaza); pl.t = `${pl.ic} ${pl.n}`;
@@ -7387,7 +7449,7 @@ function pantallasInd(T) {
       obj: [['Consigue un patrocinador', s => s.patros.length || s.fase === 'retirado' ? 1 : 0],
             o(`Podio en España o ${T.grado(14)} ${T.enRoca}`, 'Podio en España', s => mejorEsp(s) <= 3 ? 1 : r(s) / 15, s => mejorEsp(s) <= 3 ? 1 : 0)] },
     { n: 'Profesional', ic: T.ic, premio: [['€', 5000]], desbloquea: `Peluquería, cafetería y ${T.tienda}`,
-      obj: [o(`Entra en el equipo nacional o ${T.verbo.toLowerCase()} ${T.grado(16)} ${T.enRoca}`, 'Entra en el equipo nacional', s => s.esc.nacional || s.esc.mejor.mundo ? 1 : r(s) / 17, s => s.esc.nacional || s.esc.mejor.mundo ? 1 : 0), ['Compra tu primer negocio', s => s.negocios.length ? 1 : 0]] },
+      obj: [o(`Entra en el equipo nacional o ${T.verbo.toLowerCase()} ${T.grado(16)} ${T.enRoca}`, 'Entra en el equipo nacional', s => s.esc.nacional || s.esc.fueNacional || s.esc.mejor.mundo ? 1 : r(s) / 17, s => s.esc.nacional || s.esc.fueNacional || s.esc.mejor.mundo ? 1 : 0), ['Compra tu primer negocio', s => s.negocios.length ? 1 : 0]] },
     { n: T.mundo, ic: '🌍', premio: [['€', 10000]], desbloquea: `Inmobiliaria con hipotecas, ${T.recinto}, lavandería y academia`,
       obj: [[`Compite ${T.enMundo}`, s => s.esc.mejor.mundo ? 1 : 0],
             o(`Semifinal en ${T.mundo}, ${T.grado(17)} ${T.enRoca} o 2 negocios`, `Semifinal en ${T.mundo} o 2 negocios`, s => (s.esc.mejor.mundo || 99) <= 24 || s.negocios.length >= 2 ? 1 : Math.max(r(s) / 18, s.negocios.length / 2), s => (s.esc.mejor.mundo || 99) <= 24 || s.negocios.length >= 2 ? 1 : s.negocios.length / 2),
@@ -7399,7 +7461,7 @@ function pantallasInd(T) {
       obj: [o(`Clasifícate para unos Juegos, ${T.grado(20)} ${T.enRoca} o 4 negocios`, 'Clasifícate para unos Juegos o ten 4 negocios', s => s.esc.olimpico || s.negocios.length >= 4 ? 1 : Math.max(r(s) / 21, s.negocios.length / 4), s => s.esc.olimpico || s.negocios.length >= 4 ? 1 : s.negocios.length / 4),
             ['Llega a 300.000 € de patrimonio', s => patrimonio(s) / 300000]] },
     { n: T.leyenda, ic: T.icLeyenda, premio: [['€', 100000]], desbloquea: 'Hotel con encanto',
-      obj: [[`Retírate de la competición (desde los ${CFG.escalada.edadRetiro} años)`, s => s.fase === 'retirado' ? 1 : Math.min(0.9, s.edad / CFG.escalada.edadRetiro)],
+      obj: [[`Retírate de la competición (desde los ${T.edadRetiro || CFG.escalada.edadRetiro} años)`, s => s.fase === 'retirado' ? 1 : Math.min(0.9, s.edad / CFG.escalada.edadRetiro)],
             [T.huella, roca ? s => s.esc.medallas.length || s.esc.fa || s.esc.maxVia >= 21 || s.negocios.length >= 6 ? 1 : Math.max(s.negocios.length / 6, Math.max(0, s.esc.maxVia + 1) / 22) : s => s.esc.medallas.length || (s.esc.mejor.mundial || 99) === 1 || s.negocios.length >= 6 ? 1 : s.negocios.length / 6],
             ['Llega a 1.000.000 € de patrimonio', s => patrimonio(s) / 1000000]] },
     { n: 'Vida después', ic: '🏆', premio: [['😊', 20]], desbloquea: '¡Has completado el juego!',
@@ -7537,7 +7599,7 @@ PAQ.skate = paqueteInd({
     encadeno: 'Saco', encadenado: 'Truco sacado', encadenoInf: 'Sacar', enRoca: 'en la calle', secEnvios: 'Trucos sacados en spots', zonasDe: 'spots de',
     tipos: { via: ['🛹', 'Street', 'street'], bloque: ['🌀', 'Bowl', 'bowl'] },
     resumenNivel: s => `En la calle: ${gV(s.esc.maxVia)} · En bowl: ${gB(s.esc.maxBloque)} · En el skatepark: ${gV(idxVia(nivelMod(s, 'street')))} / ${gB(idxBloque(nivelMod(s, 'park')))}`,
-    rocaAyuda: 'Cambiar de truco empieza de cero. Sacar un truco nuevo en un spot da reputación (más a partir del 360 flip), seguidores y, con algunos patrocinadores, primas.',
+    rocaAyuda: 'Cambiar de truco empieza de cero. Sacar un truco nuevo en un spot da reputación (sobre todo a partir del feeble grind), seguidores y, con algunos patrocinadores, primas.',
     compAyuda: s => `Premios: Copa y Campeonato de España 500, 300 y 200 €; Pro Tour mundial 8.000, 7.000 y 5.000 €; Juegos Extremos por invitación hasta 4.000 €. Copa y Campeonato de España: abiertos a quien tenga licencia. Copa de Europa, Pro Tour, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos de Verano: ${SEDES_JJOO[2028] ? 'Los Ángeles, Brisbane…' : ''} en street y park, con plaza en el clasificatorio (top 10).`,
     secGrados: 'Trucos', gradosAyuda: () => `Street: ${GRADOS_VIA.join(' · ')}.<br>Bowl: ${GRADOS_BLOQUE.join(' · ')}.<br>El skate entró en los Juegos en 2021.`,
     finMax: ev => `📍 Mejor truco en la calle: <b>${gV(ev.maxVia)}</b> · en bowl: <b>${gB(ev.maxBloque)}</b>.`,
@@ -7569,7 +7631,7 @@ PAQ.skate = paqueteInd({
     },
   },
 });
-PAQ.skate.PANTALLAS_ESC = pantallasInd({ p1: 'El skatepark del barrio', ic: '🛹', obj1: `Saca un ${GRADOS_STREET[4]} en el skatepark`, f1: s => idxVia(nivelMod(s, 'street')) / 4,
+PAQ.skate.PANTALLAS_ESC = pantallasInd({ edadRetiro: PAQ.skate.CFG_IND.edadRetiro, p1: 'El skatepark del barrio', ic: '🛹', obj1: `Saca un ${GRADOS_STREET[4]} en el skatepark`, f1: s => idxVia(nivelMod(s, 'street')) / 4,
   verbo: 'Saca', grado: iv => `${GRADOS_STREET[iv]}`, enRoca: 'en la calle', mundo: 'Pro Tour mundial', enMundo: 'en el Pro Tour mundial', escuela: 'Escuela de skate', tienda: 'skate shop',
   recinto: 'skatepark cubierto', marca: 'Marca de tablas', leyenda: 'Leyenda del skate', icLeyenda: '🛹', huella: `Deja huella: medalla, un truco nunca visto, ${GRADOS_STREET[21]} o 6 negocios` });
 NOMBRES_NEG.skate = { academia: { n: 'Academia deportiva', ic: '🏅' }, escuelaEsc: { n: 'Escuela de skate', ic: '🛹' }, tiendaEsc: { n: 'Skate shop', ic: '🛍️' }, rocodromo: { n: 'Skatepark cubierto', ic: '🏟️' }, marcaPresas: { n: 'Marca de tablas', ic: '🛹' } };
@@ -7750,7 +7812,7 @@ PAQ.surf = paqueteInd({
     tipos: { via: ['🌊', 'Olas grandes', 'olas grandes'], bloque: ['🌀', 'Tubos y maniobras', 'tubos'] },
     malas: () => 'malas (mar plano o tormenta)',
     resumenNivel: s => `Ola más grande: ${gV(s.esc.maxVia)} · Mejor maniobra: ${gB(s.esc.maxBloque)} · En tu playa: ${gV(idxVia(nivelMod(s, 'grandes')))} / ${gB(idxBloque(nivelMod(s, 'shortboard')))}`,
-    rocaAyuda: 'Cambiar de ola empieza de cero. Surfear una ola más grande (o un tubo mejor) da reputación (más a partir de 9 m), seguidores y, con algunos patrocinadores, primas. Cada ola rompe en su temporada.',
+    rocaAyuda: 'Cambiar de ola empieza de cero. Surfear una ola más grande (o un tubo mejor) da reputación (sobre todo a partir de 11 m), seguidores y, con algunos patrocinadores, primas. Cada ola rompe en su temporada.',
     compAyuda: s => `Premios: Circuito español y Campeonato de España 500, 300 y 200 €; Circuito de Élite 8.000, 7.000 y 5.000 €; desafíos de olas grandes por invitación hasta 4.000 €. Circuito y Campeonato de España: abiertos a quien tenga licencia. Circuito de Clasificación, Circuito de Élite, Mundiales y Europeos: solo con el equipo nacional (que paga el viaje). Juegos de Verano: ${SEDES_JJOO[2028] ? 'Los Ángeles, Brisbane…' : ''} en shortboard, con plaza en el clasificatorio (top 10).`,
     secGrados: 'Olas y maniobras', gradosAyuda: () => `Olas grandes: ${GRADOS_VIA.join(' · ')}.<br>Maniobras: ${GRADOS_BLOQUE.join(' · ')}.<br>La ola más grande surfeada mide unos 26 metros (Nazaré, 2020).`,
     finMax: ev => `🌊 Ola más grande: <b>${gV(ev.maxVia)}</b> · mejor maniobra: <b>${gB(ev.maxBloque)}</b>.`,
@@ -7782,7 +7844,7 @@ PAQ.surf = paqueteInd({
     },
   },
 });
-PAQ.surf.PANTALLAS_ESC = pantallasInd({ p1: 'La playa del barrio', ic: '🏄', obj1: `Haz un ${GRADOS_MANIOBRA[4].toLowerCase()} en tu playa`, f1: s => idxBloque(nivelMod(s, 'shortboard')) / 4,
+PAQ.surf.PANTALLAS_ESC = pantallasInd({ edadRetiro: PAQ.surf.CFG_IND.edadRetiro, p1: 'La playa del barrio', ic: '🏄', obj1: `Haz un ${GRADOS_MANIOBRA[4].toLowerCase()} en tu playa`, f1: s => idxBloque(nivelMod(s, 'shortboard')) / 4,
   verbo: 'Surfea una ola de', grado: iv => GRADOS_OLA[iv], enRoca: 'en olas grandes', mundo: 'Circuito de Élite', enMundo: 'en el Circuito de Élite', escuela: 'Escuela de surf', tienda: 'surf shop',
   recinto: 'piscina de olas', marca: 'Marca de tablas de surf', leyenda: 'Leyenda del surf', icLeyenda: '🌊', huella: 'Deja huella: medalla, una ola virgen, una ola de 22 m o 6 negocios' });
 NOMBRES_NEG.surf = { academia: { n: 'Academia deportiva', ic: '🏅' }, escuelaEsc: { n: 'Escuela de surf', ic: '🏄' }, tiendaEsc: { n: 'Surf shop', ic: '🛍️' }, rocodromo: { n: 'Piscina de olas', ic: '🌊' }, marcaPresas: { n: 'Marca de tablas de surf', ic: '🏄' } };
@@ -7943,7 +8005,7 @@ PAQ.boxeo = paqueteInd({
     accNo: ['roca'],
     // Combates: rivales de tu nivel en las veladas; títulos con requisitos; bolsas según tu fama
     media: (s, c, L) => c.amb === 'europa' ? Math.max(40, L - 2) : AMBITOS[c.amb].media - (s.edad < 20 && AMBITOS[c.amb].juvenil ? CFG.escalada.juvenilMenos : 0),
-    premio: (s, c, pos) => { const A = AMBITOS[c.amb], b = A.premio[pos - 1] || 0, B = s.esc && s.esc.box, castigo = B && B.castigo > s.semana ? CFG.rendimiento.boxBolsa : 1; return PRO_BOX.includes(c.amb) ? red(b * (1 + s.p.rep / 100) * castigo, 100) : b; },
+    premio: (s, c, pos) => { const A = AMBITOS[c.amb], b = A.premio[Math.min(pos, A.podio === 4 ? 3 : pos) - 1] || 0, B = s.esc && s.esc.box, castigo = B && B.castigo > s.semana ? CFG.rendimiento.boxBolsa : 1; return PRO_BOX.includes(c.amb) ? red(b * (1 + s.p.rep / 100) * castigo, 100) : b; },
     req: (s, c) => {
       if (!PRO_BOX.includes(c.amb)) return undefined;
       const E = s.esc, B = E.box || { v: 0 };
@@ -7958,9 +8020,13 @@ PAQ.boxeo = paqueteInd({
       E.carga = clamp(E.carga + (pos === 1 ? 6 : 14), 0, 100);
       if (!PRO_BOX.includes(c.amb)) return;
       rendimientoBox(s, R, c, pos);
-      if (pos === 1) { E.box.v++; if (/KO/.test(marca)) E.box.ko++; } else { E.box.d++; if (/KO/.test(marca)) { E.box.kod++; if (rnd(s) < 0.5) { s.lesion = Math.max(s.lesion, 2 + Math.floor(rnd(s) * 3)); E.lesTipo = 'conmoción tras el KO'; } } }
+      if (pos === 1) { E.box.v++; if (/KO/.test(marca)) E.box.ko++; } else { E.box.d++; if (/KO/.test(marca)) { E.box.kod++; if (rnd(s) < 0.5) { s.lesion = Math.max(s.lesion, 3 + Math.floor(rnd(s) * 3)); E.lesTipo = 'conmoción tras el KO'; } } }
     },
     cambioPuesto: (s, ev, nuevo) => { const B = s.esc.box; if (!B || !PRO_BOX.includes(ev.amb) || nuevo === ev.pos) return; if (nuevo === 1) { B.v++; B.d--; } else { B.v--; B.d++; }
+      if (nuevo === 1) { B.racha = 0; if (B.rank != null) B.rank++;
+        if (B.castigoSem === ev.semana) { B.castigo = 0; B.castigoSem = 0; s.cola = s.cola.filter(e => !(e.tipo === 'desenlace' && /promotor|ranking/.test(e.titulo))); }
+        if (s.esc.lesTipo === 'conmoción tras el KO') { s.lesion = 0; s.esc.lesTipo = ''; } }
+      else { B.racha = (B.racha || 0) + 1; if (B.rank) B.rank--; }
       const pm = s.esc.palmares.find(x => x.año === ev.año && x.n === ev.nombre && x.pos === ev.pos); if (pm) pm.marca = nuevo === 1 ? 'remontada: gana en el último asalto' : 'pierde en el último asalto'; },
     nombreComp: (c, juv) => PRO_BOX.includes(c.amb) ? AMBITOS[c.amb].n : `${AMBITOS[c.amb].n}${juv}`,
     lineaComp: (s, c, pos, N, marca, dRep, nombre) => PRO_BOX.includes(c.amb) ? `${nombre} (${c.lugar}): ${marca}. Récord ${recordBox(s)}.${dRep ? ` +${dRep} reputación.` : ''}` : `${nombre} (${c.lugar}): ${marca}.${dRep ? ` +${dRep} reputación.` : ''}`,
@@ -7987,7 +8053,7 @@ PAQ.boxeo = paqueteInd({
     },
   },
 });
-PAQ.boxeo.PANTALLAS_ESC = pantallasInd({ roca: false, p1: 'El gimnasio del barrio', ic: '🥊', obj1: 'Aguanta tus primeros guantes (nivel amateur 35)', f1: s => nivelMod(s, 'amateur') / 35,
+PAQ.boxeo.PANTALLAS_ESC = pantallasInd({ edadRetiro: PAQ.boxeo.CFG_IND.edadRetiro, roca: false, p1: 'El gimnasio del barrio', ic: '🥊', obj1: 'Aguanta tus primeros guantes (nivel amateur 35)', f1: s => nivelMod(s, 'amateur') / 35,
   verbo: '', grado: () => '', enRoca: '', mundo: 'Copa del Mundo', enMundo: 'en la Copa del Mundo', escuela: 'Escuela de boxeo', tienda: 'tienda de material de boxeo',
   recinto: 'gimnasio de boxeo', marca: 'Marca de guantes', leyenda: 'Leyenda del boxeo', icLeyenda: '🥊', huella: 'Deja huella: medalla, título mundial o 6 negocios' });
 NOMBRES_NEG.boxeo = { academia: { n: 'Academia deportiva', ic: '🏅' }, escuelaEsc: { n: 'Escuela de boxeo', ic: '🥊' }, tiendaEsc: { n: 'Tienda de material de boxeo', ic: '🛍️' }, rocodromo: { n: 'Gimnasio de boxeo', ic: '🥊' }, marcaPresas: { n: 'Marca de guantes', ic: '🥊' } };

@@ -453,12 +453,37 @@ Vender cuesta un 5 % de comisión.
 
 **Clubes:** valor = 250.000 € × e^((fuerza − 45) / 6) (un club de 5ª vale unos 200.000 €; uno de
 1ª, decenas de millones). Caja inicial: 10 % del valor. Ingresos semanales 0,5 % del valor (entradas
-baratas −5 % y +1 reputación/semana; caras +8 % y −1 reputación/semana). Gastos 0,48 % + inversión
+baratas −5 % y +1 reputación cada 6 semanas; caras +8 % y −1 reputación cada 6 semanas). Gastos 0,48 % + inversión
 (media 0,2 %: +0,05 fuerza/semana; alta 0,5 %: +0,12). Si eres dueño del club en el que juegas: +3 en
 la selección.
 
 **Patrimonio** = tu dinero + cajas y valor de negocios + valor de casas y coches + cajas y valor de clubes.
 Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven con los botones de traspaso.
+
+### 6t. Revisión exhaustiva (todo el juego)
+
+Cuatro revisiones por áreas (motor de equipo, motor individual, vida y economía, interfaz y textos) jugando
+los 6 deportes a 390 y 320 px. Lo corregido:
+
+- **Competición individual:** el momento decisivo va ligado a su competición; boxeo con ranking, castigo y
+  «medalla» bien contados; nada de momento tras un KO ni en la última semana del año; beca solo en finales.
+- **Competición por equipos:** mejoras de contrato ligadas a su club; primas del momento netas de impuestos;
+  si ganas el momento pero el equipo pierde, no hay premio; si el contrato acaba con poca confianza, el club
+  no te renueva (sin indemnización).
+- **Retirada:** al retirarte, los objetivos deportivos de la pantalla cuentan como cumplidos (antes podías
+  quedarte bloqueado para siempre sin poder comprar negocios ni casas).
+- **Trampas cerradas:** comprar y vender coches ya no da fama infinita (la fama y la felicidad solo cuentan
+  la primera vez de cada tipo y se vende al 85 %); la publi en redes ya no se cobra dos veces; vender el piso
+  por oferta descuenta la hipoteca; el banco no subasta casas que no tapan la deuda; «la afición pide un
+  fichaje» respeta el tope de fuerza; la fama por precio de entradas va poco a poco.
+- **Cuentas:** comisiones e intereses del banco ya no se cuentan dos veces; «Recurrir la multa» exige tener
+  los 300 € por si pierdes; la tienda de negocios dice lo que gana (o pierde) un negocio recién abierto.
+- **Textos:** nada de «fútbol» en baloncesto ni «_climb» en skate, surf o boxeo; selección sub-20 en
+  baloncesto; «Academia deportiva» en escalada; aniversario solo tras un año de pareja.
+- **Interfaz:** botones legibles en skate, surf y boxeo (texto oscuro sobre amarillo); no se parten palabras
+  en el inicio; el objetivo de la pantalla ocupa hasta 2 líneas; la etiqueta «Parte» ya no sale pegada; el
+  título de copia de seguridad se ve; botones de cabecera y colores más grandes; el modo pruebas va plegado.
+
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
