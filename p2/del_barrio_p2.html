@@ -426,6 +426,25 @@ textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; ma
 .trofeos > div { background: linear-gradient(160deg, #fff4cc, #fff); border: 2px solid #ffe08a; border-radius: 14px; padding: 6px 2px; text-align: center; min-width: 0; }
 .trofeos span { display: block; font-size: 22px; } .trofeos b { display: block; font-size: 14px; overflow-wrap: anywhere; } .trofeos small { display: block; font-size: 10px; color: var(--dim); font-weight: 800; line-height: 1.1; }
 
+/* Inversiones desbloqueables */
+.invHead { border-top: 6px solid var(--c-emp); }
+.inv { background: #fff; border-radius: 20px; padding: 12px 14px; margin: 8px 0; box-shadow: 0 5px 0 rgba(20,10,70,.45); border-left: 6px solid var(--c-emp); }
+.invTop { display: flex; gap: 10px; align-items: center; }
+.invIc { width: 52px; height: 52px; flex: none; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 30px; background: linear-gradient(150deg, #d8fbf7, #b4efe8); }
+.invTop b { display: block; font-size: 16px; line-height: 1.2; }
+.inv .chip { margin-top: 3px; }
+.inv.tuya .chip { background: #dcf6fb; color: #087a93; }
+.inv.disp { border-left-color: var(--gold); box-shadow: 0 5px 0 rgba(20,10,70,.45), 0 0 0 2px var(--gold) inset; }
+.inv.disp .chip { background: #fff1c0; color: #6b4a00; }
+.inv.bloq .invIc { filter: grayscale(.7); opacity: .7; }
+.inv.iotra, .inv.iprox { background: rgba(255,255,255,.1); box-shadow: none; border-left-color: rgba(255,255,255,.25); color: rgba(255,255,255,.8); }
+.inv.iotra .small, .inv.iprox .small { color: rgba(255,255,255,.65); }
+.inv.iotra .invIc, .inv.iprox .invIc { background: rgba(255,255,255,.1); filter: grayscale(1); }
+.inv.iotra .chip, .inv.iprox .chip { background: rgba(255,255,255,.15); color: #fff; }
+.inv.iprox .kv { border-color: rgba(255,255,255,.15); }
+.reqs { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; font-size: 13px; color: var(--dim); }
+.reqs .ok { color: #087a93; font-weight: 800; }
+
 </style>
 </head>
 <body>
@@ -818,7 +837,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
-      secciones: ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
+      secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
       deseoActual: null,               // objetivo personal de la Tienda (lista de deseos)
@@ -2428,6 +2447,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     { id: 'liga', ic: '📊', n: 'Liga', grupo: 'carrera', cond: s => !!s.temporada, d: 'La clasificación, tu equipo y tu contrato.' },
     { id: 'marcas', ic: '🤝', n: 'Marcas', grupo: 'carrera', cond: s => !!s.hitos.contrato, d: 'Patrocinadores: contratos con prima, pago semanal y actos.' },
     { id: 'tienda', ic: '🛍️', n: 'Tienda', grupo: 'imperio', cond: () => true },
+    { id: 'inversiones', ic: '📈', n: 'Inversiones', grupo: 'imperio', cond: () => true },
     { id: 'empresa', ic: '💼', n: 'Empresa', grupo: 'imperio', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
     { id: 'patrimonio', ic: '💰', n: 'Patrimonio', grupo: 'imperio', cond: () => true },
     { id: 'personaje', ic: '🧍', n: 'Personaje', grupo: 'perfil', cond: () => true },
@@ -2436,7 +2456,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
   const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'vida', ic: '❤️', n: 'Vida' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
-  const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'];
+  const BASICAS = ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {
     s.secciones = Array.isArray(s.secciones) ? s.secciones : BASICAS.slice();
@@ -4041,7 +4061,31 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (precio >= 5000 && !(s.sucesosVistos || {}).padreGasto) prog(s, 3, 'padreGasto');
   }
 
-  Object.assign(P2, { quiero, deseable, revisarDeseo, COLECCIONES, progresoColeccion, revisarColecciones, anotarHistoria, miHistoria, EVENTOS_POSESION, alComprar });
+  // ---------- Inversiones como desbloqueables: se ven desde el principio, se abren jugando ----------
+  const INVERSIONES_FUTURAS = [
+    { id: 'restaurante', ic: '🍽️', n: 'Restaurante', coste: 60000, d: 'Más clientes, más personal y más riesgo que una peluquería.' },
+    { id: 'gimnasio', ic: '🏋️', n: 'Cadena de gimnasios', coste: 120000, d: 'Tu fama de deportista vende abonos.' },
+    { id: 'inmuebles', ic: '🏘️', n: 'Pisos en alquiler', coste: 200000, d: 'Ingresos estables cada mes.' },
+    { id: 'club', ic: '⚽', n: 'Comprar un club', coste: 2000000, d: 'El sueño: presidir tu propio equipo.' },
+  ];
+  function inversiones(s) {
+    const h = s.hitos, jug = Math.min(s.stats.jugados, 10);
+    const pelu = {
+      id: 'peluqueria', grupo: 'primera', ic: '💈', n: 'Peluquería en traspaso', coste: P2.capitalNecesario('peluqueria', 0, s), desde: true,
+      d: 'Tu primera empresa: precios, personal, caja y crisis. Tu dinero y el de la empresa van por separado.',
+      estado: h.empresa || s.negocios.length ? 'tuya' : P2.mercadoAbierto(s) ? 'disponible' : 'bloqueada',
+      reqs: [{ t: 'Firma tu primer patrocinador', ok: !!h.patro }, { t: `…o juega 10 partidos como profesional (${h.contrato ? jug : 0}/10)`, ok: !!h.contrato && s.stats.jugados >= 10 }],
+    };
+    const seg = P2.OPORTUNIDADES.map(o => ({
+      id: o.id, grupo: 'segunda', ic: o.ic, n: o.n, coste: o.coste, d: o.d,
+      estado: s.oportunidad === o.id ? 'tuya' : s.oportunidad ? 'otra' : h.rentable ? 'disponible' : 'bloqueada',
+      reqs: [{ t: 'Compra tu primera empresa', ok: !!h.empresa }, { t: 'Mantenla rentable 6 semanas seguidas', ok: !!h.rentable }],
+    }));
+    const fut = INVERSIONES_FUTURAS.map(x => Object.assign({ grupo: 'futura', estado: 'proximamente', reqs: [{ t: 'Capítulos futuros', ok: false }] }, x));
+    return [pelu].concat(seg, fut);
+  }
+
+  Object.assign(P2, { INVERSIONES_FUTURAS, inversiones, quiero, deseable, revisarDeseo, COLECCIONES, progresoColeccion, revisarColecciones, anotarHistoria, miHistoria, EVENTOS_POSESION, alComprar });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 20_ui.js =====
@@ -4147,7 +4191,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function avisos(s) {
     const avisoEmp = s.negocios.some(n => n.crisis) || (!s.negocios.length && !P2.bloqueoCompra(s, 'peluqueria', 0)) || (s.oportunidadAbierta && !s.oportunidad);
     const avisoMarcas = s.fase === 'club' && MARCAS.some(M => !P2.bloqueoMarca(s, M));
-    return { semana: s.pendiente && ui.vista !== 'semana', empresa: avisoEmp, marcas: avisoMarcas };
+    const avisoInv = P2.inversiones(s).some(x => x.estado === 'disponible' && (x.grupo === 'segunda' || !s.negocios.length));
+    return { semana: s.pendiente && ui.vista !== 'semana', empresa: avisoEmp, marcas: avisoMarcas, inversiones: avisoInv };
   }
   function htmlNav(s) {
     const vis = P2.seccionesVisibles(s), av = avisos(s), nuevas = s.seccionesNuevas || [], g0 = grupoDe(ui.vista);
@@ -4216,7 +4261,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const vis = P2.seccionesVisibles(s).map(x => x.id);
     const t = [['relaciones', '❤️', 'Relaciones', 'rel'], ['tienda', '🛍️', 'Tienda', 'tienda'], vis.includes('empresa') ? ['empresa', '💼', 'Empresa', 'emp'] : null, vis.includes('liga') ? ['liga', '📊', 'Liga', 'dep'] : ['hitos', '🏅', 'Hitos', 'dep']].filter(Boolean);
     return `<div class="accesos">${t.map(([v, ic, n, c]) => `<button class="acc c-${c}" data-act="vista" data-v="${v}"><span>${ic}</span>${n}${(s.seccionesNuevas || []).includes(v) ? '<em>Nuevo</em>' : ''}</button>`).join('')}
-      ${vis.includes('empresa') ? '' : '<div class="acc lock"><span>🔒</span>Empresa</div>'}</div>`;
+      ${vis.includes('empresa') ? '' : '<button class="acc lock" data-act="vista" data-v="inversiones"><span>🔒</span>Inversiones</button>'}</div>`;
   }
 
   // ---------- SITUACIÓN ----------
@@ -4516,6 +4561,23 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       ${grupos.map(([n, tipos]) => { const g = l.filter(R => tipos.includes(R.tipo)); return g.length ? `<div class="sec"><span>${n}</span></div>${g.map(card).join('')}` : ''; }).join('')}`;
   }
 
+  // ---------- 📈 INVERSIONES: el camino de deportista a empresario, visible desde el principio ----------
+  function htmlInversiones(s) {
+    const l = P2.inversiones(s), emp = P2.seccionesVisibles(s).some(x => x.id === 'empresa');
+    const EST = { tuya: ['✅ Tuya', 'tuya'], disponible: ['🔓 Disponible', 'disp'], bloqueada: ['🔒 Bloqueada', 'bloq'], otra: ['Elegiste otra', 'iotra'], proximamente: ['🔒 Próximamente', 'iprox'] };
+    const card = x => {
+      const [et, ec] = EST[x.estado], p = Math.min(100, Math.round(100 * Math.max(0, s.p.dinero) / x.coste));
+      return `<div class="inv ${ec}"><div class="invTop"><span class="invIc">${x.ic}</span><div><b>${esc(x.n)}</b><span class="chip">${et}</span></div></div>
+        <p class="small">${esc(x.d)}</p>
+        ${x.estado === 'proximamente' ? `<p class="small">💶 Unos ${esc(eur(x.coste))}</p>` : x.estado !== 'tuya' && x.estado !== 'otra' ? `<div class="kv"><span>💶 Necesitas ${x.desde ? 'desde ' : ''}${esc(eur(x.coste))}</span><b>${p} %</b></div><div class="barra"><i style="width:${Math.max(2, p)}%"></i></div>` : ''}
+        ${x.estado === 'bloqueada' ? `<div class="reqs">${x.reqs.map(r => `<span class="${r.ok ? 'ok' : ''}">${r.ok ? '✅' : '⬜'} ${esc(r.t)}</span>`).join('')}</div>` : ''}
+        ${(x.estado === 'disponible' || x.estado === 'tuya') && emp ? `<button class="btn ${x.estado === 'tuya' ? 'w' : ''} full" data-act="vista" data-v="empresa">${x.estado === 'tuya' ? '💼 Gestionar' : '💼 Ver en Empresa'}</button>` : ''}</div>`;
+    };
+    const grupo = (g, t, extra) => { const x = l.filter(i => i.grupo === g); return `<div class="sec"><span>${t}</span>${extra ? `<span>${extra}</span>` : ''}</div>${x.map(card).join('')}`; };
+    return `<div class="card invHead"><h2>📈 Inversiones</h2><p class="small">Tu camino de deportista a empresario. Todo se desbloquea jugando: aquí ves qué viene y qué te falta.</p></div>
+      ${grupo('primera', '1 · Tu primera empresa')}${grupo('segunda', '2 · Segunda inversión', 'eliges una')}${grupo('futura', '3 · Más adelante')}`;
+  }
+
   // ---------- 💰 PATRIMONIO ----------
   function htmlPatrimonio(s) {
     const pos = P2.valorPosesiones(s), emp = s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0), soc = s.socio && !s.socio.vendida ? s.socio.valor : 0;
@@ -4626,7 +4688,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
     const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlExtrasInicio(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
-      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria }[ui.vista] || (() => '');
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
     if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
     const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';

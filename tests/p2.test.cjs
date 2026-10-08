@@ -229,7 +229,7 @@ function enClub(oferta = 'puerto', seed = 5) {
 
   // Navegación progresiva
   const nv = P2.nuevaPartida({ seed: 95 });
-  check('Al empezar se ven Inicio, Relaciones, Tienda, Patrimonio, Personaje, Mi historia, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,patrimonio,personaje,historia,hitos,ajustes');
+  check('Al empezar se ven Inicio, Relaciones, Tienda, Inversiones, Patrimonio, Personaje, Mi historia, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,inversiones,patrimonio,personaje,historia,hitos,ajustes');
   check('Relaciones y Tienda están disponibles desde el inicio (antes que Empresa)', ['relaciones', 'tienda'].every(id => nv.secciones.includes(id)) && !nv.secciones.includes('empresa'));
   nv.p.nivel = 56; P2.firmar(nv, 'puerto', null); const nuevas = P2.revisarSecciones(nv, null).map(x => x.id);
   check('Al firmar se abren Liga y Marcas (y se avisa)', nuevas.includes('liga') && nuevas.includes('marcas') && !P2.seccionesVisibles(nv).some(x => x.id === 'empresa') && nv.seccionesNuevas.includes('liga'));
@@ -404,6 +404,15 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Regalos para tu gente con dinero del juego', P2.PRODUCTOS.filter(P => P.usar && P.usar.rel).length >= 4 && (() => { const x = P2.nuevaPartida({ seed: 218 }); x.p.dinero = 500; P2.comprar(x, 'regaloMadre'); return P2.valorRel(x, 'madre') === 80 && x.p.dinero === 380; })());
   check('Escalera aspiracional: se ven objetos de magnate como «Próximamente» (no se compran)', ['superdeportivo', 'atico', 'villa', 'mansion'].every(id => P2.bloqueoProducto(c1, P2.producto(id)) === 'Próximamente'));
   check('Rareza solo de presentación (no da estadísticas)', P2.PRODUCTOS.filter(P => P.rareza === 'legendario').every(P => !P.ef || P.ef.entreno == null || P.ef.entreno <= 0.06));
+  // Inversiones como desbloqueables
+  const iv0 = P2.nuevaPartida({ seed: 219 }), ivl = P2.inversiones(iv0);
+  check('Inversiones: se ven todas desde el principio (peluquería, las 3 segundas y las futuras)', ivl.length === 1 + P2.OPORTUNIDADES.length + P2.INVERSIONES_FUTURAS.length && ivl.every(x => x.estado === 'bloqueada' || x.estado === 'proximamente'));
+  iv0.p.nivel = 56; P2.firmar(iv0, 'puerto', null); iv0.hitos.patro = 3;
+  check('Inversiones: la peluquería se desbloquea con el mercado (mismas reglas que Empresa)', P2.inversiones(iv0)[0].estado === 'disponible' && P2.mercadoAbierto(iv0));
+  iv0.hitos.empresa = 5; iv0.hitos.rentable = 12;
+  check('Inversiones: la segunda inversión se desbloquea con la empresa rentable', P2.inversiones(iv0).filter(x => x.grupo === 'segunda').every(x => x.estado === 'disponible'));
+  iv0.oportunidad = 'socio';
+  check('Inversiones: al elegir una, las otras quedan como «elegiste otra»', P2.inversiones(iv0).filter(x => x.grupo === 'segunda').map(x => x.estado).sort().join() === 'otra,otra,tuya');
   check('Mi historia resume tu carrera', (() => { const h = P2.miHistoria(c1); return h.vehiculos.some(P => P.id === 'cocheUsado') && h.patrimonioMax > 0; })());
   }
 
@@ -609,6 +618,8 @@ let informe;
   check('UI: responder «Sí, lo compraría» no cobra ni cambia el dinero del juego', await page.evaluate(d => __P2.S.p.dinero === d && __P2.S.tele.mon.cuentas.iap_intent_yes === 1, din0));
   await page.tap('[data-act="iapCerrar"]');
   await page.tap('.prod[data-id="relojDep"] .deseo').catch(() => {});
+  await ir(page, 'inversiones');
+  check('UI: «Inversiones» enseña el camino con lo desbloqueado y lo que falta', await page.locator('.inv').count() >= 8 && (await page.textContent('#main')).includes('Segunda inversión'));
   await ir(page, 'historia');
   check('UI: «Mi historia» enseña tu carrera', (await page.textContent('#main')).includes('Mi historia'));
   await ir(page, 'relaciones');

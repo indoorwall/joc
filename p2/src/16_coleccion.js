@@ -120,5 +120,29 @@
     if (precio >= 5000 && !(s.sucesosVistos || {}).padreGasto) prog(s, 3, 'padreGasto');
   }
 
-  Object.assign(P2, { quiero, deseable, revisarDeseo, COLECCIONES, progresoColeccion, revisarColecciones, anotarHistoria, miHistoria, EVENTOS_POSESION, alComprar });
+  // ---------- Inversiones como desbloqueables: se ven desde el principio, se abren jugando ----------
+  const INVERSIONES_FUTURAS = [
+    { id: 'restaurante', ic: '🍽️', n: 'Restaurante', coste: 60000, d: 'Más clientes, más personal y más riesgo que una peluquería.' },
+    { id: 'gimnasio', ic: '🏋️', n: 'Cadena de gimnasios', coste: 120000, d: 'Tu fama de deportista vende abonos.' },
+    { id: 'inmuebles', ic: '🏘️', n: 'Pisos en alquiler', coste: 200000, d: 'Ingresos estables cada mes.' },
+    { id: 'club', ic: '⚽', n: 'Comprar un club', coste: 2000000, d: 'El sueño: presidir tu propio equipo.' },
+  ];
+  function inversiones(s) {
+    const h = s.hitos, jug = Math.min(s.stats.jugados, 10);
+    const pelu = {
+      id: 'peluqueria', grupo: 'primera', ic: '💈', n: 'Peluquería en traspaso', coste: P2.capitalNecesario('peluqueria', 0, s), desde: true,
+      d: 'Tu primera empresa: precios, personal, caja y crisis. Tu dinero y el de la empresa van por separado.',
+      estado: h.empresa || s.negocios.length ? 'tuya' : P2.mercadoAbierto(s) ? 'disponible' : 'bloqueada',
+      reqs: [{ t: 'Firma tu primer patrocinador', ok: !!h.patro }, { t: `…o juega 10 partidos como profesional (${h.contrato ? jug : 0}/10)`, ok: !!h.contrato && s.stats.jugados >= 10 }],
+    };
+    const seg = P2.OPORTUNIDADES.map(o => ({
+      id: o.id, grupo: 'segunda', ic: o.ic, n: o.n, coste: o.coste, d: o.d,
+      estado: s.oportunidad === o.id ? 'tuya' : s.oportunidad ? 'otra' : h.rentable ? 'disponible' : 'bloqueada',
+      reqs: [{ t: 'Compra tu primera empresa', ok: !!h.empresa }, { t: 'Mantenla rentable 6 semanas seguidas', ok: !!h.rentable }],
+    }));
+    const fut = INVERSIONES_FUTURAS.map(x => Object.assign({ grupo: 'futura', estado: 'proximamente', reqs: [{ t: 'Capítulos futuros', ok: false }] }, x));
+    return [pelu].concat(seg, fut);
+  }
+
+  Object.assign(P2, { INVERSIONES_FUTURAS, inversiones, quiero, deseable, revisarDeseo, COLECCIONES, progresoColeccion, revisarColecciones, anotarHistoria, miHistoria, EVENTOS_POSESION, alComprar });
 })(globalThis.P2 = globalThis.P2 || {});

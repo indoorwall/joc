@@ -100,7 +100,8 @@
   function avisos(s) {
     const avisoEmp = s.negocios.some(n => n.crisis) || (!s.negocios.length && !P2.bloqueoCompra(s, 'peluqueria', 0)) || (s.oportunidadAbierta && !s.oportunidad);
     const avisoMarcas = s.fase === 'club' && MARCAS.some(M => !P2.bloqueoMarca(s, M));
-    return { semana: s.pendiente && ui.vista !== 'semana', empresa: avisoEmp, marcas: avisoMarcas };
+    const avisoInv = P2.inversiones(s).some(x => x.estado === 'disponible' && (x.grupo === 'segunda' || !s.negocios.length));
+    return { semana: s.pendiente && ui.vista !== 'semana', empresa: avisoEmp, marcas: avisoMarcas, inversiones: avisoInv };
   }
   function htmlNav(s) {
     const vis = P2.seccionesVisibles(s), av = avisos(s), nuevas = s.seccionesNuevas || [], g0 = grupoDe(ui.vista);
@@ -169,7 +170,7 @@
     const vis = P2.seccionesVisibles(s).map(x => x.id);
     const t = [['relaciones', '❤️', 'Relaciones', 'rel'], ['tienda', '🛍️', 'Tienda', 'tienda'], vis.includes('empresa') ? ['empresa', '💼', 'Empresa', 'emp'] : null, vis.includes('liga') ? ['liga', '📊', 'Liga', 'dep'] : ['hitos', '🏅', 'Hitos', 'dep']].filter(Boolean);
     return `<div class="accesos">${t.map(([v, ic, n, c]) => `<button class="acc c-${c}" data-act="vista" data-v="${v}"><span>${ic}</span>${n}${(s.seccionesNuevas || []).includes(v) ? '<em>Nuevo</em>' : ''}</button>`).join('')}
-      ${vis.includes('empresa') ? '' : '<div class="acc lock"><span>🔒</span>Empresa</div>'}</div>`;
+      ${vis.includes('empresa') ? '' : '<button class="acc lock" data-act="vista" data-v="inversiones"><span>🔒</span>Inversiones</button>'}</div>`;
   }
 
   // ---------- SITUACIÓN ----------
@@ -469,6 +470,23 @@
       ${grupos.map(([n, tipos]) => { const g = l.filter(R => tipos.includes(R.tipo)); return g.length ? `<div class="sec"><span>${n}</span></div>${g.map(card).join('')}` : ''; }).join('')}`;
   }
 
+  // ---------- 📈 INVERSIONES: el camino de deportista a empresario, visible desde el principio ----------
+  function htmlInversiones(s) {
+    const l = P2.inversiones(s), emp = P2.seccionesVisibles(s).some(x => x.id === 'empresa');
+    const EST = { tuya: ['✅ Tuya', 'tuya'], disponible: ['🔓 Disponible', 'disp'], bloqueada: ['🔒 Bloqueada', 'bloq'], otra: ['Elegiste otra', 'iotra'], proximamente: ['🔒 Próximamente', 'iprox'] };
+    const card = x => {
+      const [et, ec] = EST[x.estado], p = Math.min(100, Math.round(100 * Math.max(0, s.p.dinero) / x.coste));
+      return `<div class="inv ${ec}"><div class="invTop"><span class="invIc">${x.ic}</span><div><b>${esc(x.n)}</b><span class="chip">${et}</span></div></div>
+        <p class="small">${esc(x.d)}</p>
+        ${x.estado === 'proximamente' ? `<p class="small">💶 Unos ${esc(eur(x.coste))}</p>` : x.estado !== 'tuya' && x.estado !== 'otra' ? `<div class="kv"><span>💶 Necesitas ${x.desde ? 'desde ' : ''}${esc(eur(x.coste))}</span><b>${p} %</b></div><div class="barra"><i style="width:${Math.max(2, p)}%"></i></div>` : ''}
+        ${x.estado === 'bloqueada' ? `<div class="reqs">${x.reqs.map(r => `<span class="${r.ok ? 'ok' : ''}">${r.ok ? '✅' : '⬜'} ${esc(r.t)}</span>`).join('')}</div>` : ''}
+        ${(x.estado === 'disponible' || x.estado === 'tuya') && emp ? `<button class="btn ${x.estado === 'tuya' ? 'w' : ''} full" data-act="vista" data-v="empresa">${x.estado === 'tuya' ? '💼 Gestionar' : '💼 Ver en Empresa'}</button>` : ''}</div>`;
+    };
+    const grupo = (g, t, extra) => { const x = l.filter(i => i.grupo === g); return `<div class="sec"><span>${t}</span>${extra ? `<span>${extra}</span>` : ''}</div>${x.map(card).join('')}`; };
+    return `<div class="card invHead"><h2>📈 Inversiones</h2><p class="small">Tu camino de deportista a empresario. Todo se desbloquea jugando: aquí ves qué viene y qué te falta.</p></div>
+      ${grupo('primera', '1 · Tu primera empresa')}${grupo('segunda', '2 · Segunda inversión', 'eliges una')}${grupo('futura', '3 · Más adelante')}`;
+  }
+
   // ---------- 💰 PATRIMONIO ----------
   function htmlPatrimonio(s) {
     const pos = P2.valorPosesiones(s), emp = s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0), soc = s.socio && !s.socio.vendida ? s.socio.valor : 0;
@@ -579,7 +597,7 @@
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
     const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlExtrasInicio(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
-      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria }[ui.vista] || (() => '');
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
     if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
     const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';

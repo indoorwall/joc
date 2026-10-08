@@ -60,6 +60,13 @@ vez, sin comprar solo), ropa y accesorios que se ponen solos en el personaje, tu
 vehículo en escena, **🚗 Garaje** (activo, anteriores, valor, aspectos), **🏆 Colecciones** (Street, Profesional, Lujo → fondo),
 **🏆 Mi historia** (Perfil), regalos y planes con tu gente (dinero del juego) y 4 situaciones que llegan por lo que compras.
 
+**📈 Inversiones desbloqueables** (Imperio → Inversiones, visible desde el principio): el camino de deportista a empresario
+como una escalera. 1) Peluquería en traspaso (se abre con las mismas reglas que Empresa: primer patrocinador o 10 partidos
+como profesional), 2) segunda inversión, eliges una (local propio, segunda peluquería o socio en la cafetería; se abre con la
+empresa rentable 6 semanas) y 3) más adelante, como «Próximamente»: restaurante, cadena de gimnasios, pisos en alquiler y
+comprar un club. Cada una enseña su estado (🔒 bloqueada / 🔓 disponible / ✅ tuya / elegiste otra), lo que falta para
+abrirla y cuánto dinero llevas reunido. No cambia ninguna regla ni ningún precio.
+
 **Informe de prueba:** nueva sección MONETIZACIÓN (variante, anuncios ofrecidos/pulsados/aceptados por tipo, cada compra
 simulada con sí/quizá/no, primer clic, anuncio obligatorio y posible abandono, deseos, gasto en Tienda y % de ingresos) y
 7 preguntas nuevas (incluida la experimental sobre deportes nuevos).
@@ -96,7 +103,7 @@ Fondo SVG por etapa, sin imágenes externas: **barrio** (edificios, campo y plaz
 | 🏠 Inicio | La semana | Siempre |
 | ⚽ Carrera | Liga · Marcas | Al firmar tu primer contrato (antes no sale el botón) |
 | ❤️ Vida | Relaciones | Siempre |
-| 💼 Imperio | Tienda · Empresa · Patrimonio | Tienda y Patrimonio siempre; Empresa al abrirse el mercado |
+| 💼 Imperio | Tienda · Inversiones · Empresa · Patrimonio | Tienda y Patrimonio siempre; Empresa al abrirse el mercado |
 | 🧍 Perfil | Personaje · Hitos · Ajustes | Siempre |
 
 Empresa sigue llegando con las mismas reglas (primer patrocinador, o 10 partidos como profesional) y ahora se anuncia

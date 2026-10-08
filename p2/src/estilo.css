@@ -408,3 +408,22 @@ textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; ma
 .trofeos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
 .trofeos > div { background: linear-gradient(160deg, #fff4cc, #fff); border: 2px solid #ffe08a; border-radius: 14px; padding: 6px 2px; text-align: center; min-width: 0; }
 .trofeos span { display: block; font-size: 22px; } .trofeos b { display: block; font-size: 14px; overflow-wrap: anywhere; } .trofeos small { display: block; font-size: 10px; color: var(--dim); font-weight: 800; line-height: 1.1; }
+
+/* Inversiones desbloqueables */
+.invHead { border-top: 6px solid var(--c-emp); }
+.inv { background: #fff; border-radius: 20px; padding: 12px 14px; margin: 8px 0; box-shadow: 0 5px 0 rgba(20,10,70,.45); border-left: 6px solid var(--c-emp); }
+.invTop { display: flex; gap: 10px; align-items: center; }
+.invIc { width: 52px; height: 52px; flex: none; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 30px; background: linear-gradient(150deg, #d8fbf7, #b4efe8); }
+.invTop b { display: block; font-size: 16px; line-height: 1.2; }
+.inv .chip { margin-top: 3px; }
+.inv.tuya .chip { background: #dcf6fb; color: #087a93; }
+.inv.disp { border-left-color: var(--gold); box-shadow: 0 5px 0 rgba(20,10,70,.45), 0 0 0 2px var(--gold) inset; }
+.inv.disp .chip { background: #fff1c0; color: #6b4a00; }
+.inv.bloq .invIc { filter: grayscale(.7); opacity: .7; }
+.inv.iotra, .inv.iprox { background: rgba(255,255,255,.1); box-shadow: none; border-left-color: rgba(255,255,255,.25); color: rgba(255,255,255,.8); }
+.inv.iotra .small, .inv.iprox .small { color: rgba(255,255,255,.65); }
+.inv.iotra .invIc, .inv.iprox .invIc { background: rgba(255,255,255,.1); filter: grayscale(1); }
+.inv.iotra .chip, .inv.iprox .chip { background: rgba(255,255,255,.15); color: #fff; }
+.inv.iprox .kv { border-color: rgba(255,255,255,.15); }
+.reqs { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; font-size: 13px; color: var(--dim); }
+.reqs .ok { color: #087a93; font-weight: 800; }
