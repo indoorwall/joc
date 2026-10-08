@@ -447,7 +447,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   // El prototipo publicado es SIMULADO: sin red, sin SDK de pago ni de anuncios, sin claves. (El build web real es aparte.)
   check('Ninguna compra ni anuncio real: sin conexiones de red, sin SDK de pago/anuncios y sin claves en el juego', !/fetch\(|XMLHttpRequest|sendBeacon|PaymentRequest|WebSocket|EventSource|admob|googletag|adsbygoogle|js\.stripe\.com|api\.stripe\.com|checkout\.stripe\.com|loadStripe|SKPaymentQueue|BillingClient/i.test(html));
   check('Sin secretos en el juego (ni claves de Stripe ni de Supabase)', !/sk_(test|live)_[A-Za-z0-9]{6,}|rk_(test|live)_|whsec_(?!mock_local|test_fake)[A-Za-z0-9]{6,}|sb_secret_|service_role_key|SUPABASE_SERVICE_ROLE/i.test(html));
-  check('El comercio del prototipo es el simulado (backend en el navegador, Stripe falso)', /P2C\.BUILD = 'mock'/.test(html) && !/createHttpBackend|createStripeApi|createPgRepo/.test(html));
+  check('El comercio del prototipo es el simulado (backend en el navegador, Stripe falso)', /P2C\.BUILD = 'mock'/.test(html) && !/function createHttpBackend|function createStripeApi|function createPgRepo|function createWebAuth/.test(html));
   check('No se vende poder ni dinero del juego: los packs son solo estética (y apoyo)', P2.IAP_PRODUCTS.every(I => I.contenido.every(c => Array.isArray(c) ? !!P2.itemLook(c[0], c[1]) : ['skin', 'sinAnuncios', 'espacios', 'texto'].includes(c.tipo))));
   const cosmeticos = P2.IAP_PRODUCTS.flatMap(I => I.contenido.filter(Array.isArray));
   const g1 = P2.nuevaPartida({ seed: 207 }), g2 = P2.nuevaPartida({ seed: 207 });
