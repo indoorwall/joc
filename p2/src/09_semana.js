@@ -7,11 +7,12 @@
   'use strict';
   const { CFG, OFERTAS, eur, nf, clamp, r1 } = P2;
 
-  function nuevoR(s) { return { semana: s.semana, lineas: [], porque: [], ingresos: [], hitos: [], partido: null, dinero0: s.p.dinero, energia0: s.p.energia, decision: null }; }
+  function nuevoR(s) { return { semana: s.semana, lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [], partido: null, dinero0: s.p.dinero, energia0: s.p.energia, decision: null }; }
 
-  function jugarSemana(s, accion) {
+  function jugarSemana(s, accion, opc) {
     if (s.pendiente) return null;
-    if (accion !== '__acto' && P2.bloqueoAccion(s, accion)) return null;
+    const especial = accion === '__acto' || accion === '__evento';
+    if (!especial && P2.bloqueoAccion(s, accion)) return null;
     const R = nuevoR(s);
     const m = s.semanaMods && s.semanaMods.semana === s.semana ? s.semanaMods : {};
     Object.assign(R, { bonusNota: m.bonusNota || 0, riesgoLesion: m.riesgoLesion || 1, gestion: !!m.gestion, plazaX2: !!m.plazaX2 });
@@ -19,6 +20,7 @@
     const repAntes = s.p.rep;
 
     if (accion === '__acto') R.lineas.push(['📣', 'Dedicas la semana al acto de tu patrocinador.']);
+    else if (accion === '__evento') R.lineas.push(['⏳', `La semana se va en: ${(opc && opc.motivo) || 'lo que has decidido'}.`]);
     else P2.aplicarAccion(s, accion, R);
     if (R.plazaX2 && accion === 'plaza') { const extra = r1(s.p.rep - repAntes); s.p.rep = r1(clamp(s.p.rep + extra, 0, 100)); R.lineas.push(['👀', `El ojeador estaba en la plaza: tu fama sube el doble (+${nf(extra)} más).`, 'bien']); }
     s.accionesHechas = (s.accionesHechas || 0) + 1;
@@ -37,7 +39,7 @@
     }
     if (s.fase === 'club') P2.semanaPatros(s, R);
     for (const n of s.negocios.slice()) P2.semanaNegocio(s, n, R, { gestion: R.gestion && n === s.negocios[0] });
-    if (s.socio) { const v = Math.round(s.socio.inversion * P2.entre(s, 0.006, 0.02)); s.p.dinero += v; R.ingresos.push(['Tu parte de la cafetería', v]); }
+    P2.semanaSocio(s, R);
     P2.procesarAgenda(s, R);
 
     // Recuperación, lesiones
@@ -56,6 +58,7 @@
       if (s.temporada && s.temporada.cerrada) P2.nuevaTemporada(s, R);
     }
     P2.revisarHitos(s, R);
+    P2.revisarSecciones(s, R);
     // Segunda inversión aplazada: se vuelve a proponer cuando ya puedes pagar alguna (como mucho cada 6 semanas)
     if (s.oportunidadAbierta && !s.oportunidad && s.p.dinero >= Math.min(...P2.OPORTUNIDADES.map(o => o.coste)) && s.semana - (s.recordatorioOp || 0) >= 6) {
       s.recordatorioOp = s.semana; P2.encolar(s, { tipo: 'oportunidad' });
@@ -65,6 +68,7 @@
     s.semana++;
     if ((s.semana - 1) % 52 === 0) s.edad++;
     s.semanaMods = null;
+    s.eleccion = null;   // cada semana se elige de nuevo: no se arrastra la acción anterior
     if (!s.pendiente) { const a = P2.actoPendiente(s); if (a) P2.encolar(s, a); }
     if (!s.pendiente && !s.cola.length) P2.tirarSucesos(s);
 
@@ -86,10 +90,11 @@
     const r = D.resolver(s, ev, opId, R);
     if (!r) return null;
     if (r.semana) s.pendiente = null; else P2.siguiente(s);
-    s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, firma: r.firma || null };
+    P2.revisarSecciones(s, R);
+    s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, desbloqueos: R.desbloqueos, firma: r.firma || null };
     if (r.texto) P2.anotar(s, r.ic, r.texto);
     // Un acto de patrocinio ocupa la semana entera
-    if (r.semana) { const W = jugarSemana(s, r.semana); if (W) s.ultimaDecision.semanaJugada = true; if (!s.pendiente) P2.siguiente(s); }
+    if (r.semana) { const W = jugarSemana(s, r.semana, { motivo: o.n.toLowerCase() }); if (W) { s.ultimaDecision.semanaJugada = true; W.lineas.unshift([r.ic, `${r.titulo}: ${r.texto}`]); } if (!s.pendiente) P2.siguiente(s); }
     if (!s.pendiente) { const a = P2.actoPendiente(s); if (a) P2.encolar(s, a); }
     return s.ultimaDecision;
   }

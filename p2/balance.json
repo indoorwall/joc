@@ -1,242 +1,649 @@
 {
- "partidasPorPolitica": 150,
- "politicas": {
-  "todoTrabajo": {
-   "politica": "Todo trabajo",
-   "pruebasPct": 0,
-   "contratoPct": 100,
-   "semanaContrato": 32.1,
-   "empresaPct": 100,
-   "semanaEmpresa": 37.6,
-   "capituloPct": 67,
-   "semanaCapitulo": 49.2,
-   "patrimonio": 10755,
-   "nivel": 49.8,
-   "fama": 13.6,
-   "crisisMedia": 6.1,
-   "trabajosMax": 7,
-   "ofertas": {
-    "puerto": 137,
-    "atleticoFormacion+puerto": 13
+ "partidasPorCombinacion": 40,
+ "marginales": {
+  "deportiva": {
+   "trabajo": {
+    "capituloPct": 91.3,
+    "semanaCapitulo": 56.1,
+    "patrimonioFinal": 16429,
+    "nivel": 49.9,
+    "crisis": 1
    },
-   "primerClub": {
-    "puerto": 150
+   "entreno": {
+    "capituloPct": 92.8,
+    "semanaCapitulo": 44.9,
+    "patrimonioFinal": 22455,
+    "nivel": 77.7,
+    "crisis": 1
    },
-   "energiaNegativa": false,
-   "atascos": 0
+   "futbol": {
+    "capituloPct": 93.8,
+    "semanaCapitulo": 42.5,
+    "patrimonioFinal": 17508,
+    "nivel": 60.6,
+    "crisis": 1
+   },
+   "descanso": {
+    "capituloPct": 94.3,
+    "semanaCapitulo": 50.6,
+    "patrimonioFinal": 14991,
+    "nivel": 49,
+    "crisis": 0.9
+   },
+   "equilibrada": {
+    "capituloPct": 91.8,
+    "semanaCapitulo": 41.3,
+    "patrimonioFinal": 20610,
+    "nivel": 70.9,
+    "crisis": 1.2
+   }
   },
-  "todoEntreno": {
-   "politica": "Todo entrenamiento",
-   "pruebasPct": 0,
-   "contratoPct": 100,
-   "semanaContrato": 16.2,
-   "empresaPct": 0,
-   "semanaEmpresa": "—",
-   "capituloPct": 0,
-   "semanaCapitulo": "—",
-   "patrimonio": 32501,
-   "nivel": 73.4,
-   "fama": 78.7,
-   "crisisMedia": 0,
-   "trabajosMax": 0,
-   "ofertas": {
-    "puerto": 99,
-    "atleticoFormacion+puerto": 40,
-    "atleticoFilial+puerto": 11
+  "empresarial": {
+   "noOptimiza": {
+    "capituloPct": 71.1,
+    "semanaCapitulo": 48.5,
+    "patrimonioFinal": 14310,
+    "nivel": 62.8,
+    "crisis": 2.7
    },
-   "primerClub": {
-    "puerto": 99,
-    "atleticoFormacion": 40,
-    "atleticoFilial": 11
+   "prudente": {
+    "capituloPct": 100,
+    "semanaCapitulo": 52.1,
+    "patrimonioFinal": 23782,
+    "nivel": 62.5,
+    "crisis": 0
    },
-   "energiaNegativa": false,
-   "atascos": 0
+   "agresiva": {
+    "capituloPct": 100,
+    "semanaCapitulo": 42.2,
+    "patrimonioFinal": 14633,
+    "nivel": 60.1,
+    "crisis": 1.1
+   },
+   "inteligente": {
+    "capituloPct": 100,
+    "semanaCapitulo": 45.4,
+    "patrimonioFinal": 20869,
+    "nivel": 61,
+    "crisis": 0.2
+   }
   },
-  "todoDescanso": {
-   "politica": "Todo descanso",
-   "pruebasPct": 0,
-   "contratoPct": 100,
-   "semanaContrato": 20.4,
-   "empresaPct": 0,
-   "semanaEmpresa": "—",
-   "capituloPct": 0,
-   "semanaCapitulo": "—",
-   "patrimonio": 23146,
-   "nivel": 52.8,
-   "fama": 23.1,
-   "crisisMedia": 0,
-   "trabajosMax": 0,
-   "ofertas": {
-    "puerto": 150
+  "comercial": {
+   "sin": {
+    "capituloPct": 93.2,
+    "semanaCapitulo": 48.1,
+    "patrimonioFinal": 18302,
+    "nivel": 62.5,
+    "crisis": 0.9
    },
-   "primerClub": {
-    "puerto": 150
+   "locales": {
+    "capituloPct": 92.3,
+    "semanaCapitulo": 47.1,
+    "patrimonioFinal": 18429,
+    "nivel": 61.7,
+    "crisis": 1.1
    },
-   "energiaNegativa": false,
-   "atascos": 0
-  },
-  "todoFutbol": {
-   "politica": "Todo fútbol",
-   "pruebasPct": 100,
-   "contratoPct": 100,
-   "semanaContrato": 13.1,
-   "empresaPct": 0,
-   "semanaEmpresa": "—",
-   "capituloPct": 0,
-   "semanaCapitulo": "—",
-   "patrimonio": 30951,
-   "nivel": 69.2,
-   "fama": 80.6,
-   "crisisMedia": 0,
-   "trabajosMax": 0,
-   "ofertas": {
-    "puerto": 116,
-    "atleticoFormacion+puerto": 34
-   },
-   "primerClub": {
-    "puerto": 116,
-    "atleticoFormacion": 34
-   },
-   "energiaNegativa": false,
-   "atascos": 0
-  },
-  "dineroPrimero": {
-   "politica": "Dinero primero",
-   "pruebasPct": 19,
-   "contratoPct": 100,
-   "semanaContrato": 22.3,
-   "empresaPct": 100,
-   "semanaEmpresa": 31.3,
-   "capituloPct": 100,
-   "semanaCapitulo": 38.8,
-   "patrimonio": 17815,
-   "nivel": 49.1,
-   "fama": 27.8,
-   "crisisMedia": 0,
-   "trabajosMax": 6,
-   "ofertas": {
-    "puerto": 136,
-    "atleticoFormacion+puerto": 14
-   },
-   "primerClub": {
-    "puerto": 150
-   },
-   "energiaNegativa": false,
-   "atascos": 0
-  },
-  "deportePrimero": {
-   "politica": "Deporte primero",
-   "pruebasPct": 49,
-   "contratoPct": 100,
-   "semanaContrato": 13.5,
-   "empresaPct": 100,
-   "semanaEmpresa": 40.8,
-   "capituloPct": 66,
-   "semanaCapitulo": 51.1,
-   "patrimonio": 25713,
-   "nivel": 67.8,
-   "fama": 55,
-   "crisisMedia": 3.6,
-   "trabajosMax": 0,
-   "ofertas": {
-    "puerto": 113,
-    "atleticoFormacion+puerto": 29,
-    "atleticoFilial+puerto": 8
-   },
-   "primerClub": {
-    "puerto": 113,
-    "atleticoFormacion": 29,
-    "atleticoFilial": 8
-   },
-   "energiaNegativa": false,
-   "atascos": 0
-  },
-  "patrociniosPrimero": {
-   "politica": "Patrocinios primero",
-   "pruebasPct": 100,
-   "contratoPct": 100,
-   "semanaContrato": 13.1,
-   "empresaPct": 100,
-   "semanaEmpresa": 27,
-   "capituloPct": 81,
-   "semanaCapitulo": 34.9,
-   "patrimonio": 17607,
-   "nivel": 50.9,
-   "fama": 65.7,
-   "crisisMedia": 10.4,
-   "trabajosMax": 0,
-   "ofertas": {
-    "puerto": 119,
-    "atleticoFormacion+puerto": 31
-   },
-   "primerClub": {
-    "puerto": 150
-   },
-   "energiaNegativa": false,
-   "atascos": 0
-  },
-  "equilibrada": {
-   "politica": "Equilibrada",
-   "pruebasPct": 59,
-   "contratoPct": 100,
-   "semanaContrato": 11.6,
-   "empresaPct": 100,
-   "semanaEmpresa": 29,
-   "capituloPct": 100,
-   "semanaCapitulo": 36.1,
-   "patrimonio": 18863,
-   "nivel": 65.6,
-   "fama": 40.3,
-   "crisisMedia": 0,
-   "trabajosMax": 0,
-   "ofertas": {
-    "puerto": 62,
-    "atleticoFormacion+puerto": 88
-   },
-   "primerClub": {
-    "puerto": 62,
-    "atleticoFormacion": 88
-   },
-   "energiaNegativa": false,
-   "atascos": 0
+   "maximos": {
+    "capituloPct": 92.9,
+    "semanaCapitulo": 46,
+    "patrimonioFinal": 18465,
+    "nivel": 60.7,
+    "crisis": 1
+   }
   }
  },
- "atleticoVsPuerto": {
-  "atletico": {
-   "partidas": 210,
-   "nivel": 80,
-   "patrimonio": 31522,
-   "semanaEmpresa": 31,
-   "capituloPct": 55
+ "deportivasPuedenComprar": {
+  "equilibrada": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 62420,
+   "patrimonio80": 93692,
+   "patrimonioFinal": 130970,
+   "nivel": 76.9,
+   "marca": 111.4,
+   "sueldoFinal": 930,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.5,
+   "dineroOportunidad": 3819,
+   "segunda": {
+    "local": 30,
+    "socio": 10
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
   },
-  "puerto": {
-   "partidas": 990,
-   "nivel": 55.6,
-   "patrimonio": 20185,
-   "semanaEmpresa": 33.6,
-   "capituloPct": 51
+  "entreno": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 44.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 36.9,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 60739,
+   "patrimonio80": 93872,
+   "patrimonioFinal": 131799,
+   "nivel": 83.4,
+   "marca": 126.1,
+   "sueldoFinal": 964,
+   "ligaMax": 3.9,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 1.2,
+   "descensos": 0.4,
+   "dineroOportunidad": 4218,
+   "segunda": {
+    "local": 33,
+    "socio": 7
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "futbol": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 33,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 43339,
+   "patrimonio80": 68809,
+   "patrimonioFinal": 99325,
+   "nivel": 68.7,
+   "marca": 115.7,
+   "sueldoFinal": 528,
+   "ligaMax": 3.4,
+   "crisis": 0.1,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 1.6,
+   "descensos": 1,
+   "dineroOportunidad": 2616,
+   "segunda": {
+    "socio": 18,
+    "local": 22
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "descanso": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 47.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 38.2,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 26917,
+   "patrimonio80": 41776,
+   "patrimonioFinal": 59893,
+   "nivel": 53.6,
+   "marca": 28.7,
+   "sueldoFinal": 320,
+   "ligaMax": 2.7,
+   "crisis": 0.3,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 1.4,
+   "descensos": 1.1,
+   "dineroOportunidad": 2187,
+   "segunda": {
+    "socio": 24,
+    "local": 16
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "trabajo": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 53.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 45.3,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 27386,
+   "patrimonio80": 53032,
+   "patrimonioFinal": 77756,
+   "nivel": 53.4,
+   "marca": 20.9,
+   "sueldoFinal": 262,
+   "ligaMax": 2.7,
+   "crisis": 0.5,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 1.3,
+   "descensos": 1,
+   "dineroOportunidad": 3460,
+   "segunda": {
+    "local": 25,
+    "socio": 15
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  }
+ },
+ "cajas": {
+  "1500": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 37.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 29.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 53958,
+   "patrimonio80": 83491,
+   "patrimonioFinal": 116589,
+   "nivel": 77,
+   "marca": 111.5,
+   "sueldoFinal": 931,
+   "ligaMax": 3.7,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.5,
+   "dineroOportunidad": 3297,
+   "segunda": {
+    "socio": 22,
+    "local": 18
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "3000": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 62420,
+   "patrimonio80": 93692,
+   "patrimonioFinal": 130970,
+   "nivel": 76.9,
+   "marca": 111.4,
+   "sueldoFinal": 930,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.5,
+   "dineroOportunidad": 3819,
+   "segunda": {
+    "local": 30,
+    "socio": 10
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "5500": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 45.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 38.6,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 61266,
+   "patrimonio80": 96053,
+   "patrimonioFinal": 136226,
+   "nivel": 76.9,
+   "marca": 111.6,
+   "sueldoFinal": 954,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.4,
+   "descensos": 0.4,
+   "dineroOportunidad": 6447,
+   "segunda": {
+    "local": 40
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  }
+ },
+ "rutas": {
+  "imagenEmpresa": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 35,
+   "empresaPct": 100,
+   "semanaEmpresa": 27.5,
+   "contratoPct": 100,
+   "semanaContrato": 13.3,
+   "patrimonio60": 61474,
+   "patrimonio80": 99749,
+   "patrimonioFinal": 135035,
+   "nivel": 55.2,
+   "marca": 84,
+   "sueldoFinal": 317,
+   "ligaMax": 2.8,
+   "crisis": 2.3,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 1.4,
+   "descensos": 1.2,
+   "dineroOportunidad": 5253,
+   "segunda": {
+    "segunda": 39,
+    "socio": 1
+   },
+   "ofertas": {
+    "puerto": 32,
+    "atleticoFormacion+puerto": 8
+   },
+   "energiaNegativa": false
+  },
+  "imagenInteligente": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 36.6,
+   "empresaPct": 100,
+   "semanaEmpresa": 28.5,
+   "contratoPct": 100,
+   "semanaContrato": 13.3,
+   "patrimonio60": 63067,
+   "patrimonio80": 95768,
+   "patrimonioFinal": 128079,
+   "nivel": 55.1,
+   "marca": 83.7,
+   "sueldoFinal": 293,
+   "ligaMax": 2.9,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 1.4,
+   "descensos": 1.3,
+   "dineroOportunidad": 3033,
+   "segunda": {
+    "socio": 18,
+    "local": 22
+   },
+   "ofertas": {
+    "puerto": 32,
+    "atleticoFormacion+puerto": 8
+   },
+   "energiaNegativa": false
+  },
+  "equilibradaMax": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 39.4,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.2,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 67739,
+   "patrimonio80": 103922,
+   "patrimonioFinal": 143022,
+   "nivel": 76.7,
+   "marca": 114.6,
+   "sueldoFinal": 849,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.5,
+   "dineroOportunidad": 4620,
+   "segunda": {
+    "local": 34,
+    "socio": 6
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "entrenoMax": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 42.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 34.9,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 67791,
+   "patrimonio80": 104336,
+   "patrimonioFinal": 147153,
+   "nivel": 83,
+   "marca": 127.8,
+   "sueldoFinal": 906,
+   "ligaMax": 3.9,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.3,
+   "dineroOportunidad": 4804,
+   "segunda": {
+    "local": 37,
+    "socio": 3
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
   }
  },
  "mismaPartida": {
   "puerto": {
-   "partidas": 88,
-   "patrimonioSem25": 4272,
-   "patrimonioSem40": 14594,
-   "patrimonioSem60": 24863,
-   "semanaEmpresa": 27.6,
-   "semanaCapitulo": 35.8,
-   "nivelSem70": 57.6,
-   "fama": 60.3
+   "partidas": 28,
+   "capituloPct": 100,
+   "semanaCapitulo": 38.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 30,
+   "contratoPct": 100,
+   "semanaContrato": 11.1,
+   "patrimonio60": 43078,
+   "patrimonio80": 63646,
+   "patrimonioFinal": 65712,
+   "nivel": 57.4,
+   "marca": 53.4,
+   "sueldoFinal": 496,
+   "ligaMax": 2.9,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 64,
+   "trabajosMax": 0,
+   "ascensos": 1.5,
+   "descensos": 1,
+   "dineroOportunidad": 2474,
+   "segunda": {
+    "socio": 16,
+    "local": 12
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false,
+   "patrimonio25": 5132,
+   "patrimonio40": 21801
   },
   "atletico": {
-   "partidas": 88,
-   "patrimonioSem25": 2522,
-   "patrimonioSem40": 20206,
-   "patrimonioSem60": 39954,
-   "semanaEmpresa": 28.6,
-   "semanaCapitulo": 35,
-   "nivelSem70": 84.9,
-   "fama": 100
+   "partidas": 28,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 33.1,
+   "contratoPct": 100,
+   "semanaContrato": 11.1,
+   "patrimonio60": 72217,
+   "patrimonio80": 107729,
+   "patrimonioFinal": 111989,
+   "nivel": 84.8,
+   "marca": 130,
+   "sueldoFinal": 854,
+   "ligaMax": 4,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 64,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0,
+   "dineroOportunidad": 4033,
+   "segunda": {
+    "local": 26,
+    "socio": 2
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false,
+   "patrimonio25": 3543,
+   "patrimonio40": 23066
+  }
+ },
+ "segundas": {
+  "local": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.6,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 67456,
+   "patrimonio80": 102380,
+   "patrimonioFinal": 164077,
+   "nivel": 77.2,
+   "marca": 114.8,
+   "sueldoFinal": 1038,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.5,
+   "dineroOportunidad": 3819,
+   "segunda": {
+    "local": 40
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "segunda": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.6,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 56512,
+   "patrimonio80": 88860,
+   "patrimonioFinal": 146924,
+   "nivel": 77.2,
+   "marca": 115.1,
+   "sueldoFinal": 1008,
+   "ligaMax": 3.7,
+   "crisis": 1.4,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.5,
+   "dineroOportunidad": 3819,
+   "segunda": {
+    "segunda": 40
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "socio": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 45510,
+   "patrimonio80": 69330,
+   "patrimonioFinal": 112734,
+   "nivel": 77,
+   "marca": 114.2,
+   "sueldoFinal": 1052,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.3,
+   "descensos": 0.5,
+   "dineroOportunidad": 3819,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
   }
  },
  "peluqueria": {
@@ -262,17 +669,1921 @@
   },
   "distintas": 5
  },
+ "rejilla": {
+  "trabajo/noOptimiza/sin": {
+   "partidas": 40,
+   "capituloPct": 65,
+   "semanaCapitulo": 57.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 46.9,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 3425,
+   "patrimonio80": 2348,
+   "patrimonioFinal": 11580,
+   "nivel": 50.8,
+   "marca": 9.3,
+   "sueldoFinal": 252,
+   "ligaMax": 2.5,
+   "crisis": 2.4,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.9,
+   "descensos": 0.4,
+   "dineroOportunidad": 2810,
+   "segunda": {
+    "socio": 26
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/noOptimiza/locales": {
+   "partidas": 40,
+   "capituloPct": 65,
+   "semanaCapitulo": 57.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 46.9,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 3425,
+   "patrimonio80": 2733,
+   "patrimonioFinal": 11627,
+   "nivel": 50.8,
+   "marca": 10.6,
+   "sueldoFinal": 254,
+   "ligaMax": 2.5,
+   "crisis": 2.5,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.9,
+   "descensos": 0.4,
+   "dineroOportunidad": 2810,
+   "segunda": {
+    "socio": 26
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/noOptimiza/maximos": {
+   "partidas": 40,
+   "capituloPct": 65,
+   "semanaCapitulo": 57.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 46.9,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 3425,
+   "patrimonio80": 2733,
+   "patrimonioFinal": 11649,
+   "nivel": 50.8,
+   "marca": 10.6,
+   "sueldoFinal": 254,
+   "ligaMax": 2.5,
+   "crisis": 2.5,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.9,
+   "descensos": 0.4,
+   "dineroOportunidad": 2810,
+   "segunda": {
+    "socio": 26
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/prudente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 61.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 53.6,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 6368,
+   "patrimonio80": 0,
+   "patrimonioFinal": 22166,
+   "nivel": 50.2,
+   "marca": 8.8,
+   "sueldoFinal": 257,
+   "ligaMax": 2.4,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.8,
+   "descensos": 0.4,
+   "dineroOportunidad": 4012,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/prudente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 61,
+   "empresaPct": 100,
+   "semanaEmpresa": 53.4,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 6382,
+   "patrimonio80": 0,
+   "patrimonioFinal": 22343,
+   "nivel": 50.2,
+   "marca": 9.2,
+   "sueldoFinal": 257,
+   "ligaMax": 2.4,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.8,
+   "descensos": 0.4,
+   "dineroOportunidad": 3930,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/prudente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 61,
+   "empresaPct": 100,
+   "semanaEmpresa": 53.4,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 6382,
+   "patrimonio80": 0,
+   "patrimonioFinal": 22343,
+   "nivel": 50.2,
+   "marca": 9.2,
+   "sueldoFinal": 257,
+   "ligaMax": 2.4,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.8,
+   "descensos": 0.4,
+   "dineroOportunidad": 3930,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/agresiva/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 52.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 45.1,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 924,
+   "patrimonio80": 0,
+   "patrimonioFinal": 14175,
+   "nivel": 49.2,
+   "marca": 7.1,
+   "sueldoFinal": 252,
+   "ligaMax": 2.4,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.7,
+   "descensos": 0.3,
+   "dineroOportunidad": 4687,
+   "segunda": {
+    "socio": 7,
+    "segunda": 33
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/agresiva/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 52.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 45.1,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 924,
+   "patrimonio80": 0,
+   "patrimonioFinal": 14186,
+   "nivel": 49.2,
+   "marca": 7.1,
+   "sueldoFinal": 252,
+   "ligaMax": 2.4,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.7,
+   "descensos": 0.3,
+   "dineroOportunidad": 4687,
+   "segunda": {
+    "socio": 7,
+    "segunda": 33
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/agresiva/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 52.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 45.1,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 924,
+   "patrimonio80": 0,
+   "patrimonioFinal": 14186,
+   "nivel": 49.2,
+   "marca": 7.1,
+   "sueldoFinal": 252,
+   "ligaMax": 2.4,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.7,
+   "descensos": 0.3,
+   "dineroOportunidad": 4687,
+   "segunda": {
+    "socio": 7,
+    "segunda": 33
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/inteligente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 53.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 45.3,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 947,
+   "patrimonio80": 0,
+   "patrimonioFinal": 17625,
+   "nivel": 49.5,
+   "marca": 7.3,
+   "sueldoFinal": 252,
+   "ligaMax": 2.4,
+   "crisis": 0.5,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.7,
+   "descensos": 0.3,
+   "dineroOportunidad": 3460,
+   "segunda": {
+    "local": 25,
+    "socio": 15
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/inteligente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 53.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 45.3,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 947,
+   "patrimonio80": 0,
+   "patrimonioFinal": 17635,
+   "nivel": 49.5,
+   "marca": 7.3,
+   "sueldoFinal": 252,
+   "ligaMax": 2.4,
+   "crisis": 0.5,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.7,
+   "descensos": 0.3,
+   "dineroOportunidad": 3460,
+   "segunda": {
+    "local": 25,
+    "socio": 15
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "trabajo/inteligente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 53.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 45.3,
+   "contratoPct": 100,
+   "semanaContrato": 33,
+   "patrimonio60": 947,
+   "patrimonio80": 0,
+   "patrimonioFinal": 17635,
+   "nivel": 49.5,
+   "marca": 7.3,
+   "sueldoFinal": 252,
+   "ligaMax": 2.4,
+   "crisis": 0.5,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 6,
+   "ascensos": 0.7,
+   "descensos": 0.3,
+   "dineroOportunidad": 3460,
+   "segunda": {
+    "local": 25,
+    "socio": 15
+   },
+   "ofertas": {
+    "puerto": 35,
+    "atleticoFormacion+puerto": 5
+   },
+   "energiaNegativa": false
+  },
+  "entreno/noOptimiza/sin": {
+   "partidas": 40,
+   "capituloPct": 75,
+   "semanaCapitulo": 48.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 39.1,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 2547,
+   "patrimonio80": 3906,
+   "patrimonioFinal": 16383,
+   "nivel": 80.4,
+   "marca": 119.5,
+   "sueldoFinal": 582,
+   "ligaMax": 3.9,
+   "crisis": 2.6,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 1.1,
+   "descensos": 0.1,
+   "dineroOportunidad": 3919,
+   "segunda": {
+    "socio": 30
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/noOptimiza/locales": {
+   "partidas": 40,
+   "capituloPct": 65,
+   "semanaCapitulo": 44.5,
+   "empresaPct": 100,
+   "semanaEmpresa": 36.9,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 4176,
+   "patrimonio80": 6645,
+   "patrimonioFinal": 18380,
+   "nivel": 79.2,
+   "marca": 118.5,
+   "sueldoFinal": 591,
+   "ligaMax": 3.8,
+   "crisis": 3.2,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0.1,
+   "dineroOportunidad": 3877,
+   "segunda": {
+    "socio": 26
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/noOptimiza/maximos": {
+   "partidas": 40,
+   "capituloPct": 73,
+   "semanaCapitulo": 42.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 34.9,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 3519,
+   "patrimonio80": 6004,
+   "patrimonioFinal": 19932,
+   "nivel": 77,
+   "marca": 117.2,
+   "sueldoFinal": 572,
+   "ligaMax": 3.4,
+   "crisis": 2.6,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.1,
+   "dineroOportunidad": 4664,
+   "segunda": {
+    "socio": 29
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/prudente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 51.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 44,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 29041,
+   "nivel": 80.7,
+   "marca": 115.6,
+   "sueldoFinal": 517,
+   "ligaMax": 3.8,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.1,
+   "dineroOportunidad": 6461,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/prudente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 49.6,
+   "empresaPct": 100,
+   "semanaEmpresa": 42.5,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 29593,
+   "nivel": 79.4,
+   "marca": 115.7,
+   "sueldoFinal": 506,
+   "ligaMax": 3.9,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0.1,
+   "dineroOportunidad": 6909,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/prudente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 46.5,
+   "empresaPct": 100,
+   "semanaEmpresa": 39.4,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 27742,
+   "nivel": 76.7,
+   "marca": 115.5,
+   "sueldoFinal": 504,
+   "ligaMax": 3.8,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0.1,
+   "dineroOportunidad": 6922,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/agresiva/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 42.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 35.7,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 19105,
+   "nivel": 77.9,
+   "marca": 111.3,
+   "sueldoFinal": 493,
+   "ligaMax": 3.5,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0,
+   "dineroOportunidad": 5421,
+   "segunda": {
+    "segunda": 39,
+    "socio": 1
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/agresiva/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 33.7,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 17668,
+   "nivel": 76,
+   "marca": 101.4,
+   "sueldoFinal": 491,
+   "ligaMax": 3.1,
+   "crisis": 1.2,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.2,
+   "descensos": 0,
+   "dineroOportunidad": 5510,
+   "segunda": {
+    "segunda": 39,
+    "socio": 1
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/agresiva/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 39.5,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.2,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 15876,
+   "nivel": 74.1,
+   "marca": 96.7,
+   "sueldoFinal": 491,
+   "ligaMax": 3,
+   "crisis": 1.2,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.2,
+   "descensos": 0,
+   "dineroOportunidad": 5428,
+   "segunda": {
+    "segunda": 39,
+    "socio": 1
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/inteligente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 46.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 39,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 23910,
+   "nivel": 79.1,
+   "marca": 114.2,
+   "sueldoFinal": 497,
+   "ligaMax": 3.8,
+   "crisis": 0.1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0,
+   "dineroOportunidad": 4406,
+   "segunda": {
+    "local": 27,
+    "socio": 13
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/inteligente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 44.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 36.9,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 26149,
+   "nivel": 77,
+   "marca": 111.1,
+   "sueldoFinal": 497,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.1,
+   "dineroOportunidad": 4218,
+   "segunda": {
+    "local": 33,
+    "socio": 7
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "entreno/inteligente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 42.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 34.9,
+   "contratoPct": 100,
+   "semanaContrato": 15,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 25681,
+   "nivel": 74.9,
+   "marca": 108,
+   "sueldoFinal": 495,
+   "ligaMax": 3.2,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0,
+   "dineroOportunidad": 4804,
+   "segunda": {
+    "local": 37,
+    "socio": 3
+   },
+   "ofertas": {
+    "atleticoFormacion+puerto": 31,
+    "puerto": 6,
+    "atleticoFilial+puerto": 3
+   },
+   "energiaNegativa": false
+  },
+  "futbol/noOptimiza/sin": {
+   "partidas": 40,
+   "capituloPct": 78,
+   "semanaCapitulo": 46.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 34.7,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 1664,
+   "patrimonio80": 2470,
+   "patrimonioFinal": 12758,
+   "nivel": 63.6,
+   "marca": 63.2,
+   "sueldoFinal": 390,
+   "ligaMax": 3,
+   "crisis": 2.4,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.4,
+   "dineroOportunidad": 2122,
+   "segunda": {
+    "socio": 31
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/noOptimiza/locales": {
+   "partidas": 40,
+   "capituloPct": 75,
+   "semanaCapitulo": 45,
+   "empresaPct": 100,
+   "semanaEmpresa": 33.3,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 2180,
+   "patrimonio80": 2577,
+   "patrimonioFinal": 13803,
+   "nivel": 61.7,
+   "marca": 65.9,
+   "sueldoFinal": 376,
+   "ligaMax": 2.9,
+   "crisis": 2.7,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.5,
+   "dineroOportunidad": 2780,
+   "segunda": {
+    "socio": 30
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/noOptimiza/maximos": {
+   "partidas": 40,
+   "capituloPct": 73,
+   "semanaCapitulo": 40.5,
+   "empresaPct": 100,
+   "semanaEmpresa": 31.6,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 2506,
+   "patrimonio80": 3102,
+   "patrimonioFinal": 14755,
+   "nivel": 60.5,
+   "marca": 68.1,
+   "sueldoFinal": 365,
+   "ligaMax": 2.9,
+   "crisis": 3,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0.4,
+   "dineroOportunidad": 3234,
+   "segunda": {
+    "socio": 29
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/prudente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 51.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 43.8,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 774,
+   "patrimonio80": 0,
+   "patrimonioFinal": 23446,
+   "nivel": 63.4,
+   "marca": 55.8,
+   "sueldoFinal": 387,
+   "ligaMax": 2.9,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.8,
+   "descensos": 0.3,
+   "dineroOportunidad": 4792,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/prudente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 48.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 40.6,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 534,
+   "patrimonio80": 0,
+   "patrimonioFinal": 22196,
+   "nivel": 61.9,
+   "marca": 57.1,
+   "sueldoFinal": 343,
+   "ligaMax": 2.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0.3,
+   "dineroOportunidad": 4799,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/prudente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 45.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 38.2,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 21022,
+   "nivel": 59.9,
+   "marca": 59.2,
+   "sueldoFinal": 344,
+   "ligaMax": 2.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0.2,
+   "dineroOportunidad": 3131,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/agresiva/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 37.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 30.2,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 13214,
+   "nivel": 59.8,
+   "marca": 42.5,
+   "sueldoFinal": 335,
+   "ligaMax": 2.7,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0,
+   "dineroOportunidad": 3635,
+   "segunda": {
+    "socio": 15,
+    "segunda": 25
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/agresiva/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 36.6,
+   "empresaPct": 100,
+   "semanaEmpresa": 28.9,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 13456,
+   "nivel": 58.7,
+   "marca": 44.1,
+   "sueldoFinal": 331,
+   "ligaMax": 2.7,
+   "crisis": 1.1,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.5,
+   "descensos": 0,
+   "dineroOportunidad": 3914,
+   "segunda": {
+    "socio": 12,
+    "segunda": 28
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/agresiva/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 35.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 28.2,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 13534,
+   "nivel": 57.4,
+   "marca": 43.3,
+   "sueldoFinal": 326,
+   "ligaMax": 2.6,
+   "crisis": 1.4,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.5,
+   "descensos": 0.1,
+   "dineroOportunidad": 4328,
+   "segunda": {
+    "socio": 7,
+    "segunda": 33
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/inteligente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 42.5,
+   "empresaPct": 100,
+   "semanaEmpresa": 33.9,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 19560,
+   "nivel": 61.2,
+   "marca": 47.4,
+   "sueldoFinal": 343,
+   "ligaMax": 2.8,
+   "crisis": 0.3,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0.2,
+   "dineroOportunidad": 2256,
+   "segunda": {
+    "local": 21,
+    "socio": 19
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/inteligente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 33,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 20932,
+   "nivel": 60,
+   "marca": 50.1,
+   "sueldoFinal": 335,
+   "ligaMax": 2.8,
+   "crisis": 0.1,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0.1,
+   "dineroOportunidad": 2616,
+   "segunda": {
+    "socio": 18,
+    "local": 22
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "futbol/inteligente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 39.4,
+   "empresaPct": 100,
+   "semanaEmpresa": 31.6,
+   "contratoPct": 100,
+   "semanaContrato": 13,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 21417,
+   "nivel": 58.6,
+   "marca": 50,
+   "sueldoFinal": 332,
+   "ligaMax": 2.6,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 100,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0.1,
+   "dineroOportunidad": 3487,
+   "segunda": {
+    "socio": 13,
+    "local": 27
+   },
+   "ofertas": {
+    "puerto": 34,
+    "atleticoFormacion+puerto": 6
+   },
+   "energiaNegativa": false
+  },
+  "descanso/noOptimiza/sin": {
+   "partidas": 40,
+   "capituloPct": 75,
+   "semanaCapitulo": 53.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 39.2,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 1979,
+   "patrimonio80": 1606,
+   "patrimonioFinal": 9637,
+   "nivel": 50.1,
+   "marca": 9.6,
+   "sueldoFinal": 261,
+   "ligaMax": 2.6,
+   "crisis": 2.3,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.5,
+   "dineroOportunidad": 2439,
+   "segunda": {
+    "socio": 30
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/noOptimiza/locales": {
+   "partidas": 40,
+   "capituloPct": 78,
+   "semanaCapitulo": 54.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 39.2,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 1990,
+   "patrimonio80": 1642,
+   "patrimonioFinal": 10350,
+   "nivel": 50.1,
+   "marca": 11.3,
+   "sueldoFinal": 266,
+   "ligaMax": 2.6,
+   "crisis": 2.2,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.5,
+   "dineroOportunidad": 2447,
+   "segunda": {
+    "socio": 31
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/noOptimiza/maximos": {
+   "partidas": 40,
+   "capituloPct": 78,
+   "semanaCapitulo": 54.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 39.2,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 1990,
+   "patrimonio80": 1665,
+   "patrimonioFinal": 10493,
+   "nivel": 50.2,
+   "marca": 11.8,
+   "sueldoFinal": 266,
+   "ligaMax": 2.6,
+   "crisis": 2.2,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.5,
+   "dineroOportunidad": 2511,
+   "segunda": {
+    "socio": 31
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/prudente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 56.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 48.6,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 2897,
+   "patrimonio80": 0,
+   "patrimonioFinal": 19389,
+   "nivel": 49.6,
+   "marca": 8,
+   "sueldoFinal": 259,
+   "ligaMax": 2.5,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0.5,
+   "dineroOportunidad": 3033,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/prudente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 56.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 48.6,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 2953,
+   "patrimonio80": 0,
+   "patrimonioFinal": 19431,
+   "nivel": 49.6,
+   "marca": 8.1,
+   "sueldoFinal": 259,
+   "ligaMax": 2.5,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0.5,
+   "dineroOportunidad": 3075,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/prudente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 56.2,
+   "empresaPct": 100,
+   "semanaEmpresa": 48.6,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 2953,
+   "patrimonio80": 0,
+   "patrimonioFinal": 19431,
+   "nivel": 49.6,
+   "marca": 8.1,
+   "sueldoFinal": 259,
+   "ligaMax": 2.5,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0.5,
+   "dineroOportunidad": 3075,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/agresiva/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 43.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 36.1,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 13218,
+   "nivel": 47.7,
+   "marca": 6.3,
+   "sueldoFinal": 251,
+   "ligaMax": 2.5,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0.1,
+   "dineroOportunidad": 3576,
+   "segunda": {
+    "segunda": 21,
+    "socio": 19
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/agresiva/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 43.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 36.1,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 13176,
+   "nivel": 47.7,
+   "marca": 6.3,
+   "sueldoFinal": 251,
+   "ligaMax": 2.5,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0.1,
+   "dineroOportunidad": 3576,
+   "segunda": {
+    "segunda": 22,
+    "socio": 18
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/agresiva/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 43.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 36.1,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 13176,
+   "nivel": 47.7,
+   "marca": 6.3,
+   "sueldoFinal": 251,
+   "ligaMax": 2.5,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.6,
+   "descensos": 0.1,
+   "dineroOportunidad": 3576,
+   "segunda": {
+    "segunda": 22,
+    "socio": 18
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/inteligente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 47.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 38.2,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 161,
+   "patrimonio80": 0,
+   "patrimonioFinal": 17218,
+   "nivel": 48.4,
+   "marca": 6.9,
+   "sueldoFinal": 253,
+   "ligaMax": 2.5,
+   "crisis": 0.3,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0.2,
+   "dineroOportunidad": 2187,
+   "segunda": {
+    "socio": 26,
+    "local": 14
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/inteligente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 47.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 38.2,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 165,
+   "patrimonio80": 0,
+   "patrimonioFinal": 17188,
+   "nivel": 48.4,
+   "marca": 6.9,
+   "sueldoFinal": 253,
+   "ligaMax": 2.5,
+   "crisis": 0.3,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0.2,
+   "dineroOportunidad": 2187,
+   "segunda": {
+    "socio": 24,
+    "local": 16
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "descanso/inteligente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 47.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 38.2,
+   "contratoPct": 100,
+   "semanaContrato": 21.6,
+   "patrimonio60": 165,
+   "patrimonio80": 0,
+   "patrimonioFinal": 17188,
+   "nivel": 48.4,
+   "marca": 6.9,
+   "sueldoFinal": 253,
+   "ligaMax": 2.5,
+   "crisis": 0.3,
+   "atascos": 0,
+   "pruebasPct": 0,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0.2,
+   "dineroOportunidad": 2187,
+   "segunda": {
+    "socio": 24,
+    "local": 16
+   },
+   "ofertas": {
+    "puerto": 38,
+    "atleticoFormacion+puerto": 2
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/noOptimiza/sin": {
+   "partidas": 40,
+   "capituloPct": 70,
+   "semanaCapitulo": 42.6,
+   "empresaPct": 100,
+   "semanaEmpresa": 34.5,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 3329,
+   "patrimonio80": 5390,
+   "patrimonioFinal": 16098,
+   "nivel": 73.3,
+   "marca": 93,
+   "sueldoFinal": 595,
+   "ligaMax": 3.6,
+   "crisis": 2.9,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0.3,
+   "dineroOportunidad": 3645,
+   "segunda": {
+    "socio": 28
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/noOptimiza/locales": {
+   "partidas": 40,
+   "capituloPct": 63,
+   "semanaCapitulo": 40.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 4458,
+   "patrimonio80": 6729,
+   "patrimonioFinal": 16960,
+   "nivel": 72.6,
+   "marca": 93.8,
+   "sueldoFinal": 575,
+   "ligaMax": 3.7,
+   "crisis": 4.1,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1.1,
+   "descensos": 0.2,
+   "dineroOportunidad": 3666,
+   "segunda": {
+    "socio": 25
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/noOptimiza/maximos": {
+   "partidas": 40,
+   "capituloPct": 68,
+   "semanaCapitulo": 40.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.2,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 5320,
+   "patrimonio80": 8230,
+   "patrimonioFinal": 20243,
+   "nivel": 71.3,
+   "marca": 93.8,
+   "sueldoFinal": 578,
+   "ligaMax": 3.5,
+   "crisis": 2.8,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0.3,
+   "dineroOportunidad": 4427,
+   "segunda": {
+    "socio": 27
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/prudente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 47,
+   "empresaPct": 100,
+   "semanaEmpresa": 40,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 28277,
+   "nivel": 73.1,
+   "marca": 97.7,
+   "sueldoFinal": 474,
+   "ligaMax": 3.6,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.2,
+   "dineroOportunidad": 6140,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/prudente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 45.9,
+   "empresaPct": 100,
+   "semanaEmpresa": 38.6,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 24955,
+   "nivel": 71.9,
+   "marca": 97.9,
+   "sueldoFinal": 474,
+   "ligaMax": 3.7,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 1,
+   "descensos": 0.2,
+   "dineroOportunidad": 6343,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/prudente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 44.8,
+   "empresaPct": 100,
+   "semanaEmpresa": 37.5,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 25362,
+   "nivel": 70.6,
+   "marca": 97.2,
+   "sueldoFinal": 472,
+   "ligaMax": 3.6,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0.2,
+   "dineroOportunidad": 4618,
+   "segunda": {
+    "socio": 40
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/agresiva/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 38.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 30.8,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 15707,
+   "nivel": 70.2,
+   "marca": 74,
+   "sueldoFinal": 461,
+   "ligaMax": 3.1,
+   "crisis": 1,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.4,
+   "descensos": 0,
+   "dineroOportunidad": 4826,
+   "segunda": {
+    "socio": 8,
+    "segunda": 32
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/agresiva/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 37.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 29.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 15330,
+   "nivel": 69,
+   "marca": 69.8,
+   "sueldoFinal": 459,
+   "ligaMax": 3,
+   "crisis": 1.4,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.4,
+   "descensos": 0,
+   "dineroOportunidad": 4872,
+   "segunda": {
+    "socio": 5,
+    "segunda": 35
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/agresiva/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 36.4,
+   "empresaPct": 100,
+   "semanaEmpresa": 29.2,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 13491,
+   "nivel": 67.8,
+   "marca": 67.5,
+   "sueldoFinal": 459,
+   "ligaMax": 3,
+   "crisis": 1.6,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.3,
+   "descensos": 0,
+   "dineroOportunidad": 5022,
+   "segunda": {
+    "socio": 5,
+    "segunda": 35
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/inteligente/sin": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 41.7,
+   "empresaPct": 100,
+   "semanaEmpresa": 34.4,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 23530,
+   "nivel": 71.6,
+   "marca": 89.5,
+   "sueldoFinal": 470,
+   "ligaMax": 3.6,
+   "crisis": 0.1,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0,
+   "dineroOportunidad": 4098,
+   "segunda": {
+    "socio": 9,
+    "local": 31
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/inteligente/locales": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 40.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.9,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 23219,
+   "nivel": 70.3,
+   "marca": 85.8,
+   "sueldoFinal": 465,
+   "ligaMax": 3.6,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.9,
+   "descensos": 0,
+   "dineroOportunidad": 3819,
+   "segunda": {
+    "local": 30,
+    "socio": 10
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  },
+  "equilibrada/inteligente/maximos": {
+   "partidas": 40,
+   "capituloPct": 100,
+   "semanaCapitulo": 39.4,
+   "empresaPct": 100,
+   "semanaEmpresa": 32.2,
+   "contratoPct": 100,
+   "semanaContrato": 11.9,
+   "patrimonio60": 0,
+   "patrimonio80": 0,
+   "patrimonioFinal": 24142,
+   "nivel": 69,
+   "marca": 83.8,
+   "sueldoFinal": 465,
+   "ligaMax": 3.4,
+   "crisis": 0,
+   "atascos": 0,
+   "pruebasPct": 53,
+   "trabajosMax": 0,
+   "ascensos": 0.7,
+   "descensos": 0,
+   "dineroOportunidad": 4620,
+   "segunda": {
+    "local": 34,
+    "socio": 6
+   },
+   "ofertas": {
+    "puerto": 12,
+    "atleticoFormacion+puerto": 28
+   },
+   "energiaNegativa": false
+  }
+ },
  "comprobaciones": [
   {
-   "t": "Repetir una sola acción no es lo mejor",
+   "t": "Ninguna estrategia deportiva de una sola acción completa más capítulos que la equilibrada (todas pueden comprar)",
    "ok": true
   },
   {
-   "t": "Sin carrera no hay empresa, y trabajar en vez de jugar es más lento (todo trabajo tarda 8+ semanas más que equilibrada)",
+   "t": "Trabajar en vez de jugar: contrato y capítulo más tarde que la equilibrada",
    "ok": true
   },
   {
-   "t": "No se puede trabajar indefinidamente (máx. semanas de trabajo en el barrio ≤ 8)",
+   "t": "No se puede trabajar indefinidamente en el barrio (máx. 8 semanas)",
    "ok": true
   },
   {
@@ -280,11 +2591,27 @@
    "ok": true
   },
   {
-   "t": "Atlético y Puerto: Puerto da más dinero al principio; Atlético más nivel y más patrimonio a medio plazo",
+   "t": "Puerto da más al principio; Atlético más nivel y más patrimonio a medio plazo",
    "ok": true
   },
   {
-   "t": "Patrocinios primero no gana a la vez en dinero y deporte",
+   "t": "Caja mínima: compra antes pero con más crisis que la máxima",
+   "ok": true
+  },
+  {
+   "t": "Caja mínima no es la mejor en todo (capítulo, patrimonio y sin riesgo a la vez)",
+   "ok": true
+  },
+  {
+   "t": "Ruta «imagen + empresa»: termina antes el capítulo, pero con coste deportivo (nivel, sueldo, marca personal y categoría)",
+   "ok": true
+  },
+  {
+   "t": "Ruta «imagen + empresa»: no es la mejor para crecer a largo plazo (patrimonio a 100 semanas, mismos patrocinios)",
+   "ok": true
+  },
+  {
+   "t": "Las tres segundas inversiones son viables (todas se eligen y completan el capítulo)",
    "ok": true
   },
   {
@@ -292,7 +2619,7 @@
    "ok": true
   },
   {
-   "t": "Ninguna ruta legítima queda bloqueada (todas firman contrato)",
+   "t": "Todas las combinaciones firman contrato",
    "ok": true
   },
   {

@@ -15,6 +15,8 @@
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
+      secciones: ['semana', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
+      seccionesNuevas: [],
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
       p: { nivel: I.nivel, energia: I.energia, rep: I.rep, dinero: I.dinero, lesion: 0 },
@@ -121,9 +123,14 @@
     try { ls.setItem(CFG.claveGuardado + '_copia_' + Date.now(), raw); ls.removeItem(CFG.claveGuardado); } catch (_) {}
     return null;
   }
+  // Busca una partida de P1 en todas sus claves conocidas, de la más nueva a la más antigua.
+  // Solo lee: nunca escribe ni borra el guardado original.
   function partidaP1() {
     const ls = LS(); if (!ls) return null;
-    try { const raw = ls.getItem(CFG.claveP1); return raw ? JSON.parse(raw) : null; } catch (_) { return null; }
+    for (const k of CFG.clavesP1) {
+      try { const raw = ls.getItem(k); if (!raw) continue; const v = JSON.parse(raw); if (v && typeof v === 'object' && v.p) return Object.assign(v, { __clave: k }); } catch (_) { /* clave rota: probamos la siguiente */ }
+    }
+    return null;
   }
 
   function anotar(s, ic, t) { s.diario.push({ semana: s.semana, ic, t }); if (s.diario.length > 150) s.diario.shift(); }

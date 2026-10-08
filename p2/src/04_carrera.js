@@ -165,7 +165,7 @@
     const O = OFERTAS[id];
     if (!O) return false;
     const previo = s.contrato;
-    const mismoClub = previo && OFERTAS[previo.oferta].club === O.club && OFERTAS[previo.oferta].liga === O.liga;
+    const mismoClub = previo && OFERTAS[previo.oferta].club === O.club;
     s.contrato = { oferta: id, desde: s.semana, temporadasRestantes: O.temporadas, sueldo: O.sueldo, prima: O.prima, renovado: 0 };
     if (O.prima) {
       const neto = Math.round(O.prima * (1 - CFG.club.impuesto));
@@ -175,7 +175,7 @@
     s.fase = O.amateur ? 'amateur' : 'club';
     s.invitacion = null;
     if (!mismoClub || !s.temporada || s.temporada.cerrada) {
-      s.temporada = P2.crearTemporada(s, O.liga, O.club);
+      s.temporada = P2.crearTemporada(s, P2.ligaDeClub(s, O.club) || O.liga, O.club);
       s.confianza = CFG.club.confianzaInicial;
       s.stats.titularTemp = 0; s.stats.notasTemp = [];
     }
@@ -241,7 +241,7 @@
       if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) s.stats.titular++; } else s.stats.suplente++;
     }
     // Consecuencias: confianza, fama, interés, energía, lesión, primas
-    const expo = O.exposicion;
+    const expo = O.exposicion * (LIGAS[T.liga].exposicion || 1);   // en categorías más altas te ve más gente
     let dConf = 0;
     if (rol === 'titular') dConf = (nota - 6) * 3.5 + (resultado === 'victoria' ? 2 : resultado === 'derrota' ? -2 : 0);
     else if (rol === 'suplente') dConf = (nota - 6) * 3;
@@ -277,7 +277,7 @@
     const icR = resultado === 'victoria' ? '✅' : resultado === 'derrota' ? '❌' : '🤝';
     const rolTxt = { titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas (banquillo)', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a (sin energía)' }[rol];
     R.lineas.push([icR, `Jornada ${pj.j + 1}: ${pj.local ? 'vs' : 'en casa del'} ${rival} ${gf}-${gc}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}${goles ? ` · ${goles === 1 ? 'marcas un gol' : 'marcas 2 goles'}` : ''}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
-    R.lineas.push(['📊', `Vais ${R.partido.pos}º de ${LIGAS[T.liga].equipos.length}. Confianza del míster ${Math.round(s.confianza)} (${dConf >= 0 ? '+' : ''}${nf(dConf)}).`]);
+    R.lineas.push(['📊', `Vais ${R.partido.pos}º de ${T.calendario[0].length * 2}. Confianza del míster ${Math.round(s.confianza)} (${dConf >= 0 ? '+' : ''}${nf(dConf)}).`]);
     if (prima) R.lineas.push(['💶', `Prima por victoria: +${eur(prima)}.`, 'bien']);
     if (lesion) R.lineas.push(['🤕', `Te lesionas: ${lesion} ${lesion === 1 ? 'semana' : 'semanas'} de baja.`, 'mal']);
     R.porque.push(`Convocatoria: ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} + azar (±6) frente a ${nf(umbral)} (nivel del once). Titular si llegas; suplente si te quedas a menos de 7. Con menos de ${E.minTitular} de energía no eres titular.`);
@@ -289,7 +289,7 @@
 
   // ---------- Fin de temporada ----------
   function finTemporada(s, R) {
-    const T = s.temporada, O = oferta(s), pos = P2.posicion(T), obj = OBJETIVOS[O.objetivo];
+    const T = s.temporada, O = oferta(s), pos = P2.posicion(T), obj = OBJETIVOS[P2.objetivoDe(T)];
     const cumple = obj.cumple(pos);
     const notas = s.stats.notasTemp, media = notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : 0;
     s.temporadasJugadas.push({ liga: T.liga, club: O.n, pos, objetivo: obj.n, cumple, pj: notas.length, titular: s.stats.titularTemp, media: r1(media) });
@@ -299,6 +299,21 @@
       const neto = Math.round(O.primaObjetivo * (1 - CFG.club.impuesto));
       s.primasCobradas[`obj-${T.liga}-${T.num}`] = neto; s.p.dinero += neto; s.acum.primas += neto;
       R.lineas.push(['💶', `Prima por objetivo: +${eur(neto)}.`, 'bien']);
+    }
+    // Ascensos y descensos: el club cambia de categoría (no depende de tu contrato)
+    const mov = P2.moverEquipos(s, T);
+    if (mov.miClub) {
+      const deL = LIGAS[mov.miClub.de], aL = LIGAS[mov.miClub.a];
+      let prima = 0;
+      if (mov.miClub.tipo === 'sube' && O.primaAscenso && notas.length >= CFG.liga.primaAscensoMinPartidos && !s.primasCobradas[`asc-${T.liga}-${T.num}`]) {
+        prima = Math.round(O.primaAscenso * (1 - CFG.club.impuesto));
+        s.primasCobradas[`asc-${T.liga}-${T.num}`] = prima; s.p.dinero += prima; s.acum.primas += prima;
+      }
+      if (mov.miClub.tipo === 'sube') { R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
+      else if (mov.miClub.tipo === 'baja') { R.lineas.push(['📉', `Descenso: ${O.n.replace(/ \(.*\)/, '')} baja a ${aL.n}.`, 'mal']); s.p.rep = r1(clamp(s.p.rep - 2, 0, 100)); }
+      else R.lineas.push(['🔒', `Acabáis en puestos de ascenso, pero un filial no puede jugar en la categoría de su primer equipo: sube el siguiente.`]);
+      P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
+      P2.anotar(s, mov.miClub.tipo === 'sube' ? '🎉' : mov.miClub.tipo === 'baja' ? '📉' : '🔒', mov.miClub.tipo === 'sube' ? `¡Subimos a ${aL.n}!` : mov.miClub.tipo === 'baja' ? `Bajamos a ${aL.n}.` : `El filial no puede subir.`);
     }
     P2.finTemporadaPatros(s, R, media);
     s.contrato.temporadasRestantes -= 1;
@@ -312,7 +327,7 @@
     const O = oferta(s), l = [];
     if (s.contrato.temporadasRestantes <= 0 && s.confianza >= 45) {
       const mejora = s.agente && s.confianza >= 65 ? 1.3 : 1.12;
-      l.push({ id: 'renovar', n: `Renovar con ${O.n}`, sueldo: Math.round(s.contrato.sueldo * mejora), prima: Math.round(O.prima * 0.5), temporadas: 2 });
+      l.push({ id: 'renovar', n: `Renovar con ${O.n}`, sueldo: Math.max(s.contrato.sueldo, Math.min(topeSueldo(s), Math.round(s.contrato.sueldo * mejora))), prima: Math.round(O.prima * 0.5), temporadas: 2 });
     }
     if (O.club === 'atleticoB' && s.confianza >= 60 && s.p.nivel >= 58) l.push({ id: 'atleticoPrimero' });
     if (s.interes >= 45 && O.club !== 'costa' && !O.sube) l.push({ id: 'costaReal' });
@@ -321,10 +336,10 @@
   }
   function nuevaTemporada(s, R) {
     const O = oferta(s);
-    s.temporada = P2.crearTemporada(s, O.liga, O.club);
+    s.temporada = P2.crearTemporada(s, P2.ligaDeClub(s, O.club) || O.liga, O.club);
     s.stats.titularTemp = 0; s.stats.notasTemp = [];
     s.interes = r1(s.interes * 0.6);
-    R && R.lineas.push(['📅', `Empieza una nueva temporada en ${LIGAS[O.liga].n}.`]);
+    R && R.lineas.push(['📅', `Empieza una nueva temporada en ${LIGAS[s.temporada.liga].n}. Objetivo del club: ${OBJETIVOS[s.temporada.objetivo].n.toLowerCase()}.`]);
   }
   function firmarRenovacion(s, cond, R) {
     const O = oferta(s);
@@ -334,6 +349,10 @@
     nuevaTemporada(s, R);
   }
 
+  // Techo de sueldo según la categoría en la que juega tu club (las subidas no pueden pasar de ahí)
+  function topeSueldo(s) { const O = oferta(s); const l = O ? (P2.ligaDeClub(s, O.club) || O.liga) : null; return l ? LIGAS[l].sueldoMax || 99999 : 99999; }
+  function subirSueldo(s, factor) { const antes = s.contrato.sueldo; s.contrato.sueldo = Math.max(antes, Math.min(topeSueldo(s), Math.round(antes * factor))); return s.contrato.sueldo - antes; }
+
   // Valor de mercado (aproximado, para mostrar)
   function valorMercado(s) {
     const O = oferta(s), e = O ? O.exposicion : 0.5;
@@ -341,5 +360,5 @@
   }
 
   Object.assign(P2, { oferta, enCaptacion, semanasCaptacion, tieneHito, bloqueoAccion, accionesDisponibles, aplicarAccion, invitar, revisarOjeador,
-    puntuacionPruebas, ofertasPorPuntuacion, diaDePruebas, firmar, firmarRenovacion, nuevaTemporada, probTitular, jugarPartido, finTemporada, ofertasFinTemporada, valorMercado, techoClub });
+    puntuacionPruebas, ofertasPorPuntuacion, diaDePruebas, firmar, firmarRenovacion, nuevaTemporada, probTitular, jugarPartido, finTemporada, ofertasFinTemporada, valorMercado, techoClub, topeSueldo, subirSueldo });
 })(globalThis.P2 = globalThis.P2 || {});

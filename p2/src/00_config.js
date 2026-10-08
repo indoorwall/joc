@@ -11,7 +11,8 @@
   const CFG = {
     saveVersion: 2,
     claveGuardado: 'del_barrio_al_negocio_p2',
-    claveP1: 'del_barrio_al_negocio_p1_v5',
+    // Claves que ha usado P1 a lo largo de sus versiones (de la más nueva a la más antigua). Solo se leen.
+    clavesP1: ['del_barrio_al_negocio_p1_v5', 'del_barrio_al_negocio_p1_v4', 'del_barrio_al_negocio_p1_v3', 'del_barrio_al_negocio_p1_v2', 'del_barrio_al_negocio_p1_v1'],
     deporte: 'futbol',
 
     inicio: { edad: 17, nivel: 40, energia: 80, rep: 4, dinero: 150, ciudad: 'Villamar' },
@@ -62,9 +63,14 @@
       titularidadesHito: 3,
     },
 
-    liga: { equipos: 8, ascenso: 2, descenso: 2, ptsV: 3, ptsE: 1, localia: 2.5 },
+    liga: { equipos: 8, ascenso: 2, descenso: 2, ptsV: 3, ptsE: 1, localia: 2.5,
+    subeFuerza: 2, bajaFuerza: -1.5,      // un club que sube refuerza la plantilla; uno que baja pierde jugadores
+    primaAscensoMinPartidos: 5 },         // para cobrar la prima de ascenso hay que haber jugado
 
-    patrocinio: { maxContratos: 2, faltasMax: 2 },
+    patrocinio: { maxContratos: 2, faltasMax: 2,
+    primaRenovacion: 0.25,      // al renovar se cobra solo una parte de la prima inicial
+    subidaRenovacion: 0.1,      // si cumpliste todos los actos, el pago semanal sube un 10 %
+  },
 
     empresa: {
       semanasRentable: 6,         // semanas seguidas con beneficio para el hito 7
@@ -78,12 +84,22 @@
   };
 
   // ---- Ligas y equipos (ficticios). fuerza ≈ nivel medio del once ----
+  // Las categorías están encadenadas (baja ← → sube). Suben los 2 primeros y bajan los 2 últimos,
+  // salvo arriba del todo (no hay más arriba) y abajo del todo (no hay más abajo).
   const LIGAS = {
+    primera: {
+      n: 'Primera Federación · Grupo 2', corto: 'Primera Fed.', jornadas: 14, nivel: 4, baja: 'segunda', sube: null, exposicion: 1.6, sueldoMax: 1500,
+      equipos: [
+        { id: 'leones', n: 'CD Leones', fuerza: 70 }, { id: 'altamar', n: 'Altamar CF', fuerza: 68 }, { id: 'realVega', n: 'Real Vega', fuerza: 69 },
+        { id: 'fortaleza', n: 'UD Fortaleza', fuerza: 66 }, { id: 'nautico', n: 'Club Náutico', fuerza: 65 }, { id: 'pinares', n: 'Pinares CF', fuerza: 66 },
+        { id: 'olimpia', n: 'Olimpia SD', fuerza: 64 }, { id: 'marisma', n: 'Marisma Atlético', fuerza: 64 },
+      ],
+    },
     tercera: {
-      n: 'Tercera Federación · Grupo Costa', corto: 'Tercera Fed.', jornadas: 14,
+      n: 'Tercera Federación · Grupo Costa', corto: 'Tercera Fed.', jornadas: 14, nivel: 2, baja: 'regional', sube: 'segunda', exposicion: 1, sueldoMax: 450,
       equipos: [
         { id: 'puerto', n: 'UD Puerto', fuerza: 52 },
-        { id: 'atleticoB', n: 'Atlético Ciudad B', fuerza: 55 },
+        { id: 'atleticoB', n: 'Atlético Ciudad B', fuerza: 55, filialDe: 'atletico' },   // un filial no puede jugar en la categoría de su primer equipo
         { id: 'faro', n: 'CD Faro', fuerza: 53 },
         { id: 'salinas', n: 'Salinas CF', fuerza: 50 },
         { id: 'olivar', n: 'Olivar Deportivo', fuerza: 49 },
@@ -93,7 +109,7 @@
       ],
     },
     segunda: {
-      n: 'Segunda Federación · Grupo Sur', corto: 'Segunda Fed.', jornadas: 14,
+      n: 'Segunda Federación · Grupo Sur', corto: 'Segunda Fed.', jornadas: 14, nivel: 3, baja: 'tercera', sube: 'primera', exposicion: 1.3, sueldoMax: 900,
       equipos: [
         { id: 'atletico', n: 'Atlético Ciudad', fuerza: 63 },
         { id: 'costa', n: 'Real Costa', fuerza: 61 },
@@ -106,7 +122,7 @@
       ],
     },
     regional: {
-      n: 'Regional Preferente', corto: 'Regional', jornadas: 14,
+      n: 'Regional Preferente', corto: 'Regional', jornadas: 14, nivel: 1, baja: null, sube: 'tercera', exposicion: 0.6, sueldoMax: 80,
       equipos: [
         { id: 'sanroque', n: 'CD San Roque', fuerza: 42 },
         { id: 'pinar', n: 'Pinar CF', fuerza: 43 },
@@ -125,19 +141,19 @@
   // exposicion: multiplica fama e interés de otros clubes · patroTier: marcas a las que llegas
   const OFERTAS = {
     puerto: {
-      club: 'puerto', primaObjetivo: 800, c1: '#1d3c78', c2: '#ffffff', liga: 'tercera', n: 'UD Puerto', ic: '⚓', lema: 'Dinero más rápido',
+      club: 'puerto', primaObjetivo: 800, primaAscenso: 1200, c1: '#1d3c78', c2: '#ffffff', liga: 'tercera', n: 'UD Puerto', ic: '⚓', lema: 'Dinero más rápido',
       sueldo: 250, prima: 1800, primaVictoria: 60, temporadas: 1,
       minutos: 6, entreno: 0.6, exposicion: 0.6, patroTier: 'local', objetivo: 'top4', techoNivel: 60,
       pros: ['Sueldo y prima de firma altos', 'Juegas casi seguro'], contras: ['Entrenas peor', 'Poca visibilidad: solo marcas locales', 'Techo bajo: pocas ofertas mejores'],
     },
     atleticoFormacion: {
-      club: 'atleticoB', c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Contrato de formación',
+      club: 'atleticoB', primaAscenso: 600, c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Contrato de formación',
       sueldo: 90, prima: 0, primaVictoria: 40, temporadas: 2,
       minutos: -6, entreno: 1.4, exposicion: 1.4, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 80,
       pros: ['Entrenas mucho mejor', 'Te ven ojeadores y marcas deportivas', 'Puerta al primer equipo'], contras: ['Cobras poco', 'Cuesta ser titular'],
     },
     atleticoFilial: {
-      club: 'atleticoB', c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Ficha del filial',
+      club: 'atleticoB', primaAscenso: 800, c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Ficha del filial',
       sueldo: 150, prima: 500, primaVictoria: 40, temporadas: 2,
       minutos: -2, entreno: 1.4, exposicion: 1.5, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 80,
       pros: ['Entrenas mucho mejor', 'Te ven ojeadores y marcas deportivas', 'Puerta al primer equipo'], contras: ['Cobras menos que en Puerto', 'Hay competencia por el puesto'],
@@ -165,9 +181,10 @@
   };
 
   const OBJETIVOS = {
-    descenso: { n: 'Evitar el descenso', corto: 'No bajar', cumple: pos => pos <= 6 },
+    descenso: { n: 'Evitar el descenso (no acabar en los 2 últimos)', corto: 'No bajar', cumple: pos => pos <= 6 },
     top4: { n: 'Quedar entre los 4 primeros', corto: 'Top 4', cumple: pos => pos <= 4 },
-    campeon: { n: 'Luchar por el campeonato (top 2)', corto: 'Campeonato', cumple: pos => pos <= 2 },
+    campeon: { n: 'Luchar por el ascenso (top 2)', corto: 'Ascenso', cumple: pos => pos <= 2 },
+    titulo: { n: 'Ganar la liga', corto: 'Título', cumple: pos => pos <= 1 },
   };
 
   // ---- Acciones de la semana (una por semana). efecto en 04_carrera ----
@@ -206,9 +223,9 @@
       obligacion: 'Una foto en la tienda cada 4 semanas' },
     { id: 'talleres', n: 'Talleres Costa', ic: '🔧', tier: 'local', repMin: 22, prima: 400, semanal: 60, semanas: 14, actoCada: 3,
       obligacion: 'Un acto comercial cada 3 semanas' },
-    { id: 'kinetic', n: 'Kinetic Sport', ic: '👟', tier: 'deportiva', repMin: 28, titularidades: 3, prima: 1200, semanal: 120, semanas: 28, actoCada: 5,
+    { id: 'kinetic', n: 'Kinetic Sport', ic: '👟', tier: 'deportiva', repMin: 28, nivelMin: 55, titularidades: 3, prima: 1200, semanal: 120, semanas: 28, actoCada: 5,
       obligacion: 'Un evento cada 5 semanas y llevar sus botas', objetivo: { notaMedia: 6.3, bonus: 1000 } },
-    { id: 'vertice', n: 'Vértice Energy', ic: '⚡', tier: 'deportiva', repMin: 45, titularidades: 6, prima: 2500, semanal: 200, semanas: 28, actoCada: 4,
+    { id: 'vertice', n: 'Vértice Energy', ic: '⚡', tier: 'deportiva', repMin: 45, nivelMin: 62, titularidades: 6, prima: 2500, semanal: 200, semanas: 28, actoCada: 4,
       obligacion: 'Un evento cada 4 semanas', objetivo: { notaMedia: 6.6, bonus: 2000 } },
   ];
   const TIERS = { local: ['local'], deportiva: ['local', 'deportiva'] };
@@ -216,7 +233,15 @@
   // ---- Negocios (tipo de datos genérico; en P2 solo la peluquería) ----
   const NEGOCIOS = {
     peluqueria: {
-      n: 'Peluquería', ic: '💈', traspaso: 4500, cajas: [600, 2000, 4500],
+      n: 'Peluquería', ic: '💈', traspaso: 4500, cajas: [1500, 3000, 5500],
+      // Puesta en marcha: lo que sale de la caja nada más empezar (la fianza se recupera al vender)
+      arranque: { fianza: 900, stock: 350, reparaciones: 250, primeraSemana: 0.6 },
+      // Inversión inicial opcional (semana 2): solo si la caja da para ello
+      mejorasIniciales: [
+        { id: 'sillon', ic: '💺', n: 'Sillón y lavacabezas de segunda mano', coste: 900, ef: { capacidad: 0.15 }, d: '+15 % de capacidad para siempre' },
+        { id: 'reforma', ic: '🎨', n: 'Lavado de cara del local', coste: 1600, ef: { fama: 12, famaObjetivo: 5 }, d: '+12 de fama ya y +5 a la fama a la que tiende' },
+        { id: 'reapertura', ic: '🎈', n: 'Fiesta de reapertura', coste: 450, ef: { fama: 7 }, d: '+7 de fama ya' },
+      ],
       demandaBase: 110, capacidadEmpleado: 55, empleadosMax: 4, alquiler: 450, fijos: 120, consumoCliente: 1.5,
       famaInicial: 40, historialVendedor: [60, 20, -30, 40, -10, 10],
       // Cómo la deja el antiguo dueño: mucha plantilla mal pagada y precios bajos. Hay que tomar decisiones desde el primer día
@@ -240,11 +265,38 @@
   };
 
   // ---- Oportunidades de inversión (la segunda puerta que abre el capítulo) ----
+  // Cada una con una estructura financiera distinta: coste = lo que pones tú hoy
   const OPORTUNIDADES = [
-    { id: 'local', ic: '🏢', n: 'Comprar el local de tu peluquería', coste: 14000, d: 'Dejas de pagar alquiler para siempre. Mucho dinero de golpe, pero tu negocio gana más y vale más.' },
-    { id: 'segunda', ic: '💈', n: 'Abrir una segunda peluquería', coste: 7000, d: 'Duplicas ingresos… y problemas. Tendrás que repartir tu tiempo entre dos negocios.' },
-    { id: 'socio', ic: '🤝', n: 'Entrar como socio en la cafetería de un compañero', coste: 4000, d: 'Inviertes sin gestionar: cobras parte de los beneficios, pero no decides tú.' },
+    { id: 'local', ic: '🏢', n: 'Comprar el local de tu peluquería', coste: 3500, precio: 14000, hipoteca: { importe: 10500, interes: 0.002, plazo: 156 }, revaloriza: 0.0005,
+      d: 'Entrada de 3.500 € e hipoteca de 10.500 € que paga la peluquería (unos 90 €/semana). Desaparece el alquiler (450 €/semana) y el local es tuyo: vale dinero.' },
+    { id: 'segunda', ic: '💈', n: 'Abrir una segunda peluquería', coste: 3500, traspaso: 6000, prestamo: { importe: 4000, interes: 0.012, plazo: 60 }, caja: 1500,
+      d: 'Entrada de 2.000 € + 1.500 € de caja, y un préstamo de 4.000 € a cargo del nuevo negocio. Más beneficio posible, más gestión y más riesgo.' },
+    { id: 'socio', ic: '🤝', n: 'Entrar como socio en la cafetería de un compañero', coste: 3000,
+      d: '3.000 € y te olvidas: no gestionas. Hay trimestres buenos y malos, a veces sin dividendo, y pueden pedirte más capital.' },
   ];
+  // Participación en la cafetería: cada «trimestre» (6 semanas) llega un resultado
+  const SOCIO = {
+    trimestre: 6,
+    estados: {
+      bueno: { n: 'Trimestre bueno', ic: '📈', dividendo: 0.045, valor: 0.04 },
+      normal: { n: 'Trimestre normal', ic: '☕', dividendo: 0.02, valor: 0 },
+      malo: { n: 'Trimestre malo', ic: '📉', dividendo: 0, valor: -0.08 },
+      expansion: { n: 'Abren otro local', ic: '🏗️', dividendo: 0, valor: 0.08 },
+      problemas: { n: 'Problemas serios', ic: '⚠️', dividendo: 0, valor: -0.15, ampliacion: 0.6 },
+    },
+    // Probabilidad de pasar de un estado a otro
+    transicion: {
+      normal: { bueno: 0.25, normal: 0.4, malo: 0.2, expansion: 0.1, problemas: 0.05 },
+      bueno: { bueno: 0.3, normal: 0.4, malo: 0.1, expansion: 0.15, problemas: 0.05 },
+      malo: { bueno: 0.1, normal: 0.35, malo: 0.3, expansion: 0.05, problemas: 0.2 },
+      expansion: { bueno: 0.35, normal: 0.3, malo: 0.2, expansion: 0.05, problemas: 0.1 },
+      problemas: { bueno: 0.05, normal: 0.35, malo: 0.35, expansion: 0, problemas: 0.25 },
+    },
+    ampliacion: 0.25,         // si piden capital: un 25 % de lo que pusiste
+    dilucion: 0.3,            // si no pones, tu parte pierde un 30 % de valor
+    ofertaProb: 0.15,         // a veces alguien quiere comprar tu parte
+    oferta: [0.8, 1.2],
+  };
 
   // ---- Hitos: cada uno abre algo concreto ----
   const HITOS = [
@@ -258,5 +310,5 @@
     { id: 'inversion2', n: 'Elige tu segunda inversión', abre: 'Capítulo 2: tu imperio' },
   ];
 
-  Object.assign(P2, { CFG, LIGAS, OFERTAS, OBJETIVOS, ACCIONES, MARCAS, TIERS, NEGOCIOS, OPORTUNIDADES, HITOS });
+  Object.assign(P2, { CFG, LIGAS, OFERTAS, OBJETIVOS, ACCIONES, MARCAS, TIERS, NEGOCIOS, OPORTUNIDADES, SOCIO, HITOS });
 })(globalThis.P2 = globalThis.P2 || {});

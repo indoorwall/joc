@@ -104,7 +104,7 @@ Módulos en `p2/src/` (datos separados de la lógica; la lógica no toca la pant
 | `07_eventos.js` | Motor de sucesos por datos (condición, peso, enfriamiento, opciones) y consecuencias diferidas |
 | `08_decisiones.js` | Decisiones pendientes (sucesos, ofertas, actos, crisis, repesca, segunda inversión) e hitos |
 | `09_semana.js` | `jugarSemana()` y `resolverDecision()`: las dos únicas puertas que cambian la partida |
-| `10_sim.js` | Políticas automáticas, `runBalance()` y análisis de la peluquería |
+| `10_sim.js` | Bots por dimensiones (deportiva × empresarial × comercial), `runBalance()` y análisis de la peluquería |
 | `11_avatar.js` | Avatar por capas (datos de prendas, desbloqueos por hito y dibujo) |
 | `20_ui.js`, `estilo.css`, `plantilla.html` | Interfaz (situación → decisión → consecuencia, botón «Jugar semana», editor del personaje) |
 
@@ -114,59 +114,196 @@ Un club, una marca, un suceso o un negocio nuevo es una entrada de datos más.
 Ganchos de depuración en el navegador: `window.__P2` (`S`, `jugar(id)`, `decidir(id)`, `runBalance(n)`, `informe(n)`, `migrateSave`…).
 En ⚙️ Ajustes hay un botón que lanza el simulador y muestra el informe.
 
-## 4. Simulación de balance (`P2.runBalance(150)`, 150 partidas por política, máx. 90 semanas)
+## P2.1: balance, coherencia temporal y decisiones
 
-| Política | Llega a las pruebas en la captación | Contrato (semana) | Empresa (semana) | Capítulo completado (semana) | Patrimonio final | Nivel | Crisis/partida |
-|---|---|---|---|---|---|---|---|
-| Todo trabajo | 0 % | 100 % (32) | 100 % (38) | 67 % (49) | 10.755 € | 50 | 6,1 |
-| Todo entrenamiento | 0 % | 100 % (16) | — | 0 % | 32.501 € | 73 | 0 |
-| Todo descanso | 0 % | 100 % (20) | — | 0 % | 23.146 € | 53 | 0 |
-| Todo fútbol | 100 % | 100 % (13) | — | 0 % | 30.951 € | 69 | 0 |
-| Dinero primero | 19 % | 100 % (22) | 100 % (31) | 100 % (39) | 17.815 € | 49 | 0 |
-| Deporte primero | 49 % | 100 % (14) | 100 % (41) | 66 % (51) | 25.713 € | 68 | 3,6 |
-| Patrocinios primero | 100 % | 100 % (13) | 100 % (27) | 81 % (35) | 17.607 € | 51 | 10,4 |
-| Equilibrada | 59 % | 100 % (12) | 100 % (29) | 100 % (36) | 18.863 € | 66 | 0 |
+### Qué cambia
 
-Notas para leer la tabla:
-- Las políticas «todo X» y «deporte primero» no compran empresa o no la gestionan: por eso no terminan el capítulo,
-  aunque acumulen dinero de sueldo. «Patrimonio final» se mide al terminar (antes, si completas el capítulo), así que
-  no compara riqueza a igual semana.
-- «Todo trabajo» solo llega al contrato por la repesca y tarda ~13 semanas más que la equilibrada en terminar.
-- **Atlético frente a Puerto con la misma partida** (equilibrada, mismas 88 semillas con las dos ofertas, solo cambia el club):
+1. **Ascensos y descensos reales.** Las categorías están encadenadas: Regional Preferente → Tercera Federación →
+   Segunda Federación → Primera Federación. Al acabar la temporada suben los 2 primeros y bajan los 2 últimos
+   (arriba del todo no se sube y abajo del todo no se baja). El «mundo» (qué club juega dónde y con qué fuerza)
+   se guarda en la partida.
+   - Al subir: celebración, prima de ascenso si has jugado (UD Puerto 1.200 €, Atlético B 600–800 €), +3 de fama,
+     rivales nuevos y más fuertes, más exposición (Segunda ×1,3, Primera ×1,6) y techo de sueldo mayor.
+   - Al bajar: rivales más flojos, menos exposición, −2 de fama.
+   - El objetivo de cada temporada se calcula según lo fuerte que es tu club en su categoría
+     (no bajar / top 4 / ascenso / título).
+   - Un filial no puede subir a la categoría de su primer equipo: la plaza pasa al siguiente.
+   - El ascenso del club y las ofertas personales son cosas distintas: pueden pasar a la vez o no.
+   - **Techo de sueldo por categoría** (Regional 80, Tercera 450, Segunda 900, Primera 1.500 €/semana): ninguna
+     renovación ni subida lo supera.
+2. **Una decisión cada semana.** Tras jugar, `s.eleccion = null`. «Jugar semana» está desactivado
+   («Elige qué haces esta semana») hasta que tocas una acción. Nada se elige solo. Con una decisión pendiente,
+   el botón desaparece hasta que decides.
+3. **Segunda inversión con tres estructuras financieras** (lo que pones tú hoy cabe en el dinero típico al
+   desbloquearla, unos 3.800 € de mediana):
+   - **Local**: 3.500 € de entrada + hipoteca de 10.500 € (0,2 %/semana, 156 semanas) que paga la peluquería.
+     Desaparece el alquiler (450 €/semana) y el local cuenta como activo (vale 14.000 € y se revaloriza).
+   - **Segunda peluquería**: 2.000 € + 1.500 € de caja y un préstamo de 4.000 € a cargo del nuevo negocio.
+     Tiene su propia puesta en marcha.
+   - **Socio de la cafetería**: 3.000 € y no gestionas.
+4. **La cafetería ya no es dinero garantizado.** La participación tiene valor, estado, dividendos e historial.
+   Cada 6 semanas llega un resultado:
+   - trimestre bueno (dividendo 4,5 %);
+   - normal (2 %);
+   - malo (sin dividendo, −8 % de valor);
+   - expansión (sin dividendo, +8 %);
+   - problemas (−15 %, y a veces piden capital: si no pones, te diluyen un 30 %).
+   A veces alguien ofrece comprar tu parte (80–120 % de su valor). El patrimonio cuenta el valor actual, no lo invertido.
+5. **Puesta en marcha de la peluquería.** Al comprar salen de la caja la fianza (900 €, se recupera al vender) y el
+   stock (350 €). La primera semana se ingresa un 60 % (la clientela desconfía) y en la segunda hay 250 € de
+   reparaciones. Después llega una **oportunidad de mejora** que solo puedes pagar con caja:
+   - sillón y lavacabezas (900 €, +15 % de capacidad);
+   - lavado de cara (1.600 €, +12 de fama y +5 a la fama objetivo);
+   - fiesta de reapertura (450 €, +7 de fama).
 
-| | Patrimonio sem. 25 | Sem. 40 | Sem. 60 | Compra empresa | Nivel sem. 70 |
-|---|---|---|---|---|---|
-| UD Puerto | **4.272 €** | 14.594 € | 24.863 € | sem. 27,6 | 58 |
-| Atlético | 2.522 € | **20.206 €** | **39.954 €** | sem. 28,6 | **85** |
+   Cajas iniciales: 1.500 / 3.000 / 5.500 €.
+6. **Patrocinios exactos.**
+   - Un contrato de N semanas paga N veces (se cuentan los pagos, ya no las semanas del calendario) y no hay actos después del último pago.
+   - Al terminar bien se negocia la renovación: solo se cobra el 25 % de la prima, y el pago semanal sube un 10 % si cumpliste todos los actos.
+   - Si rompes por incumplir, esa marca no vuelve.
+   - Los requisitos usan la **marca personal** (fama × factor de nivel: con poco nivel tu fama vale menos).
+   - Las marcas deportivas piden además nivel mínimo (Kinetic 55, Vértice 62).
+7. **Eventos que ocupan la semana** (`ocupaSemana` en cada opción). Al elegirlas, la semana pasa entera (el partido
+   se juega igual) y no hay otra acción:
 
-- **Peluquería, mejor configuración según el contexto** (12 semanas, fama 50): normal → Normal/Normal/2/sin publicidad;
-  competidor → Premium/Normal/1; temporada alta → Normal/Normal/3; avería → Normal/Bajo/3; influencer → Normal/Bajo/3/Redes.
-  Cinco contextos, cinco óptimos distintos.
+| Ocupan la semana | No la ocupan (modificadores) |
+|---|---|
+| Doblar turnos toda la semana (más horas) | Solo el fin de semana · rechazar |
+| Dedicar la semana a la peluquería (la empresa te necesita) | Que lo resuelva la encargada · ignorar |
+| Mudarse a un local más barato (alquiler) | Aceptar o negociar la subida |
+| Clínic de una semana con niños (nuevo) | Rumor de ojeador · partido decisivo · compañero lesionado |
+| Ir al acto del patrocinador | Agente: escuchar / cerrar / pedir mejora · renovación anticipada |
+| Crisis: reorganizar y recortar · vender · cerrar | Crisis: poner dinero · pedir préstamo |
+| | Entreno personal · molestias · entrevista · bar del amigo · evento antes del partido |
+| | Empresa: competidor · aumento · avería · influencer · temporada alta · peluquera estrella |
 
-Comprobaciones automáticas del informe (todas superadas en la última ejecución): repetir una sola acción no es lo mejor;
-sin carrera no hay empresa y trabajar en vez de jugar es más lento; no se puede trabajar indefinidamente; las pruebas dan
-conjuntos de ofertas distintos; Puerto da más dinero al principio y Atlético más nivel y patrimonio a medio plazo;
-patrocinios primero no gana a la vez en dinero y deporte; la peluquería no tiene un óptimo único; todas las políticas
-legítimas firman contrato; energía nunca negativa; ninguna decisión se atasca.
+   Además, a la **tercera crisis seguida** el banco ya no presta y recortar no basta: o lo cubres entero de tu
+   bolsillo, o vendes, o cierras. Así una empresa hundida no encadena crisis sin fin.
+8. **Simulador justo por dimensiones**: deportiva (trabajo, entreno, fútbol, descanso, equilibrada) × empresarial
+   (no optimiza, prudente, agresiva, inteligente) × comercial (sin, locales, máximos) = 60 combinaciones.
+   Todas pueden comprar la peluquería.
+9. **Ruta «imagen + empresa»** (plaza y prensa, caja mínima, patrocinios máximos): sigue siendo legítima,
+   pero tiene coste. La marca personal pesa por el nivel deportivo, y con poco nivel llegan peores clubes,
+   el techo de sueldo de categorías bajas y menos marcas deportivas.
+10. **Migración desde P1**: se buscan las claves `…_p1_v5`, `v4`, `v3`, `v2` y `v1` (de la más nueva a la más antigua).
+    Solo se leen: nunca se escribe ni se borra el guardado original.
+11. **Navegación progresiva**:
+    - Al empezar: Semana, Hitos, Ajustes.
+    - Al firmar: Liga y Marcas.
+    - Al abrirse el mercado: Empresa.
+
+    Cada sección nueva sale como desbloqueo («🔓 Nueva sección…») y con la etiqueta «Nuevo» en la barra hasta que la visitas.
+12. El avatar no cambia.
+
+## 4. Simulación de balance (P2.1)
+
+`P2.runBalance(40)`: 40 partidas por combinación, mismas semillas para todas. «Semana» = semana real de juego.
+
+**Por dimensión** (media de las combinaciones; capítulo y patrimonio al cerrarlo):
+
+| Deportiva | Capítulo | Semana | Nivel |
+|---|---|---|---|
+| Trabajo primero | 91 % | 56,1 | 50 |
+| Entrenamiento primero | 93 % | 44,9 | 78 |
+| Fútbol primero | 94 % | 42,5 | 61 |
+| Conservadora (descanso) | 94 % | 50,6 | 49 |
+| Equilibrada | 92 % | 41,3 | 71 |
+
+| Empresarial | Capítulo | Semana | Crisis por partida |
+|---|---|---|---|
+| No optimiza | 71 % | 48,5 | 2,7 |
+| Prudente | 100 % | 52,1 | 0 |
+| Agresiva | 100 % | 42,2 | 1,1 |
+| Inteligente | 100 % | 45,4 | 0,2 |
+
+Comercial: sin, locales o máximos apenas cambian el resultado al cerrar el capítulo (18.302 / 18.429 / 18.465 €).
+
+**Deportivas con la misma gestión (inteligente, patrocinios locales), todas pueden comprar, 100 semanas:**
+
+| | Capítulo (semana) | Patrimonio sem. 80 | Nivel | Categoría máx. |
+|---|---|---|---|---|
+| Equilibrada | 100 % (40,3) | 93.692 € | 77 | 3,7 |
+| Solo entrenamiento | 100 % (44,1) | 93.872 € | 83 | 3,9 |
+| Solo fútbol | 100 % (40,9) | 68.809 € | 69 | 3,4 |
+| Solo descanso | 100 % (47,9) | 41.776 € | 54 | 2,7 |
+| Trabajo primero | 100 % (53,7) | 53.032 € | 53 | 2,7 |
+
+**Caja inicial con el mismo gestor inteligente** (equilibrada, 100 semanas):
+
+| Caja | Compra (sem.) | Capítulo (sem.) | Crisis por partida | Patrimonio sem. 80 |
+|---|---|---|---|---|
+| 1.500 € | 29,9 | 37,7 | 1,0 | 83.491 € |
+| 3.000 € | 32,9 | 40,3 | 0 | 93.692 € |
+| 5.500 € | 38,6 | 45,7 | 0 | 96.053 € |
+
+La caja mínima compra y cierra el capítulo antes, pero es la única con crisis y la que menos patrimonio tiene a 80 semanas.
+
+**Ruta «imagen + empresa» frente a carrera** (mismos patrocinios máximos, 100 semanas):
+
+| | Capítulo (sem.) | Patrimonio sem. 100 | Nivel | Sueldo final | Marca personal | Categoría máx. |
+|---|---|---|---|---|---|---|
+| Imagen + caja mínima | **35,0** | 135.035 € | 55 | 317 € | 84 | 2,8 |
+| Imagen + inteligente | 36,6 | 128.079 € | 55 | 293 € | 84 | 2,9 |
+| Equilibrada | 39,4 | 143.022 € | 77 | 849 € | 115 | 3,7 |
+| Solo entrenamiento | 42,1 | **147.153 €** | 83 | 906 € | 128 | 3,9 |
+
+Es la forma más rápida de ser empresario, pero no la mejor para crecer: a 100 semanas queda por debajo de las rutas
+deportivas (un 6–9 % menos de patrimonio) y con un sueldo, una categoría y una marca personal mucho peores.
+
+**Atlético frente a Puerto** (misma partida, 28 semillas con las dos ofertas): patrimonio semana 25 → Puerto
+5.132 € / Atlético 3.543 €; semana 40 → 21.801 / 23.066 €; semana 80 → 63.646 / 107.729 €; nivel 57 / 85.
+
+**Segunda inversión** (mismas partidas, obligando cada opción; mediana de dinero al desbloquearla 3.819 €):
+las tres completan el capítulo (100 %). A 80 semanas, local 102.380 € > segunda peluquería 88.860 € > socio 69.330 €.
+La cafetería es la más tranquila y la que menos rinde.
+
+Comprobaciones automáticas del informe (todas superadas): ninguna estrategia de una sola acción completa más capítulos que la equilibrada;
+trabajar en vez de jugar retrasa contrato y capítulo; no se puede trabajar indefinidamente; las pruebas dan ofertas distintas;
+Puerto da más al principio y Atlético más a medio plazo; caja mínima antes pero con más crisis y sin ser la mejor en todo;
+ruta imagen con coste deportivo y sin ser la mejor a largo plazo; las tres segundas inversiones viables; la peluquería sin óptimo único;
+todas las combinaciones firman contrato; energía nunca negativa; sin decisiones atascadas.
 
 ## 5. Pruebas
 
-`node tests/p2.test.cjs` (unos 30 s; `--rapido` se salta la interfaz): **79 de 79 comprobaciones superadas**. Incluye lo pedido:
-energía nunca negativa, recargar no duplica dinero ni caja, una prima no se cobra dos veces, cada partido cuenta una vez,
-la clasificación no duplica resultados, los contratos expiran, las lesiones se curan, una empresa puede perder dinero y
-recuperarse, guardar/cargar conserva todo, P1 migra a P2 sin errores (y su partida no se toca), guardado corrupto apartado sin borrar.
-En la interfaz (Chromium emulando un iPhone 13): la primera decisión se ve sin desplazarse, orden situación → decisión → consecuencia,
-sin `undefined`/`NaN`, sin desplazamiento horizontal y sin errores de JavaScript; elegir el personaje (12 capas, prendas de hitos bloqueadas), elegir acción sin que pase la semana y jugarla con el botón.
+`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **118 de 118 comprobaciones superadas**.
+
+- **De P2:**
+  - energía nunca negativa; recargar no duplica dinero ni caja;
+  - una prima no se cobra dos veces; cada partido cuenta una vez; la clasificación no duplica resultados;
+  - los contratos expiran; las lesiones se curan;
+  - una empresa puede perder dinero y recuperarse;
+  - guardar y cargar conserva todo; P1 migra sin errores; un guardado corrupto se aparta sin borrarse.
+- **Nuevas de P2.1:**
+  - ascender y descender cambian de verdad la categoría, los rivales y el objetivo;
+  - un filial no sube a la categoría de su primer equipo;
+  - tras cada semana no queda ninguna acción elegida;
+  - un patrocinio de N semanas paga exactamente N veces; renovar no repite la prima completa; romper hace perder la marca;
+  - las tres segundas inversiones funcionan con estructuras financieras distintas;
+  - la participación de socio puede perder valor, quedarse sin dividendo, pedir capital y recibir ofertas;
+  - los eventos con `ocupaSemana` consumen la semana y los demás no;
+  - navegación progresiva; techo de sueldo;
+  - P1 se encuentra con la clave `v1`, se usa la más nueva y no se escribe nada.
+- **Interfaz** (Chromium emulando un iPhone 13):
+  - personaje con 12 capas y prendas de hitos bloqueadas;
+  - al empezar la barra solo tiene 3 secciones;
+  - «Jugar semana» desactivado hasta elegir, y sin botón mientras hay una decisión pendiente;
+  - Liga y Marcas aparecen con «Nuevo» al firmar;
+  - sin `undefined`/`NaN`, sin desplazamiento horizontal y sin errores de JavaScript.
 
 ## 6. Problemas conocidos y límites
 
 - El balance está probado con bots, no con personas. La duración de 20–30 minutos es una estimación.
-- Con la política equilibrada, el 41 % de las partidas no consigue prueba en las 8 semanas y pasa por el amateur
-  (los bots no usan el campus). Puede que una persona lo consiga más a menudo; habría que medirlo.
-- Puerto compra la empresa antes, pero por muy poco (≈1 semana): la ventaja de «dinero rápido» es moderada.
-- La fama del jugador sube mucho en el Atlético (llega a 100 hacia la semana 70) y multiplica la demanda del negocio
-  hasta ×1,4: conviene vigilar ese efecto en capítulos siguientes.
+- **Los patrocinios pesan poco** en la economía: con o sin ellos, el patrimonio al cerrar el capítulo es casi igual
+  (18.302 € / 18.429 € / 18.465 €). Sirven sobre todo para abrir el mercado de negocios. Pendiente de equilibrar.
+- **Economía de final de partida grande**: hacia la semana 80–100, con local propio, fama alta y sueldo de Segunda/Primera,
+  el patrimonio pasa de 90.000–140.000 €. Está dentro de lo esperable para «imperio», pero no está pensado para
+  ese tramo (el capítulo acaba hacia la semana 40).
+- La ruta «imagen + empresa» cierra el capítulo 4–5 semanas antes y a 100 semanas acaba con un 6–9 % menos de
+  patrimonio: el coste existe, pero en dinero es moderado (en sueldo y categoría es claro).
+- La prudente (caja máxima, sin riesgos) nunca entra en crisis y llega al capítulo más tarde (semana 52): segura pero lenta.
+- Puerto compra la empresa antes que Atlético, pero por poco: la ventaja de «dinero rápido» es moderada.
 - La confianza del míster se satura en 100 con buenas notas.
-- Las ligas y rivales son siempre los mismos 8 equipos por categoría; no hay mercado de fichajes entre clubes rivales.
-- Tras el capítulo 1 se puede seguir jugando, pero no hay contenido nuevo (solo la segunda inversión elegida).
+- Los clubes de las categorías vecinas que suben o bajan se eligen al azar entre los más fuertes / más débiles
+  (esas ligas no se juegan partido a partido).
+- Tras el capítulo 1 se puede seguir jugando, pero no hay contenido nuevo.
 - Edad: solo cambia cada 52 semanas.

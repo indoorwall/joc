@@ -50,7 +50,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   const bajos = sc(40, false), altos = sc(60, true);
   check('La suerte cuenta, pero no anula la preparación', Math.max(...bajos) < 55 && Math.min(...altos) >= 55, `bajos máx ${Math.max(...bajos)}, altos mín ${Math.min(...altos)}`);
   const caminos = new Set();
-  for (const pol of ['equilibrada', 'todoFutbol', 'deportePrimero', 'dineroPrimero']) for (let i = 0; i < 40; i++) { const l = P2.jugarPartida(pol, 500 + i, 20); if (l.via) caminos.add(l.via); }
+  for (const pol of ['equilibrada', 'todoFutbol', 'todoEntreno', 'imagen']) for (let i = 0; i < 40; i++) { const l = P2.jugarPartida(pol, 500 + i, 20); if (l.via) caminos.add(l.via); }
   check('Hay al menos 3 caminos distintos para llegar a las pruebas', caminos.size >= 3, [...caminos].join(', '));
 }
 
@@ -70,7 +70,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   const tabla = P2.clasificacion(s.temporada);
   check('La clasificación no duplica resultados (todos con los mismos partidos jugados)', tabla.every(r => r.pj === s.temporada.jornada) && tabla.reduce((a, r) => a + r.g, 0) === tabla.reduce((a, r) => a + r.p, 0));
   check('La temporada tiene 14 jornadas con 8 equipos (ida y vuelta)', s.temporada.calendario.length === 14 && s.temporada.calendario.every(j => j.length === 4));
-  const ids = P2.LIGAS.tercera.equipos.map(e => e.id); const veces = {}; for (const j of s.temporada.calendario) for (const [a, b] of j) { veces[a + b] = (veces[a + b] || 0) + 1; }
+  const ids = s.temporada.equipos.map(e => e.id); const veces = {}; for (const j of s.temporada.calendario) for (const [a, b] of j) { veces[a + b] = (veces[a + b] || 0) + 1; }
   check('Cada equipo juega contra cada rival una vez en casa y otra fuera', ids.every(a => ids.every(b => a === b || veces[a + b] === 1)));
   // Repetir una jornada ya jugada no cuenta de nuevo ni paga dos veces la prima
   const s2 = enClub('puerto', 9); let g = 0;
@@ -125,7 +125,14 @@ function enClub(oferta = 'puerto', seed = 5) {
 {
   const s = enClub('puerto', 40); s.p.dinero = 20000; s.hitos.patro = 1;
   const n = P2.comprarNegocio(s, 'peluqueria', 0, null);
-  check('Comprar la peluquería: traspaso + caja inicial, dinero y caja separados', n && s.p.dinero === 20000 - 4500 - 600 && n.caja === 600);
+  const A = P2.NEGOCIOS.peluqueria.arranque;
+  check('Comprar la peluquería: traspaso + caja inicial; la puesta en marcha (fianza y stock) sale de la caja', n && s.p.dinero === 20000 - 4500 - 1500 && n.caja === 1500 - A.fianza - A.stock && n.fianza === A.fianza);
+  P2.jugarSemana(s, 'descansar');
+  check('La primera semana la clientela desconfía (ingresos al 60 %)', n.ultimo && n.ultimo.ingresos < P2.calcularSemana(s, Object.assign({}, n, { semanas: 3 })).ingresos * 0.8);
+  check('Tras la primera semana llega la oportunidad de mejorar el local', s.pendiente && s.pendiente.tipo === 'mejoraInicial');
+  const vm = P2.vistaPendiente(s);
+  check('Con la caja mínima no llega para la reforma (con más caja, sí)', vm.ops.find(o => o.id === 'reforma').bloqueo && (() => { const x = enClub('puerto', 41); x.p.dinero = 20000; x.hitos.patro = 1; const m = P2.comprarNegocio(x, 'peluqueria', 2, null); return m.caja >= 1600; })());
+  P2.resolverDecision(s, 'nada');
   const din = s.p.dinero;
   Object.assign(n, { precio: 'caro', sueldo: 'alto', empleados: 4, marketing: 'fuerte' });
   let crisis = false;
@@ -135,8 +142,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('La caja de la empresa no toca tu dinero personal', s.p.dinero >= din - 1000);
   P2.resolverDecision(s, 'prestamo');
   check('Pedir financiación en la crisis: caja +3.000 y deuda', n.deuda > 0 && n.caja > 0);
-  Object.assign(n, { precio: 'normal', sueldo: 'normal', empleados: 2, marketing: 'nada' });
-  for (let w = 0; w < 8; w++) { resolverTodo(s, ['fresco', 'no', 'ya', 'subir', 'gratis', 'temporal', 'igualar', 'aceptar']); P2.jugarSemana(s, 'descansar'); }
+  for (let w = 0; w < 10; w++) { resolverTodo(s, ['fresco', 'no', 'ya', 'subir', 'gratis', 'temporal', 'igualar', 'aceptar', 'aportar']); P2.gestorListo(s, n); P2.jugarSemana(s, 'descansar'); }
   check('La empresa se puede recuperar', n.hist.slice(-3).every(b => b > 0) && n.rachaPos >= 3, JSON.stringify(n.hist.slice(-4)));
   const v1 = P2.valorNegocio(n); n.hist = n.hist.map(x => x + 200); const v2 = P2.valorNegocio(n);
   check('El valor depende del beneficio medio (más beneficio → vale más; la deuda resta)', v2 > v1 && P2.valorNegocio(Object.assign({}, n, { deuda: 5000 })) < v2);
@@ -146,14 +152,114 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Sin contrato profesional no se puede comprar empresa', P2.bloqueoCompra(P2.nuevaPartida({ seed: 1 }), 'peluqueria', 0) !== null);
 }
 
+// ---------- 6b. P2.1: ascensos, elección, patrocinios, inversiones, eventos, navegación, P1 ----------
+{
+  const resolverHasta = (s, tipo, pref) => { let g = 0; while (s.pendiente && s.pendiente.tipo !== tipo && g++ < 15) { const v = P2.vistaPendiente(s); const o = pref.map(p => v.ops.find(x => x.id === p && !x.bloqueo)).find(Boolean) || v.ops.find(x => !x.bloqueo); P2.resolverDecision(s, o.id); } };
+  const jugarTemporada = (s, pref = ['fresco', 'no', 'esperar', 'parar', 'nada']) => { for (let w = 0; w < 14 && !(s.temporada.cerrada); w++) { resolverHasta(s, '__', pref); P2.jugarSemana(s, 'descansar'); } resolverHasta(s, 'cambioCategoria', pref); };
+  // Ascenso real
+  const a = enClub('puerto', 61); a.p.nivel = 78; P2.mundo(a).equipos.puerto.fuerza = 56; a.temporada.fuerzas.puerto = 56;
+  const antes = a.temporada.equipos.map(e => e.id).sort().join();
+  jugarTemporada(a);
+  const evA = a.pendiente;
+  check('Ascenso: al acabar en zona de ascenso sale la celebración', evA && evA.tipo === 'cambioCategoria' && evA.mov.tipo === 'sube' && P2.vistaPendiente(a).fiesta === true, JSON.stringify(evA && evA.mov));
+  resolverHasta(a, '__', ['seguir', 'renovar']);
+  check('Ascenso: la temporada siguiente se juega en la categoría superior', a.temporada.liga === 'segunda' && P2.mundo(a).ligas.segunda.includes('puerto') && !P2.mundo(a).ligas.tercera.includes('puerto'), a.temporada.liga);
+  check('Ascenso: cambian los rivales, la dificultad y el objetivo', a.temporada.equipos.map(e => e.id).sort().join() !== antes && Object.values(a.temporada.fuerzas).reduce((x, y) => x + y, 0) / 8 > 56 && ['descenso', 'top4'].includes(a.temporada.objetivo), a.temporada.objetivo);
+  // Descenso real
+  const d = enClub('puerto', 62); d.p.nivel = 40; P2.mundo(d).equipos.puerto.fuerza = 36; d.temporada.fuerzas.puerto = 36;
+  jugarTemporada(d);
+  check('Descenso: al acabar en los 2 últimos, el club baja', d.pendiente && d.pendiente.tipo === 'cambioCategoria' && d.pendiente.mov.tipo === 'baja');
+  resolverHasta(d, '__', ['seguir', 'renovar', 'puerto']);
+  check('Descenso: la temporada siguiente se juega en la categoría inferior con otros rivales', d.temporada.liga === 'regional' && d.temporada.equipos.some(e => P2.LIGAS.regional.equipos.some(x => x.id === e.id)), d.temporada.liga);
+  // Un filial no sube a la categoría de su primer equipo
+  const fl = enClub('atleticoFilial', 63); fl.p.nivel = 80; P2.mundo(fl).equipos.atleticoB.fuerza = 66; fl.temporada.fuerzas.atleticoB = 66;
+  jugarTemporada(fl); resolverHasta(fl, '__', ['seguir', 'renovar', 'atleticoPrimero']);
+  check('Un filial no puede subir a la categoría donde juega su primer equipo', P2.ligaDeClub(fl, 'atleticoB') === 'tercera');
+  // Ascenso del club ≠ oferta personal
+  check('El ascenso del club no cambia tu contrato (es independiente de tus ofertas)', a.contrato && P2.OFERTAS[a.contrato.oferta].club === 'puerto');
+
+  // Elección semanal explícita
+  const e = P2.nuevaPartida({ seed: 70 }); e.eleccion = 'entrenar'; P2.jugarSemana(e, 'entrenar');
+  check('Después de cada semana no queda ninguna acción elegida', e.eleccion === null);
+
+  // Patrocinio: N semanas = N pagos; renovar sin prima completa
+  const p = enClub('atleticoFilial', 71); p.p.rep = 60; p.p.nivel = 60; P2.firmarMarca(p, 'panaderia', null);
+  const M = P2.MARCAS.find(m => m.id === 'panaderia'); let pagos = 0, sem = p.semana;
+  for (let w = 0; w < 25 && !(p.pendiente && p.pendiente.tipo === 'renovarMarca'); w++) {
+    if (p.pendiente) { const id = p.pendiente.tipo === 'acto' ? 'ir' : (P2.vistaPendiente(p).ops.find(o => ['fresco', 'no', 'esperar', 'seguir', 'renovar', 'parar'].includes(o.id) && !o.bloqueo) || P2.vistaPendiente(p).ops.find(o => !o.bloqueo)).id; P2.resolverDecision(p, id); }
+    else P2.jugarSemana(p, 'descansar');
+    if (p.semana !== sem) { pagos += (p.ultimo.ingresos || []).filter(([t]) => t.includes(M.n)).length; sem = p.semana; }
+  }
+  check(`Un patrocinio de ${M.semanas} semanas paga exactamente ${M.semanas} veces`, pagos === M.semanas, `pagos ${pagos}`);
+  check('Al terminar el contrato se puede negociar la renovación', p.pendiente && p.pendiente.tipo === 'renovarMarca');
+  const d0 = p.p.dinero; P2.resolverDecision(p, 'renovar');
+  const primaRen = Math.round(Math.round(M.prima * P2.CFG.patrocinio.primaRenovacion) * (1 - P2.CFG.club.impuesto));
+  check('Renovar no vuelve a pagar la prima inicial completa (solo la de renovación)', p.p.dinero - d0 === primaRen && primaRen < M.prima * 0.5, `${p.p.dinero - d0} vs ${M.prima}`);
+  const p2 = enClub('atleticoFilial', 72); p2.p.rep = 60; p2.p.nivel = 60; P2.firmarMarca(p2, 'panaderia', null); p2.patros[0].faltas = 1; P2.resolverActo(p2, 'panaderia', 'no');
+  check('Romper por incumplir hace perder la marca para siempre', p2.patros.length === 0 && /no vuelve/.test(P2.bloqueoMarca(p2, M) || ''));
+
+  // Segunda inversión: tres estructuras financieras
+  const base = () => { const s = enClub('puerto', 80); s.p.dinero = 9000; s.hitos.patro = 1; P2.comprarNegocio(s, 'peluqueria', 1, null); s.hitos.rentable = 1; s.p.dinero = 3600; return s; };
+  const L = base(); P2.elegirOportunidad(L, 'local');
+  check('Local: entrada asequible + hipoteca, sin alquiler y con valor como activo', L.p.dinero === 100 && L.negocios[0].local && L.negocios[0].hipoteca.deuda === 10500 && P2.calcularSemana(L, L.negocios[0]).costes.alquiler === 0 && L.negocios[0].valorLocal === 14000);
+  const S2 = base(); P2.elegirOportunidad(S2, 'segunda');
+  check('Segunda peluquería: entrada + préstamo a cargo del nuevo negocio', S2.p.dinero === 100 && S2.negocios.length === 2 && S2.negocios[1].deuda === 4000);
+  const So = base(); P2.elegirOportunidad(So, 'socio');
+  check('Socio: inversión menor y una participación con su propio valor', So.p.dinero === 600 && So.socio.valor === 3000 && So.socio.aportado === 3000);
+  check('Las tres segundas inversiones caben en el dinero típico al desbloquearlas (≤ 3.500 €)', P2.OPORTUNIDADES.every(o => o.coste <= 3500));
+  // La participación puede perder valor, quedarse sin dividendo y pedir capital
+  let pierde = 0, gana = 0, sinDiv = 0, ampl = 0, ofertas = 0;
+  for (let i = 0; i < 300; i++) {
+    const x = P2.nuevaPartida({ seed: 9000 + i }); x.socio = P2.nuevaParticipacion(x, 3000);
+    for (let q = 0; q < 8; q++) { x.semana = x.socio.proximo; const Rq = { lineas: [], ingresos: [] }; P2.semanaSocio(x, Rq); if (!Rq.ingresos.length) sinDiv++; if (x.pendiente) { if (x.pendiente.tipo === 'socioCapital') ampl++; else ofertas++; P2.resolverDecision(x, 'no'); } }
+    const total = x.socio.valor + x.socio.dividendos - (x.socio.aportado - 3000);
+    if (total < 3000) pierde++; else gana++;
+  }
+  check('La inversión como socio puede perder valor (y otras veces ganar)', pierde > 20 && gana > 20, `pierde ${pierde}, gana ${gana}`);
+  check('Socio: hay trimestres sin dividendo, peticiones de capital y ofertas de compra', sinDiv > 100 && ampl > 5 && ofertas > 5, `sin dividendo ${sinDiv}, ampliaciones ${ampl}, ofertas ${ofertas}`);
+
+  // Eventos que ocupan la semana
+  const o = enClub('puerto', 90); o.p.rep = 40; o.pendiente = { tipo: 'suceso', id: 'clinic' };
+  const s0 = o.semana; P2.resolverDecision(o, 'ir');
+  check('Un evento con ocupaSemana consume la semana (no permite otra acción)', o.semana === s0 + 1 && o.cont.descansar == null && o.ultimo.lineas.some(l => /semana se va/.test(l[1])));
+  const o2 = enClub('puerto', 91); o2.p.rep = 40; o2.pendiente = { tipo: 'suceso', id: 'clinic' }; P2.resolverDecision(o2, 'no');
+  check('Una opción sin ocupaSemana no consume la semana', o2.semana === 1);
+  const ocupan = P2.SUCESOS.flatMap(E => E.ops.filter(x => x.ocupaSemana).map(x => `${E.id}:${x.id}`));
+  check('Hay eventos que ocupan la semana y otros que no', ocupan.length >= 4 && ocupan.length < P2.SUCESOS.reduce((a, E) => a + E.ops.length, 0) / 2, ocupan.join(', '));
+
+  // Navegación progresiva
+  const nv = P2.nuevaPartida({ seed: 95 });
+  check('Al empezar solo se ven Semana, Hitos y Ajustes', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,hitos,ajustes');
+  nv.p.nivel = 56; P2.firmar(nv, 'puerto', null); const nuevas = P2.revisarSecciones(nv, null).map(x => x.id);
+  check('Al firmar se abren Liga y Marcas (y se avisa)', nuevas.includes('liga') && nuevas.includes('marcas') && !P2.seccionesVisibles(nv).some(x => x.id === 'empresa') && nv.seccionesNuevas.includes('liga'));
+  nv.hitos.patro = 5;
+  check('Al abrirse el mercado aparece Empresa', P2.revisarSecciones(nv, null).map(x => x.id).join() === 'empresa');
+
+  // Techo de sueldo por categoría
+  const tp = enClub('puerto', 96); tp.contrato.sueldo = 440; P2.subirSueldo(tp, 1.4);
+  check('El sueldo no supera el techo de la categoría', tp.contrato.sueldo === P2.LIGAS[tp.temporada.liga].sueldoMax);
+
+  // Migración P1: todas las claves conocidas, sin tocar el original
+  const almacen = { 'del_barrio_al_negocio_p1_v1': JSON.stringify({ nombre: 'Nora', semana: 50, fase: 'club', p: { dinero: 900, rep: 30, nivel: 60 } }) };
+  let escrituras = 0;
+  const ls = { getItem: k => (k in almacen ? almacen[k] : null), setItem: () => { escrituras++; }, removeItem: () => { escrituras++; } };
+  const P2ls = cargarP2({ localStorage: ls });
+  const v1 = P2ls.partidaP1();
+  check('P2 encuentra partidas de P1 guardadas con la clave antigua v1', v1 && v1.nombre === 'Nora' && v1.__clave === 'del_barrio_al_negocio_p1_v1');
+  check('Leer la partida de P1 no escribe ni borra nada', escrituras === 0 && almacen['del_barrio_al_negocio_p1_v1'].includes('Nora'));
+  almacen['del_barrio_al_negocio_p1_v5'] = JSON.stringify({ nombre: 'Leo', fase: 'club', p: { dinero: 100 } });
+  check('Si hay varias, se usa la más nueva', P2ls.partidaP1().nombre === 'Leo');
+}
+
 // ---------- 7. Simulación de balance ----------
 let informe;
 {
-  const t0 = Date.now(); informe = P2.runBalance(150); const ms = Date.now() - t0;
+  const t0 = Date.now(); informe = P2.runBalance(20); const ms = Date.now() - t0;
   for (const c of informe.comprobaciones) check(`Balance: ${c.t}`, c.ok);
-  check('Balance: 1.200 partidas en menos de 30 s', ms < 30000, `${ms} ms`);
-  const e = informe.politicas.equilibrada;
+  check('Balance: rejilla de 60 combinaciones y pruebas aparte en menos de 90 s', ms < 90000, `${ms} ms`);
+  const e = informe.deportivasPuedenComprar.equilibrada;
   check('Una partida equilibrada completa el capítulo en 25–60 semanas', e.capituloPct >= 70 && e.semanaCapitulo >= 25 && e.semanaCapitulo <= 60, JSON.stringify(e));
+  check('Balance: las 3 segundas inversiones se pueden pagar con el dinero típico al desbloquearlas', informe.deportivasPuedenComprar.equilibrada.dineroOportunidad >= Math.min(...P2.OPORTUNIDADES.map(o => o.coste)) && P2.OPORTUNIDADES.every(o => o.coste <= 3500), `mediana ${informe.deportivasPuedenComprar.equilibrada.dineroOportunidad}`);
   fs.writeFileSync(path.join(__dirname, '..', 'p2', 'balance.json'), JSON.stringify(informe, null, 1));
 }
 
@@ -178,6 +284,8 @@ let informe;
   await page.tap('[data-act="empezar"]');
   check('UI: la partida empieza con el personaje elegido', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.nombre === 'Vega'));
   check('UI: tu cara sale en la cabecera', await page.locator('#top .hava svg').isVisible());
+  check('UI: al empezar la barra solo tiene Semana, Hitos y Ajustes', (await page.locator('#nav button').allTextContents()).map(x => x.replace(/[^A-Za-zñ]/g, '')).join() === 'Semana,Hitos,Ajustes');
+  check('UI: el botón «Jugar semana» empieza desactivado hasta que eliges', await page.locator('#jugar').isDisabled());
   const box = await page.locator('.dec .opt').first().boundingBox(), vh = page.viewportSize().height;
   check('UI: la primera decisión se ve sin desplazarse en un iPhone 13', box && box.y + box.height < vh - 60, JSON.stringify(box));
   const orden = await page.evaluate(() => { const m = document.getElementById('main'); const a = m.querySelector('.sit'), d = m.querySelector('.dec'); return a && d && (a.compareDocumentPosition(d) & Node.DOCUMENT_POSITION_FOLLOWING) > 0; });
@@ -195,9 +303,9 @@ let informe;
   check('UI: recargar no duplica nada (dinero, semana y nivel iguales)', JSON.stringify(antes) === JSON.stringify(despues), JSON.stringify([antes, despues]));
   // Con una decisión pendiente, el botón espera
   await page.evaluate(() => { __P2.S.pendiente = { tipo: 'suceso', id: 'masHoras' }; __P2.render(); });
-  check('UI: con una decisión pendiente, «Jugar semana» está desactivado', await page.locator('#jugar').isDisabled());
+  check('UI: con una decisión pendiente, el botón «Jugar semana» no aparece (decides primero)', await page.locator('#jugar').count() === 0);
   await page.tap('.dec [data-act="decidir"][data-id="no"]');
-  check('UI: tras decidir, el botón vuelve', !(await page.locator('#jugar').isDisabled()));
+  check('UI: tras decidir, el botón sigue esperando a que elijas', await page.locator('#jugar').isDisabled() && (await page.textContent('#jugar')).includes('Elige'));
   // Personaje: cambiarlo luego desde la cabecera; las prendas de hitos se desbloquean
   await page.tap('#top .hava');
   await page.tap('.lookTabs [data-v="ropa"]');
@@ -206,10 +314,11 @@ let informe;
   check('UI: cambiar de ropa desde «Tu personaje» se guarda', await page.evaluate(() => __P2.S.look.ropa === 'sudadera' && JSON.parse(localStorage.getItem('del_barrio_al_negocio_p2')).look.ropa === 'sudadera'));
   // Club, empresa y recarga
   await page.evaluate(() => { const S = __P2.S; S.p.nivel = 58; __P2.P2.firmar(S, 'puerto', null); S.p.dinero = 9000; S.hitos.patro = 3; __P2.render(); });
+  check('UI: al firmar aparecen Liga y Marcas con la etiqueta «Nuevo»', await page.locator('#nav [data-v="liga"] em').isVisible() && await page.locator('#nav [data-v="marcas"]').isVisible());
   await page.tap('[data-act="vista"][data-v="empresa"]');
   await page.tap('[data-act="comprar"][data-id="1"]');
   const c1 = await page.evaluate(() => ({ d: __P2.S.p.dinero, c: __P2.S.negocios[0].caja }));
-  check('UI: comprar la peluquería desde «Empresa»', c1.c === 2000 && c1.d === 9000 - 4500 - 2000);
+  check('UI: comprar la peluquería desde «Empresa»', c1.c === 3000 - 1250 && c1.d === 9000 - 4500 - 3000, JSON.stringify(c1));
   await page.tap('[data-act="config"][data-c="precio"][data-v="caro"]');
   check('UI: cambiar el precio enseña la previsión al momento', (await page.textContent('.prev')).includes('clientes') && await page.evaluate(() => __P2.S.negocios[0].precio === 'caro'));
   await page.fill(`#imp_${await page.evaluate(() => __P2.S.negocios[0].id)}`, '500');
@@ -240,7 +349,7 @@ let informe;
   fin();
 })();
 function fin() {
-  console.log('\nPolíticas:'); for (const p of Object.values(informe.politicas)) console.log(`  ${p.politica}: contrato ${p.contratoPct} % (sem ${p.semanaContrato}) · empresa ${p.empresaPct} % (sem ${p.semanaEmpresa}) · capítulo ${p.capituloPct} % (sem ${p.semanaCapitulo}) · patrimonio ${p.patrimonio} · nivel ${p.nivel}`);
+  console.log('\nEstrategias deportivas (todas pueden comprar):'); for (const [k, p] of Object.entries(informe.deportivasPuedenComprar)) console.log(`  ${k}: contrato sem ${p.semanaContrato} · empresa sem ${p.semanaEmpresa} · capítulo ${p.capituloPct} % (sem ${p.semanaCapitulo}) · patrimonio sem 80 ${p.patrimonio80} · nivel ${p.nivel}`);
   console.log(`\n${ok} de ${total} comprobaciones superadas.`);
   process.exitCode = ok === total ? 0 : 1;
 }

@@ -45,7 +45,7 @@
       resolver(s, ev, id) {
         const E = P2.SUCESOS.find(x => x.id === ev.id), n = neg(s, ev), o = E.ops.find(x => x.id === id);
         if (!o || (o.cond && !o.cond(s, n))) return null;
-        return { texto: o.fx(s, n), titulo: E.titulo, ic: E.ic };
+        return { texto: o.fx(s, n), titulo: E.titulo, ic: E.ic, semana: o.ocupaSemana ? '__evento' : null };
       },
     },
     ofertas: {
@@ -83,7 +83,7 @@
     acto: {
       vista(s, ev) {
         const M = MARCAS.find(m => m.id === ev.marca), c = s.patros.find(x => x.id === ev.marca) || {};
-        const ops = [op('ir', 'Ir al acto (ocupa tu semana)', '+1,5 fama; la marca sigue pagando', 'Esta semana no haces otra cosa', 'Ninguno', { tags: ['dinero'] })];
+        const ops = [op('ir', 'Ir al acto', '+1,5 fama; la marca sigue pagando', 'Esta semana no haces otra cosa', 'Ninguno', { tags: ['dinero'], ocupaSemana: true })];
         if (!c.aplazado) ops.push(op('aplazar', 'Pedir moverlo una semana', 'Esta semana haces lo que quieras', 'Solo se puede una vez por contrato', 'Ninguno', { tags: ['deporte'] }));
         ops.push(op('no', 'No ir', 'Esta semana haces lo que quieras', `Falta ${(c.faltas || 0) + 1}/${CFG.patrocinio.faltasMax}`, 'Con dos faltas rompen el contrato (−4 fama)', { tags: ['deporte', 'riesgo'] }));
         return { ic: M ? M.ic : '📣', titulo: `Compromiso con ${M ? M.n : 'tu marca'}`, texto: M ? M.obligacion + '.' : '', ops };
@@ -98,12 +98,18 @@
       vista(s, ev) {
         const n = neg(s, ev); if (!n) return null;
         const T = P2.tipoDe(n), falta = Math.max(500, -n.caja + 500), v = P2.valorNegocio(n);
+        // A la tercera crisis seguida ya no valen los parches: o lo cubres entero de tu bolsillo, o vendes, o cierras
+        const ultima = (n.crisisSeguidas || 0) >= 3, cubrir = Math.max(1500, -n.caja + 1500);
+        if (ultima) return { ic: '🚨', titulo: `Tu ${T.n.toLowerCase()} no aguanta más`, texto: `Tercera crisis seguida. Caja: ${eur(n.caja)}. El banco ya no te presta y recortar no basta.`,
+          ops: [op('aportar', `Cubrirlo todo con ${eur(cubrir)} de tu dinero`, 'Sigues adelante con margen', eur(cubrir), 'Si no cambias nada, volverá a pasar', { tags: ['riesgo'], bloqueo: s.p.dinero < cubrir ? `Tienes ${eur(s.p.dinero)}` : null }),
+            op('vender', `Vender ya por ${eur(Math.round(v * CFG.empresa.ventaUrgente))}`, 'Recuperas algo', 'Venta urgente', 'Vuelves a empezar', { tags: ['seguro'], ocupaSemana: true }),
+            op('cerrar', 'Cerrar el negocio', `Recuperas ${eur(Math.max(0, n.caja) + 800)} (material)`, 'Pierdes lo invertido', 'Vuelves a empezar', { tags: [], ocupaSemana: true })] };
         const ops = [
           op('aportar', `Poner ${eur(falta)} de tu dinero`, 'El negocio sigue igual', 'Tu colchón personal', 'Si el problema sigue, volverá', { tags: ['seguro'], bloqueo: s.p.dinero < falta ? `Tienes ${eur(s.p.dinero)}` : null }),
           op('prestamo', `Pedir un préstamo de ${eur(CFG.empresa.prestamo.importe)}`, 'Liquidez inmediata sin tocar tu dinero', `Intereses del ${nf(CFG.empresa.prestamo.interesSemanal * 150)} % semanal y cuota`, 'La deuda resta valor al negocio', { tags: ['riesgo', 'dinero'], bloqueo: n.deuda > 0 ? 'Ya tienes un préstamo' : null }),
-          op('recortar', 'Recortar costes (1 empleado menos, sueldos bajos, sin publicidad)', 'Ahorras cada semana', '−10 fama del negocio y peor ambiente', 'Puede que atiendas a menos gente', { tags: ['dinero'] }),
-          op('vender', `Vender ya por ${eur(Math.round(v * CFG.empresa.ventaUrgente))}`, 'Recuperas dinero', `Venta urgente: el ${Math.round((1 - CFG.empresa.ventaUrgente) * 100)} % menos de lo que vale`, 'Vuelves a empezar', { tags: ['seguro'] }),
-          op('cerrar', 'Cerrar el negocio', `Recuperas ${eur(Math.max(0, n.caja) + 800)} (material)`, 'Pierdes lo invertido', 'Vuelves a empezar', { tags: [] }),
+          op('recortar', 'Reorganizar y recortar (1 empleado menos, sueldos bajos, sin publicidad)', 'Ahorras cada semana', 'La semana entera, −10 fama del negocio y peor ambiente', 'Puede que atiendas a menos gente', { tags: ['dinero'], ocupaSemana: true }),
+          op('vender', `Vender ya por ${eur(Math.round(v * CFG.empresa.ventaUrgente))}`, 'Recuperas dinero', `Venta urgente: el ${Math.round((1 - CFG.empresa.ventaUrgente) * 100)} % menos de lo que vale; la semana se va en papeles`, 'Vuelves a empezar', { tags: ['seguro'], ocupaSemana: true }),
+          op('cerrar', 'Cerrar el negocio', `Recuperas ${eur(Math.max(0, n.caja) + 800)} (material)`, 'Pierdes lo invertido; la semana se va en el cierre', 'Vuelves a empezar', { tags: [], ocupaSemana: true }),
         ];
         return { ic: '🚨', titulo: `Crisis en tu ${T.n.toLowerCase()}`, texto: `Caja: ${eur(n.caja)}. ${n.rachaNeg} semanas seguidas en pérdidas. Hay que hacer algo.`, ops };
       },
@@ -111,12 +117,91 @@
         const n = neg(s, ev); if (!n) return { texto: 'Ya no tienes ese negocio.', titulo: 'Crisis', ic: '🚨' };
         const falta = Math.max(500, -n.caja + 500);
         n.crisis = false;
-        if (id === 'aportar') { if (!P2.aportar(s, n.id, falta)) return null; n.rachaNeg = 0; return { texto: `Pones ${eur(falta)}. La caja respira.`, titulo: 'Crisis', ic: '💶' }; }
-        if (id === 'prestamo') { if (!P2.pedirPrestamo(s, n.id, CFG.empresa.prestamo.interesSemanal * 1.5)) return null; n.rachaNeg = 0; return { texto: `El banco te presta ${eur(CFG.empresa.prestamo.importe)}.`, titulo: 'Crisis', ic: '🏦' }; }
-        if (id === 'recortar') { n.empleados = Math.max(1, n.empleados - 1); n.sueldo = 'bajo'; n.marketing = 'nada'; n.fama = P2.r1(n.fama - 10); n.moral = P2.r1(Math.max(0.7, n.moral - 0.1)); n.rachaNeg = 0; return { texto: 'Recortas. Duele, pero gastas menos.', titulo: 'Crisis', ic: '✂️' }; }
-        if (id === 'vender') { const v = P2.venderNegocio(s, n.id, CFG.empresa.ventaUrgente); return { texto: `Vendes por ${eur(v)}.`, titulo: 'Crisis', ic: '🤝' }; }
-        if (id === 'cerrar') { const v = Math.max(0, n.caja) + 800; s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n); P2.anotar(s, '🔒', 'Cierro mi negocio.'); return { texto: `Cierras y recuperas ${eur(v)}.`, titulo: 'Crisis', ic: '🔒' }; }
+        if (id === 'aportar') { const x = (n.crisisSeguidas || 0) >= 3 ? Math.max(1500, -n.caja + 1500) : falta; if (!P2.aportar(s, n.id, x)) { n.crisis = true; return null; } n.rachaNeg = 0; return { texto: `Pones ${eur(x)}. La caja respira.`, titulo: 'Crisis', ic: '💶' }; }
+        if (id === 'prestamo') { if ((n.crisisSeguidas || 0) >= 3 || !P2.pedirPrestamo(s, n.id, CFG.empresa.prestamo.interesSemanal * 1.5)) { n.crisis = true; return null; } n.rachaNeg = 0; return { texto: `El banco te presta ${eur(CFG.empresa.prestamo.importe)}.`, titulo: 'Crisis', ic: '🏦' }; }
+        const ocupa = ['recortar', 'vender', 'cerrar'].includes(id) ? '__evento' : null;
+        if (id === 'recortar' && (n.crisisSeguidas || 0) >= 3) { n.crisis = true; return null; }
+        if (id === 'recortar') { n.empleados = Math.max(1, n.empleados - 1); n.sueldo = 'bajo'; n.marketing = 'nada'; n.fama = P2.r1(n.fama - 10); n.moral = P2.r1(Math.max(0.7, n.moral - 0.1)); n.rachaNeg = 0; return { texto: 'Recortas. Duele, pero gastas menos.', titulo: 'Crisis', ic: '✂️', semana: ocupa }; }
+        if (id === 'vender') { const v = P2.venderNegocio(s, n.id, CFG.empresa.ventaUrgente); return { texto: `Vendes por ${eur(v)}.`, titulo: 'Crisis', ic: '🤝', semana: ocupa }; }
+        if (id === 'cerrar') { const v = Math.max(0, n.caja) + 800; s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n); P2.anotar(s, '🔒', 'Cierro mi negocio.'); return { texto: `Cierras y recuperas ${eur(v)}.`, titulo: 'Crisis', ic: '🔒', semana: ocupa }; }
         n.crisis = true; return null;
+      },
+    },
+    // Ascenso o descenso del club (independiente de tus ofertas personales)
+    cambioCategoria: {
+      vista(s, ev) {
+        const M = P2.mundo(s), aL = P2.LIGAS[ev.mov.a], deL = P2.LIGAS[ev.mov.de];
+        const rivales = M.ligas[ev.mov.a].filter(id => id !== (s.temporada && s.temporada.yo)).map(id => M.equipos[id].n);
+        const club = ev.club.replace(/ \(.*\)/, '');
+        const obj = P2.OBJETIVOS[P2.objetivoClub(s, ev.mov.a, s.temporada.yo)];
+        if (ev.mov.tipo === 'filial') return { ic: '🔒', titulo: 'Puestos de ascenso… pero el filial no puede subir', texto: `Acabáis ${ev.pos}º, pero el primer equipo ya juega en ${aL ? P2.LIGAS[deL.sube].n : 'la categoría de arriba'}. La plaza pasa al siguiente.`, ops: [op('seguir', 'Seguir', '', '', '', { prin: true })], fiesta: false };
+        const sube = ev.mov.tipo === 'sube';
+        return { ic: sube ? '🎉' : '📉', fiesta: sube,
+          titulo: sube ? `¡ASCENSO! ${club} sube a ${aL.corto}` : `Descenso: ${club} baja a ${aL.corto}`,
+          texto: sube
+            ? `Acabáis ${ev.pos}º en ${deL.n}. La temporada que viene jugáis en ${aL.n}: rivales más fuertes y más gente mirando (exposición ×${nf(aL.exposicion)}).${ev.prima ? ` Prima de ascenso: ${eur(ev.prima)}.` : ''} Nuevo objetivo: ${obj.n.toLowerCase()}. Rivales: ${rivales.join(', ')}.`
+            : `Acabáis ${ev.pos}º en ${deL.n}. La temporada que viene jugáis en ${aL.n}: rivales más flojos, pero menos visibilidad (exposición ×${nf(aL.exposicion)}). Nuevo objetivo: ${obj.n.toLowerCase()}. Rivales: ${rivales.join(', ')}.`,
+          ops: [op('seguir', sube ? '¡A por la nueva categoría!' : 'Toca levantarse', '', '', '', { prin: true })] };
+      },
+      resolver(s, ev) { return { texto: ev.mov.tipo === 'sube' ? `${ev.club} sube a ${P2.LIGAS[ev.mov.a].n}.` : ev.mov.tipo === 'baja' ? `${ev.club} baja a ${P2.LIGAS[ev.mov.a].n}.` : 'El filial no puede subir.', titulo: 'Fin de temporada', ic: ev.mov.tipo === 'sube' ? '🎉' : '📉' }; },
+    },
+    // Fin normal de un patrocinio: renovar (prima reducida) o dejarlo
+    renovarMarca: {
+      vista(s, ev) {
+        const M = MARCAS.find(m => m.id === ev.marca), C = P2.condicionesMarca(s, M), b = P2.bloqueoMarca(s, M);
+        return { ic: M.ic, titulo: `Termina tu contrato con ${M.n}`, texto: `Has cobrado todos los pagos. ¿Renovar? Al renovar no se vuelve a cobrar la prima de primera firma: solo ${eur(C.prima)}.`,
+          ops: [op('renovar', `Renovar ${M.semanas} semanas`, `Prima de renovación ${eur(C.prima)} y ${eur(C.semanal)}/semana${C.semanal > M.semanal ? ' (+10 % por cumplir)' : ''}`, M.obligacion, 'Dos faltas rompen el contrato', { tags: ['dinero'], bloqueo: b }),
+            op('no', 'No renovar', 'Te quitas obligaciones', 'Dejas de cobrar', 'Puedes volver a firmar más adelante si cumples los requisitos', { tags: ['deporte'] })] };
+      },
+      resolver(s, ev, id) {
+        const M = MARCAS.find(m => m.id === ev.marca);
+        if (id === 'no') return { texto: `Dejas a ${M.n}.`, titulo: 'Patrocinio', ic: M.ic };
+        if (id !== 'renovar' || !P2.firmarMarca(s, ev.marca, null)) return null;
+        return { texto: `Renuevas con ${M.n}.`, titulo: 'Patrocinio', ic: M.ic };
+      },
+    },
+    // Semana 2 de la empresa: ¿inviertes ya en el local? Solo con la caja que tengas
+    mejoraInicial: {
+      vista(s, ev) {
+        const n = neg(s, ev); if (!n) return null;
+        const T = P2.tipoDe(n);
+        const ops = T.mejorasIniciales.map(M => op(M.id, `${M.ic} ${M.n}`, M.d, `${eur(M.coste)} de la caja`, 'La caja se queda más corta para imprevistos',
+          { tags: ['riesgo', 'dinero'], bloqueo: n.caja < M.coste ? `La caja tiene ${eur(n.caja)}` : null }));
+        ops.push(op('nada', 'De momento, nada', 'Guardas la caja para imprevistos', 'Sin mejora', 'Ninguno', { tags: ['seguro'] }));
+        return { ic: T.ic, titulo: 'Oportunidad: mejorar el local al empezar', texto: `Caja de la ${T.n.toLowerCase()}: ${eur(n.caja)}. Ahora es el momento barato de hacer algo (después no se repite). Puedes poner dinero tuyo en la caja desde «Empresa» antes de decidir.`, ops };
+      },
+      resolver(s, ev, id) {
+        const n = neg(s, ev); if (!n) return { texto: '', titulo: '', ic: '' };
+        if (id === 'nada') { n.mejoraInicial = 'nada'; return { texto: 'Guardas la caja.', titulo: 'Puesta en marcha', ic: '💈' }; }
+        if (!P2.aplicarMejoraInicial(s, n, id)) return null;
+        const M = P2.tipoDe(n).mejorasIniciales.find(m => m.id === id);
+        return { texto: `${M.n}: ${M.d}.`, titulo: 'Puesta en marcha', ic: M.ic };
+      },
+    },
+    socioCapital: {
+      vista(s, ev) {
+        const K = P2.SOCIO;
+        return { ic: '☕', titulo: 'La cafetería pide más capital', texto: `Para salir del bache necesitan dinero de los socios. A ti te toca poner ${eur(ev.importe)}. Tu parte vale ahora ${eur(s.socio.valor)}.`,
+          ops: [op('poner', `Poner ${eur(ev.importe)}`, 'Mantienes tu parte (suma a su valor)', eur(ev.importe), 'Si sigue mal, puedes perderlo', { tags: ['riesgo'], bloqueo: s.p.dinero < ev.importe ? `Tienes ${eur(s.p.dinero)}` : null }),
+            op('no', 'No poner nada', 'No arriesgas más', `Tu parte pierde un ${Math.round(K.dilucion * 100)} % de valor (te diluyen)`, 'Ninguno', { tags: ['seguro', 'dinero'] })] };
+      },
+      resolver(s, ev, id) {
+        const p = s.socio, K = P2.SOCIO; if (!p) return { texto: '', titulo: '', ic: '' };
+        if (id === 'poner') { if (s.p.dinero < ev.importe) return null; s.p.dinero -= ev.importe; p.valor += ev.importe; p.aportado += ev.importe; return { texto: `Pones ${eur(ev.importe)} en la cafetería.`, titulo: 'Cafetería', ic: '☕' }; }
+        p.valor = Math.round(p.valor * (1 - K.dilucion));
+        return { texto: `No pones dinero: tu parte baja a ${eur(p.valor)}.`, titulo: 'Cafetería', ic: '☕' };
+      },
+    },
+    socioOferta: {
+      vista(s, ev) {
+        return { ic: '🤝', titulo: 'Quieren comprarte tu parte de la cafetería', texto: `Ofrecen ${eur(ev.precio)}. Pusiste ${eur(s.socio.aportado)} y has cobrado ${eur(s.socio.dividendos)} en dividendos. Ahora vale ${eur(s.socio.valor)}.`,
+          ops: [op('vender', `Vender por ${eur(ev.precio)}`, 'Dinero en mano para tu siguiente paso', 'Dejas de cobrar dividendos', 'Si la cafetería despega, te lo pierdes', { tags: ['seguro', 'dinero'] }),
+            op('no', 'Quedarte', 'Sigues cobrando si va bien', 'Nada', 'Puede bajar', { tags: ['riesgo'] })] };
+      },
+      resolver(s, ev, id) {
+        const p = s.socio; if (!p) return { texto: '', titulo: '', ic: '' };
+        if (id === 'vender') { s.p.dinero += ev.precio; p.vendida = true; p.precioVenta = ev.precio; p.valor = 0; P2.anotar(s, '🤝', `Vendo mi parte de la cafetería por ${eur(ev.precio)}.`); return { texto: `Vendes tu parte por ${eur(ev.precio)}.`, titulo: 'Cafetería', ic: '🤝' }; }
+        return { texto: 'Te quedas en la cafetería.', titulo: 'Cafetería', ic: '☕' };
       },
     },
     repesca: {
@@ -133,7 +218,7 @@
     },
     oportunidad: {
       vista(s) {
-        const ops = OPORTUNIDADES.map(o => op(o.id, `${o.ic} ${o.n}`, o.d, eur(o.coste), o.id === 'segunda' ? 'Más trabajo y más riesgo' : o.id === 'local' ? 'Te quedas con poca liquidez' : 'No controlas el negocio',
+        const ops = OPORTUNIDADES.map(o => op(o.id, `${o.ic} ${o.n}`, o.d, `Pones tú: ${eur(o.coste)}${o.hipoteca ? ` (hipoteca de ${eur(o.hipoteca.importe)})` : o.prestamo ? ` (préstamo de ${eur(o.prestamo.importe)} para el nuevo negocio)` : ''}`, o.id === 'segunda' ? 'Dos negocios que gestionar y una deuda' : o.id === 'local' ? 'Si la peluquería va mal, la hipoteca sigue ahí' : 'Puede no dar dividendo, perder valor o pedirte más dinero',
           { tags: o.id === 'socio' ? ['seguro'] : ['dinero', 'riesgo'], bloqueo: s.p.dinero < o.coste ? `Tienes ${eur(s.p.dinero)}: puedes ahorrar y elegirla después en «Empresa»` : null }));
         ops.push(op('luego', 'Decidir más adelante', 'Ahorras antes de dar el paso', 'Nada', 'Ninguno', { tags: ['seguro'] }));
         return { ic: '🔑', titulo: 'Se abre tu segunda oportunidad de inversión', texto: 'Tu peluquería lleva semanas dando dinero. El banco, tu asesor y tus contactos te traen tres caminos. Elige con cuál empieza tu imperio.', ops };
@@ -161,13 +246,45 @@
     s.p.dinero -= o.coste;
     s.oportunidad = id; s.oportunidadAbierta = false;
     let t = '';
-    if (id === 'local') { s.negocios[0].local = true; t = 'Compras el local: tu peluquería deja de pagar alquiler.'; }
-    if (id === 'segunda') { const n = P2.nuevoNegocio('peluqueria', 1000); n.comprado = s.semana; n.invertido = o.coste; n.hist = [0, 0, 0]; s.negocios.push(n); t = 'Abres tu segunda peluquería (con 1.000 € de caja).'; }
-    if (id === 'socio') { s.socio = { inversion: o.coste, desde: s.semana }; t = 'Entras como socio/a en la cafetería: cobrarás una parte de lo que gane.'; }
+    if (id === 'local') {
+      const n = s.negocios[0], H = o.hipoteca;
+      n.local = true; n.valorLocal = o.precio; n.fianza = 0;
+      n.hipoteca = { deuda: H.importe, interes: H.interes, cuota: Math.ceil(H.importe / H.plazo) };
+      t = `Compras el local (${eur(o.precio)}): pones ${eur(o.coste)} y una hipoteca de ${eur(H.importe)} que paga la peluquería. Adiós al alquiler.`;
+    }
+    if (id === 'segunda') {
+      const n = P2.nuevoNegocio('peluqueria', o.caja), P = o.prestamo;
+      n.comprado = s.semana; n.invertido = o.coste + P.importe; n.hist = [0, 0, 0];
+      n.deuda = P.importe; n.interes = P.interes; n.cuota = Math.ceil(P.importe / P.plazo);
+      P2.ponerEnMarcha(n, null);
+      s.negocios.push(n);
+      t = `Abres tu segunda peluquería: traspaso de ${eur(o.traspaso)} (pones ${eur(o.coste - o.caja)} y un préstamo de ${eur(P.importe)}) y ${eur(o.caja)} de caja.`;
+    }
+    if (id === 'socio') { s.socio = P2.nuevaParticipacion(s, o.coste); t = 'Entras como socio/a en la cafetería: no decides nada; cada trimestre sabrás cómo va.'; }
     P2.anotar(s, o.ic, t);
     conseguirHito(s, 'inversion2', null);
     return t;
   }
+
+  // ---- Navegación progresiva: las secciones aparecen cuando tienen sentido ----
+  const SECCIONES = [
+    { id: 'semana', ic: '🏠', n: 'Semana', cond: () => true },
+    { id: 'liga', ic: '📊', n: 'Liga', cond: s => !!s.temporada, d: 'La clasificación, tu equipo y tu contrato.' },
+    { id: 'marcas', ic: '🤝', n: 'Marcas', cond: s => !!s.hitos.contrato, d: 'Patrocinadores: contratos con prima, pago semanal y actos.' },
+    { id: 'empresa', ic: '💼', n: 'Empresa', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
+    { id: 'hitos', ic: '🏅', n: 'Hitos', cond: () => true },
+    { id: 'ajustes', ic: '⚙️', n: 'Ajustes', cond: () => true },
+  ];
+  const BASICAS = ['semana', 'hitos', 'ajustes'];
+  // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
+  function revisarSecciones(s, R) {
+    s.secciones = Array.isArray(s.secciones) ? s.secciones : BASICAS.slice();
+    const nuevas = [];
+    for (const x of SECCIONES) if (!s.secciones.includes(x.id) && x.cond(s)) { s.secciones.push(x.id); nuevas.push(x); s.seccionesNuevas = (s.seccionesNuevas || []).concat(x.id); P2.anotar(s, '🔓', `Nueva sección: ${x.n}. ${x.d}`); }
+    if (R && R.desbloqueos) R.desbloqueos.push(...nuevas);
+    return nuevas;
+  }
+  const seccionesVisibles = s => SECCIONES.filter(x => (s.secciones || BASICAS).includes(x.id));
 
   function vistaPendiente(s) {
     const ev = s.pendiente; if (!ev) return null;
@@ -176,7 +293,7 @@
   }
 
   // Patrimonio = tu dinero + valor de tus empresas (+ participación)
-  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio ? s.socio.inversion : 0)); }
+  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio && !s.socio.vendida ? s.socio.valor : 0)); }
 
-  Object.assign(P2, { encolar, siguiente, conseguirHito, revisarHitos, siguienteHito, DECISIONES, vistaPendiente, elegirOportunidad, patrimonio });
+  Object.assign(P2, { SECCIONES, revisarSecciones, seccionesVisibles, encolar, siguiente, conseguirHito, revisarHitos, siguienteHito, DECISIONES, vistaPendiente, elegirOportunidad, patrimonio });
 })(globalThis.P2 = globalThis.P2 || {});

@@ -18,6 +18,7 @@
   const opcion = (o, act, extra = '', cls = '') => `<button class="opt ${o.prin ? 'prin' : ''} ${cls}" data-act="${act}" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''} ${extra} ${act === 'elegir' ? `aria-pressed="${cls === 'elegida'}"` : ''}>
       <b>${esc(o.n)}</b>
       <span class="ls">${o.ventaja ? `<span class="l"><i class="v">✓</i> ${esc(o.ventaja)}</span>` : ''}${o.coste ? `<span class="l"><i class="c">−</i> ${esc(o.coste)}</span>` : ''}${o.riesgo && o.riesgo !== 'Ninguno' ? `<span class="l"><i class="r">⚠</i> ${esc(o.riesgo)}</span>` : ''}</span>
+      ${o.ocupaSemana ? '<span class="ocupa">⏳ Ocupa la semana entera</span>' : ''}
       ${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`;
 
   function nombreFase(s) {
@@ -35,10 +36,12 @@
       <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}</div>`;
   }
   function htmlNav(s) {
-    const b = (v, ic, t, aviso) => `<button data-act="vista" data-v="${v}" class="${ui.vista === v ? 'sel' : ''}"><span>${ic}</span>${t}${aviso ? '<i></i>' : ''}</button>`;
+    const b = (v, ic, t, aviso) => `<button data-act="vista" data-v="${v}" class="${ui.vista === v ? 'sel' : ''}"><span>${ic}</span>${t}${(s.seccionesNuevas || []).includes(v) ? '<em>Nuevo</em>' : aviso ? '<i></i>' : ''}</button>`;
     const avisoEmp = s.negocios.some(n => n.crisis) || (!s.negocios.length && !P2.bloqueoCompra(s, 'peluqueria', 0)) || (s.oportunidadAbierta && !s.oportunidad);
     const avisoMarcas = s.fase === 'club' && MARCAS.some(M => !P2.bloqueoMarca(s, M));
-    return b('semana', '🏠', 'Semana', s.pendiente && ui.vista !== 'semana') + b('liga', '📊', 'Liga') + b('empresa', '💼', 'Empresa', avisoEmp) + b('marcas', '🤝', 'Marcas', avisoMarcas) + b('hitos', '🏅', 'Hitos') + b('ajustes', '⚙️', 'Ajustes');
+    const aviso = { semana: s.pendiente && ui.vista !== 'semana', empresa: avisoEmp, marcas: avisoMarcas };
+    const l = P2.seccionesVisibles(s);
+    return `<div class="tabs" style="grid-template-columns:repeat(${l.length},1fr)">${l.map(x => b(x.id, x.ic, x.n, aviso[x.id])).join('')}</div>`;
   }
 
   // ---------- SITUACIÓN ----------
@@ -65,7 +68,7 @@
       const T = s.temporada, O = P2.oferta(s), pj = P2.partidoDeLaJornada(T), pos = P2.posicion(T), pt = P2.probTitular(s);
       escena = `🏟️ ${O.ic} <b>${esc(O.n)} · ${esc(LIGAS[T.liga].corto)}</b>`;
       titulo = pj ? `Jornada ${pj.j + 1} de ${T.calendario.length}: ${pj.local ? 'en casa contra' : 'visitas a'} ${esc(P2.nombreEquipo(T, pj.rival))}` : 'Temporada terminada';
-      datos = dato('Posición', T.jornada ? `${pos}º/${LIGAS[T.liga].equipos.length}` : '—') + dato('Objetivo', OBJETIVOS[O.objetivo].corto) +
+      datos = dato('Posición', T.jornada ? `${pos}º/${T.calendario[0].length * 2}` : '—') + dato('Objetivo', OBJETIVOS[P2.objetivoDe(T)].corto) +
         dato('Confianza', `${Math.round(s.confianza)}`) + dato('Titular', pt ? pt.nivel.replace('nula', 'no juegas') : '—');
       const ctx = P2.contexto(T);
       extra = `${ctx.length ? `<div class="ctx">${esc(ctx.join(' '))}</div>` : ''}
@@ -81,7 +84,7 @@
   function htmlDecision(s) {
     const v = P2.vistaPendiente(s);
     if (v) {
-      return `<div class="sec"><span>Decisión</span></div><div class="card dec evento"><h2><span>${v.ic}</span>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
+      return `<div class="sec"><span>Decisión</span></div><div class="card dec evento ${v.fiesta ? 'fiesta' : ''}"><h2><span>${v.ic}</span>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
         ${v.ops.map(o => opcion(o, 'decidir')).join('')}</div>`;
     }
     const l = P2.accionesDisponibles(s);
@@ -92,22 +95,25 @@
   }
 
   // Acción elegida para la semana: la tuya si sigue disponible; si no, la primera que se puede hacer
+  // Acción elegida para la semana: solo la que el jugador ha tocado (nunca se elige sola)
   function eleccion(s) {
     const libres = P2.accionesDisponibles(s).filter(x => !x.bloqueo).map(x => x.id);
-    return libres.includes(s.eleccion) ? s.eleccion : libres.includes('descansar') && s.p.energia < 30 ? 'descansar' : libres[0];
+    return libres.includes(s.eleccion) ? s.eleccion : null;
   }
   function htmlBoton(s) {
-    if (s.pendiente) return `<button class="jugar" id="jugar" disabled>Jugar semana<small>Antes, toma la decisión de arriba</small></button>`;
+    if (s.pendiente) return '';   // la decisión pendiente es lo que toca: el botón vuelve después
     const id = eleccion(s), A = P2.ACCIONES[id];
-    return `<button class="jugar" id="jugar" data-act="jugar">▶ Jugar semana<small>${A ? `${A.ic} ${esc(A.n)}${s.fase === 'club' || s.fase === 'amateur' ? ' + partido' : ''}` : ''}</small></button>`;
+    if (!A) return `<button class="jugar" id="jugar" disabled>Jugar semana<small>Elige qué haces esta semana</small></button>`;
+    return `<button class="jugar" id="jugar" data-act="jugar">▶ Jugar semana<small>${A.ic} ${esc(A.n)}${s.fase === 'club' || s.fase === 'amateur' ? ' + partido' : ''}</small></button>`;
   }
 
   // ---------- CONSECUENCIA ----------
   function htmlConsecuencia(s) {
     let h = '';
+    if (ui.desbloqueos && ui.desbloqueos.length) h += `<div class="card">${ui.desbloqueos.map(htmlDesbloqueo).join('')}</div>`;
     const D = s.ultimaDecision;
     if (D && D.semana === s.semana && !D.semanaJugada) {
-      h += `<div class="card"><h3>${D.ic} ${esc(D.titulo)}</h3><p>${esc(D.texto)}</p>${(D.lineas || []).map(linea).join('')}${(D.hitos || []).map(htmlHito).join('')}</div>`;
+      h += `<div class="card"><h3>${D.ic} ${esc(D.titulo)}</h3><p>${esc(D.texto)}</p>${(D.lineas || []).map(linea).join('')}${(D.hitos || []).map(htmlHito).join('')}${(D.desbloqueos || []).map(htmlDesbloqueo).join('')}</div>`;
     }
     const R = s.ultimo;
     if (R) {
@@ -115,33 +121,34 @@
       if (R.partido && R.partido.nota != null) chips.push(chip(`📝 nota ${nf(R.partido.nota)}`, R.partido.nota >= 6.5 ? 'bien' : R.partido.nota < 5.5 ? 'mal' : ''));
       h += `<div class="sec"><span>Consecuencia</span><span>semana ${R.semana}</span></div><div class="card">
         <div class="resumen">${chips.join('')}</div>
-        ${R.hitos.map(htmlHito).join('')}
+        ${R.hitos.map(htmlHito).join('')}${(R.desbloqueos || []).map(htmlDesbloqueo).join('')}
         ${R.lineas.map(linea).join('')}
         ${R.ingresos.length ? `<details class="por"><summary>💶 Tus cuentas de la semana</summary>${R.ingresos.map(([t, v]) => kv(esc(t), `${v >= 0 ? '+' : '−'}${eur(Math.abs(v))}`)).join('')}</details>` : ''}
         ${R.porque.length ? `<details class="por"><summary>❓ ¿Por qué ha pasado esto?</summary>${R.porque.map(t => `<p>${esc(t)}</p>`).join('')}</details>` : ''}</div>`;
     }
     return h;
   }
+  const htmlDesbloqueo = x => `<div class="hito desb">🔓 <b>Nueva sección: ${x.ic} ${esc(x.n)}</b><br>${esc(x.d || '')} La tienes abajo, en la barra.</div>`;
   const htmlHito = H => `<div class="hito">🏅 <b>Hito: ${esc(H.n)}</b><br>Se abre: ${esc(H.abre)}</div>`;
 
   // ---------- Vistas ----------
   function htmlLiga(s) {
     if (!s.temporada) return `<div class="card"><h2>📊 Liga</h2><p>Aún no tienes equipo. Consigue una prueba y firma tu primer contrato.</p></div>`;
-    const T = s.temporada, L = LIGAS[T.liga], O = P2.oferta(s), tabla = P2.clasificacion(T), n = tabla.length;
+    const T = s.temporada, L = LIGAS[T.liga], O = P2.oferta(s), tabla = P2.clasificacion(T), n = tabla.length, Z = P2.zonas(T.liga);
     const prox = [0, 1, 2].map(i => P2.partidoDeLaJornada(T, T.jornada + i)).filter(Boolean);
     const ult = T.resultados.slice(-3).map((j, i) => { const m = j.find(x => x.l === T.yo || x.v === T.yo); return `${P2.nombreEquipo(T, m.l)} ${m.gl}-${m.gv} ${P2.nombreEquipo(T, m.v)}`; });
     const c = s.contrato;
-    return `<div class="card"><h2>${esc(L.n)}</h2><p class="small">Jornada ${T.jornada} de ${T.calendario.length} · suben ${CFG.liga.ascenso}, bajan ${CFG.liga.descenso}</p>
+    return `<div class="card"><h2>${esc(L.n)}</h2><p class="small">Jornada ${T.jornada} de ${T.calendario.length} · ${Z.asc ? `suben ${Z.asc} a ${esc(LIGAS[L.sube].corto)}` : 'categoría más alta: se juega el título'}${Z.desc ? ` · bajan ${Z.desc} a ${esc(LIGAS[L.baja].corto)}` : ' · no hay descenso'}</p>
       <table><tr><th>#</th><th>Equipo</th><th>PJ</th><th>DG</th><th>Pts</th></tr>
-      ${tabla.map((r, i) => `<tr class="${r.id === T.yo ? 'yo' : ''} ${i < CFG.liga.ascenso ? 'asc' : i >= n - CFG.liga.descenso ? 'desc' : ''}"><td>${i + 1}</td><td>${esc(r.n)}</td><td>${r.pj}</td><td>${r.gf - r.gc >= 0 ? '+' : ''}${r.gf - r.gc}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table>
-      <p class="small">🟩 ascenso · 🟥 descenso</p></div>
-      <div class="card"><h3>Tu equipo</h3>${kv('Objetivo del club', OBJETIVOS[O.objetivo].n)}${prox.map((p, i) => kv(i ? 'Después' : 'Próximo rival', `${p.local ? '🏠' : '✈️'} ${esc(P2.nombreEquipo(T, p.rival))}`)).join('')}
+      ${tabla.map((r, i) => `<tr class="${r.id === T.yo ? 'yo' : ''} ${i < Z.asc ? 'asc' : i >= n - Z.desc ? 'desc' : ''}"><td>${i + 1}</td><td>${esc(r.n)}</td><td>${r.pj}</td><td>${r.gf - r.gc >= 0 ? '+' : ''}${r.gf - r.gc}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table>
+      <p class="small">${Z.asc ? '🟩 ascenso' : ''}${Z.asc && Z.desc ? ' · ' : ''}${Z.desc ? '🟥 descenso' : ''}</p></div>
+      <div class="card"><h3>Tu equipo</h3>${kv('Objetivo del club', OBJETIVOS[P2.objetivoDe(T)].n)}${prox.map((p, i) => kv(i ? 'Después' : 'Próximo rival', `${p.local ? '🏠' : '✈️'} ${esc(P2.nombreEquipo(T, p.rival))}`)).join('')}
         ${ult.length ? kv('Últimos', esc(ult.join(' · '))) : ''}</div>
       <div class="card"><h3>Tú</h3>${kv('Contrato', `${eur(c.sueldo)}/semana · ${c.temporadasRestantes} ${c.temporadasRestantes === 1 ? 'temporada' : 'temporadas'}`)}
         ${kv('Confianza del míster', `${Math.round(s.confianza)}/100`)}${kv('Interés de otros clubes', `${Math.round(s.interes)}/100`)}${kv('Valor de mercado', eur(P2.valorMercado(s)))}
         ${kv('Partidos', `${s.stats.jugados} (${s.stats.titular} de titular) · ${s.stats.goles} goles`)}${kv('Agente', s.agente ? 'Sí' : 'Al ser titular 3 veces')}
         <details class="por"><summary>❓ ¿Cómo se decide si juegas?</summary><p>Nivel + (confianza − 50) × 0,2 + ventaja del club (${O.minutos >= 0 ? '+' : ''}${O.minutos}) + energía (+2 con 60 o más, −4 con menos de 40) + azar (±6), frente al nivel del once de tu club (${nf(T.fuerzas[T.yo])}). Titular si llegas; suplente si te quedas a menos de 7.</p></details></div>
-      ${s.temporadasJugadas.length ? `<div class="card"><h3>Temporadas</h3>${s.temporadasJugadas.map(t => kv(esc(t.club), `${t.pos}º · ${t.cumple ? '✅' : '❌'} · nota ${nf(t.media)}`)).join('')}</div>` : ''}`;
+      ${s.temporadasJugadas.length ? `<div class="card"><h3>Temporadas</h3>${s.temporadasJugadas.map(t => kv(`${esc(t.club)} · ${esc((LIGAS[t.liga] || {}).corto || "")}`, `${t.pos}º · ${t.cumple ? '✅' : '❌'} · nota ${nf(t.media)}`)).join('')}</div>` : ''}`;
   }
 
   function htmlEmpresa(s) {
@@ -158,9 +165,12 @@
     }
     for (const n of s.negocios) h += htmlNegocio(s, n);
     if (P2.tieneHito(s, 'rentable') && !s.oportunidad) {
-      h += `<div class="card"><h3>🔑 Segunda inversión</h3>${OPORTUNIDADES.map(o => opcion({ id: o.id, n: `${o.ic} ${o.n}`, ventaja: o.d, coste: eur(o.coste), bloqueo: s.p.dinero < o.coste ? `Tienes ${eur(s.p.dinero)}` : null }, 'oportunidad')).join('')}</div>`;
+      h += `<div class="card"><h3>🔑 Segunda inversión</h3>${OPORTUNIDADES.map(o => opcion({ id: o.id, n: `${o.ic} ${o.n}`, ventaja: o.d, coste: `Pones tú: ${eur(o.coste)}`, bloqueo: s.p.dinero < o.coste ? `Tienes ${eur(s.p.dinero)}` : null }, 'oportunidad')).join('')}</div>`;
     }
-    if (s.socio) h += `<div class="card"><h3>🤝 Socio de la cafetería</h3><p class="small">Invertiste ${eur(s.socio.inversion)}. Cobras tu parte cada semana (varía).</p></div>`;
+    if (s.socio) { const p = s.socio, E = P2.SOCIO.estados[p.estado] || {};
+      h += `<div class="card"><h3>🤝 Tu parte de la cafetería</h3>${p.vendida ? `<p class="small">La vendiste por ${eur(p.precioVenta)}. Cobraste ${eur(p.dividendos)} en dividendos.</p>` :
+        `${kv('Vale ahora', eur(p.valor))}${kv('Has puesto', eur(p.aportado))}${kv('Dividendos cobrados', eur(p.dividendos))}${kv('Cómo va', `${E.ic || ''} ${esc(E.n || '—')}`)}${kv('Próximas noticias', `semana ${p.proximo}`)}
+        <p class="small">No la gestionas. Cada ${P2.SOCIO.trimestre} semanas llega el resultado: puede haber dividendo, no haberlo, perder valor o pedirte más capital.</p>`}</div>`; }
     return h;
   }
   function htmlNegocio(s, n) {
@@ -184,14 +194,17 @@
       <div class="fila"><input type="number" inputmode="numeric" min="0" step="100" id="imp_${n.id}" placeholder="Importe (€)"></div>
       <div class="fila" style="margin-top:6px"><button class="btn w" data-act="aportar" data-neg="${n.id}">⬇️ Poner en la caja</button><button class="btn w" data-act="retirar" data-neg="${n.id}">⬆️ Sacar a tu cuenta</button></div>
       ${n.deuda ? `<p class="small">🏦 Préstamo: debes ${eur(n.deuda)} (cuota ${eur(n.cuota)}/semana).</p>` : ''}
+      ${n.local ? `<p class="small">🏢 Local propio: vale ${eur(n.valorLocal)}${n.hipoteca && n.hipoteca.deuda ? ` · hipoteca pendiente ${eur(n.hipoteca.deuda)} (${eur(n.hipoteca.cuota)}/semana + intereses)` : ''}.</p>` : n.fianza ? `<p class="small">🔑 Fianza del local: ${eur(n.fianza)} (se recupera al vender).</p>` : ''}
+      ${n.mejoraInicial && n.mejoraInicial !== 'nada' ? `<p class="small">✨ Mejora inicial: ${esc((P2.tipoDe(n).mejorasIniciales.find(m => m.id === n.mejoraInicial) || {}).n || '')}.</p>` : ''}
       ${rent ? `<div class="fila" style="margin-top:8px">${!n.deuda ? `<button class="btn w" data-act="prestamo" data-neg="${n.id}">🏦 Pedir ${eur(CFG.empresa.prestamo.importe)}</button>` : ''}<button class="btn r" data-act="vender" data-neg="${n.id}">${ui.vender === n.id ? '⚠️ Toca otra vez para vender' : `🤝 Vender por ${eur(v)}`}</button></div>` : '<p class="small">🔒 Financiación y venta: al mantenerla rentable 6 semanas seguidas.</p>'}
     </div>`;
   }
 
   function htmlMarcas(s) {
     let h = `<div class="card"><h2>🤝 Patrocinadores</h2><p class="small">Son contratos: prima al firmar, pago semanal y obligaciones con fecha. Máximo ${CFG.patrocinio.maxContratos} a la vez. Cada acto ocupa una semana entera.</p></div>`;
-    if (s.patros.length) h += `<div class="sec">Tus contratos</div>` + s.patros.map(c => { const M = MARCAS.find(m => m.id === c.id); return `<div class="card"><h3>${M.ic} ${esc(M.n)}</h3>${kv('Pago', `${eur(M.semanal)}/semana`)}${kv('Hasta la semana', c.hasta)}${kv('Próximo acto', `semana ${c.proxActo}`)}${kv('Faltas', `${c.faltas}/${CFG.patrocinio.faltasMax}`)}${M.objetivo ? kv('Objetivo', `nota media ${nf(M.objetivo.notaMedia)} → ${eur(M.objetivo.bonus)}`) : ''}</div>`; }).join('');
-    h += `<div class="sec">Marcas</div><div class="card">` + P2.marcasVisibles(s).map(({ M, bloqueo }) => opcion({ id: M.id, n: `${M.ic} ${M.n} (${M.tier === 'local' ? 'local' : 'deportiva'})`, ventaja: `Prima ${eur(M.prima)} y ${eur(M.semanal)}/semana durante ${M.semanas} semanas`, coste: M.obligacion, riesgo: `${CFG.patrocinio.faltasMax} faltas rompen el contrato${M.objetivo ? ` · bonus si tu nota media llega a ${nf(M.objetivo.notaMedia)}` : ''}`, bloqueo }, 'marca')).join('') + `</div>`;
+    if (s.patros.length) h += `<div class="sec">Tus contratos</div>` + s.patros.map(c => { const M = MARCAS.find(m => m.id === c.id); return `<div class="card"><h3>${M.ic} ${esc(M.n)}</h3>${kv('Pago', `${eur(c.semanal || M.semanal)}/semana`)}${kv('Pagos', `${c.pagos} de ${c.semanas} (quedan ${P2.semanasRestantes(c)})`)}${kv('Próximo acto', c.proxActo - c.desde < c.semanas ? `semana ${c.proxActo}` : 'ninguno')}${kv('Faltas', `${c.faltas}/${CFG.patrocinio.faltasMax}`)}${M.objetivo ? kv('Objetivo', `nota media ${nf(M.objetivo.notaMedia)} → ${eur(M.objetivo.bonus)}`) : ''}</div>`; }).join('');
+    h += `<div class="card"><p class="small">⭐ Tu marca personal: <b>${Math.floor(P2.marcaPersonal(s))}</b> (fama ${Math.floor(s.p.rep)} × tu nivel deportivo). Con poco nivel, tu fama vale menos para las marcas.</p></div>`;
+    h += `<div class="sec">Marcas</div><div class="card">` + P2.marcasVisibles(s).map(({ M, bloqueo, renovacion }) => { const C = P2.condicionesMarca(s, M); return opcion({ id: M.id, n: `${M.ic} ${M.n} (${M.tier === 'local' ? 'local' : 'deportiva'})${renovacion ? ' · volver a firmar' : ''}`, ventaja: `Prima ${eur(C.prima)}${renovacion ? ' (renovación)' : ''} y ${eur(C.semanal)}/semana durante ${M.semanas} semanas`, coste: M.obligacion, riesgo: `${CFG.patrocinio.faltasMax} faltas rompen el contrato para siempre${M.objetivo ? ` · bonus si tu nota media llega a ${nf(M.objetivo.notaMedia)}` : ''}`, bloqueo }, 'marca'); }).join('') + `</div>`;
     return h;
   }
 
@@ -245,6 +258,9 @@
   // ---------- Render ----------
   function render() {
     if (!S) { $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
+    // Secciones abiertas por algo hecho fuera de la semana (firmar una marca, comprar…): se avisa aquí
+    const nuevas = P2.revisarSecciones(S, null);
+    if (nuevas.length) { ui.desbloqueos = (ui.desbloqueos || []).concat(nuevas); P2.guardar(S); }
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
     const V = { semana: () => htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje }[ui.vista] || (() => '');
@@ -267,9 +283,9 @@
         break;
       case 'lookAzar': if ($('nombre')) ui.nombre = $('nombre').value; if (S) { S.look = P2.validarLook(P2.lookAzar()); guardarYPintar(); } else { ui.look = P2.validarLook(P2.lookAzar()); render(); } break;
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
-      case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { S.eleccion = a; guardarYPintar(); window.scrollTo(0, 0); } break; }
+      case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
-      case 'vista': ui.vista = b.dataset.v; ui.msg = ''; render(); window.scrollTo(0, 0); break;
+      case 'vista': ui.vista = b.dataset.v; ui.msg = ''; if ((S.seccionesNuevas || []).includes(ui.vista)) { S.seccionesNuevas = S.seccionesNuevas.filter(x => x !== ui.vista); P2.guardar(S); } render(); window.scrollTo(0, 0); break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'decidir': if (P2.resolverDecision(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
