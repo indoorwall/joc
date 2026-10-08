@@ -634,7 +634,8 @@ async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); a
       G.CFG.club.probSuceso = 0;
       const limpiar = () => { for (let g = 0; G.S.pendiente && g < 20; g++) G.resolver(G.S.pendiente.tipo === 'equipoEsc' ? 'club' : G.S.pendiente.tipo === 'patrocinio' ? '0' : G.S.pendiente.tipo === 'nacional' || G.S.pendiente.tipo === 'invitacion' || G.S.pendiente.tipo === 'eventoPatro' ? 'si' : G.S.pendiente.tipo === 'suceso' ? '0' : 'ok'); };
       const escalador = (seed, edad) => { G.nueva(seed, null, 'escalada', 'bloque'); G.S.p.rep = 15; G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); if (edad) G.S.edad = edad; G.S.p.dinero = 5000; return G.S; };
-      const semana = a => { limpiar(); if (a) G.elegir(a); G.avanzarSemana(); limpiar(); };
+      // Si antes de la competición sale el minijuego decisivo, se juega perfecto (estas pruebas miden premios y becas)
+      const semana = a => { limpiar(); if (a) G.elegir(a); if (!G.avanzarSemana() && G.S.pendiente && G.S.pendiente.tipo === 'minijuego') { G.resolver('res:1'); limpiar(); G.avanzarSemana(); } limpiar(); };
       // Grados reales
       out.grados = G.GRADOS_VIA.length === 25 && G.GRADOS_VIA[14] === '8a' && G.GRADOS_VIA[24] === '9c' && G.GRADOS_BLOQUE[15] === '8A' && G.GRADOS_BLOQUE[21] === '9A';
       // Calendario: Mundial en años impares, Europeo en pares, Juegos en 2028
@@ -1120,7 +1121,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       G.CFG.club.probSuceso = 0; G.CFG.humor.probTitular = 0; G.CFG.momentos.prob = 1; G.CFG.momentos.probGrande = 1;
       G.nueva(111); G.S.p.rep = 30; G.S.pendiente = { tipo: 'ojeador', clubId: G.S.mundo.ligas['es-4'][3] }; G.resolver('corto');
       for (let i = 0; i < 4; i++) { limpiar(); G.elegir('descansar'); G.avanzarSemana(); } limpiar();
-      for (let w = 0; w < 80 && out.futbol < 12; w++) {
+      for (let w = 0; w < 200 && (out.futbol < 12 || !out.fallos); w++) {
         G.S.p.energia = 90; G.S.p.nivel = Math.max(G.S.p.nivel, 85); G.S.lesion = 0; G.elegir('normal'); G.avanzarSemana();
         for (let g = 0; G.S.pendiente && g < 20; g++) {
           const ev = G.S.pendiente;
@@ -1494,6 +1495,102 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Vida jugada: la semana normal de un titular no gasta más energía de la que recupera', r.normal);
     check('Vida jugada: un imprevisto no se repite antes de un año', r.memoria);
     check('Vida jugada: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  /* ---------- Minijuegos decisivos, vidas, anuncio de prueba y juego más exigente ---------- */
+  {
+    const { ctx, page, errors, requests } = await openPage(browser, { viewport: { width: 390, height: 760 }, isMobile: true, hasTouch: true });
+    const r = await page.evaluate(() => {
+      const G = __P1, out = {}; G.silencio = true; G.CFG.club.probSuceso = 0; G.CFG.momentos.prob = 0; G.CFG.momentos.probGrande = 0;
+      const limpiar = () => { for (let g = 0; G.S.pendiente && G.S.pendiente.tipo !== 'minijuego' && g < 30; g++) G.resolver('0') || G.resolver('ok') || G.resolver('si') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('corto') || G.resolver('1'); };
+      // Fútbol: llegar al club y a las últimas jornadas con la liga igualada → sale el minijuego antes del partido
+      G.nueva(41, 'delantero', 'futbol'); G.S.p.rep = 45;
+      for (let i = 0; i < 300 && G.S.fase !== 'club'; i++) { limpiar(); G.elegir(G.S.fase === 'barrio' ? 'plaza' : 'entrenarSolo'); G.avanzarSemana(); }
+      let S = G.S, visto = null;
+      for (let i = 0; i < 400 && !visto; i++) {
+        limpiar(); S = G.S; S.p.energia = 90; S.p.nivel = Math.max(S.p.nivel, G.club(S.contrato.clubId).fuerza + 12); S.lesion = 0;
+        // liga igualada en las últimas jornadas
+        const T = S.temporada; if (T.jornada === 16) for (const id of Object.keys(T.tabla)) T.tabla[id].pts = 25;
+        G.elegir('normal'); G.avanzarSemana();
+        if (G.S.pendiente && G.S.pendiente.tipo === 'minijuego') visto = JSON.parse(JSON.stringify(G.S.pendiente));
+      }
+      out.sale = !!visto && visto.motor === 'equipo' && visto.dif >= 1 && /Partido por/.test(visto.titulo);
+      out.popup = !!visto && (() => { G.silencio = false; G.render(); const h = document.getElementById('modal').innerText; G.silencio = true; return /Momento decisivo/.test(h) && /Si fallas/.test(h) && /Simular/.test(h); })();
+      // Jugarlo perfecto: el equipo suma goles; jugarlo fatal: el rival
+      if (visto) {
+        const base = JSON.parse(JSON.stringify(G.S));
+        const jugar = sc => { G.S = JSON.parse(JSON.stringify(base)); G.resolver('res:' + sc); limpiar(); G.avanzarSemana(); limpiar(); return G.S; };
+        const a = jugar(1), b = jugar(0);
+        const pa = a.ultimo && a.ultimo.partido, pb = b.ultimo && b.ultimo.partido;
+        out.efecto = !!(pa && pb && pa.mj && pb.mj && pa.mj.perfecto && pb.mj.desastre && (pa.gf - pa.gc) > (pb.gf - pb.gc));
+        out.consecuencia = b.mods.some(m => /momento decisivo/.test(m.motivo)) && b.p.fel < a.p.fel;
+        out.diario = a.ultimo.opo.some(([, x]) => /Jugada decisiva/.test(x)) && b.ultimo.opo.some(([, x]) => /Jugada decisiva: fallo/.test(x));
+        out.logro = !!a.logros.heroe;
+        // Simular nunca da un «perfecto»
+        let maxSim = 0; for (let k = 0; k < 40; k++) maxSim = Math.max(maxSim, G.mjSimulado(visto));
+        out.simulado = maxSim <= G.CFG.minijuegos.simuladoMax;
+      }
+      // Escalada: el clasificatorio para los Juegos tiene minijuego y fallarlo te deja sin plaza
+      G.nueva(42, null, 'escalada', 'bloque'); G.S.pendiente = { tipo: 'equipoEsc' }; G.resolver('club'); limpiar(); G.S.edad = 24; G.S.p.dinero = 20000; G.S.fase = 'escalador';
+      // el clasificatorio solo se celebra en el ciclo de los Juegos: se busca el año que lo tenga
+      let cl = null; for (let k = 0; k < 5 && !cl; k++) { cl = G.calendarioEsc(G.S.esc.año + k).find(c => c.amb === 'clasif') || null; if (cl) G.S.esc.año += k; }
+      out.indDif = !!cl;
+      if (cl) {
+        for (const k of Object.keys(G.S.esc.at)) G.S.esc.at[k] = 78; G.S.esc.nacional = G.S.esc.año; G.S.semanasAño = cl.sem; G.S.esc.modoComp = 'todo'; G.S.esc.ins[cl.id] = true;
+        for (const m of ['bloque', 'dificultad', 'velocidad', 'combinada', cl.mod]) G.S.esc.mejorMundoMod[m] = { [G.S.esc.año]: 5, [G.S.esc.año - 1]: 5 };   // requisito: top 24 en Copa del Mundo
+        const ev = G.momentoDecisivo(); out.indSale = !!ev && ev.amb === 'clasif' && ev.dif === 4 && /Juegos/.test(ev.siFallas);
+        const base = JSON.parse(JSON.stringify(G.S));
+        const comp = sc => { G.S = JSON.parse(JSON.stringify(base)); G.S.pendiente = ev; G.resolver('res:' + sc); limpiar(); G.avanzarSemana(); return G.S.esc.palmares[0] || {}; };
+        const bien = comp(1), mal = comp(0);
+        out.indEfecto = bien.amb === 'clasif' && mal.amb === 'clasif' && bien.pos < mal.pos && mal.pos > 10;   // 10 plazas: fallar te deja fuera
+      }
+      // Vidas: empiezan en 3 y se recupera 1 cada 6 semanas
+      G.S.vidas = { n: 0, sem: G.S.semana }; G.S.semana += 13; out.vidas = G.vidasMJ().n === 2;
+      G.silencio = false;
+      return out;
+    });
+    check('Minijuegos: antes de un partido decisivo (ascenso, título o descenso) sale la ventana con lo que te juegas', r.sale && r.popup);
+    check('Minijuegos: jugarlo bien da goles a tu equipo y fallarlo se los da al rival', r.efecto);
+    check('Minijuegos: fallar tiene consecuencias (ánimo, selección, prensa) y acertar se celebra (logro)', r.consecuencia && r.diario && r.logro);
+    check('Minijuegos: «Simular» nunca da un perfecto (jugarlo compensa)', r.simulado);
+    check('Minijuegos: en individuales, el clasificatorio para los Juegos tiene minijuego y fallarlo te hunde en la clasificación', r.indDif && r.indSale && r.indEfecto);
+    check('Minijuegos: las vidas se recuperan con el tiempo (1 cada 6 semanas, máximo 3)', r.vidas);
+    // Interfaz: jugar con toques, fallar, reintentar con vida y luego con anuncio de prueba
+    const ui = await page.evaluate(async () => {
+      const G = __P1, out = {}, espera = ms => new Promise(f => setTimeout(f, ms));
+      G.nueva(43, null, 'boxeo'); G.S.vidas = { n: 1, sem: G.S.semana };
+      G.S.pendiente = { tipo: 'minijuego', dep: 'boxeo', motor: 'individual', dif: 5, amb: 'mundial', mod: G.calendarioEsc()[0].mod, semana: G.S.semana, titulo: 'Título mundial', juegas: 'ganar el combate', siFallas: 'pierdes' };
+      G.render(); document.querySelector('[data-act=mjJugar]').click(); await espera(50);
+      out.capa = !!document.getElementById('mj'); document.getElementById('mjYa').click();
+      // no tocar nada: se falla por tiempo
+      for (let i = 0; i < 300 && !document.getElementById('mjAcepta'); i++) await espera(100);
+      out.falla = /Has fallado/.test(document.getElementById('mj').innerText);
+      out.conVida = !!document.getElementById('mjVida'); document.getElementById('mjVida').click(); await espera(50);
+      out.vidaGastada = G.vidasMJ().n === 0 && G.S.pendiente.reintentado === true;
+      for (let i = 0; i < 300 && !document.getElementById('mjAcepta'); i++) await espera(100);
+      out.sinMasReintentos = !document.getElementById('mjVida') && !document.getElementById('mjAnuncio');
+      // otro momento sin vidas: sale el anuncio de prueba
+      G.cerrarCapaMJ(); G.S.pendiente.reintentado = false; G.abrirMinijuego(); document.getElementById('mjYa').click();
+      for (let i = 0; i < 300 && !document.getElementById('mjAcepta'); i++) await espera(100);
+      out.anuncio = !!document.getElementById('mjAnuncio'); G.CFG.minijuegos.anuncioSeg = 1; document.getElementById('mjAnuncio').click(); await espera(150);
+      out.pantallaAnuncio = /Anuncio/.test(document.getElementById('mj').innerText) && /no hay anuncios reales/.test(document.getElementById('mj').innerText);
+      await espera(1300); out.reintentaTrasAnuncio = G.S.pendiente.reintentado === true && !!document.querySelector('.mjstage');
+      G.cerrarCapaMJ();
+      return out;
+    });
+    check('Minijuegos en pantalla: se juega con toques, fallar ofrece reintentar con una vida (solo una vez)', ui.capa && ui.falla && ui.conVida && ui.vidaGastada && ui.sinMasReintentos, JSON.stringify(ui));
+    check('Minijuegos en pantalla: sin vidas, un anuncio de prueba (sin conexión a nada) da otro intento', ui.anuncio && ui.pantallaAnuncio && ui.reintentaTrasAnuncio, JSON.stringify(ui));
+    // Juego más exigente: marcas que rompen, lesiones graves y ofertas según la nota
+    const h = await page.evaluate(() => {
+      const G = __P1, out = {};
+      out.marcas = G.CFG.patrocinio.fallosRompe === 2;
+      out.lesion = G.CFG.lesionGrave.prob > 0 && G.CFG.lesionGrave.probAgotado > G.CFG.lesionGrave.prob;
+      out.nota = G.CFG.club.notaBajaOfertas === 5.5;
+      return out;
+    });
+    check('Juego más exigente: marcas que rompen tras 2 objetivos fallados, lesiones graves (más si vas agotado/a) y ofertas según tu nota', h.marcas && h.lesion && h.nota);
+    check('Minijuegos: sin errores de JavaScript ni conexiones externas', errors.length === 0 && requests.every(u => u.startsWith('file:')), errors.join(' | '));
     await ctx.close();
   }
 

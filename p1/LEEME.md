@@ -8,7 +8,9 @@ No es un simulador deportivo: partidos y competiciones se simulan con reglas que
 
 - Juego: `p1/carrera_p1.html` (un único archivo, sin conexión a Internet)
 - Pruebas automáticas: `tests/p1.test.cjs` (solo para quien programa)
-- Sin anuncios, compras, cuentas de usuario ni servicios de IA externos.
+- Sin compras, cuentas de usuario ni servicios de IA externos. Sin anuncios reales: hay una **pantalla de anuncio de prueba**
+  para reintentar un minijuego sin vidas; en la app de las tiendas se conectará ahí un anuncio de verdad
+  (`window.P1Anuncios.mostrar()`), con su aviso de privacidad. El archivo no se conecta a nada.
 - Fútbol: clubes, ciudades y estadios **ficticios**. Escalada: **zonas, grados y competiciones reales**;
   rivales ficticios y **marcas inventadas que se parecen a las de verdad** (Rayo Energy, Trébol, The South Face…). Los importes están en euros pero son **de juego y
   provisionales**: no son precios ni salarios reales. Todo se ajusta en **1. CONFIGURACIÓN**.
@@ -460,7 +462,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-187 de 187 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+197 de 197 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -604,6 +606,28 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
      sale; los titulares no se repiten hasta agotarlos (20 nuevos) y salen menos. En la etapa de jugador, el
      imprevisto más repetido sale 3 veces. Dos vidas del mismo deporte comparten la mayoría de imprevistos (el
      catálogo es finito), pero cambian clubes, países, ligas, marcas, negocios y la historia de ascensos.
+6p. **Minijuegos decisivos y un juego más exigente.**
+   - **Cuándo**: antes del partido o la competición, solo si es decisivo. Equipo: las 2 últimas jornadas si el título, el
+     ascenso o la permanencia se deciden en ellas (y vas a jugar). Individuales: Campeonato de España, Copa de Europa,
+     Copa del Mundo, Europeo, Mundial, máster o Las Vegas, clasificatorio para los Juegos y los Juegos (en boxeo, solo
+     títulos, Las Vegas y la vía amateur). Suelen salir 1–2 por temporada.
+   - **Cómo**: uno por deporte, de 10–20 s y con un solo gesto: ⚽ «El disparo» (chutar a la escuadra, junto al portero;
+     2 de 3), 🏀 «El tiro final» (cargar y soltar en verde; 2 de 3), 🧗 «El paso clave» (agarrar la presa; los 3 o te
+     caes), 🛹 «El truco» (repetir la combinación a tiempo; 2 de 3), 🏄 «La ola» (aguantar en la zona verde el 66 % del
+     tiempo) y 🥊 «El último asalto» (esquivar o golpear a tiempo; 4 de 6).
+   - **Dificultad**: de 1 a 5 según lo que te juegas (título de Primera, Juegos = 5; ascenso desde Tercera = 1). Tu nivel
+     frente al rival o la competición agranda o achica la zona buena; cansado/a, te tiembla el pulso; con el ánimo bajo,
+     va más rápido.
+   - **Efecto**: equipo, acierto +1 gol (+2 si perfecto) para el tuyo y fallo +1 (+2 si desastre) para el rival
+     (baloncesto: 5/9 puntos), así que decide un partido igualado pero no uno muy desigual. Individuales: ±0,9 a ±1,8
+     desviaciones de la competición (fallar el clasificatorio te deja sin Juegos). Fallar: −7/−12 de ánimo, −1/−3 de
+     fama, −3 en la selección 3 semanas, la prensa y tus marcas lo notan (relación −12/−20 en momentos grandes).
+     Acertar: fama, ánimo, seguidores y el logro «Momento decisivo perfecto».
+   - **Simular**: lo decide tu nivel, como mucho un 80 % (nunca perfecto): ~45 % de éxito en dificultad media.
+   - **Vidas**: 3, se recupera 1 cada 6 semanas; 1 reintento por momento. Sin vidas, el anuncio de prueba (5 s).
+   - **Más exigente**: las marcas rompen el contrato si fallas su objetivo 2 temporadas seguidas; lesiones graves (4 %, o
+     15 % si juegas agotado/a): 8–14 semanas y −1 a −3 de nivel; con nota media < 5,5 te llama un club menos y pagan
+     un 15 % menos (≥ 7: +10 %). Las vidas acaban ahora entre ~0,6 y ~4 millones según cómo juegues.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

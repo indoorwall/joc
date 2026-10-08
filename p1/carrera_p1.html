@@ -356,6 +356,36 @@
   .obj { font-size: 14px; padding: 4px 0; }
   .pruebas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .pruebas .btn { width: 100%; min-height: 44px; font-size: 14px; padding: 8px; }
+
+  /* Minijuegos decisivos (capa a pantalla completa) */
+  .mj { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; padding: calc(var(--safe-top) + 12px) 14px calc(var(--safe-bottom) + 16px);
+    background: radial-gradient(120% 80% at 50% 0%, var(--bg1), var(--bg2)); color: #fff; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .mj.mj-futbol { background: linear-gradient(#0d4f2b, #0a2d19); } .mj.mj-basket { background: linear-gradient(#5a2a10, #241005); }
+  .mj.mj-escalada { background: linear-gradient(#3a2a63, #171230); } .mj.mj-skate { background: linear-gradient(#2b2b33, #101014); }
+  .mj.mj-surf { background: linear-gradient(#1b7fb0, #062433); } .mj.mj-boxeo { background: linear-gradient(#5c1220, #1f060b); }
+  .mjc { max-width: 440px; width: 100%; margin: 0 auto; background: #fff; color: var(--ink); border-radius: 24px; padding: 18px; text-align: center; box-shadow: 0 8px 0 rgba(0,0,0,.3); }
+  .mjc h2 { margin: 4px 0 6px; font-size: 24px; font-weight: 900; } .mjc p { margin: 6px 0; color: var(--dim); }
+  .mji { font-size: 56px; line-height: 1.1; } .mjbig { font-size: 44px !important; font-weight: 900; color: var(--ink) !important; margin: 4px 0 !important; }
+  .mjh { max-width: 440px; width: 100%; margin: 0 auto 12px; display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 900; }
+  .mjstage { max-width: 440px; width: 100%; margin: 0 auto; background: rgba(0,0,0,.28); border: 3px solid rgba(255,255,255,.18); border-radius: 22px; padding: 18px 14px; min-height: 300px;
+    display: flex; flex-direction: column; justify-content: center; gap: 16px; cursor: pointer; }
+  .mjmsg { text-align: center; font-size: 20px; font-weight: 900; min-height: 28px; } .mjmsg.si { color: #7dffa8; } .mjmsg.no { color: #ff9a8f; }
+  .mjpista { position: relative; height: 70px; background: rgba(255,255,255,.12); border-radius: 14px; border: 3px solid rgba(255,255,255,.5); overflow: hidden; }
+  .mj-futbol .mjpista { border-color: #fff; border-bottom: 0; border-radius: 6px 6px 0 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 10px, transparent 10px 20px); }
+  .mjpista .z { position: absolute; top: 0; bottom: 0; display: grid; place-items: center; font-style: normal; font-size: 30px; }
+  .z.si { background: rgba(70, 230, 120, .55); } .z.no { background: rgba(240, 80, 70, .55); }
+  .mjpista .cur, .mjola .cur { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 34px; pointer-events: none; }
+  .mjbarra { position: relative; width: 70px; height: 240px; margin: 0 auto; border-radius: 18px; background: rgba(255,255,255,.14); border: 3px solid rgba(255,255,255,.5); overflow: hidden; }
+  .mjbarra .z { position: absolute; left: 0; right: 0; } .mjbarra b { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(#ffd23f, #ff8c1a); opacity: .85; }
+  .mjseq { display: flex; justify-content: center; gap: 8px; font-size: 38px; } .mjseq span { opacity: .55; } .mjseq span.ok { opacity: 1; filter: drop-shadow(0 0 6px #7dffa8); }
+  .mjtiempo { height: 10px; border-radius: 6px; background: rgba(255,255,255,.18); overflow: hidden; } .mjtiempo i { display: block; height: 100%; background: var(--gold); }
+  .mjbotones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; } .mjbotones.b3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mjbotones button { min-height: 72px; font-size: 32px; border-radius: 18px; border: 0; background: #fff; box-shadow: 0 5px 0 rgba(0,0,0,.35); cursor: pointer; }
+  .mjbotones button:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,.35); }
+  .mjorden { text-align: center; font-size: 64px; min-height: 110px; display: flex; flex-direction: column; justify-content: center; } .mjorden small { font-size: 18px; font-weight: 900; }
+  .mjola { position: relative; height: 260px; border-radius: 18px; background: linear-gradient(#5ec8f2, #1d6f9c); border: 3px solid rgba(255,255,255,.5); overflow: hidden; }
+  .mjola .z { position: absolute; left: 0; right: 0; border-top: 3px solid #fff; border-bottom: 3px solid #fff; }
+  .mjola .cur { left: 50%; top: auto; transform: translate(-50%, 50%); }
 </style>
 </head>
 <body>
@@ -437,6 +467,7 @@ const CFG = {
     // Techo de fama por liga = fuerza de la liga × 1,3 − 15 (Tercera Federación ≈ 43, Primera ≈ 89); la subida se frena en los últimos puntos
     // Sueldo máximo que pagará un club = sueldo más alto de su liga × topeSueldo (mejoras, renovaciones y cláusulas no lo superan)
     topeSueldo: 1.5,
+    notaBajaOfertas: 5.5,   // nota media por debajo: una oferta menos y −15 % de sueldo (≥ 7: +10 %)
     techoFamaMargen: 12, sueloFama: 0.4,   // suelo = 40 % del techo (Primera ≈ 36)
   },
   // Impuesto simplificado: tipo según lo ganado esa semana (salario + primas)
@@ -654,6 +685,11 @@ const CFG = {
   retos: { cuantos: 3, semanas: 3, premioMin: 50, premioMax: 5000, premioSemanas: 1, bonusAnimo: 5, bonusFama: 2 },
   // Momentos clave: probabilidad de jugada decisiva en un partido igualado (más en partidos grandes) y en una final de escalada
   momentos: { prob: 0.1, probGrande: 0.3, probEsc: 0.6 },
+  // Minijuegos decisivos: éxito desde un 66 % de acierto, perfecto desde un 95 %, desastre por debajo del 34 %.
+  // Vidas para reintentar (1 reintento por momento); se recupera 1 vida cada vidaSemanas.
+  // Lesiones graves: pocas, más si juegas agotado/a (energía < 25): meses fuera y nivel perdido
+  lesionGrave: { prob: 0.04, probAgotado: 0.15, semanas: [8, 14], nivel: [1, 3], tipos: ['rotura de fibras', 'ligamento de la rodilla', 'fractura de un dedo del pie', 'lesión de espalda'] },
+  minijuegos: { exito: 0.66, perfecto: 0.95, desastre: 0.34, simuladoMax: 0.8, vidasMax: 3, vidaSemanas: 6, anuncioSeg: 5 },
   // Números rojos: el banco manda una carta y te da un plazo (en semanas de juego). Si sigues en
   // negativo, cobra intereses cada semana y embarga tus bienes hasta cubrir la deuda (venta forzosa).
   banco: { plazo: 1, interes: 0.02, interesMin: 20, ventaForzosa: 0.7,
@@ -732,7 +768,7 @@ const CFG = {
   // Patrocinadores (fútbol y escalada). Cada contrato tiene obligaciones: compromisos que te
   // ocupan una tarde, un objetivo de temporada y una relación con la marca (0-100).
   patrocinio: {
-    relInicial: 60, relRuptura: 25, relRenueva: 40, relFiel: 80, relObjetivo: 15, relFallo: 20,
+    relInicial: 60, relRuptura: 25, relRenueva: 40, relFiel: 80, relObjetivo: 15, relFallo: 20, fallosRompe: 2,   // 2 objetivos fallados seguidos: rompen el contrato
     primaObjetivo: 0.1,       // si cumples el objetivo: 10 % de lo que te pagan al año
     semanasMinObj: 6,         // si firmas al final de la temporada, el objetivo no cuenta hasta la siguiente
     separacionEventos: 5,     // como mucho un compromiso cada 5 semanas
@@ -1517,6 +1553,7 @@ function avanzarSemana() {
   const s = S;
   if (s.pendiente || s.intro) return false;
   usarDepS(s);
+  if (prepararMinijuego(s)) { guardar(); render(); return false; }
   let id = s.plan, a = ACCIONES[id];
   const nota = [];
   if (esInd(s)) syncEsc(s);
@@ -1672,13 +1709,18 @@ function semanaClub(s, R, mods) {
       P.suerte = suerte;
       lUs = TXE.empuje ? lUs + TXE.empuje(P.notaBase, titular) : lUs * Math.exp((P.notaBase - 6) * (titular ? 0.12 : 0.05));
     }
-    const [gUs, gThem] = marcador(s, lUs, lThem);
+    let [gUs, gThem] = marcador(s, lUs, lThem), mjP = null;
+    if (juega) [gUs, gThem, mjP] = efectoMJEquipo(s, gUs, gThem);
     P.goles = 0; P.asist = 0; P.reb = 0;
     if (juega && TXE.estadisticas) TXE.estadisticas(s, P, pos, titular, gThem);
     else if (juega) {
       const f = (titular ? 1 : 0.35) * clamp(P.notaBase / 6.5, 0.6, 1.4);
       for (let g = 0; g < gUs; g++) { const u = rnd(s); if (u < pos.gol * f) P.goles++; else if (u < (pos.gol + pos.asis) * f) P.asist++; }
       P.nota = r1(clamp(P.notaBase + 0.6 * P.goles + 0.3 * P.asist - (s.posicion === 'defensa' ? 0.15 * Math.max(0, gThem - 1) : 0), 3, 10));
+    }
+    if (mjP) {   // la jugada decisiva es tuya: se nota en tus números y en tu nota
+      if (mjP.ok) P.goles += TXE.mjGoles ? 3 : (P.goles ? 0 : 1);
+      P.nota = r1(clamp((P.nota || 6) + (mjP.ok ? (mjP.perfecto ? 1.2 : 0.7) : -0.9), 3, 10)); P.mj = mjP;
     }
     P.gf = gUs; P.gc = gThem;
     P.resultado = gUs > gThem ? 'victoria' : gUs < gThem ? 'derrota' : 'empate';
@@ -1729,6 +1771,12 @@ function semanaClub(s, R, mods) {
     const prob = Math.round((K.lesionUmbral - energiaAntes) * K.lesionPctPorPunto * (1 - efMejoras(s).lesion));
     if (rnd(s) * 100 < prob) {
       s.lesion = K.lesionSemanas[0] + Math.floor(rnd(s) * (K.lesionSemanas[1] - K.lesionSemanas[0] + 1));
+      const LG = CFG.lesionGrave;
+      if (rnd(s) < (energiaAntes < CFG.forma.tramos[0].hasta ? LG.probAgotado : LG.prob)) {   // lesión grave: meses fuera y algo de nivel perdido
+        const [a, b] = LG.semanas, [n0, n1] = LG.nivel, perd = r1(n0 + rnd(s) * (n1 - n0));
+        s.lesion = a + Math.floor(rnd(s) * (b - a + 1)); s.p.nivel = Math.max(0, s.p.nivel - perd);
+        R.opo.push(['🚑', `Lesión grave: ${azar(s, LG.tipos)}. ${s.lesion} semanas de baja y −${nf(perd)} de nivel.${energiaAntes < CFG.forma.tramos[0].hasta ? ' Jugué agotado/a y lo he pagado.' : ''}`]);
+      }
       P.lesion = s.lesion;
       R.dep.push(['⚠️ Te lesionas', `${s.lesion} ${s.lesion === 1 ? 'semana' : 'semanas'} sin jugar`, `Jugaste con energía ${energiaAntes} (< ${K.lesionUmbral}): riesgo ${prob} %.`]);
     } else R.dep.push(['Sin lesión, por poco', '', `Jugaste con energía ${energiaAntes} (< ${K.lesionUmbral}): había un riesgo de lesión del ${prob} %.`]);
@@ -1736,7 +1784,10 @@ function semanaClub(s, R, mods) {
   s.p.energia = clamp(s.p.energia + K.recuperacion, 0, CFG.energiaMax);
   R.dep.push(['Recuperación semanal', `+${K.recuperacion} energía`, `Partido: titular −${K.energiaTitular}, suplente −${K.energiaSuplente}.`]);
   R.partido = P;
-  if (juega) prepararMomento(s, P, yo);
+  if (P.mj) {
+    R.opo.push([P.mj.ok ? '⚡' : '😖', P.mj.ok ? `Jugada decisiva: ${P.mj.perfecto ? '¡perfecta!' : 'me sale'} y cambia el partido.` : `Jugada decisiva: fallo${P.mj.desastre ? ' estrepitoso' : ''} y lo aprovecha el rival.`]);
+    consecuenciasMJ(s, R, P.mj);
+  } else if (juega) prepararMomento(s, P, yo);
 
   // Economía personal
   let bruto = c.salario;
@@ -1810,7 +1861,8 @@ function repRequerida(id, s) { const i = ligaDe(s, id); return Math.max(0, Math.
 function terminosOferta(s, id) {
   const c = club(s, id), i = ligaDe(s, id), L = i.L;
   const f = clamp((s.p.nivel - (c.fuerza - 8)) / 20, 0, 1);
-  const salario = red((L.sueldo[0] + (L.sueldo[1] - L.sueldo[0]) * (0.2 + 0.6 * f)) * (0.9 + rnd(s) * 0.2) * (rel(s, 'agente') ? 1 + CFG.agente.sueldoExtra : 1), 10);
+  const m = s.contrato ? notaMedia(s) : 0, fNota = !m ? 1 : m < CFG.club.notaBajaOfertas ? 0.85 : m >= 7 ? 1.1 : 1;
+  const salario = red((L.sueldo[0] + (L.sueldo[1] - L.sueldo[0]) * (0.2 + 0.6 * f)) * (0.9 + rnd(s) * 0.2) * (rel(s, 'agente') ? 1 + CFG.agente.sueldoExtra : 1) * fNota, 10);
   const conAscenso = i.tier > 1 && rnd(s) < 0.7;
   const pos = posDe(s);
   const familia = c.pais === 'es' && c.ciudad === s.ciudad;
@@ -1820,12 +1872,14 @@ function terminosOferta(s, id) {
     primaAscenso: conAscenso ? red(salario * (6 + rnd(s) * 6), 100) : 0, subidaAscenso: conAscenso ? azar(s, [20, 30, 50]) : 0,
     bajadaDescenso: i.tier < i.n && rnd(s) < 0.5 ? 25 : 0,
     vida: familia ? CFG.club.gastosFamilia : i.P.vida, familia,
-    motivo: `Tu nivel (${Math.round(s.p.nivel)}) encaja con su equipo (fuerza ${c.fuerza}) y tu reputación (${s.p.rep}) llega a la que piden (${repRequerida(id, s)}).`,
+    motivo: `Tu nivel (${Math.round(s.p.nivel)}) encaja con su equipo (fuerza ${c.fuerza}) y tu reputación (${s.p.rep}) llega a la que piden (${repRequerida(id, s)}).${fNota < 1 ? ` Tu nota media (${nf(m)}) baja el sueldo un 15 %.` : fNota > 1 ? ` Tu nota media (${nf(m)}) sube el sueldo un 10 %.` : ''}`,
   };
 }
 function generarOfertas(s, max) {
   if (s.edad >= CFG.retiro.edadSinOfertas) return [];
   if (s.edad >= 34) max = Math.min(max, 1);
+  // Con mala nota media te llaman menos clubes (y pagan menos: ver terminosOferta)
+  if (s.contrato && notaMedia(s) && notaMedia(s) < CFG.club.notaBajaOfertas) max = Math.max(1, max - 1);
   const cands = [];
   for (const c of Object.values(s.mundo.clubs)) {
     if (s.contrato && c.id === s.contrato.clubId) continue;
@@ -2403,6 +2457,10 @@ function resolver(opcion) {
   } else if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo' || ev.tipo === 'quiebraForzada' || ev.tipo === 'concurso') {
     if (opcion === 'empresa') s.hoja = 'bienes';
     msg = ''; // ya está en el diario
+  } else if (ev.tipo === 'minijuego') {
+    const r = resolverMinijuego(s, ev, opcion);
+    if (!r) return false;
+    [ic, msg] = r;
   } else if (ev.tipo === 'escenario') {
     msg = `Estreno escenario: ${nombreEscenario(s, ev.n).toLowerCase()}.`; ic = '🏟️';
   } else if (ev.tipo === 'fin' || ev.tipo === 'pantalla' || ev.tipo === 'retiro') {
@@ -2981,6 +3039,7 @@ function semanaVida(s, R) {
 const LOGROS = [
   ['contrato', '📝', 'Primer contrato profesional', s => s.fase === 'club', 'equipo'],
   ['gol', '⚽', 'Primer gol como profesional', s => s.stats.goles > 0, 'futbol'],
+  ['heroe', '🦸', 'Momento decisivo perfecto', s => (s.cont.mjPerfecto || 0) > 0],
   ['patro1', '💼', 'Primer patrocinador', s => (s.patrosHist || []).length > 0],
   ['alitas', '⚡', 'Con energía: firma con Rayo Energy', s => (s.patrosHist || []).includes('redtoro')],
   ['compras', '🛍️', 'Primera compra en la tienda', s => (s.compras || 0) > 0],
@@ -3735,7 +3794,8 @@ function competirEsc(s, R, c) {
   const fz = efectoForma(s, CFG.forma.escBajo, CFG.forma.escAlto), animo = (s.p.fel - 50) / 25, cab = (E.at.cabeza - 50) / 10 * A.presion, piel = E.piel < 30 ? -(30 - E.piel) / 5 : 0;
   const MD = MODS[c.mod], suerte = gauss(s) * (MD.suerte || 4), resbalon = !!MD.resbalon && rnd(s) < K.resbalon;
   if (fz <= -2) R.opo.push(['😫', `Llego ${forma(s).id === 'agotado' ? 'reventado/a' : 'cansado/a'} a la ${A.n}: ${nf(r1(fz))} puntos por la falta de energía.`]);
-  const score = L + fz + animo + cab + piel + suerte - (resbalon ? 40 : 0);
+  const [bonoMJ, mjC] = bonoMJInd(s, A);
+  const score = L + fz + animo + cab + piel + suerte + bonoMJ - (resbalon ? 40 : 0);
   const z = (score - media) / A.sd, N = A.N, pos = clamp(1 + Math.round((N - 1) * (1 - phi(z))), 1, N);
   const ronda = A.final && pos <= A.final ? 'final' : A.semi && pos <= A.semi ? 'semifinal' : 'clasificación';
   // Marca según la modalidad
@@ -3775,7 +3835,8 @@ function competirEsc(s, R, c) {
     `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(fz))} por tu forma (energía ${s.p.energia}) ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
   R.comp = { pos, N, ronda, amb: c.amb, podio: pos <= pod };
   if (TX.trasComp) TX.trasComp(s, R, c, pos, z, marca);
-  prepararMomentoEsc(s, c, pos, ronda, antes, nombre);
+  if (mjC) { R.escLineas.push([mjC.ok ? '⚡' : '😖', mjC.ok ? `Momento decisivo: ${mjC.perfecto ? '¡perfecto!' : 'me sale'} (${sg(r1(bonoMJ))} puntos).` : `Momento decisivo: fallo (${sg(r1(bonoMJ))} puntos).`]); consecuenciasMJ(s, R, mjC); }
+  else prepararMomentoEsc(s, c, pos, ronda, antes, nombre);
   if (c.amb === 'jjoo') {
     if (pos === 1) { E.becaOlimpica = { hasta: E.año + 4, mod: c.mod }; R.opo.push(['🥇', `¡Campeón/a de los Juegos! Premio de ${cr(A.premio[0])} y beca de ${cr(K.becaOlimpica)} al año hasta los Juegos de ${E.año + 4}.`]); }
     else if (E.becaOlimpica && E.becaOlimpica.hasta === E.año) { E.becaOlimpica = null; R.opo.push(['🎓', 'No repito el oro: pierdo la beca de los Juegos.']); }
@@ -3799,9 +3860,12 @@ function riesgoLesionEsc(s, energiaAntes, en) {
   return Math.round((Math.max(0, E.carga - K.cargaRiesgo) * K.lesionPorCarga + (energiaAntes < 30 ? (30 - energiaAntes) * 0.5 : 0) + (s.edad > 30 ? (s.edad - 30) * 0.3 : 0)) * (en.tabla ? 1.5 : 1) * (1 - efMejoras(s).lesion) * 10) / 10;
 }
 function lesionarEsc(s, R, en) {
-  const l = azar(s, LESIONES_ESC[en.tipo] || LESIONES_ESC.bloque), sem = l[1] + Math.floor(rnd(s) * (l[2] - l[1] + 1));
-  s.lesion = sem; s.esc.lesTipo = l[0]; s.esc.carga = clamp(s.esc.carga - 30, 0, 100);
-  R.escLineas.push(['🤕', `Me lesiono: ${l[0]}. ${sem} semanas de baja.`]);
+  const l = azar(s, LESIONES_ESC[en.tipo] || LESIONES_ESC.bloque), LG = CFG.lesionGrave;
+  let sem = l[1] + Math.floor(rnd(s) * (l[2] - l[1] + 1));
+  const grave = rnd(s) < (s.p.energia < CFG.forma.tramos[0].hasta ? LG.probAgotado : LG.prob);
+  if (grave) { sem = sem * 2 + LG.semanas[0]; const at = s.esc.at[l[3]] != null ? l[3] : Object.keys(s.esc.at)[0]; s.esc.at[at] = Math.max(0, s.esc.at[at] - LG.nivel[1]); }
+  s.lesion = sem; s.esc.lesTipo = l[0] + (grave ? ' (grave)' : ''); s.esc.carga = clamp(s.esc.carga - 30, 0, 100);
+  R.escLineas.push([grave ? '🚑' : '🤕', grave ? `Lesión grave: ${l[0]}. ${sem} semanas de baja y pierdo forma (−${LG.nivel[1]} de ${ATTRS[l[3]] ? ATTRS[l[3]].corto : 'nivel'}).` : `Me lesiono: ${l[0]}. ${sem} semanas de baja.`]);
   return [l[0], sem];
 }
 
@@ -4116,12 +4180,16 @@ function balancePatros(s, R, zona) {
       const [a, v] = progresoObjPatro(s, pt.obj);
       if (a >= v) {
         const prima = pt.año ? red(pt.año * K.primaObjetivo, 50) : 0;
-        pt.rel = clamp(pt.rel + K.relObjetivo, 0, 100); pt.cumplidos = (pt.cumplidos || 0) + 1;
+        pt.rel = clamp(pt.rel + K.relObjetivo, 0, 100); pt.cumplidos = (pt.cumplidos || 0) + 1; pt.fallos = 0;
         if (prima) { s.p.dinero += prima; R.eco.push([`Prima de ${pt.marca}: objetivo cumplido`, prima]); }
         R.opo.push(['🎯', `Cumplo el objetivo de ${pt.marca} (${pt.obj.t.toLowerCase()})${prima ? `: +${cr(prima)}` : ''}. Relación ${pt.rel}/100.`]);
       } else {
-        pt.rel = clamp(pt.rel - K.relFallo, 0, 100);
-        R.opo.push(['😬', `No cumplo el objetivo de ${pt.marca} (${pt.obj.t.toLowerCase()}). Relación ${pt.rel}/100.`]);
+        pt.rel = clamp(pt.rel - K.relFallo, 0, 100); pt.fallos = (pt.fallos || 0) + 1;
+        if (pt.fallos >= K.fallosRompe) {
+          R.opo.push(['✂️', `${pt.marca} rompe el contrato: ${pt.fallos} temporadas seguidas sin cumplir su objetivo (${pt.obj.t.toLowerCase()}).`]);
+          pt.temporadas = 0; s.patroOf.ofrecida[pt.cat] = -99; vetarMarca(s, pt.id, CFG.patrocinio.vetoSemanas); continue;
+        }
+        R.opo.push(['😬', `No cumplo el objetivo de ${pt.marca} (${pt.obj.t.toLowerCase()}). Relación ${pt.rel}/100.${pt.fallos === K.fallosRompe - 1 ? ' Si vuelvo a fallar, me rompen el contrato.' : ''}`]);
       }
     }
     pt.temporadas -= 1;
@@ -5499,6 +5567,7 @@ function popup() {
   if (POPUPS_PATRO[ev.tipo]) return popupPatro(s, ev);
   if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
   if (ev.tipo === 'retiro' && ev.motor === 'individual') return popupRetiroEsc(s, ev);
+  if (ev.tipo === 'minijuego') return popupMinijuego(s, ev);
   if (ev.tipo === 'escenario') {
     const ind = esInd(s), c = ind ? null : miClub(s);
     const lugar = ind ? nombreEscenario(s, ev.n) : c.estadio;
@@ -5963,6 +6032,338 @@ function popupMomento(s, ev) {
 }
 
 /* =====================================================================
+   26. MINIJUEGOS DECISIVOS
+   Antes de un partido o una competición decisiva (ascenso, título, descenso, una final grande,
+   el clasificatorio para los Juegos…) juegas un minijuego de tu deporte. Lo que te juegas marca
+   la dificultad; tu nivel, tu energía y tu ánimo la ajustan. El resultado cambia el partido
+   (goles o puntos) o tu puntuación en la competición, y fallar tiene consecuencias.
+   Vidas: 1 reintento por momento; sin vidas, un anuncio (de prueba en esta versión).
+   ===================================================================== */
+const MJ = {
+  futbol: { ic: '⚽', n: 'El disparo', modo: 'apunta', rondas: 3, ok: 2, cursor: '⚽', meta: '🥅',
+    ayuda: 'El balón recorre la portería. Toca cuando esté en una zona verde: el portero tapa la roja.', bien: '¡Gol!', mal: '¡Parada!' },
+  basket: { ic: '🏀', n: 'El tiro final', modo: 'carga', rondas: 3, ok: 2, cursor: '🏀', meta: '🏀',
+    ayuda: 'Mantén pulsado para cargar el tiro y suelta cuando la barra esté en la zona verde.', bien: '¡Dentro!', mal: '¡Fuera!' },
+  escalada: { ic: '🧗', n: 'El paso clave', modo: 'apunta', rondas: 3, ok: 3, seguidas: true, cursor: '✋', meta: '🟢',
+    ayuda: 'Tu mano se balancea: toca cuando pase por la presa verde. Si fallas un movimiento, te caes.', bien: '¡Agarrada!', mal: '¡Te caes!' },
+  skate: { ic: '🛹', n: 'El truco', modo: 'gestos', rondas: 3, ok: 2, cursor: '🛹', meta: '⭐',
+    ayuda: 'Repite la combinación de flechas antes de que se acabe el tiempo.', bien: '¡Truco limpio!', mal: '¡Al suelo!' },
+  surf: { ic: '🏄', n: 'La ola', modo: 'equilibrio', rondas: 1, ok: 1, cursor: '🏄', meta: '🌊',
+    ayuda: 'Mantén pulsado para subir y suelta para bajar: aguanta dentro de la zona verde de la ola.', bien: '¡Ola completa!', mal: '¡Revolcón!' },
+  boxeo: { ic: '🥊', n: 'El último asalto', modo: 'reflejos', rondas: 6, ok: 4, cursor: '🥊', meta: '🥊',
+    ayuda: 'Pulsa la flecha para esquivar o el puño para golpear antes de que se acabe el tiempo.', bien: '¡Bien!', mal: '¡Te alcanza!' },
+};
+// Competiciones individuales con minijuego y su dificultad (1 a 5)
+const AMB_MJ = { cesp: 1, europa: 2, master: 3, mundo: 3, europeo: 3, mundial: 4, clasif: 4, jjoo: 5 };
+const AMB_MJ_BOX = { mundo: 2, europeo: 3, mundial: 4, master: 4, clasif: 4, jjoo: 5 };   // en boxeo «europa» son las veladas normales
+function vidasMJ(s) {
+  const K = CFG.minijuegos;
+  if (!s.vidas) s.vidas = { n: K.vidasMax, sem: s.semana };
+  const V = s.vidas;
+  while (V.n < K.vidasMax && s.semana - V.sem >= K.vidaSemanas) { V.n++; V.sem += K.vidaSemanas; }
+  if (V.n >= K.vidasMax) V.sem = s.semana;
+  return V;
+}
+// ¿La semana que vas a jugar tiene un momento decisivo? Devuelve el evento o null
+function momentoDecisivo(s) {
+  if (s.mj && s.mj.semana === s.semana) return null;
+  if (s.lesion > 0) return null;
+  const dep = depDe(s), base = { tipo: 'minijuego', dep, semana: s.semana };
+  if (esInd(s)) {
+    if (s.fase !== 'escalador' || !s.esc) return null;
+    const c = compDeLaSemana(s);
+    if (!c) return null;
+    const dif = (dep === 'boxeo' ? AMB_MJ_BOX : AMB_MJ)[c.amb];
+    if (!dif) return null;
+    const coste = costeComp(s, c);
+    if (coste > 0 && dineroEsc(s) < coste) return null;
+    const A = AMBITOS[c.amb];
+    const juegos = c.amb === 'jjoo' ? 'medalla en los Juegos' : c.amb === 'clasif' ? `plaza para los Juegos (top ${A.plazas})` : (A.final === 2 ? 'ganar el combate' : 'podio');
+    return Object.assign(base, { motor: 'individual', dif, amb: c.amb, mod: c.mod, titulo: nombreComp(c, s), lugar: c.lugar,
+      juegas: juegos, siFallas: c.amb === 'clasif' ? 'te quedas sin Juegos hasta el siguiente ciclo' : 'bajas puestos y tus marcas lo notan' });
+  }
+  if (s.fase !== 'club' || !s.temporada || !s.contrato) return null;
+  const T = s.temporada, J = CFG.temporada.jornadas, K = CFG.temporada;
+  if (T.jornada < J - 2 || T.jornada >= J) return null;
+  if (puntSeleccion(s, s.plan) < umbralTitular(s) - 4) return null;   // no vas a jugar
+  const pp = proximoPartido(s);
+  if (!pp) return null;
+  const yo = s.contrato.clubId, orden = clasificacion(T), pos = orden.indexOf(yo) + 1, i = infoLiga(T.liga);
+  const pts = id => T.tabla[id].pts, alcance = TXE.ptsTabla[0] * (J - T.jornada);
+  let que = null, otro;
+  const linea = i.tier === 1 ? 1 : K.ascienden;
+  otro = orden[pos <= linea ? linea : linea - 1];
+  if (otro && Math.abs(pts(yo) - pts(otro)) <= alcance) que = i.tier === 1 ? 'titulo' : 'ascenso';
+  if (!que && i.tier < i.n) {
+    const lineaD = K.equipos - K.descienden;
+    otro = orden[pos > lineaD ? lineaD - 1 : lineaD];
+    if (otro && Math.abs(pts(yo) - pts(otro)) <= alcance) que = 'descenso';
+  }
+  if (!que) return null;
+  const dif = que === 'titulo' ? 5 : que === 'ascenso' ? clamp(6 - i.tier, 1, 5) : clamp(5 - i.tier, 1, 5);
+  const sube = i.tier > 1 ? infoLiga(`${i.pais}-${i.tier - 1}`).L.n : '', baja = i.tier < i.n ? infoLiga(`${i.pais}-${i.tier + 1}`).L.n : '';
+  return Object.assign(base, { motor: 'equipo', dif, que, rival: pp.rival, casa: pp.casa, jornada: pp.jornada,
+    titulo: `${que === 'titulo' ? 'Partido por el título' : que === 'ascenso' ? 'Partido por el ascenso' : 'Partido por la permanencia'} · jornada ${pp.jornada} de ${J}`,
+    juegas: que === 'titulo' ? `el título de ${i.L.n}` : que === 'ascenso' ? `subir a ${sube}` : `no bajar a ${baja}`,
+    siFallas: que === 'titulo' ? 'el título se puede escapar' : que === 'ascenso' ? 'os podéis quedar sin ascenso' : 'podéis bajar de categoría' });
+}
+// Dificultad del minijuego: lo que te juegas (1–5) y tu nivel frente al rival o la competición, tu energía y tu ánimo
+function mjParams(s, ev) {
+  let skill;
+  if (ev.motor === 'equipo') skill = (s.p.nivel - club(s, ev.rival).fuerza) / 15;
+  else {
+    const A = AMBITOS[ev.amb], L = nivelMod(s, ev.mod), media = TX.media ? TX.media(s, { amb: ev.amb, mod: ev.mod }, L) : A.media;
+    skill = (L - media) / (A.sd * 1.5);
+  }
+  skill = clamp(skill, -1, 1);
+  const d = ev.dif, cansado = s.p.energia < 40, nervios = s.p.fel < 35;
+  return { d, skill: Math.round(skill * 100) / 100, cansado, nervios,
+    zona: clamp(0.24 - 0.03 * d + 0.07 * skill - (cansado ? 0.03 : 0), 0.07, 0.34),   // ancho de la zona buena (0–1)
+    vel: Math.round((0.5 + 0.12 * d - 0.1 * skill + (nervios ? 0.1 : 0)) * 100) / 100,  // idas y vueltas por segundo
+    tiembla: cansado ? 0.035 : 0,
+    tiempo: Math.round(clamp(2.8 - 0.3 * d + 0.5 * skill - (cansado ? 0.3 : 0), 0.9, 3.5) * 100) / 100 };
+}
+// Sin jugarlo: lo resuelve tu nivel (con tope: jugar bien siempre sale mejor)
+function mjSimulado(s, ev) {
+  const p = mjParams(s, ev);
+  return Math.round(clamp(0.64 + 0.25 * p.skill - 0.05 * (p.d - 3) - (p.cansado ? 0.08 : 0) - (p.nervios ? 0.06 : 0) + gauss(s) * 0.16, 0, CFG.minijuegos.simuladoMax) * 100) / 100;
+}
+function prepararMinijuego(s) {
+  const ev = momentoDecisivo(s);
+  if (!ev) return false;
+  encolar(s, ev);
+  return true;
+}
+function resolverMinijuego(s, ev, op) {
+  let score, simulado = false;
+  if (op === 'simular' || op === 'ok' || op === '0') { score = mjSimulado(s, ev); simulado = true; }
+  else if (/^res:/.test(op)) score = clamp(Number(op.slice(4)) || 0, 0, 1);
+  else return null;
+  const K = CFG.minijuegos, ok = score >= K.exito, perfecto = score >= K.perfecto, desastre = score < K.desastre;
+  s.mj = { semana: s.semana, score, ok, perfecto, desastre, simulado, dif: ev.dif, motor: ev.motor, que: ev.que || null, amb: ev.amb || null, titulo: ev.titulo };
+  s.cont.mj = (s.cont.mj || 0) + 1;
+  if (ok) s.cont.mjOk = (s.cont.mjOk || 0) + 1;
+  if (perfecto && !simulado) s.cont.mjPerfecto = (s.cont.mjPerfecto || 0) + 1;
+  const J = MJ[ev.dep] || MJ.futbol;
+  return [J.ic, `${J.n} antes de: ${ev.titulo}. ${simulado ? 'Lo dejo en manos de mi nivel' : 'Lo juego yo'}: ${Math.round(score * 100)} % → ${ok ? (perfecto ? '¡perfecto!' : 'me sale') : desastre ? 'desastre' : 'fallo'}.`];
+}
+// Lo que pasa después: se nota para bien y, sobre todo, para mal
+function consecuenciasMJ(s, R, mj) {
+  if (mj.ok) {
+    s.p.rep = clamp(s.p.rep + (mj.perfecto ? 4 : 2), 0, 100); s.p.fel = clamp(s.p.fel + (mj.perfecto ? 8 : 5), 0, 100);
+    sumarSeg(s, (mj.perfecto ? 3 : 1.5) * alcance(s));
+    R.opo.push(['📰', mj.perfecto ? `«${s.nombre}, decisivo/a cuando más importaba»: todos hablan de mi jugada.` : 'En el momento clave no me tiembla el pulso.']);
+    celebrar = true;
+    return;
+  }
+  s.p.fel = clamp(s.p.fel - (mj.desastre ? 12 : 7), 0, 100);
+  s.p.rep = clamp(s.p.rep - (mj.dif >= 3 ? 3 : 1), 0, 100);
+  s.mods.push({ tipo: 'sel', v: -3, sem: 3, motivo: 'bajón tras fallar en el momento decisivo' });
+  if (mj.dif >= 3) for (const pt of s.patros) pt.rel = Math.max(0, pt.rel - (mj.desastre ? 20 : 12));
+  R.opo.push(['📰', mj.desastre ? `«${s.nombre} se borra en el momento clave», titula la prensa. Mis marcas no están contentas.` : `Fallo cuando más importaba. ${mj.dif >= 3 ? 'Mis marcas toman nota.' : 'Me cuesta quitármelo de la cabeza.'}`]);
+}
+// Efecto en un partido de equipo: goles (o puntos) que cambia la jugada decisiva
+function efectoMJEquipo(s, gUs, gThem) {
+  const mj = s.mj && s.mj.semana === s.semana && s.mj.motor === 'equipo' ? s.mj : null;
+  if (!mj) return [gUs, gThem, null];
+  const g = TXE.mjGoles || [1, 2];
+  if (mj.ok) gUs += mj.perfecto ? g[1] : g[0]; else gThem += mj.desastre ? g[1] : g[0];
+  if (TXE.sinEmpates && gUs === gThem) { if (mj.ok) gUs += 1; else gThem += 1; }
+  return [gUs, gThem, mj];
+}
+// Efecto en una competición individual: puntos en desviaciones típicas de la competición
+function bonoMJInd(s, A) {
+  const mj = s.mj && s.mj.semana === s.semana && s.mj.motor === 'individual' ? s.mj : null;
+  if (!mj) return [0, null];
+  return [A.sd * (mj.ok ? (mj.perfecto ? 1.4 : 0.9) : (mj.desastre ? -1.8 : -1.1)), mj];
+}
+function popupMinijuego(s, ev) {
+  const J = MJ[ev.dep] || MJ.futbol, p = mjParams(s, ev), V = vidasMJ(s), est = '★'.repeat(ev.dif) + '☆'.repeat(5 - ev.dif);
+  const rival = ev.motor === 'equipo' ? `${ev.casa ? 'En casa' : 'Fuera'} contra el ${club(s, ev.rival).nombre} (fuerza ${club(s, ev.rival).fuerza}).` : `${ev.lugar ? ev.lugar + '. ' : ''}`;
+  return `<div class="pi">${J.ic}</div><h2>¡Momento decisivo!</h2><p class="pd"><b>${esc(ev.titulo)}</b><br>${esc(rival)}</p>
+    <div class="card"><div>🎯 Te juegas: <b>${esc(ev.juegas)}</b></div><div>⚠️ Si fallas: <b>${esc(ev.siFallas)}</b></div>
+      <div style="margin-top:6px">🎮 <b>${J.n}</b> · dificultad <b style="color:#d98a1f">${est}</b></div>
+      <div class="small">${esc(J.ayuda)}</div>
+      <div class="small" style="margin-top:4px">Tu nivel ${p.skill >= 0.2 ? 'te ayuda (zona más grande)' : p.skill <= -0.2 ? 'está por debajo (zona más pequeña)' : 'está a la par'}${p.cansado ? ' · vas cansado/a: te tiembla el pulso' : ''}${p.nervios ? ' · el ánimo bajo te pone nervioso/a' : ''}.</div></div>
+    <button class="btn g full" data-act="mjJugar">▶ ¡Jugar!</button>
+    <button class="po" data-act="mjSimular"><b>🎲 Simular</b><span class="small">Lo decide tu nivel, sin jugar (como mucho un ${Math.round(CFG.minijuegos.simuladoMax * 100)} %, sin jugada perfecta).</span></button>
+    <p class="small" style="text-align:center">❤️ Vidas para reintentar: ${V.n}/${CFG.minijuegos.vidasMax} (una nueva cada ${CFG.minijuegos.vidaSemanas} semanas).</p>`;
+}
+
+/* ---- El minijuego en pantalla (capa propia: no lo borra el render del juego) ---- */
+let MJV = null;   // partida de minijuego en curso
+function abrirMinijuego() {
+  const ev = S && S.pendiente;
+  if (!ev || ev.tipo !== 'minijuego') return false;
+  cerrarCapaMJ();
+  const J = MJ[ev.dep] || MJ.futbol, p = mjParams(S, ev);
+  const capa = document.createElement('div'); capa.id = 'mj'; capa.className = 'mj mj-' + ev.dep;
+  document.body.appendChild(capa);
+  MJV = { ev, J, p, capa, ronda: 0, aciertos: 0, fin: false, raf: 0, t0: 0, timers: [], hechas: [] };
+  pintarMJ('<div class="mjc"><div class="mji">' + J.ic + '</div><h2>' + J.n + '</h2><p>' + esc(J.ayuda) + '</p><button class="btn g full" id="mjYa">¡Vamos!</button></div>');
+  capa.querySelector('#mjYa').onclick = () => rondaMJ();
+  return true;
+}
+function cerrarCapaMJ() {
+  if (MJV) { cancelAnimationFrame(MJV.raf); MJV.timers.forEach(clearTimeout); }
+  const c = document.getElementById('mj'); if (c) c.remove();
+  MJV = null;
+}
+function pintarMJ(html) { if (MJV) MJV.capa.innerHTML = html; }
+function cabeceraMJ() {
+  const { J, ronda, aciertos } = MJV, puntos = Array.from({ length: J.rondas }, (_, i) => i < MJV.hechas.length ? (MJV.hechas[i] ? '🟢' : '🔴') : '⚪').join('');
+  return `<div class="mjh"><b>${J.ic} ${J.n}</b><span>${J.rondas > 1 ? puntos : ''}</span></div>`;
+}
+function rondaMJ() {
+  const V = MJV;
+  if (!V || V.fin) return;
+  V.hechas = V.hechas || [];
+  cancelAnimationFrame(V.raf);
+  ({ apunta: rondaApunta, carga: rondaCarga, gestos: rondaGestos, reflejos: rondaReflejos, equilibrio: rondaEquilibrio })[V.J.modo]();
+}
+function finRondaMJ(acierto, parcial) {
+  const V = MJV;
+  if (!V || V.fin) return;
+  cancelAnimationFrame(V.raf);
+  V.hechas.push(!!acierto); if (acierto) V.aciertos++;
+  if (parcial != null) V.parcial = parcial;
+  sonar(acierto ? 'gol' : 'fallo');
+  const msg = V.capa.querySelector('.mjmsg'); if (msg) { msg.textContent = acierto ? V.J.bien : V.J.mal; msg.className = 'mjmsg ' + (acierto ? 'si' : 'no'); }
+  const acabar = V.hechas.length >= V.J.rondas || (V.J.seguidas && !acierto);
+  V.timers.push(setTimeout(() => acabar ? terminarMJ() : rondaMJ(), 800));
+}
+function terminarMJ() {
+  const V = MJV;
+  if (!V) return;
+  V.fin = true;
+  const K = CFG.minijuegos;
+  let score = V.J.modo === 'equilibrio' ? Math.round((V.parcial || 0) * 100) / 100 : Math.round(V.aciertos / V.J.rondas * 100) / 100;
+  // Lo que pide cada minijuego (2 de 3 tiros, los 3 movimientos de escalada, 4 de 6 en boxeo) manda sobre el porcentaje
+  if (V.J.modo !== 'equilibrio') score = V.aciertos >= V.J.ok ? Math.max(score, K.exito) : Math.min(score, K.exito - 0.01);
+  const ok = score >= K.exito, ev = V.ev, Vd = vidasMJ(S);
+  const efecto = ev.motor === 'equipo' ? (ok ? `+${(TXE.mjGoles || [1, 2])[score >= K.perfecto ? 1 : 0]} ${TXE.uGol(2)} para tu equipo en el partido` : `+${(TXE.mjGoles || [1, 2])[score < K.desastre ? 1 : 0]} ${TXE.uGol(2)} para el rival`)
+    : (ok ? 'Sumas mucho en la competición' : 'Pierdes muchos puntos en la competición');
+  let botones = '';
+  if (!ok && !ev.reintentado) {
+    if (Vd.n > 0) botones += `<button class="btn g full" id="mjVida">❤️ Reintentar (gasta 1 vida · te quedan ${Vd.n})</button>`;
+    else botones += `<button class="btn full" id="mjAnuncio">📺 Ver un anuncio y reintentar</button>`;
+  }
+  botones += `<button class="btn ${ok ? 'g' : 'w'} full" id="mjAcepta">${ok ? (ev.motor === 'equipo' ? '¡Al partido!' : '¡A competir!') : 'Aceptar el resultado'}</button>`;
+  pintarMJ(`<div class="mjc"><div class="mji">${ok ? (score >= K.perfecto ? '🌟' : '🎉') : '😖'}</div><h2>${ok ? (score >= K.perfecto ? '¡Perfecto!' : '¡Lo consigues!') : 'Has fallado'}</h2>
+    <p class="mjbig">${Math.round(score * 100)} %</p><p>${esc(efecto)}.${!ok && ev.reintentado ? ' Ya has usado tu reintento para este momento.' : ''}</p>${botones}</div>`);
+  if (ok) sonar('ovacion');
+  const c = V.capa;
+  c.querySelector('#mjAcepta').onclick = () => { cerrarCapaMJ(); if (resolver('res:' + score)) cerrarSemana(); };
+  const bv = c.querySelector('#mjVida'); if (bv) bv.onclick = () => { vidasMJ(S).n--; reintentarMJ(); };
+  const ba = c.querySelector('#mjAnuncio'); if (ba) ba.onclick = () => verAnuncio(reintentarMJ);
+}
+function reintentarMJ() {
+  const ev = S.pendiente;
+  if (!ev || ev.tipo !== 'minijuego') return;
+  ev.reintentado = true; guardar();
+  const cont = MJV ? MJV.capa : null;
+  if (MJV) { MJV.timers.forEach(clearTimeout); cancelAnimationFrame(MJV.raf); }
+  MJV = { ev, J: MJ[ev.dep] || MJ.futbol, p: mjParams(S, ev), capa: cont, ronda: 0, aciertos: 0, fin: false, raf: 0, timers: [], hechas: [] };
+  rondaMJ();
+}
+// Anuncio: en la app de las tiendas aquí irá un anuncio real (window.P1Anuncios.mostrar() → Promise<boolean>).
+// En esta versión de prueba es una pantalla de espera y no se conecta a nada.
+function verAnuncio(despues) {
+  const A = window.P1Anuncios;
+  if (A && typeof A.mostrar === 'function') { Promise.resolve(A.mostrar()).then(ok => { if (ok) despues(); }); return; }
+  let n = CFG.minijuegos.anuncioSeg;
+  pintarMJ(`<div class="mjc mjad"><div class="mji">📺</div><h2>Anuncio</h2><p>Aquí verías un anuncio corto para conseguir otro intento.<br><small>(Versión de prueba: no hay anuncios reales.)</small></p><p class="mjbig" id="mjCuenta">${n}</p></div>`);
+  const tic = () => { n--; const e = document.getElementById('mjCuenta'); if (e) e.textContent = n; if (n <= 0) despues(); else if (MJV) MJV.timers.push(setTimeout(tic, 1000)); };
+  if (MJV) MJV.timers.push(setTimeout(tic, 1000));
+}
+// Bucle de animación: f(t en segundos) devuelve false para parar
+function animarMJ(f) {
+  const V = MJV, t0 = performance.now();
+  const paso = now => { if (MJV !== V || V.fin) return; if (f((now - t0) / 1000) !== false) V.raf = requestAnimationFrame(paso); };
+  V.raf = requestAnimationFrame(paso);
+}
+const vaiven = (t, vel) => (1 - Math.cos(2 * Math.PI * vel * t)) / 2;   // 0→1→0 suave
+// Modo «apunta» (fútbol y escalada): un cursor va y viene; toca cuando esté en verde
+function rondaApunta() {
+  const V = MJV, p = V.p, futbol = V.ev.dep !== 'escalada';
+  const R = Math.random;
+  let zonas;
+  // Fútbol: el portero tapa el centro; los huecos buenos son las dos escuadras junto a él (fuera de ellas, el balón se va fuera)
+  if (futbol) { const port = 0.4 + R() * 0.2, ancho = 0.3, a = port - ancho / 2, b = port + ancho / 2; zonas = [[Math.max(0, a - p.zona), a, 'si'], [b, Math.min(1, b + p.zona), 'si'], [a, b, 'no']]; }
+  else { const c = 0.15 + R() * 0.7; zonas = [[c - p.zona / 2, c + p.zona / 2, 'si']]; }
+  pintarMJ(`${cabeceraMJ()}<div class="mjstage apunta" id="mjToque"><div class="mjpista">${zonas.map(([a, b, t]) => `<i class="z ${t}" style="left:${(a * 100).toFixed(1)}%;width:${((b - a) * 100).toFixed(1)}%">${t === 'no' ? '🧤' : ''}</i>`).join('')}<b class="cur" id="mjCur">${V.J.cursor}</b></div>
+    <div class="mjmsg">${futbol ? 'Toca para chutar' : 'Toca para agarrar'}</div></div>`);
+  const cur = V.capa.querySelector('#mjCur'); let x = 0, desfase = R();
+  animarMJ(t => { x = clamp(vaiven(t + desfase / p.vel, p.vel) + (p.tiembla ? Math.sin(t * 37) * p.tiembla : 0), 0, 1); cur.style.left = (x * 100).toFixed(2) + '%'; });
+  V.capa.querySelector('#mjToque').onpointerdown = e => { e.preventDefault(); V.capa.querySelector('#mjToque').onpointerdown = null; finRondaMJ(zonas.some(([a, b, t]) => t === 'si' && x >= a && x <= b) && !zonas.some(([a, b, t]) => t === 'no' && x >= a && x <= b)); };
+}
+// Modo «carga» (baloncesto): mantén pulsado para cargar y suelta en verde
+function rondaCarga() {
+  const V = MJV, p = V.p, z0 = 0.5 + Math.random() * (0.42 - p.zona);
+  pintarMJ(`${cabeceraMJ()}<div class="mjstage carga" id="mjToque"><div class="mjbarra"><i class="z si" style="bottom:${(z0 * 100).toFixed(1)}%;height:${(p.zona * 100).toFixed(1)}%"></i><b id="mjNivel"></b></div>
+    <div class="mjmsg">Mantén pulsado… y suelta</div></div>`);
+  const st = V.capa.querySelector('#mjToque'), niv = V.capa.querySelector('#mjNivel');
+  let carga = 0, pulsado = false, tPrev = 0;
+  animarMJ(t => { const dt = t - tPrev; tPrev = t; if (pulsado) { carga += dt * p.vel * 1.1; if (carga > 1.05) { pulsado = false; finRondaMJ(false); return false; } } niv.style.height = (clamp(carga + (p.tiembla && pulsado ? Math.sin(t * 40) * p.tiembla : 0), 0, 1) * 100).toFixed(1) + '%'; });
+  st.onpointerdown = e => { e.preventDefault(); pulsado = true; };
+  const soltar = e => { if (!pulsado) return; e.preventDefault(); pulsado = false; st.onpointerdown = st.onpointerup = st.onpointerleave = null; finRondaMJ(carga >= z0 && carga <= z0 + p.zona); };
+  st.onpointerup = soltar; st.onpointerleave = soltar;
+}
+// Modo «gestos» (skate): repite la combinación antes de que se acabe el tiempo
+function rondaGestos() {
+  const V = MJV, p = V.p, F = ['⬅️', '⬆️', '➡️', '⬇️'], largo = 2 + Math.min(3, Math.ceil(p.d / 2)), seq = Array.from({ length: largo }, () => F[Math.floor(Math.random() * 4)]);
+  const limite = p.tiempo * largo * 0.7;
+  let i = 0;
+  pintarMJ(`${cabeceraMJ()}<div class="mjstage gestos"><div class="mjseq">${seq.map((f, k) => `<span id="mjS${k}">${f}</span>`).join('')}</div><div class="mjtiempo"><i id="mjT"></i></div>
+    <div class="mjbotones">${F.map(f => `<button data-f="${f}">${f}</button>`).join('')}</div><div class="mjmsg">¡Rápido!</div></div>`);
+  const tb = V.capa.querySelector('#mjT');
+  animarMJ(t => { tb.style.width = (clamp(1 - t / limite, 0, 1) * 100).toFixed(1) + '%'; if (t >= limite) { finRondaMJ(false); return false; } });
+  V.capa.querySelectorAll('.mjbotones button').forEach(b => b.onpointerdown = e => {
+    e.preventDefault(); if (V.fin || MJV !== V) return;
+    if (b.dataset.f === seq[i]) { V.capa.querySelector('#mjS' + i).className = 'ok'; i++; if (i >= seq.length) { V.capa.querySelectorAll('.mjbotones button').forEach(x => x.onpointerdown = null); finRondaMJ(true); } }
+    else { V.capa.querySelectorAll('.mjbotones button').forEach(x => x.onpointerdown = null); finRondaMJ(false); }
+  });
+}
+// Modo «reflejos» (boxeo): aparece la orden y tienes poco tiempo para pulsarla
+function rondaReflejos() {
+  const V = MJV, p = V.p, O = [['⬅️', 'Esquiva a la izquierda'], ['➡️', 'Esquiva a la derecha'], ['👊', '¡Golpea!']], o = O[Math.floor(Math.random() * 3)], ventana = 0.38 * p.tiempo + 0.25, espera = 0.5 + Math.random() * 0.9;
+  pintarMJ(`${cabeceraMJ()}<div class="mjstage reflejos"><div class="mjorden" id="mjO">…</div><div class="mjtiempo"><i id="mjT" style="width:100%"></i></div>
+    <div class="mjbotones b3">${O.map(([f]) => `<button data-f="${f}">${f}</button>`).join('')}</div><div class="mjmsg">Atento/a…</div></div>`);
+  const ord = V.capa.querySelector('#mjO'), tb = V.capa.querySelector('#mjT');
+  let activa = false;
+  animarMJ(t => {
+    if (t < espera) return;
+    if (!activa) { activa = true; ord.innerHTML = `${o[0]}<small>${o[1]}</small>`; }
+    tb.style.width = (clamp(1 - (t - espera) / ventana, 0, 1) * 100).toFixed(1) + '%';
+    if (t - espera >= ventana) { finRondaMJ(false); return false; }
+  });
+  V.capa.querySelectorAll('.mjbotones button').forEach(b => b.onpointerdown = e => {
+    e.preventDefault(); if (V.fin || MJV !== V) return;
+    V.capa.querySelectorAll('.mjbotones button').forEach(x => x.onpointerdown = null);
+    finRondaMJ(activa && b.dataset.f === o[0]);
+  });
+}
+// Modo «equilibrio» (surf): mantén al surfista dentro de la zona verde que sube y baja
+function rondaEquilibrio() {
+  const V = MJV, p = V.p, dur = 8, alto = clamp(p.zona * 1.25, 0.12, 0.4);
+  pintarMJ(`${cabeceraMJ()}<div class="mjstage equilibrio" id="mjToque"><div class="mjola"><i class="z si" id="mjZ" style="height:${(alto * 100).toFixed(1)}%"></i><b class="cur" id="mjCur">${V.J.cursor}</b></div>
+    <div class="mjtiempo"><i id="mjT"></i></div><div class="mjmsg">Mantén pulsado para subir</div></div>`);
+  const st = V.capa.querySelector('#mjToque'), zEl = V.capa.querySelector('#mjZ'), cur = V.capa.querySelector('#mjCur'), tb = V.capa.querySelector('#mjT');
+  let y = 0.5, vy = 0, dentro = 0, tPrev = 0, pulsado = false;
+  animarMJ(t => {
+    const dt = Math.min(0.05, t - tPrev); tPrev = t;
+    const zc = 0.5 + 0.32 * Math.sin(t * p.vel * 1.6) * Math.cos(t * p.vel * 0.7);
+    vy += (pulsado ? 1.9 : -1.9) * dt; vy *= 0.9; y = clamp(y + vy * dt * 2 + (p.tiembla ? Math.sin(t * 31) * p.tiembla * dt * 20 : 0), 0, 1);
+    if (Math.abs(y - zc) <= alto / 2) dentro += dt;
+    zEl.style.bottom = ((zc - alto / 2) * 100).toFixed(1) + '%'; cur.style.bottom = (y * 100).toFixed(1) + '%';
+    tb.style.width = (clamp(1 - t / dur, 0, 1) * 100).toFixed(1) + '%';
+    if (t >= dur) { const fr = dentro / dur; finRondaMJ(fr >= CFG.minijuegos.exito, fr); return false; }
+  });
+  st.onpointerdown = e => { e.preventDefault(); pulsado = true; };
+  st.onpointerup = st.onpointerleave = () => { pulsado = false; };
+}
+
+/* =====================================================================
    22. FAMA Y REDES SOCIALES: seguidores, publicaciones con riesgo y para qué sirve la fama.
    ===================================================================== */
 function redes(s) { if (!s.redes) s.redes = { seg: CFG.redes.segInicial, feed: [], tipo: 'entreno', virales: 0, polemicas: 0 }; return s.redes; }
@@ -6408,6 +6809,8 @@ document.addEventListener('click', e => {
     case 'escEquipo': cambiarEquipoEsc(v); break;
     case 'empezar': empezarVida(($('nombre').value || '').trim()); break;
     case 'avanzar': bajarDiario = true; S.hoja = null; cerrarSemana(); break;
+    case 'mjJugar': abrirMinijuego(); break;
+    case 'mjSimular': if (resolver('simular')) { bajarDiario = true; cerrarSemana(); } break;
     case 'slotSet': ponerSlot(b.dataset.c, v); break;
     case 'elegir': if (elegir(b.dataset.id) && S.hoja === 'plan') { S.hoja = null; render(); } break;
     case 'hoja': S.hoja = v; guardar(); render(); break;
@@ -6668,7 +7071,7 @@ Object.assign(TXE_BASKET, {
   titulares: (n, c) => [`${n} mide 2 cm más que la temporada pasada. El club lo celebra con un comunicado.`, `Un niño de ${c} imita el tiro de ${n}: rompe una lámpara.`,
     `${n} toca el techo del autobús sin saltar. Los pasajeros aplauden.`, `${n} pide unas zapatillas del 47. En la tienda tienen que llamar a la central.`],
 });
-Object.assign(TXE_BASKET, { momentoMargen: 3, sufJugada: 'B', rivalGoles: u => Math.round(6 + u * 18) });
+Object.assign(TXE_BASKET, { mjGoles: [5, 9], sinEmpates: true, momentoMargen: 3, sufJugada: 'B', rivalGoles: u => Math.round(6 + u * 18) });
 // ---------------------------------------------------------------------
 // Deportes individuales nuevos: se construyen sobre el paquete de escalada y cambian lo propio de cada deporte.
 // ---------------------------------------------------------------------
@@ -7422,6 +7825,7 @@ window.__P1 = {
   pruebaBase: () => pruebaBase(S), condicionMejora: () => condicionMejora(S), clasificacion: () => clasificacion(S.temporada),
   club: id => club(S, id), ligaDe: id => ligaDe(S, id), posicion: id => posicion(S, id), umbralTitular: () => umbralTitular(S),
   generarOfertas: n => generarOfertas(S, n), gastosVida: () => gastosVida(S), elegirSuceso: () => elegirSuceso(S),
+  MJ, momentoDecisivo: () => momentoDecisivo(S), mjParams: ev => mjParams(S, ev), mjSimulado: ev => mjSimulado(S, ev), vidasMJ: () => vidasMJ(S), abrirMinijuego, cerrarCapaMJ,
   disponible: id => !(ACCIONES[id].disponible && ACCIONES[id].disponible(S)) && accionDe(S, ACCIONES[id]),
 };
 </script>
