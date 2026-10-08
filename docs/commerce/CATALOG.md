@@ -8,20 +8,20 @@ Precios en unidades mínimas (céntimos de EUR). Apple y Google usan su precio l
 | SKU | Tipo | Estado | Precio | Entitlements | Requisitos | Visible cuando | Apple | Google |
 |---|---|---|---|---|---|---|---|---|
 | `pack_debut` | COSMETIC_PACK | active | 0,99 € | `cosmetic.debut_pack` | — | anyHito=contrato | com.delbarrio.pack_debut | pack_debut |
-| `pack_street` | COSMETIC_PACK | coming_soon | 1,99 € | `cosmetic.street_pack` | — | siempre | com.delbarrio.pack_street | pack_street |
-| `pack_pro` | COSMETIC_PACK | coming_soon | 2,99 € | `cosmetic.pro_pack` | — | anyHito=titular | com.delbarrio.pack_pro | pack_pro |
-| `pack_luxury` | COSMETIC_PACK | coming_soon | 3,99 € | `cosmetic.luxury_pack` | — | anyHito=empresa | com.delbarrio.pack_luxury | pack_luxury |
-| `pack_magnate` | COSMETIC_PACK | coming_soon | 4,99 € | `cosmetic.magnate_pack` | — | anyHito=inversion2 | com.delbarrio.pack_magnate | pack_magnate |
-| `founder_pack` | SUPPORTER_PACK | coming_soon | 4,99 € | `cosmetic.founder_pack`<br>`slots.extra_3`<br>`ads.remove_interstitial` | — | siempre | com.delbarrio.founder_pack | founder_pack |
-| `club_pack_puerto` | COSMETIC_PACK | coming_soon | 0,99 € | `cosmetic.club_puerto` | — | club=puerto | com.delbarrio.club_pack_puerto | club_pack_puerto |
-| `club_pack_costa` | COSMETIC_PACK | coming_soon | 1,99 € | `cosmetic.club_costa` | — | club=costa | com.delbarrio.club_pack_costa | club_pack_costa |
-| `club_pack_atletico` | COSMETIC_PACK | coming_soon | 1,99 € | `cosmetic.club_atletico` | — | club=atletico | com.delbarrio.club_pack_atletico | club_pack_atletico |
-| `champion_pack_copa` | COSMETIC_PACK | coming_soon | 0,99 € | `cosmetic.champion_copa` | — | trophy=copa | com.delbarrio.champion_pack_copa | champion_pack_copa |
-| `champion_pack_europa` | COSMETIC_PACK | coming_soon | 0,99 € | `cosmetic.champion_europa` | — | trophy=europa | com.delbarrio.champion_pack_europa | champion_pack_europa |
-| `champion_pack_mundial` | COSMETIC_PACK | coming_soon | 0,99 € | `cosmetic.champion_mundial` | — | trophy=mundial | com.delbarrio.champion_pack_mundial | champion_pack_mundial |
-| `champion_pack_liga` | COSMETIC_PACK | coming_soon | 0,99 € | `cosmetic.champion_liga` | — | trophy=liga | com.delbarrio.champion_pack_liga | champion_pack_liga |
+| `pack_street` | COSMETIC_PACK | active | 1,99 € | `cosmetic.street_pack` | — | siempre | com.delbarrio.pack_street | pack_street |
+| `pack_pro` | COSMETIC_PACK | active | 2,99 € | `cosmetic.pro_pack` | — | anyHito=titular | com.delbarrio.pack_pro | pack_pro |
+| `pack_luxury` | COSMETIC_PACK | active | 3,99 € | `cosmetic.luxury_pack` | — | anyHito=empresa | com.delbarrio.pack_luxury | pack_luxury |
+| `pack_magnate` | COSMETIC_PACK | active | 4,99 € | `cosmetic.magnate_pack` | — | anyHito=inversion2 | com.delbarrio.pack_magnate | pack_magnate |
+| `founder_pack` | SUPPORTER_PACK | active | 4,99 € | `cosmetic.founder_pack`<br>`slots.extra_3`<br>`ads.remove_interstitial` | — | siempre | com.delbarrio.founder_pack | founder_pack |
+| `club_pack_puerto` | COSMETIC_PACK | active | 0,99 € | `cosmetic.club_puerto` | — | club=puerto | com.delbarrio.club_pack_puerto | club_pack_puerto |
+| `club_pack_costa` | COSMETIC_PACK | active | 1,99 € | `cosmetic.club_costa` | — | club=costa | com.delbarrio.club_pack_costa | club_pack_costa |
+| `club_pack_atletico` | COSMETIC_PACK | active | 1,99 € | `cosmetic.club_atletico` | — | club=atletico | com.delbarrio.club_pack_atletico | club_pack_atletico |
+| `champion_pack_copa` | COSMETIC_PACK | active | 0,99 € | `cosmetic.champion_copa` | — | trophy=copa | com.delbarrio.champion_pack_copa | champion_pack_copa |
+| `champion_pack_europa` | COSMETIC_PACK | active | 0,99 € | `cosmetic.champion_europa` | — | trophy=europa | com.delbarrio.champion_pack_europa | champion_pack_europa |
+| `champion_pack_mundial` | COSMETIC_PACK | active | 0,99 € | `cosmetic.champion_mundial` | — | trophy=mundial | com.delbarrio.champion_pack_mundial | champion_pack_mundial |
+| `champion_pack_liga` | COSMETIC_PACK | active | 0,99 € | `cosmetic.champion_liga` | — | trophy=liga | com.delbarrio.champion_pack_liga | champion_pack_liga |
 | `remove_ads` | REMOVE_ADS | active | 3,99 € | `ads.remove_interstitial` | — | siempre | com.delbarrio.remove_ads | remove_ads |
-| `extra_save_slots_3` | SAVE_SLOTS | coming_soon | 1,99 € | `slots.extra_3` | — | siempre | com.delbarrio.extra_save_slots_3 | extra_save_slots_3 |
+| `extra_save_slots_3` | SAVE_SLOTS | active | 1,99 € | `slots.extra_3` | — | siempre | com.delbarrio.extra_save_slots_3 | extra_save_slots_3 |
 | `sport_climbing` | SPORT_EXPANSION | testing | 2,99 € | `sport.climbing` | — | siempre | com.delbarrio.sport_climbing | sport_climbing |
 | `sport_tennis` | SPORT_EXPANSION | coming_soon | 2,99 € | `sport.tennis` | — | siempre | com.delbarrio.sport_tennis | sport_tennis |
 | `sport_basketball` | SPORT_EXPANSION | coming_soon | 2,99 € | `sport.basketball` | — | siempre | com.delbarrio.sport_basketball | sport_basketball |
@@ -70,13 +70,14 @@ _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 Estilo de barrio.
 
 - Sudadera Street
-- Pantalón urbano
-- Zapatillas
-- Gorra
-- Gafas
-- Mochila
+- Pantalón cargo
+- Zapatillas Street
+- Gorra Street
+- Gafas Street
+- Mochila Street
 - Fondo urbano
-- Skin de bicicleta
+- Aspecto Street para tu bicicleta
+- Pose «Saludo» lista
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 
@@ -87,13 +88,15 @@ Para cuando ya eres titular habitual.
 - Outfit profesional
 - Traje casual
 - Maleta deportiva
-- Reloj (visual)
-- Auriculares
+- Reloj Pro (visual)
+- Auriculares Pro
 - Botas Pro (visuales)
+- Gafas Pro
+- Peinado degradado
 - Fondo estadio
 - Fondo vestuario
-- Skin de coche
-- Pose
+- Aspecto Pro para tu coche
+- Pose Pro
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 
@@ -102,13 +105,14 @@ _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 Aspecto de empresario. No regala coche ni casa.
 
 - Traje Luxury
-- Reloj
-- Cadena
-- Gafas
+- Reloj premium (visual)
+- Cadena exclusiva
+- Gafas Luxury
 - Fondo rooftop
+- Fondo premium
 - Decoración de vivienda
 - Decoración de despacho
-- Skin de coche
+- Aspecto negro mate para tu coche
 - Pose de empresario
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
@@ -121,9 +125,10 @@ Para el final de la partida.
 - Reloj legendario
 - Fondo skyline
 - Despacho premium
-- Decoración de mansión
-- Skin de superdeportivo
+- Decoración de mansión (en tu vivienda)
+- Aspecto oro para el deportivo y el superdeportivo
 - Insignia Magnate
+- Llave de oro para tu vitrina
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 
@@ -134,9 +139,9 @@ Apoya el proyecto desde el principio.
 - Insignia Founder
 - Outfit Founder
 - Fondo Founder
-- +3 ranuras de carrera
+- +3 ranuras de carrera (5 en total)
 - Sin anuncios obligatorios
-- Decoración conmemorativa
+- Placa conmemorativa para tu casa y tu vitrina
 
 ### ⚓ Pack UD Puerto · `club_pack_puerto`
 
@@ -146,9 +151,9 @@ Los colores de UD Puerto.
 - Chaqueta
 - Bufanda
 - Mochila
-- Fondo
-- Decoración
-- Memorabilia
+- Fondo del club
+- Rincón del club en tu casa
+- Camiseta firmada para tu vitrina
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 
@@ -160,9 +165,9 @@ Los colores de Real Costa.
 - Chaqueta
 - Bufanda
 - Mochila
-- Fondo
-- Decoración
-- Memorabilia
+- Fondo del club
+- Rincón del club en tu casa
+- Camiseta firmada para tu vitrina
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 
@@ -174,9 +179,9 @@ Los colores de Atlético Ciudad.
 - Chaqueta
 - Bufanda
 - Mochila
-- Fondo
-- Decoración
-- Memorabilia
+- Fondo del club
+- Rincón del club en tu casa
+- Camiseta firmada para tu vitrina
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 
@@ -185,10 +190,10 @@ _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 Solo para quien ha ganado Copa Federación.
 
 - Camiseta especial
-- Trofeo visual
-- Fondo
-- Botas (visuales)
-- Celebración
+- Trofeo en la mano y réplica en casa
+- Fondo de campeón
+- Botas de campeón (visuales)
+- Celebración de campeón
 - Insignia
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
@@ -198,10 +203,10 @@ _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 Solo para quien ha ganado Copa de Europa.
 
 - Camiseta especial
-- Trofeo visual
-- Fondo
-- Botas (visuales)
-- Celebración
+- Trofeo en la mano y réplica en casa
+- Fondo de campeón
+- Botas de campeón (visuales)
+- Celebración de campeón
 - Insignia
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
@@ -211,10 +216,10 @@ _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 Solo para quien ha ganado Mundial.
 
 - Camiseta especial
-- Trofeo visual
-- Fondo
-- Botas (visuales)
-- Celebración
+- Trofeo en la mano y réplica en casa
+- Fondo de campeón
+- Botas de campeón (visuales)
+- Celebración de campeón
 - Insignia
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
@@ -224,10 +229,10 @@ _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
 Solo para quien ha ganado Liga.
 
 - Camiseta especial
-- Trofeo visual
-- Fondo
-- Botas (visuales)
-- Celebración
+- Trofeo en la mano y réplica en casa
+- Fondo de campeón
+- Botas de campeón (visuales)
+- Celebración de campeón
 - Insignia
 
 _Solo aspecto: no da nivel, reputación, marca, dinero ni resultados._
@@ -241,9 +246,10 @@ Elimina solo la publicidad obligatoria. Los anuncios con recompensa siguen dispo
 
 ### 💾 +3 carreras · `extra_save_slots_3`
 
-Juega hasta 4 carreras distintas a la vez.
+Juega hasta 5 carreras distintas a la vez (2 gratis + 3).
 
-- 3 ranuras de carrera más
+- 3 ranuras de carrera más (5 en total)
+- También se copian en tu cuenta
 
 ### 🧗 Escalada · `sport_climbing`
 

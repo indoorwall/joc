@@ -60,7 +60,7 @@
     { id: 'luxury', ic: '💎', nombre: 'Pack Luxury', precio: 3.99, categoria: 'cosmetico', momentoOferta: 'empresa', unaVez: true, rareza: 'legendario',
       descripcion: 'Para quien ya tiene empresa. El coche se sigue ganando jugando: esto solo cambia su aspecto.',
       contenido: [['ropa', 'trajeLux', '🤵 Traje exclusivo'], ['extra', 'relojPremium', '⌚ Reloj premium (visual)'], ['extra', 'cadenaExcl', '📿 Cadena exclusiva'], ['fondo', 'premium', '✨ Fondo premium'],
-        { tipo: 'skin', vehiculo: 'deportivo', skin: 'negra', t: '🏎️ Aspecto «Negro mate» para tu deportivo (si lo tienes)' }, { tipo: 'texto', t: '🏠 Decoración de casa (próximamente)' }] },
+        { tipo: 'skin', vehiculo: 'deportivo', skin: 'negra', t: '🏎️ Aspecto «Negro mate» para tu deportivo (si lo tienes)' }, { tipo: 'texto', t: '🏠 Decoración de casa y de despacho' }] },
     { id: 'founder', ic: '⭐', nombre: 'Founder Pack', precio: 4.99, categoria: 'apoyo', momentoOferta: 'rentable', unaVez: true, rareza: 'legendario',
       descripcion: 'Para quien quiere apoyar el juego. Sin ventaja competitiva.',
       contenido: [{ tipo: 'sinAnuncios', t: '🚫 Sin anuncios obligatorios' }, ['extra', 'insignia', '⭐ Insignia Founder'], ['ropa', 'founder', '👕 Outfit Founder'], ['fondo', 'founder', '🖼️ Fondo exclusivo'],
@@ -74,8 +74,7 @@
   ];
   // Deportes futuros: solo para medir interés en el informe. No se venden en P2.4
   const DEPORTES_FUTUROS = [{ id: 'escalada', ic: '🧗', n: 'Escalada' }, { id: 'tenis', ic: '🎾', n: 'Tenis' }, { id: 'basket', ic: '🏀', n: 'Basket' }, { id: 'surf', ic: '🏄', n: 'Surf' }, { id: 'skate', ic: '🛹', n: 'Skate' }];
-  // Aspectos de vehículo (preparado; en P2.4 solo el del Pack Luxury, de prueba)
-  const SKINS_VEHICULO = { deportivo: [{ id: 'normal', n: 'De serie', c: '#e23b3b' }, { id: 'negra', n: 'Negro mate', c: '#1b1b22', premium: 'luxury' }] };
+  // Aspectos de vehículo y decoración: ver 19_packs.js
 
   // ---------- Estado ----------
   const nuevoMon = () => ({ ultimo: {}, cupon: null, oferta: null, pend: null, seq: 0, momentos: [], iapVisto: {}, ultimaOfertaIap: null,
@@ -257,7 +256,7 @@
   function intersticialMostrado(s) { const m = M(s), k = m.intersticialPend; if (!k) return; m.intersticialPend = null; m.intersticialMs = (s.tele && s.tele.msActivo) || 0; teleMon(s, 'interstitial_shown', { momento: k }); }
   function intersticialContinuar(s) { teleMon(s, 'interstitial_continue', {}); }
 
-  Object.assign(P2, { MONETIZATION, REWARDED, IAP_PRODUCTS, DEPORTES_FUTUROS, SKINS_VEHICULO, nuevoMon, asignarVariante, iapEnVariante, teleMon, vistoMon,
+  Object.assign(P2, { MONETIZATION, REWARDED, IAP_PRODUCTS, DEPORTES_FUTUROS, nuevoMon, asignarVariante, iapEnVariante, teleMon, vistoMon,
     descuentoCupon, cuponVigente, ofertaVigente, precioConDescuento, usarDescuento, candidatosOferta,
     bloqueoRewarded, pedirRewarded, cancelarRewarded, aceptarRewarded, ofrecidoRewarded, bonusOffline,
     momentoNegativo, momentoMon, ofertaIapAhora, marcarIapMostrado, iapMostrado, iapClic, iapIntencion,

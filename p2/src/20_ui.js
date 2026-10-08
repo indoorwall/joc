@@ -64,13 +64,39 @@
   }
 
   // ---------- Tu casa y tu vehículo (se ven: «ahora tengo esto») ----------
-  function casaSVG(id) {
+  // Decoración encima de cualquier vivienda (solo aspecto)
+  function decoCasaSVG(d) {
+    if (!d || d === 'nada') return '';
+    if (d === 'plantas') return '<rect x="4" y="96" width="12" height="12" rx="2" fill="#8a5a2b"/><path d="M10 96 q-8 -14 -2 -22 q4 8 2 22 q2 -16 10 -18 q-2 12 -10 18" fill="#22a35a"/><ellipse cx="40" cy="104" rx="12" ry="4" fill="#ff8a2a"/><ellipse cx="54" cy="104" rx="10" ry="4" fill="#ffc83d"/>';
+    if (d === 'lujo') return '<rect x="40" y="10" width="34" height="24" fill="#2b1f4f" stroke="#ffc83d" stroke-width="3"/><path d="M44 30 l9 -12 7 8 5 -5 6 9Z" fill="#7fd8ff"/><ellipse cx="60" cy="112" rx="40" ry="6" fill="#7b1e3a" opacity=".85"/><path d="M8 70 h10 l-3 10 h-4Z" fill="#ffc83d"/><rect x="12" y="80" width="2" height="26" fill="#c8901a"/><circle cx="13" cy="70" r="9" fill="#ffc83d" opacity=".25"/>';
+    if (d === 'mansion') return '<path d="M60 0 v8" stroke="#c8901a" stroke-width="2"/><path d="M44 14 q16 10 32 0 l-4 6 q-12 6 -24 0Z" fill="#ffc83d"/>' + [46, 53, 60, 67, 74].map(x => `<circle cx="${x}" cy="22" r="1.8" fill="#fff8d6"/>`).join('') + '<circle cx="60" cy="16" r="18" fill="#ffc83d" opacity=".18"/><rect x="6" y="14" width="22" height="30" fill="#5b2bb5" stroke="#ffc83d" stroke-width="3"/><rect x="92" y="14" width="22" height="30" fill="#14206b" stroke="#ffc83d" stroke-width="3"/><path d="M30 120 L40 92 h40 L90 120Z" fill="#a3122a" opacity=".85"/><path d="M40 92 h40" stroke="#ffc83d" stroke-width="2"/>';
+    if (d === 'founder') return '<rect x="44" y="12" width="32" height="22" rx="2" fill="#0b1033" stroke="#ffc83d" stroke-width="2.5"/><path d="M60 15 l2.5 5 5.5 .8 -4 3.8 1 5.4 -5 -2.6 -5 2.6 1 -5.4 -4 -3.8 5.5 -.8Z" fill="#ffc83d"/>';
+    const club = /^club_/.test(d) && P2.CLUBES_PACK[d.slice(5)];
+    if (club) return `<path d="M8 12 h34 l-17 22Z" fill="${club.c1}" stroke="${club.c2}" stroke-width="2"/><text x="25" y="23" text-anchor="middle" font-size="9">${club.ic}</text><path d="M80 10 q14 6 28 0 v6 q-14 6 -28 0Z" fill="${club.c1}"/><path d="M86 12 v6 M94 13 v6 M102 12 v6" stroke="${club.c2}" stroke-width="2"/><rect x="88" y="60" width="22" height="26" rx="2" fill="#fff" stroke="${club.c1}" stroke-width="2"/><text x="99" y="78" text-anchor="middle" font-size="11" font-weight="900" fill="${club.c1}">9</text>`;
+    const copa = /^trofeo_/.test(d) && P2.CAMPEON_PACK[d.slice(7)];
+    if (copa) return `<rect x="78" y="58" width="38" height="4" fill="#8a5a2b"/><path d="M88 34 h18 v5 q0 12 -9 13 q-9 -1 -9 -13Z" fill="#ffc83d" stroke="#c8901a"/><rect x="95.5" y="52" width="3" height="3" fill="#ffc83d"/><rect x="91" y="55" width="12" height="3" fill="${copa.c1}"/><circle cx="97" cy="44" r="18" fill="#ffc83d" opacity=".15"/>`;
+    return '';
+  }
+  // Tu despacho (cuando tienes empresa) con su decoración
+  function despachoSVG(d) {
+    let x = '<rect width="160" height="90" fill="#e9e4ff"/><rect y="70" width="160" height="20" fill="#b9a98f"/><rect x="96" y="10" width="54" height="36" fill="#bfe0ff" stroke="#fff" stroke-width="3"/><path d="M123 10 v36 M96 28 h54" stroke="#fff" stroke-width="2"/>';
+    if (d === 'magnate') x = '<rect width="160" height="90" fill="#0d0d12"/><rect y="70" width="160" height="20" fill="#2a1a10"/><rect x="8" y="6" width="144" height="52" fill="#07071a" stroke="#ffc83d" stroke-width="2"/>' + [[12, 26], [24, 14], [36, 30], [50, 10], [64, 24], [80, 16], [96, 28], [110, 12], [126, 22], [138, 30]].map(([a, b]) => `<rect x="${a}" y="${b}" width="11" height="${58 - b}" fill="#141433" stroke="#ffc83d" stroke-width=".6"/><rect x="${a + 3}" y="${b + 4}" width="2" height="3" fill="#ffc83d"/>`).join('');
+    if (d === 'lujo') x += '<rect x="12" y="10" width="34" height="24" fill="#2b1f4f" stroke="#ffc83d" stroke-width="3"/><path d="M16 30 l9 -12 7 8 5 -5 6 9Z" fill="#7fd8ff"/><ellipse cx="80" cy="84" rx="50" ry="5" fill="#7b1e3a" opacity=".8"/>';
+    if (d === 'plantas' || d === 'lujo') x += '<rect x="6" y="56" width="12" height="14" rx="2" fill="#8a5a2b"/><path d="M12 56 q-8 -14 -2 -22 q4 8 2 22 q2 -16 10 -18 q-2 12 -10 18" fill="#22a35a"/>';
+    const mesa = d === 'magnate' ? '#ffc83d' : d === 'lujo' ? '#5b3a1e' : '#c8b38f';
+    x += `<rect x="40" y="52" width="80" height="8" rx="2" fill="${mesa}"/><rect x="44" y="60" width="6" height="14" fill="${mesa}"/><rect x="110" y="60" width="6" height="14" fill="${mesa}"/><rect x="66" y="40" width="22" height="13" rx="2" fill="#1a1640"/><rect x="68" y="42" width="18" height="9" fill="#7fd8ff"/>`;
+    x += `<path d="M126 44 h12 v22 h-12Z" fill="${d === 'magnate' ? '#111' : d === 'lujo' ? '#4b1f7a' : '#3b4a6b'}"/><rect x="124" y="64" width="16" height="4" rx="2" fill="#222"/>`;
+    if (d === 'magnate') x += '<circle cx="50" cy="44" r="7" fill="#3d7bff" stroke="#ffc83d" stroke-width="1.5"/><path d="M43 44 h14 M50 37 q4 7 0 14 q-4 -7 0 -14" stroke="#ffc83d" stroke-width=".8" fill="none"/><rect x="48" y="51" width="4" height="2" fill="#ffc83d"/>';
+    if (d === 'lujo') x += '<path d="M100 44 h8 l-2 8 h-4Z" fill="#ffc83d"/><circle cx="104" cy="44" r="7" fill="#ffc83d" opacity=".25"/>';
+    return `<svg viewBox="0 0 160 90" aria-hidden="true">${x}</svg>`;
+  }
+  function casaSVG(id, d) {
     const v = id || 'habitacion';
     let x = '';
     if (v === 'habitacion') x = `<rect width="120" height="120" fill="#6d5ccf"/><rect y="88" width="120" height="32" fill="#4a3a9e"/><rect x="12" y="18" width="26" height="34" rx="2" fill="#ffc83d" opacity=".85"/><path d="M16 46 l8 -12 6 8 4 -5 4 9Z" fill="#ff4f8b"/><rect x="70" y="70" width="46" height="22" rx="4" fill="#8fb4ff"/><rect x="72" y="62" width="14" height="10" rx="3" fill="#fff"/>`;
     else if (v === 'piso') x = `<rect width="120" height="120" fill="#2c3fa8"/><rect y="90" width="120" height="30" fill="#1b2a7a"/><rect x="62" y="14" width="46" height="44" rx="3" fill="#0b1033" stroke="#cfd8ff" stroke-width="3"/>${[[66, 30, 8, 28], [78, 22, 9, 36], [92, 34, 10, 24]].map(([a, b, w, h]) => `<rect x="${a}" y="${b}" width="${w}" height="${h}" fill="#3b2a9e"/><rect x="${a + 2}" y="${b + 4}" width="3" height="3" fill="#ffd66b"/>`).join('')}<rect x="8" y="74" width="44" height="18" rx="6" fill="#ff7aa8"/><rect x="14" y="66" width="12" height="10" rx="3" fill="#ffc0d6"/>`;
     else if (v === 'casaPremium') x = `<rect width="120" height="120" fill="#7fd8ff"/><circle cx="96" cy="20" r="10" fill="#ffc83d"/><rect y="86" width="120" height="34" fill="#5b7dff"/><rect x="8" y="94" width="50" height="12" rx="6" fill="#bff3ff"/><rect x="62" y="44" width="52" height="44" fill="#fff"/><path d="M58 46 L88 24 L118 46Z" fill="#1a1640"/><rect x="72" y="58" width="12" height="12" fill="#7fd8ff"/><rect x="92" y="58" width="12" height="12" fill="#7fd8ff"/>`;
-    return `<svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${x}</svg>`;
+    return `<svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${x}${decoCasaSVG(d)}</svg>`;
   }
   function vehiculoSVG(id, skin) {
     const S = (P2.SKINS_VEHICULO[id] || []).find(k => k.id === skin), c = S ? S.c : { bici: '#3d7bff', moto: '#ff4f8b', cocheUsado: '#8fa3c7', deportivo: '#e23b3b', superdeportivo: '#ffc83d' }[id] || '#8fa3c7';
@@ -80,13 +106,16 @@
     else if (id === 'moto') x = `${rueda(22, 11)}${rueda(80, 11)}<path d="M22 48 L40 30 L68 30 L80 48 Z" fill="${c}"/><rect x="44" y="22" width="20" height="8" rx="4" fill="#1a1640"/><path d="M68 30 L76 18 h6" stroke="#cfd3e6" stroke-width="3" fill="none"/>`;
     else if (id === 'deportivo' || id === 'superdeportivo') x = `<path d="M4 46 Q6 34 24 32 L40 22 Q56 18 70 24 L88 32 Q98 34 98 46Z" fill="${c}"/><path d="M42 26 Q56 21 68 26 L74 32 L38 32Z" fill="#7fd8ff" opacity=".85"/>${rueda(24)}${rueda(78)}${id === 'superdeportivo' ? '<path d="M2 30 h14" stroke="#1a1640" stroke-width="4"/>' : ''}`;
     else x = `<path d="M6 46 L8 30 Q10 26 18 26 L30 14 L70 14 L82 26 Q94 28 94 36 L94 46Z" fill="${c}"/><path d="M34 18 L48 18 L48 26 L26 26Z M52 18 L68 18 L78 26 L52 26Z" fill="#bfe9ff"/>${rueda(26)}${rueda(74)}`;
+    // Aspecto de pack: franjas del segundo color
+    if (S && S.f) x += id === 'bici' ? `<path d="M42 26 L66 26" stroke="${S.f}" stroke-width="4" stroke-linecap="round"/><circle cx="22" cy="48" r="4" fill="${S.f}"/><circle cx="78" cy="48" r="4" fill="${S.f}"/>`
+      : id === 'moto' ? `<path d="M40 36 H70" stroke="${S.f}" stroke-width="3"/>` : `<path d="M${id === 'cocheUsado' ? 10 : 8} 40 H92" stroke="${S.f}" stroke-width="3"/><path d="M${id === 'cocheUsado' ? 10 : 8} 44 H92" stroke="${S.f}" stroke-width="1.2"/>`;
     return `<svg viewBox="0 0 100 60" aria-hidden="true">${x}</svg>`;
   }
   const vivienda = s => (P2.equipado(s, 'vivienda') || { id: 'habitacion' }).id;
   const vehiculo = s => { const P = P2.equipado(s, 'vehiculo'); if (!P) return null; const it = (s.inventario || []).find(i => i.id === P.id); return { P, skin: it && it.skin }; };
   function escena(s, grande) {
     const V = vehiculo(s);
-    return `<div class="escenaCasa ${grande ? 'grande' : ''}">${casaSVG(vivienda(s))}<div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
+    return `<div class="escenaCasa ${grande ? 'grande' : ''}">${casaSVG(vivienda(s), P2.deco(s).casa)}<div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
   }
 
   // ---------- Cabecera y navegación ----------
@@ -169,7 +198,7 @@
       ${donde === 'momento' ? '<button class="btn w full" data-act="iapNo">No, gracias</button>' : ''}</div>`;
   }
   // Cómo te quedaría el pack (vista previa)
-  function lookPack(s, I) { const L = Object.assign({}, s.look); for (const c of I.contenido) if (Array.isArray(c)) L[c[0]] = c[1]; return L; }
+  function lookPack(s, I) { if (P2.PACKS[OLD_IAP[I.id]]) return P2.lookPack(s, OLD_IAP[I.id]); const L = Object.assign({}, s.look); for (const c of I.contenido) if (Array.isArray(c)) L[c[0]] = c[1]; return L; }
   function rwBtn(s, tipo, data, texto) {
     const lim = (ui.rwSesion || 0) >= P2.MONETIZATION.limitesSesion.rewarded, b = P2.bloqueoRewarded(s, tipo, data);
     if (!b) P2.ofrecidoRewarded(s, tipo, data);
@@ -308,6 +337,7 @@
       h += `<div class="card"><h3>🤝 Tu parte de la cafetería</h3>${p.vendida ? `<p class="small">La vendiste por ${eur(p.precioVenta)}. Cobraste ${eur(p.dividendos)} en dividendos.</p>` :
         `${kv('Vale ahora', eur(p.valor))}${kv('Has puesto', eur(p.aportado))}${kv('Dividendos cobrados', eur(p.dividendos))}${kv('Cómo va', `${E.ic || ''} ${esc(E.n || '—')}`)}${kv('Próximas noticias', `semana ${p.proximo}`)}
         <p class="small">No la gestionas. Cada ${P2.SOCIO.trimestre} semanas llega el resultado: puede haber dividendo, no haberlo, perder valor o pedirte más capital.</p>`}</div>`; }
+    if (s.negocios.length) h += `<div class="sec"><span>🪑 Tu despacho</span><span>solo aspecto</span></div><div class="card despacho"><div class="despSvg">${despachoSVG(P2.deco(s).despacho)}</div>${htmlDeco(s, 'despacho')}</div>`;
     return h;
   }
   function htmlNegocio(s, n) {
@@ -508,7 +538,15 @@
       ${pat.length ? `<div class="sec"><span>Posesiones</span></div><div class="card">${pat.map(it => { const P = P2.producto(it.id); return kv(`${P.ic} ${esc(P.n)}`, `${eur(it.precioCompra)} → <span class="oro2">${eur(it.valorActual)}</span>`); }).join('')}</div>` : ''}
       <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>
       ${htmlGaraje(s)}
-      <div class="sec"><span>🏠 Tu casa</span></div><div class="card casaCard">${escena(s, true)}<p class="small">${esc((P2.equipado(s, 'vivienda') || {}).n || '')}. Decoración: próximamente.</p></div>`;
+      <div class="sec"><span>🏠 Tu casa</span></div><div class="card casaCard">${escena(s, true)}<p class="small">${esc((P2.equipado(s, 'vivienda') || {}).n || '')}. Decoración: ${esc((P2.decoDe('casa', P2.deco(s).casa) || {}).n || '')}.</p>${htmlDeco(s, 'casa')}</div>`;
+  }
+  // Selector de decoración (casa o despacho): lo bloqueado lleva a la ficha del pack
+  const skuDe = k => ({ debut: 'pack_debut', street: 'pack_street', pro: 'pack_pro', luxury: 'pack_luxury', magnate: 'pack_magnate', founder: 'founder_pack' }[k]
+    || (/^club_/.test(k) ? `club_pack_${k.slice(5)}` : /^champ_/.test(k) ? `champion_pack_${k.slice(6)}` : ''));
+  function htmlDeco(s, tipo) {
+    const act = P2.deco(s)[tipo];
+    return `<div class="decos" role="group" aria-label="Decoración">${P2.DECOR[tipo].filter(d => !(P2.bloqueoDeco(tipo, d.id) && /^(club_|trofeo_)/.test(d.id))).map(d => { const bl = P2.bloqueoDeco(tipo, d.id);
+      return `<button class="deco ${act === d.id ? 'sel' : ''}" data-act="deco" data-t="${tipo}" data-v="${d.id}" aria-pressed="${act === d.id}" ${bl ? `data-sku="${esc(skuDe(d.premium))}"` : ''}>${bl ? '🔒 ' : ''}${esc(d.n)}</button>`; }).join('')}</div>`;
   }
   function htmlGaraje(s) {
     const inv = (s.inventario || []).filter(it => (P2.producto(it.id) || {}).cat === 'vehiculos'), act = (s.equipado || {}).vehiculo;
@@ -517,7 +555,8 @@
       ${inv.length ? inv.map(it => { const P = P2.producto(it.id), skins = P2.SKINS_VEHICULO[it.id] || [];
         return `<div class="vehC ${act === it.id ? 'act' : ''}"><div class="vsvg">${vehiculoSVG(it.id, it.skin)}</div><div><b>${P.ic} ${esc(P.n)}</b> ${act === it.id ? '<span class="chip bien">En uso</span>' : `<button class="btn w mini" data-act="equipar" data-id="${P.id}">Usar</button>`}
           <span class="small">Valor ${esc(eur(it.valorActual))} · pagaste ${esc(eur(it.precioCompra))}</span>
-          ${skins.length ? `<span class="small">Aspecto: ${skins.map(k => k.premium ? `🔒 ${esc(k.n)} (Pack ${esc((P2.IAP_PRODUCTS.find(I => I.id === k.premium) || {}).nombre || '')}, prueba)` : esc(k.n)).join(' · ')}</span>` : ''}</div></div>`; }).join('')
+          ${skins.length > 1 ? `<div class="skins" role="group" aria-label="Aspecto">${skins.map(k => { const bl = P2.bloqueoSkin(it.id, k.id), puesto = (it.skin || 'normal') === k.id;
+            return `<button class="skin ${puesto ? 'sel' : ''}" data-act="skin" data-id="${esc(it.uid)}" data-v="${k.id}" aria-pressed="${puesto}" ${bl ? `data-sku="${esc(skuDe(k.premium))}"` : ''}><i style="background:${k.c}${k.f ? `;box-shadow:inset 0 -5px 0 ${k.f}` : ''}"></i>${bl ? '🔒 ' : ''}${esc(k.n)}</button>`; }).join('')}</div>` : ''}</div></div>`; }).join('')
         : '<p class="small">Aún no tienes vehículo: vas andando o en autobús. La bici está en la Tienda.</p>'}
       ${vend.length ? `<p class="small">Vehículos anteriores: ${vend.map(v => `${P2.producto(v.id).ic} ${esc(P2.producto(v.id).n)} (vendido en la sem. ${v.semana})`).join(' · ')}</p>` : ''}
       <p class="small">Próximamente: ${P2.PRODUCTOS.filter(P => P.cat === 'vehiculos' && P.proximamente).map(P => `${P.ic} ${esc(P.n)}`).join(', ')}.</p></div>`;
@@ -601,7 +640,7 @@
       <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
         ${kv('🚗 Vehículos', H.vehiculos.length ? H.vehiculos.map(P => P.ic).join(' ') : '—')}${kv('🏠 Viviendas', H.viviendas.map(P => P.ic).join(' → '))}
         ${kv('🏆 Títulos', H.trofeos.length ? H.trofeos.map(x => `${x.ic} ${esc(x.n)}`).join(', ') : '—')}
-        ${VITRINA.some(([e]) => P2.tieneEnt(e)) ? kv('💎 Vitrina', VITRINA.filter(([e]) => P2.tieneEnt(e)).map(([, ic, n]) => `${ic} ${esc(n)}`).join(', ')) : ''}
+        ${vitrina().length ? kv('💎 Vitrina', vitrina().map(([, ic, n]) => `${ic} ${esc(n)}`).join(', ')) : ''}
         ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
@@ -771,7 +810,8 @@
       h = `<small class="eti">🏆 ¡CAMPEONES!</small><div class="copaGrande">${c.ic || '🏆'}</div><h2>${esc(c.n)}</h2>
         <div class="monedas" aria-hidden="true">${Array.from({ length: 14 }, (_, i) => `<i style="left:${(i * 37) % 100}%;animation-delay:${(i % 7) * 0.18}s">🪙</i>`).join('')}</div>
         ${c.dinero ? `${dinero(c.dinero)}<p class="small">Premio por el título</p>` : ''}
-        <div class="chipsCele">${c.rep ? `<span>⭐ +${c.rep} reputación</span>` : ''}${c.marca ? `<span>📣 +${c.marca} marca</span>` : ''}<span>🏆 A tu vitrina</span></div>`;
+        <div class="chipsCele">${c.rep ? `<span>⭐ +${c.rep} reputación</span>` : ''}${c.marca ? `<span>📣 +${c.marca} marca</span>` : ''}<span>🏆 A tu vitrina</span></div>
+        ${c.comp && P2.premiumOk(`champ_${c.comp}`) ? `<div class="celeCampeon"><div class="iapPrev">${P2.avatarSVG(s, Object.assign({}, s.look, { pose: 'campeon', extra: `trofeo_${c.comp}`, ropa: `camp_${c.comp}` }), 'cuerpo')}</div><small>💎 Celebración de campeón</small></div>` : ''}`;
     } else if (c.tipo === 'patrocinio') {
       h = `<small class="eti">🤝 ${c.renov ? 'PATROCINIO RENOVADO' : 'NUEVO PATROCINADOR'}</small>
         <div class="cheque"><div class="chTop"><span>${c.ic}</span><b>${esc(c.n)}</b></div><div class="chFila">Páguese a: <b>${esc(s.nombre || '')}</b></div>
@@ -809,8 +849,7 @@
     } else if (c.tipo === 'salvados') {
       h = `<small class="eti">🛟 ¡SALVADOS!</small><div class="copaGrande flota">🛟</div><h2>${esc(c.club)} sigue en ${esc(c.liga)}</h2><p>Sufrimiento hasta el final, pero la categoría se queda en casa.</p>`;
     } else if (c.tipo === 'premium') {
-      const iap = SKU_IAP[c.sku] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[c.sku]);
-      h = `<small class="eti">💎 ¡DESBLOQUEADO!</small>${iap && iap.contenido.some(Array.isArray) ? `<div class="iapPrev grande celePack">${P2.avatarSVG(s, null, 'cuerpo')}</div>` : `<div class="copaGrande">${c.ic}</div>`}<h2>${esc(c.n)}</h2>
+      h = `<small class="eti">💎 ¡DESBLOQUEADO!</small>${P2.PACKS[c.sku] ? `<div class="iapPrev grande celePack">${P2.avatarSVG(s, null, 'cuerpo')}</div>` : `<div class="copaGrande">${c.ic}</div>`}<h2>${esc(c.n)}</h2>
         <div class="chipsCele">${(c.includes || []).slice(0, 6).map(x => `<span>${esc(x)}</span>`).join('')}</div><p class="small">Ya está en tu cuenta. Si cambias de móvil o empiezas otra carrera, lo recuperas con «Restaurar compras».</p>`;
     } else if (c.tipo === 'convocatoria') {
       h = `<small class="eti">🌍 ¡CONVOCATORIA!</small><div class="copaGrande">🌍</div><h2>¡Te llama la selección!</h2><p>La temporada que viene juegas el Mundial. Si llegáis a la final, la juegas tú.</p>`;
@@ -1014,10 +1053,7 @@
   }
   const nombreEnt = e => ((P2C.CATALOG.entitlements[e] || {}).n || e);
   // Si una compra se reembolsa, lo que llevabas puesto de ese pack vuelve a lo básico
-  function limpiarLook(s) {
-    if (!s || !s.look) return;
-    for (const [cap] of P2.CAPAS_LOOK) { const it = P2.itemLook(cap, s.look[cap]); if (it && P2.bloqueoLook(s, it, cap)) s.look[cap] = P2.LOOK_INICIAL[cap]; }
-  }
+  function limpiarLook(s) { P2.limpiarPremium(s); }
   async function pmAsync(fn) {
     try { await fn(); } catch (e) { ui.pm = Object.assign(ui.pm || {}, { error: e.code || e.message }); }
     limpiarLook(S); if (S) P2.guardar(S); render();
@@ -1077,8 +1113,10 @@
     if (pm.paso === 'lento') return `<div class="overlay" role="dialog"><div class="modal"><h2>⏳ Casi…</h2><p>${esc(C.terms.slow)}</p><button class="btn full" data-act="pmSync">Sincronizar compras</button><button class="btn w full" data-act="pmCerrar">Cerrar</button><p class="small">Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
     if (pm.paso === 'error') return `<div class="overlay" role="dialog"><div class="modal"><h2>No se ha completado</h2><p>No se ha cobrado nada.</p><p class="small">Ref. ${esc(pm.orderRef || '')}</p><button class="btn full" data-act="pmCerrar">Volver</button></div></div>`;
     // Ficha del producto: todo antes de pagar
-    const iap = s && SKU_IAP[P.id] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[P.id]);
-    const prev = iap && iap.contenido.some(Array.isArray) ? `<div class="iapPrev grande">${P2.avatarSVG(s, lookPack(s, iap), 'cuerpo')}</div>` : `<div class="grande peq">${(P.assets && P.assets.ic) || '💎'}</div>`;
+    const K = P2.PACKS[P.id], sv = s || { p: { energia: 80 }, hitos: {} };
+    const prevSkins = K && (K.skins || []).length ? `<div class="pmPrevX">${K.skins.filter(([v], i, a) => a.findIndex(x => x[0] === v) === i).slice(0, 2).map(([v, k]) => `<div title="${esc((P2.skinDe(v, k) || {}).n || '')}">${vehiculoSVG(v, k)}</div>`).join('')}</div>` : '';
+    const prevDeco = K && (K.deco || []).length ? `<div class="pmPrevX">${K.deco.map(([tp, d]) => `<div>${tp === 'casa' ? casaSVG(s ? vivienda(s) : 'piso', d) : despachoSVG(d)}</div>`).join('')}</div>` : '';
+    const prev = K ? `<div class="iapPrev grande">${P2.avatarSVG(sv, P2.lookPack(s, P.id), 'cuerpo')}</div>${prevSkins}${prevDeco}` : `<div class="grande peq">${(P.assets && P.assets.ic) || '💎'}</div>`;
     const req = st.requires && !st.requires.ok ? `<div class="pmReq">🔒 ${st.requires.missing.length ? `Necesitas ${st.requires.missing.map(e => `la expansión <b>${esc(nombreEnt(e))}</b>`).join(' y ')}.` : ''}${st.requires.anyCount ? ` Necesitas al menos ${st.requires.anyCount.n} deportes.` : ''}
       ${st.requires.missing.map(e => { const R = P2C.PRODUCTS.find(x => x.entitlements.length === 1 && x.entitlements[0] === e); return R ? `<button class="btn w" data-act="pmVer" data-id="${esc(R.id)}">Ver ${esc(R.name)}</button>` : ''; }).join('')}</div>` : '';
     const puede = st.purchasable;
@@ -1438,13 +1476,11 @@
     $('main').classList.remove('conBoton'); document.body.classList.remove('enSeccion');
   }
   // Insignias y vitrina (lo que se ve de las compras en el juego)
-  const INSIGNIAS = [['cosmetic.founder_pack', '🏅', 'Founder'], ['cosmetic.debut_pack', '🌟', 'Debut'], ['cosmetic.press_badge', '📰', 'Prensa']];
-  const insignias = () => INSIGNIAS.filter(([e]) => P2.tieneEnt(e)).map(([, ic, n]) => `<span class="insignia" title="Insignia ${n}" aria-label="Insignia ${n}">${ic}</span>`).join('');
-  const VITRINA = [['cosmetic.debut_pack', '⚽', 'Balón firmado de tu debut'], ['cosmetic.founder_pack', '🏛️', 'Placa conmemorativa Founder'], ['cosmetic.press_badge', '📰', 'Acreditación de prensa']];
-  function equiparPack(sku) {
-    const iap = SKU_IAP[sku] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[sku]); if (!iap || !S) return;
-    for (const c of iap.contenido) if (Array.isArray(c)) P2.ponerLook(S, c[0], c[1]);
-  }
+  // Insignias (junto a tu semana; como mucho 3) y vitrina: datos en 19_packs.js. La de prensa llega por código promocional.
+  const insignias = () => P2.INSIGNIAS_PACK.filter(([k]) => P2.premiumOk(k)).concat(P2.tieneEnt('cosmetic.press_badge') ? [['', '📰', 'Prensa']] : []).slice(0, 3)
+    .map(([, ic, n]) => `<span class="insignia" title="Insignia ${n}" aria-label="Insignia ${n}">${ic}</span>`).join('');
+  const vitrina = () => P2.VITRINA_PACK.filter(([k]) => P2.premiumOk(k)).concat(P2.tieneEnt('cosmetic.press_badge') ? [['', '📰', 'Acreditación de prensa']] : []);
+  function equiparPack(sku) { if (S) P2.equiparPack(S, sku); }
 
   // ---------- Render ----------
   function render() {
@@ -1608,6 +1644,10 @@
       case 'iapNo': ui.iapCard = null; render(); break;
       case 'interOk': P2.intersticialContinuar(S); ui.inter = false; guardarYPintar(); break;
       case 'equipar': if (P2.equipar(S, id)) guardarYPintar(); break;
+      // Aspecto de vehículo y decoración: si está bloqueado, se abre la ficha del pack (sin comprar nada)
+      case 'skin': case 'deco': {
+        if (b.dataset.sku) { ui.pm = Object.assign(ui.pm || { tab: 'packs' }, { sku: b.dataset.sku, paso: null, error: null, consent: false }); comercio() && COM.track('product_view', { sku: b.dataset.sku, source: a }); render(); break; }
+        if (a === 'skin' ? P2.ponerSkin(S, id, b.dataset.v) : P2.ponerDeco(S, b.dataset.t, b.dataset.v)) guardarYPintar(); break; }
       case 'venderP': if (ui.venderP !== id) { ui.venderP = id; render(); } else { ui.venderP = null; P2.venderPosesion(S, id); guardarYPintar(); } break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { ui.fiestas = fiestasDe(r.hitos, (r.desbloqueos || []).concat(ui.desbloqueos || [])); ui.desbloqueos = [];

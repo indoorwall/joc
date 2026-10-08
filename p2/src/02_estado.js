@@ -24,7 +24,7 @@
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
       secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes', 'premium'],   // pestañas visibles (se abren al avanzar)
-      inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
+      inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [], deco: { casa: 'nada', despacho: 'nada' },   // decoración (solo aspecto)   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
       deseoActual: null,
       vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
@@ -121,6 +121,7 @@
     if (!Array.isArray(s.cola)) s.cola = [];
     s.diario = s.diario.slice(-150);
     if (P2.validarLook) s.look = P2.validarLook(s.look);
+    if (P2.deco) P2.deco(s);
     // Tienda y relaciones: solo lo que existe y con valores sanos
     if (P2.producto) {
       s.inventario = (Array.isArray(s.inventario) ? s.inventario : []).filter(it => it && P2.producto(it.id) && !P2.producto(it.id).consumible)

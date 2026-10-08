@@ -68,6 +68,43 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
 - **🌍 Mi mundo** (botón arriba a la derecha): Perfil, Vida, Tienda, Inversiones, Liga, Marcas, Empresa, Patrimonio, Historia, Hitos y Ajustes, con lo que aún no
   está abierto en gris y su candado. «‹ Jugar» vuelve al juego.
 
+## P2.6 · Cuenta, varias carreras y todos los packs
+
+- **🗂️ Mis carreras** (en «Mi mundo», Ajustes y la pantalla de inicio): 2 carreras gratis a la vez y 3 más con
+  «+3 carreras» o el Founder Pack.
+  - Cada carrera tiene su ranura: continuar, cambiar el nombre, copiar a otra ranura y borrar (con «Deshacer»).
+  - **💾 Guardar y salir**: guarda y te lleva a «Mis carreras». Al volver a abrir el juego sigues en la última carrera
+    jugada, justo donde la dejaste. También se guarda al cambiar de pestaña o bloquear el móvil.
+  - Una partida de antes de las ranuras aparece sola como «Carrera 1».
+  - Si pierdes el pack (reembolso u otra cuenta), las carreras de las ranuras de pago se quedan guardadas y
+    bloqueadas: nunca se borran.
+- **👤 Cuenta** (gratis y opcional): con Apple, Google o un código de 6 cifras por email. Sin contraseñas.
+  - En esta versión todo es simulado: el código sale en una «bandeja de entrada simulada» y no se envía nada.
+  - Perfil: nombre visible, país, edad y aceptación de los términos. La edad no se puede cambiar después.
+  - Menores: sin ofertas ni publicidad. Menores de 13 años necesitan el permiso de su madre, padre o tutor para
+    comprar; lo comprueba también el servidor.
+  - ☁️ Carreras en la nube: guardar, traer en otro dispositivo y copia automática. Por ranura gana la copia más
+    reciente.
+  - Descargar mis datos (JSON), cerrar sesión y eliminar la cuenta (hay que escribir ELIMINAR).
+  - Backend real preparado: migración `20261009000000_accounts.sql` y Edge Functions `profile`, `game-saves` y
+    `account-export`, con las mismas reglas que el simulado y probadas contra Postgres y Deno.
+- **💎 Todos los packs a la venta** (simulados), con su contenido real:
+  - **Street:** sudadera, pantalón, zapatillas, gorra, gafas, mochila, fondo urbano y bici Street.
+  - **Pro:** outfit, traje casual, maleta, reloj, auriculares, botas, gafas, peinado, dos fondos, coche Pro y pose Pro.
+  - **Luxury:** traje, reloj, cadena, gafas, fondos rooftop y premium, decoración de casa y de despacho, coche negro
+    mate y pose de empresario.
+  - **Magnate:** traje, reloj legendario, fondo skyline, despacho premium, decoración de mansión, deportivo de oro,
+    insignia 🏙️ y llave de oro en la vitrina.
+  - **Founder:** outfit, insignia, fondo, placa conmemorativa, +3 carreras y sin anuncios obligatorios.
+  - **Clubes** (UD Puerto, Real Costa, Atlético Ciudad; solo si juegas en ese club): camiseta, chaqueta, bufanda,
+    mochila, fondo, rincón del club en casa y camiseta firmada en la vitrina.
+  - **Campeón** (Copa, Copa de Europa, Mundial y Liga; solo si la has ganado): camiseta, botas, trofeo en la mano y
+    réplica en casa, fondo, insignia y una celebración especial cuando ganas el título.
+  - **Pose** (capa nueva del personaje): «Saludo» y «Brazos abiertos» gratis; Pro, empresario y campeón con su pack.
+  - **Garaje:** eliges el aspecto de cada vehículo. **Tu casa** y **Tu despacho** (en Empresa) se decoran; plantas y
+    cojines son gratis.
+  - Todo es solo aspecto. Si un pack se reembolsa, lo suyo vuelve a lo básico y no se toca nada más.
+
 ## P2.5 · Comercio real (arquitectura de producción; aquí, simulado)
 
 Todo el detalle está en [`docs/commerce/`](../docs/commerce/COMMERCE.md): arquitectura, catálogo, Stripe, Apple,
@@ -84,7 +121,7 @@ para pasar a Stripe TEST y, más adelante, a producción.
     el webhook. Entonces sale «¡DESBLOQUEADO!» y el pack se pone solo.
   - «Mis compras» y «Restaurar compras» funcionan aunque borres la caché, porque las compras están en la cuenta, no en
     la partida. También hay códigos promocionales.
-- **Vertical slice: Pack Debut (0,99 €).** Outfit, botas, gorra, fondo, insignia 🌟 junto a tu semana y balón firmado
+- **Pack Debut (0,99 €).** Outfit, botas, gorra, fondo, insignia 🌟 junto a tu semana y balón firmado
   en tu vitrina.
   - «Quitar anuncios» (3,99 €) quita solo los anuncios obligatorios.
   - `sport_climbing` y `prestige_world_football_president` existen como entitlements de prueba.

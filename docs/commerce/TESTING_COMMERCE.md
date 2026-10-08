@@ -17,15 +17,16 @@ node tests/p2.test.cjs                        # juego + interfaz Premium (Chromi
 
 Resultado de esta entrega (8 de octubre de 2026):
 
-- **`commerce.test.mjs` completo (con Postgres 16 y Deno 2.5): 284 de 284.** Desglose:
+- **`commerce.test.mjs` completo (con Postgres 16 y Deno 2.5): 352 de 352.** Desglose:
   - unitarias;
   - cliente;
   - contrato en memoria;
   - contrato en Postgres;
+  - cuentas (perfil, edad, permiso parental, carreras en la nube, descargar datos), en memoria y en Postgres;
   - RLS;
   - e2e HTTP;
   - e2e en navegador.
-- **`p2.test.cjs`: 342 de 342.**
+- **`p2.test.cjs`: 402 de 402** (incluye ranuras, cuenta en el navegador y el contenido de todos los packs).
 
 ## Qué cubren
 
@@ -88,8 +89,11 @@ Sigue la sección «Pruebas antes de producción» de [CHECKLIST.md](CHECKLIST.m
 - **Pub/Sub de Google:** usa un token compartido en la URL. Antes de producción hay que pasar a OIDC.
 - **Stripe real:** el código usa la API REST real, pero en esta entrega solo se ha probado contra un Stripe falso con
   la misma forma de la API. Falta la prueba con tu cuenta en modo test (CHECKLIST).
-- **Packs Street, Pro, Luxury, Magnate y Founder, ranuras de carrera, deportes, expansiones y la interfaz de las
-  Prestige:** arquitectura y fichas `coming_soon`, sin contenido o motor jugable todavía.
+- **Deportes, expansiones y la interfaz de las Prestige:** arquitectura y fichas `coming_soon`, sin motor jugable
+  todavía. Los packs y las ranuras de carrera ya tienen todo su contenido y están `active`.
+- **Cuenta real:** falta configurar en Supabase Apple y Google (OAuth), la plantilla del email con el código y el
+  envío del correo de permiso parental (la Edge Function que recibe la respuesta del tutor no existe todavía: en el
+  simulado hay un botón de prueba).
 - **Compras simultáneas solapadas:** dos checkouts a la vez de un bundle y de una de sus partes pueden cobrarse los
   dos. No hay reembolso automático del segundo: se ve en el panel y se reembolsa a mano.
 - **`remote_config`:** el cliente anónimo puede leer la fila entera, incluidos campos internos no secretos (políticas

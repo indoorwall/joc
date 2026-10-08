@@ -23,7 +23,7 @@ Un entitlement es el derecho a usar algo (un pack, un deporte, una carrera). El 
 13. Qué partes necesitan credenciales
 14. Plan por fases
 
-Otros documentos: [EXPANSIONS.md](EXPANSIONS.md), [PRESTIGE_CAREERS.md](PRESTIGE_CAREERS.md),
+Otros documentos: [ACCOUNTS.md](ACCOUNTS.md) (cuenta, perfil, edad, permiso parental y carreras en la nube), [EXPANSIONS.md](EXPANSIONS.md), [PRESTIGE_CAREERS.md](PRESTIGE_CAREERS.md),
 [TESTING_COMMERCE.md](TESTING_COMMERCE.md), [CHECKLIST.md](CHECKLIST.md) y
 [FUENTES_PLATAFORMAS.md](FUENTES_PLATAFORMAS.md) (normas de Apple, Google y Stripe consultadas).
 

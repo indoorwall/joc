@@ -852,3 +852,18 @@ select.inp { background: #fff; }
 .mundoAcc button { border: 0; border-radius: 14px; background: var(--panel); padding: 10px 4px; font: inherit; font-size: 22px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--ink); min-height: 64px; }
 .mundoAcc span { font-size: 12px; font-weight: 900; }
 .flash.quieta { position: static; margin-top: 14px; }
+
+/* ---------- Packs: aspecto de vehículos, decoración, despacho, celebración ---------- */
+.skins, .decos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.skin, .deco { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12.5px; font-weight: 800; color: var(--ink); cursor: pointer; min-height: 36px; display: inline-flex; align-items: center; gap: 6px; }
+.skin.sel, .deco.sel { border-color: var(--blue); background: #eef3ff; }
+.skin i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.2); }
+.despSvg svg { width: 100%; height: auto; display: block; border-radius: 12px; }
+.pmPrevX { display: flex; gap: 8px; justify-content: center; margin: 6px 0; }
+.pmPrevX > div { width: 46%; max-width: 150px; border-radius: 12px; overflow: hidden; background: var(--panel); }
+.pmPrevX svg { width: 100%; height: auto; display: block; }
+.celeCampeon { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 8px; }
+.celeCampeon .iapPrev { width: 110px; animation: salta 1s ease-in-out infinite alternate; }
+.celeCampeon small { color: #ffc83d; font-weight: 900; }
+@keyframes salta { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .celeCampeon .iapPrev { animation: none; } }

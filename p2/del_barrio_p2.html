@@ -870,6 +870,21 @@ select.inp { background: #fff; }
 .mundoAcc span { font-size: 12px; font-weight: 900; }
 .flash.quieta { position: static; margin-top: 14px; }
 
+/* ---------- Packs: aspecto de vehículos, decoración, despacho, celebración ---------- */
+.skins, .decos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.skin, .deco { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 10px; font: inherit; font-size: 12.5px; font-weight: 800; color: var(--ink); cursor: pointer; min-height: 36px; display: inline-flex; align-items: center; gap: 6px; }
+.skin.sel, .deco.sel { border-color: var(--blue); background: #eef3ff; }
+.skin i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; border: 1px solid rgba(0,0,0,.2); }
+.despSvg svg { width: 100%; height: auto; display: block; border-radius: 12px; }
+.pmPrevX { display: flex; gap: 8px; justify-content: center; margin: 6px 0; }
+.pmPrevX > div { width: 46%; max-width: 150px; border-radius: 12px; overflow: hidden; background: var(--panel); }
+.pmPrevX svg { width: 100%; height: auto; display: block; }
+.celeCampeon { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: 8px; }
+.celeCampeon .iapPrev { width: 110px; animation: salta 1s ease-in-out infinite alternate; }
+.celeCampeon small { color: #ffc83d; font-weight: 900; }
+@keyframes salta { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .celeCampeon .iapPrev { animation: none; } }
+
 </style>
 </head>
 <body>
@@ -959,24 +974,24 @@ const PRODUCTS = [
   P({ id: 'pack_debut', type: 'COSMETIC_PACK', status: 'active', priceEUR: 99, entitlements: ['cosmetic.debut_pack'], featured: true, cosmeticOnly: true,
     name: 'Pack Debut', description: 'Para celebrar tu primer contrato profesional.', trigger: 'primer_contrato', visibleWhen: { anyHito: ['contrato'] },
     includes: ['Outfit Debut', 'Botas Debut (visuales)', 'Gorra Debut', 'Fondo «Primer contrato»', 'Insignia Debut', 'Balón firmado para tu vitrina'], note: NO_STATS, assets: { ic: '🌟', color: '#7c5cff' } }),
-  P({ id: 'pack_street', type: 'COSMETIC_PACK', priceEUR: 199, entitlements: ['cosmetic.street_pack'], cosmeticOnly: true, name: 'Street Pack', description: 'Estilo de barrio.',
-    includes: ['Sudadera Street', 'Pantalón urbano', 'Zapatillas', 'Gorra', 'Gafas', 'Mochila', 'Fondo urbano', 'Skin de bicicleta'], note: NO_STATS, assets: { ic: '🧢', color: '#ff4f8b' } }),
-  P({ id: 'pack_pro', type: 'COSMETIC_PACK', priceEUR: 299, entitlements: ['cosmetic.pro_pack'], cosmeticOnly: true, name: 'Pro Pack', description: 'Para cuando ya eres titular habitual.', trigger: 'titular_habitual', visibleWhen: { anyHito: ['titular'] },
-    includes: ['Outfit profesional', 'Traje casual', 'Maleta deportiva', 'Reloj (visual)', 'Auriculares', 'Botas Pro (visuales)', 'Fondo estadio', 'Fondo vestuario', 'Skin de coche', 'Pose'], note: NO_STATS, assets: { ic: '🏟️', color: '#2f7bff' } }),
-  P({ id: 'pack_luxury', type: 'COSMETIC_PACK', priceEUR: 399, entitlements: ['cosmetic.luxury_pack'], cosmeticOnly: true, name: 'Luxury Pack', description: 'Aspecto de empresario. No regala coche ni casa.', trigger: 'primera_empresa', visibleWhen: { anyHito: ['empresa'] },
-    includes: ['Traje Luxury', 'Reloj', 'Cadena', 'Gafas', 'Fondo rooftop', 'Decoración de vivienda', 'Decoración de despacho', 'Skin de coche', 'Pose de empresario'], note: NO_STATS, assets: { ic: '💎', color: '#c88c00' } }),
-  P({ id: 'pack_magnate', type: 'COSMETIC_PACK', priceEUR: 499, entitlements: ['cosmetic.magnate_pack'], cosmeticOnly: true, name: 'Magnate Pack', description: 'Para el final de la partida.', trigger: 'late_game', visibleWhen: { anyHito: ['inversion2'] },
-    includes: ['Traje magnate', 'Reloj legendario', 'Fondo skyline', 'Despacho premium', 'Decoración de mansión', 'Skin de superdeportivo', 'Insignia Magnate'], note: NO_STATS, assets: { ic: '🏙️', color: '#111827' } }),
-  P({ id: 'founder_pack', type: 'SUPPORTER_PACK', priceEUR: 499, entitlements: ['cosmetic.founder_pack', 'slots.extra_3', 'ads.remove_interstitial'], name: 'Founder Pack', description: 'Apoya el proyecto desde el principio.',
-    includes: ['Insignia Founder', 'Outfit Founder', 'Fondo Founder', '+3 ranuras de carrera', 'Sin anuncios obligatorios', 'Decoración conmemorativa'], note: 'Sin estadísticas. Compra permanente.', assets: { ic: '🏅', color: '#12bfae' } }),
-  ...CLUBS.map(([c, n, ic, price]) => P({ id: `club_pack_${c}`, type: 'COSMETIC_PACK', priceEUR: price, entitlements: [`cosmetic.club_${c}`], cosmeticOnly: true, name: `Pack ${n}`, description: `Los colores de ${n}.`,
-    visibleWhen: { club: c }, includes: ['Camiseta', 'Chaqueta', 'Bufanda', 'Mochila', 'Fondo', 'Decoración', 'Memorabilia'], note: NO_STATS, assets: { ic } })),
-  ...COMPETITIONS.map(([c, n, ic]) => P({ id: `champion_pack_${c}`, type: 'COSMETIC_PACK', priceEUR: 99, entitlements: [`cosmetic.champion_${c}`], cosmeticOnly: true, name: `Pack Campeón · ${n}`, description: `Solo para quien ha ganado ${n}.`,
-    visibleWhen: { trophy: c }, includes: ['Camiseta especial', 'Trofeo visual', 'Fondo', 'Botas (visuales)', 'Celebración', 'Insignia'], note: NO_STATS, assets: { ic } })),
+  P({ id: 'pack_street', type: 'COSMETIC_PACK', status: 'active', priceEUR: 199, entitlements: ['cosmetic.street_pack'], cosmeticOnly: true, name: 'Street Pack', description: 'Estilo de barrio.',
+    includes: ['Sudadera Street', 'Pantalón cargo', 'Zapatillas Street', 'Gorra Street', 'Gafas Street', 'Mochila Street', 'Fondo urbano', 'Aspecto Street para tu bicicleta', 'Pose «Saludo» lista'], note: NO_STATS, assets: { ic: '🧢', color: '#ff4f8b' } }),
+  P({ id: 'pack_pro', type: 'COSMETIC_PACK', status: 'active', priceEUR: 299, entitlements: ['cosmetic.pro_pack'], cosmeticOnly: true, name: 'Pro Pack', description: 'Para cuando ya eres titular habitual.', trigger: 'titular_habitual', visibleWhen: { anyHito: ['titular'] },
+    includes: ['Outfit profesional', 'Traje casual', 'Maleta deportiva', 'Reloj Pro (visual)', 'Auriculares Pro', 'Botas Pro (visuales)', 'Gafas Pro', 'Peinado degradado', 'Fondo estadio', 'Fondo vestuario', 'Aspecto Pro para tu coche', 'Pose Pro'], note: NO_STATS, assets: { ic: '🏟️', color: '#2f7bff' } }),
+  P({ id: 'pack_luxury', type: 'COSMETIC_PACK', status: 'active', priceEUR: 399, entitlements: ['cosmetic.luxury_pack'], cosmeticOnly: true, name: 'Luxury Pack', description: 'Aspecto de empresario. No regala coche ni casa.', trigger: 'primera_empresa', visibleWhen: { anyHito: ['empresa'] },
+    includes: ['Traje Luxury', 'Reloj premium (visual)', 'Cadena exclusiva', 'Gafas Luxury', 'Fondo rooftop', 'Fondo premium', 'Decoración de vivienda', 'Decoración de despacho', 'Aspecto negro mate para tu coche', 'Pose de empresario'], note: NO_STATS, assets: { ic: '💎', color: '#c88c00' } }),
+  P({ id: 'pack_magnate', type: 'COSMETIC_PACK', status: 'active', priceEUR: 499, entitlements: ['cosmetic.magnate_pack'], cosmeticOnly: true, name: 'Magnate Pack', description: 'Para el final de la partida.', trigger: 'late_game', visibleWhen: { anyHito: ['inversion2'] },
+    includes: ['Traje magnate', 'Reloj legendario', 'Fondo skyline', 'Despacho premium', 'Decoración de mansión (en tu vivienda)', 'Aspecto oro para el deportivo y el superdeportivo', 'Insignia Magnate', 'Llave de oro para tu vitrina'], note: NO_STATS, assets: { ic: '🏙️', color: '#111827' } }),
+  P({ id: 'founder_pack', type: 'SUPPORTER_PACK', status: 'active', priceEUR: 499, entitlements: ['cosmetic.founder_pack', 'slots.extra_3', 'ads.remove_interstitial'], name: 'Founder Pack', description: 'Apoya el proyecto desde el principio.',
+    includes: ['Insignia Founder', 'Outfit Founder', 'Fondo Founder', '+3 ranuras de carrera (5 en total)', 'Sin anuncios obligatorios', 'Placa conmemorativa para tu casa y tu vitrina'], note: 'Sin estadísticas. Compra permanente.', assets: { ic: '🏅', color: '#12bfae' } }),
+  ...CLUBS.map(([c, n, ic, price]) => P({ id: `club_pack_${c}`, type: 'COSMETIC_PACK', status: 'active', priceEUR: price, entitlements: [`cosmetic.club_${c}`], cosmeticOnly: true, name: `Pack ${n}`, description: `Los colores de ${n}.`,
+    visibleWhen: { club: c }, includes: ['Camiseta', 'Chaqueta', 'Bufanda', 'Mochila', 'Fondo del club', 'Rincón del club en tu casa', 'Camiseta firmada para tu vitrina'], note: NO_STATS, assets: { ic } })),
+  ...COMPETITIONS.map(([c, n, ic]) => P({ id: `champion_pack_${c}`, type: 'COSMETIC_PACK', status: 'active', priceEUR: 99, entitlements: [`cosmetic.champion_${c}`], cosmeticOnly: true, name: `Pack Campeón · ${n}`, description: `Solo para quien ha ganado ${n}.`,
+    visibleWhen: { trophy: c }, includes: ['Camiseta especial', 'Trofeo en la mano y réplica en casa', 'Fondo de campeón', 'Botas de campeón (visuales)', 'Celebración de campeón', 'Insignia'], note: NO_STATS, assets: { ic } })),
   // ---------- Anuncios y ranuras ----------
   P({ id: 'remove_ads', type: 'REMOVE_ADS', status: 'active', priceEUR: 399, entitlements: ['ads.remove_interstitial'], name: 'Quitar anuncios', description: 'Elimina solo la publicidad obligatoria. Los anuncios con recompensa siguen disponibles si quieres verlos.',
     includes: ['Sin anuncios obligatorios entre pantallas', 'Los anuncios voluntarios con recompensa siguen ahí'], note: 'No cambia nada del juego.', assets: { ic: '🚫', color: '#334155' } }),
-  P({ id: 'extra_save_slots_3', type: 'SAVE_SLOTS', priceEUR: 199, entitlements: ['slots.extra_3'], name: '+3 carreras', description: 'Juega hasta 4 carreras distintas a la vez.', includes: ['3 ranuras de carrera más'], assets: { ic: '💾' } }),
+  P({ id: 'extra_save_slots_3', type: 'SAVE_SLOTS', status: 'active', priceEUR: 199, entitlements: ['slots.extra_3'], name: '+3 carreras', description: 'Juega hasta 5 carreras distintas a la vez (2 gratis + 3).', includes: ['3 ranuras de carrera más (5 en total)', 'También se copian en tu cuenta'], assets: { ic: '💾' } }),
   // ---------- Deportes ----------
   P({ id: 'sport_climbing', type: 'SPORT_EXPANSION', status: 'testing', priceEUR: 299, entitlements: ['sport.climbing'], name: 'Escalada', description: 'Del rocódromo del barrio a la élite: bloque, dificultad y velocidad.',
     includes: ['Carrera: rocódromo local → autonómico → nacional → internacional → profesional', 'Bloque, dificultad, velocidad, ranking, campeonatos, selección', 'Ingresos: premios, sponsors, clases, campus, equipamiento de vías', 'Negocios: clases, routesetting, tienda, rocódromo, eventos, cadena'], assets: { ic: '🧗', color: '#0ea5e9' } }),
@@ -3023,7 +3038,7 @@ globalThis.P2C = P2C;
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
       secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes', 'premium'],   // pestañas visibles (se abren al avanzar)
-      inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
+      inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [], deco: { casa: 'nada', despacho: 'nada' },   // decoración (solo aspecto)   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
       deseoActual: null,
       vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
@@ -3120,6 +3135,7 @@ globalThis.P2C = P2C;
     if (!Array.isArray(s.cola)) s.cola = [];
     s.diario = s.diario.slice(-150);
     if (P2.validarLook) s.look = P2.validarLook(s.look);
+    if (P2.deco) P2.deco(s);
     // Tienda y relaciones: solo lo que existe y con valores sanos
     if (P2.producto) {
       s.inventario = (Array.isArray(s.inventario) ? s.inventario : []).filter(it => it && P2.producto(it.id) && !P2.producto(it.id).consumible)
@@ -5297,7 +5313,7 @@ globalThis.P2C = P2C;
   const COLOR_ROPA = { rojo: '#e23b3b', azul: '#2f6fe0', verde: '#22a35a', amarillo: '#f6c623', negro: '#2a2d34', blanco: '#f4f4f4', morado: '#7b4bd6', naranja: '#ff8a2a' };
   const FONDO_LOOK = { azul: '#bfe0ff', verde: '#c6f0d2', naranja: '#ffd9b3', morado: '#dccbff', rosa: '#ffd0e6' };
   const LOOK_INICIAL = { piel: '1', pelo: 'corto', colorPelo: 'castano', cara: 'nada', ropa: 'camiseta', colorRopa: 'azul', pantalon: 'chandal', calzado: 'deportivas', cabeza: 'nada', gafas: 'nada', extra: 'nada', fondo: 'azul',
-    edad: 'joven', complexion: 'normal', ojos: 'redondos', colorOjos: 'marron', cejas: 'normales', rasgo: 'nada', piercing: 'nada', tatuaje: 'nada' };
+    edad: 'joven', complexion: 'normal', ojos: 'redondos', colorOjos: 'marron', cejas: 'normales', rasgo: 'nada', piercing: 'nada', tatuaje: 'nada', pose: 'nada' };
   const VISTA_LOOK = { cara: '16 18 68 52', busto: '6 -12 88 88', cuerpo: '0 -16 100 176', torso: '8 52 84 64', piernas: '14 92 72 64' };
 
   // Capas y prendas (datos). req.hito: se desbloquea al conseguir ese hito
@@ -5307,8 +5323,14 @@ globalThis.P2C = P2C;
     ['pelo', '💇', 'Peinado', 'busto', 'pelo'], ['colorPelo', '🎨', 'Color de pelo', 'busto', 'pelo'],
     ['complexion', '💪', 'Complexión', 'cuerpo', 'cuerpo'], ['tatuaje', '🖋️', 'Tatuajes', 'torso', 'cuerpo'],
     ['ropa', '👕', 'Ropa', 'torso', 'ropa'], ['colorRopa', '🖌️', 'Color', 'torso', 'ropa'], ['pantalon', '👖', 'Pantalón', 'piernas', 'ropa'], ['calzado', '👟', 'Calzado', 'piernas', 'ropa'],
-    ['cabeza', '🧢', 'Cabeza', 'busto', 'extras'], ['gafas', '🕶️', 'Gafas', 'busto', 'extras'], ['extra', '🎒', 'Extras', 'cuerpo', 'extras'], ['fondo', '🖼️', 'Fondo', 'busto', 'extras']];
+    ['cabeza', '🧢', 'Cabeza', 'busto', 'extras'], ['gafas', '🕶️', 'Gafas', 'busto', 'extras'], ['extra', '🎒', 'Extras', 'cuerpo', 'extras'], ['pose', '🕺', 'Pose', 'cuerpo', 'extras'], ['fondo', '🖼️', 'Fondo', 'busto', 'extras']];
   const GRUPOS_LOOK = [['cara', '🙂', 'Cara'], ['pelo', '💇', 'Pelo'], ['cuerpo', '💪', 'Cuerpo'], ['ropa', '👕', 'Ropa'], ['extras', '🧢', 'Extras']];
+  // Clubes y competiciones de los packs (colores del club; competiciones ficticias)
+  const CLUBES_PACK = { puerto: { n: 'UD Puerto', ic: '⚓', c1: '#1d3c78', c2: '#ffffff' }, costa: { n: 'Real Costa', ic: '🌊', c1: '#3aa0e0', c2: '#ffffff' }, atletico: { n: 'Atlético Ciudad', ic: '🔴', c1: '#d62839', c2: '#ffffff' } };
+  const CAMPEON_PACK = { copa: { n: 'Copa Federación', ic: '🏆', c1: '#c8901a', c2: '#ffffff', fondo: '#3a2400' }, europa: { n: 'Copa de Europa', ic: '⭐', c1: '#14206b', c2: '#ffc83d', fondo: '#0b1033' },
+    mundial: { n: 'Mundial', ic: '🌍', c1: '#0f7a43', c2: '#ffc83d', fondo: '#06331d' }, liga: { n: 'Liga', ic: '👑', c1: '#5b2bb5', c2: '#ffc83d', fondo: '#1e0d45' } };
+  const porClub = f => Object.entries(CLUBES_PACK).map(([k, C]) => f(k, C));
+  const porCopa = f => Object.entries(CAMPEON_PACK).map(([k, C]) => f(k, C));
   const ITEMS = {
     piel: [6, 0, 8, 1, 9, 2, 3, 4, 5, 7].map((i, k) => ({ id: String(i), n: `Tono ${k + 1}` })),
     edad: [['joven', 'Joven'], ['adulto', 'Adulto/a'], ['maduro', 'Maduro/a'], ['veterano', 'Veterano/a']].map(([id, n]) => ({ id, n })),
@@ -5327,29 +5349,49 @@ globalThis.P2C = P2C;
       { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } },
       { id: 'equipoFav', n: 'Camiseta de tu equipo', req: { tienda: 'camiseta' } }, { id: 'chandalMarca', n: 'Chándal de marca', req: { tienda: 'chandal' } }, { id: 'temporada', n: 'Camiseta de la temporada', req: { anuncio: 'temporada' } },
       { id: 'debut', n: 'Outfit Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Sudadera Street', req: { premium: 'street' } }, { id: 'pro', n: 'Outfit Pro', req: { premium: 'pro' } },
-      { id: 'trajeLux', n: 'Traje Luxury', req: { premium: 'luxury' } }, { id: 'founder', n: 'Camiseta Founder', req: { premium: 'founder' } }],
+      { id: 'trajeLux', n: 'Traje Luxury', req: { premium: 'luxury' } }, { id: 'founder', n: 'Camiseta Founder', req: { premium: 'founder' } },
+      { id: 'casualPro', n: 'Traje casual Pro', req: { premium: 'pro' } }, { id: 'magnate', n: 'Traje Magnate', req: { premium: 'magnate' } }]
+      .concat(porClub((k, C) => ({ id: `clubCam_${k}`, n: `Camiseta ${C.n}`, req: { premium: `club_${k}` } })), porClub((k, C) => ({ id: `clubChaq_${k}`, n: `Chaqueta ${C.n}`, req: { premium: `club_${k}` } })),
+        porCopa((k, C) => ({ id: `camp_${k}`, n: `Camiseta campeón · ${C.n}`, req: { premium: `champ_${k}` } }))),
     colorRopa: [['azul', 'Azul'], ['rojo', 'Rojo'], ['verde', 'Verde'], ['amarillo', 'Amarillo'], ['negro', 'Negro'], ['blanco', 'Blanco'], ['morado', 'Morado'], ['naranja', 'Naranja']].map(([id, n]) => ({ id, n })),
     pantalon: [{ id: 'chandal', n: 'Chándal' }, { id: 'corto', n: 'Corto' }, { id: 'vaquero', n: 'Vaqueros' }, { id: 'falda', n: 'Falda' }, { id: 'traje', n: 'De traje', req: { hito: 'empresa' } }, { id: 'street', n: 'Cargo Street', req: { premium: 'street' } }],
     calzado: [{ id: 'deportivas', n: 'Deportivas' }, { id: 'chanclas', n: 'Chanclas' }, { id: 'botas', n: 'Botas de fútbol' }, { id: 'montana', n: 'De montaña' }, { id: 'zapatos', n: 'Zapatos' }, { id: 'doradas', n: 'Botas de oro', req: { hito: 'inversion2' } },
-      { id: 'botasPro', n: 'Botas profesionales', req: { tienda: 'botasPro' } }, { id: 'debut', n: 'Botas Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Zapatillas Street', req: { premium: 'street' } }, { id: 'pro', n: 'Botas Pro', req: { premium: 'pro' } }],
+      { id: 'botasPro', n: 'Botas profesionales', req: { tienda: 'botasPro' } }, { id: 'debut', n: 'Botas Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Zapatillas Street', req: { premium: 'street' } }, { id: 'pro', n: 'Botas Pro', req: { premium: 'pro' } }]
+      .concat(porCopa((k, C) => ({ id: `camp_${k}`, n: `Botas de campeón · ${C.n}`, req: { premium: `champ_${k}` } }))),
     cabeza: [{ id: 'nada', n: 'Nada' }, { id: 'cinta', n: 'Cinta' }, { id: 'gorra', n: 'Gorra' }, { id: 'gorro', n: 'Gorro de lana' }, { id: 'fiesta', n: 'Gorro de fiesta' }, { id: 'vaquero', n: 'Sombrero' }, { id: 'corona', n: 'Corona', req: { hito: 'inversion2' } },
       { id: 'gorraPlana', n: 'Gorra de colección', req: { tienda: 'gorra' } }, { id: 'gorraDebut', n: 'Gorra Debut', req: { premium: 'debut' } }, { id: 'gorraStreet', n: 'Gorra Street', req: { premium: 'street' } }],
     gafas: [['nada', 'Sin gafas'], ['corazon', 'Corazón'], ['redondas', 'Redondas'], ['sol', 'De sol'], ['deportivas', 'Deportivas']].map(([id, n]) => ({ id, n }))
-      .concat([{ id: 'temporada', n: 'Gafas edición temporada', req: { anuncio: 'temporada' } }, { id: 'pro', n: 'Gafas Pro', req: { premium: 'pro' } }]),
+      .concat([{ id: 'temporada', n: 'Gafas edición temporada', req: { anuncio: 'temporada' } }, { id: 'pro', n: 'Gafas Pro', req: { premium: 'pro' } },
+        { id: 'street', n: 'Gafas Street', req: { premium: 'street' } }, { id: 'lux', n: 'Gafas Luxury', req: { premium: 'luxury' } }]),
     extra: [{ id: 'nada', n: 'Nada' }, { id: 'balon', n: 'Balón' }, { id: 'mochila', n: 'Mochila' }, { id: 'auriculares', n: 'Auriculares' }, { id: 'capa', n: 'Capa' },
       { id: 'medalla', n: 'Medalla', req: { hito: 'titular' } }, { id: 'reloj', n: 'Reloj de lujo', req: { hito: 'rentable' } }, { id: 'cadena', n: 'Cadena de oro', req: { hito: 'inversion2' } },
       { id: 'relojDep', n: 'Reloj deportivo', req: { tienda: 'relojDep' } }, { id: 'relojPro', n: 'Reloj Pro', req: { premium: 'pro' } }, { id: 'relojPremium', n: 'Reloj Premium', req: { premium: 'luxury' } },
-      { id: 'cadenaExcl', n: 'Cadena exclusiva', req: { premium: 'luxury' } }, { id: 'insignia', n: 'Insignia Founder', req: { premium: 'founder' } }],
+      { id: 'cadenaExcl', n: 'Cadena exclusiva', req: { premium: 'luxury' } }, { id: 'insignia', n: 'Insignia Founder', req: { premium: 'founder' } },
+      { id: 'mochilaStreet', n: 'Mochila Street', req: { premium: 'street' } }, { id: 'maletaPro', n: 'Maleta deportiva Pro', req: { premium: 'pro' } }, { id: 'auriPro', n: 'Auriculares Pro', req: { premium: 'pro' } },
+      { id: 'relojLeg', n: 'Reloj legendario', req: { premium: 'magnate' } }, { id: 'insigniaMag', n: 'Insignia Magnate', req: { premium: 'magnate' } }]
+      .concat(porClub((k, C) => ({ id: `bufanda_${k}`, n: `Bufanda ${C.n}`, req: { premium: `club_${k}` } })), porClub((k, C) => ({ id: `mochila_${k}`, n: `Mochila ${C.n}`, req: { premium: `club_${k}` } })),
+        porCopa((k, C) => ({ id: `trofeo_${k}`, n: `Trofeo · ${C.n}`, req: { premium: `champ_${k}` } }))),
+    // Poses: los brazos (solo aspecto)
+    pose: [{ id: 'nada', n: 'De pie' }, { id: 'saludo', n: 'Saludo' }, { id: 'abiertos', n: 'Brazos abiertos' }, { id: 'pro', n: 'Pose Pro', req: { premium: 'pro' } },
+      { id: 'empresario', n: 'Pose de empresario', req: { premium: 'luxury' } }, { id: 'campeon', n: 'Celebración de campeón', req: { premium: 'champ' } }],
     fondo: [['azul', 'Azul'], ['verde', 'Verde'], ['naranja', 'Naranja'], ['morado', 'Morado'], ['rosa', 'Rosa']].map(([id, n]) => ({ id, n }))
       .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } },
         { id: 'street', n: 'Fondo Street', req: { coleccion: 'street' } }, { id: 'vestuario', n: 'Fondo Vestuario', req: { coleccion: 'pro' } }, { id: 'lujo', n: 'Fondo Lujo', req: { coleccion: 'lujo' } },
         { id: 'debut', n: 'Fondo Debut', req: { premium: 'debut' } }, { id: 'urbano', n: 'Fondo Urbano', req: { premium: 'street' } }, { id: 'estadio', n: 'Fondo Estadio', req: { premium: 'pro' } },
-        { id: 'premium', n: 'Fondo Premium', req: { premium: 'luxury' } }, { id: 'founder', n: 'Fondo Founder', req: { premium: 'founder' } }]),
+        { id: 'premium', n: 'Fondo Premium', req: { premium: 'luxury' } }, { id: 'founder', n: 'Fondo Founder', req: { premium: 'founder' } },
+        { id: 'vestPro', n: 'Fondo Vestuario Pro', req: { premium: 'pro' } }, { id: 'rooftop', n: 'Fondo Rooftop', req: { premium: 'luxury' } }, { id: 'skyline', n: 'Fondo Skyline', req: { premium: 'magnate' } }])
+      .concat(porClub((k, C) => ({ id: `club_${k}`, n: `Fondo ${C.n}`, req: { premium: `club_${k}` } })), porCopa((k, C) => ({ id: `camp_${k}`, n: `Fondo campeón · ${C.n}`, req: { premium: `champ_${k}` } }))),
   };
   const itemLook = (cap, id) => (ITEMS[cap] || []).find(x => x.id === id);
   // Packs del prototipo → entitlements reales del catálogo (commerce/catalog)
-  const PREMIUM_ENT = { debut: 'cosmetic.debut_pack', street: 'cosmetic.street_pack', pro: 'cosmetic.pro_pack', luxury: 'cosmetic.luxury_pack', founder: 'cosmetic.founder_pack' };
-  P2.PREMIUM_ENT = PREMIUM_ENT;
+  const PREMIUM_ENT = { debut: 'cosmetic.debut_pack', street: 'cosmetic.street_pack', pro: 'cosmetic.pro_pack', luxury: 'cosmetic.luxury_pack', magnate: 'cosmetic.magnate_pack', founder: 'cosmetic.founder_pack' };
+  const PACK_NOMBRE = { debut: 'Pack Debut', street: 'Street Pack', pro: 'Pro Pack', luxury: 'Luxury Pack', magnate: 'Magnate Pack', founder: 'Founder Pack', champ: 'un Pack Campeón' };
+  for (const [k, C] of Object.entries(CLUBES_PACK)) { PREMIUM_ENT[`club_${k}`] = `cosmetic.club_${k}`; PACK_NOMBRE[`club_${k}`] = `Pack ${C.n}`; }
+  for (const [k, C] of Object.entries(CAMPEON_PACK)) { PREMIUM_ENT[`champ_${k}`] = `cosmetic.champion_${k}`; PACK_NOMBRE[`champ_${k}`] = `Pack Campeón · ${C.n}`; }
+  PREMIUM_ENT.champ = Object.keys(CAMPEON_PACK).map(k => `cosmetic.champion_${k}`);   // la celebración: con cualquier Pack Campeón
+  // ¿Tiene la cuenta este pack? (la cuenta decide: P2.tieneEnt lo conecta la interfaz con el comercio)
+  const premiumOk = k => { const E = PREMIUM_ENT[k]; return Array.isArray(E) ? E.some(e => P2.tieneEnt(e)) : !!(E && P2.tieneEnt(E)); };
+  Object.assign(P2, { PREMIUM_ENT, PACK_NOMBRE, premiumOk, CLUBES_PACK, CAMPEON_PACK });
   function bloqueoLook(s, it, cap) {
     if (!it || !it.req) return null;
     if (s && Array.isArray(s.lookDesbloqueos) && s.lookDesbloqueos.includes(`${cap || ''}:${it.id}`)) return null;   // comprado en la Tienda
@@ -5358,7 +5400,7 @@ globalThis.P2C = P2C;
     if (it.req.tienda) return `Tienda: ${P2.producto ? (P2.producto(it.req.tienda) || { n: '' }).n : ''}`;
     if (it.req.anuncio) return 'Recompensa de temporada';
     if (it.req.coleccion) return `Completa la colección ${(P2.COLECCIONES || []).find(c => c.id === it.req.coleccion) ? P2.COLECCIONES.find(c => c.id === it.req.coleccion).n : ''}`;
-    if (it.req.premium) { const E = PREMIUM_ENT[it.req.premium]; if (E && P2.tieneEnt(E)) return null; const I = (P2.IAP_PRODUCTS || []).find(x => x.id === it.req.premium); return `💎 ${I ? I.nombre : 'Pack'} (Premium)`; }
+    if (it.req.premium) return premiumOk(it.req.premium) ? null : `💎 ${PACK_NOMBRE[it.req.premium] || 'Pack'} (Premium)`;
     return null;
   }
   function ponerLook(s, cap, id) {
@@ -5379,6 +5421,7 @@ globalThis.P2C = P2C;
     if (Math.random() < 0.6) L.rasgo = 'nada';
     if (Math.random() < 0.6) L.piercing = 'nada';
     if (Math.random() < 0.6) L.tatuaje = 'nada';
+    if (Math.random() < 0.7) L.pose = 'nada';
     return L;
   }
   function validarLook(L) {
@@ -5408,7 +5451,14 @@ globalThis.P2C = P2C;
     pro: { base: 'chaqueta', tc: '#0b1033', ad: '<path d="M30 92 h40" stroke="#3d7bff" stroke-width="4"/><path d="M31 97 h38" stroke="#8b5cf6" stroke-width="2"/>' },
     trajeLux: { base: 'traje', tc: '#4b1f7a', ad: '<path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#ffc83d"/><circle cx="62" cy="80" r="2" fill="#ffc83d"/>' },
     founder: { base: 'camiseta', tc: '#ffc83d', ad: '<path d="M50 80 l3 6 6.5 .8 -4.8 4.4 1.3 6.4 -6 -3.2 -6 3.2 1.3 -6.4 -4.8 -4.4 6.5 -.8Z" fill="#1a1640"/>' },
+    casualPro: { base: 'chaqueta', tc: '#24345e', ad: '<path d="M42 68 L50 82 L58 68Z" fill="#f4f4f4"/><path d="M40 68 L50 84 L60 68" fill="none" stroke="#18233f" stroke-width="2.5"/><path d="M60 80 l5 -1 v3 h-5Z" fill="#3d7bff"/>' },
+    magnate: { base: 'traje', tc: '#0d0d12', ad: '<path d="M43 68 L48 92 M57 68 L52 92" stroke="#ffc83d" stroke-width="2.4"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#1a1a1a"/><rect x="60" y="77" width="7" height="3" rx="1" fill="#ffc83d"/><circle cx="50" cy="100" r="1.4" fill="#ffc83d"/><circle cx="50" cy="106" r="1.4" fill="#ffc83d"/>' },
   };
+  for (const [k, C] of Object.entries(CLUBES_PACK)) {
+    VAR_ROPA[`clubCam_${k}`] = { base: 'equipacion', c1: C.c1, c2: C.c2, num: '9' };
+    VAR_ROPA[`clubChaq_${k}`] = { base: 'chaqueta', tc: C.c1, ad: `<path d="M30 84 h40 M30 88 h40" stroke="${C.c2}" stroke-width="2"/><text x="60" y="80" text-anchor="middle" font-size="7">${C.ic}</text>` };
+  }
+  for (const [k, C] of Object.entries(CAMPEON_PACK)) VAR_ROPA[`camp_${k}`] = { base: 'equipacion', c1: C.c1, c2: C.c2, num: '★' };
   const VAR_CABEZA = { gorraPlana: '#2a2d34', gorraDebut: '#1a1640', gorraStreet: '#ff4f8b' };
   const FONDO_ESP = {
     street: '<rect x="-20" y="-30" width="140" height="140" fill="#3b1c6e"/><path d="M-20 70 L120 40 M-20 90 L120 60" stroke="#ff4f8b" stroke-width="8" opacity=".6"/>',
@@ -5419,7 +5469,15 @@ globalThis.P2C = P2C;
     estadio: '<rect x="-20" y="-30" width="140" height="140" fill="#1d3a9e"/><path d="M-20 80 Q50 50 120 80 L120 110 L-20 110Z" fill="#2c3fa8"/><circle cx="2" cy="-4" r="14" fill="#fff" opacity=".35"/><circle cx="98" cy="-4" r="14" fill="#fff" opacity=".35"/>',
     premium: '<defs><linearGradient id="fpPrem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c8901a"/></linearGradient></defs><rect x="-20" y="-30" width="140" height="140" fill="url(#fpPrem)"/><path d="M50 -4 l9 12 -9 12 -9 -12Z" fill="#fff" opacity=".6"/>',
     founder: '<rect x="-20" y="-30" width="140" height="140" fill="#0b1033"/><rect x="-16" y="-26" width="132" height="132" fill="none" stroke="#ffc83d" stroke-width="4"/><path d="M50 -12 l5 11 12 1 -9 8 3 12 -11 -6 -11 6 3 -12 -9 -8 12 -1Z" fill="#ffc83d"/>',
+    vestPro: '<rect x="-20" y="-30" width="140" height="140" fill="#0b1033"/>' + [0, 1, 2, 3, 4].map(i => `<rect x="${-14 + i * 26}" y="-14" width="22" height="84" rx="3" fill="#18245e" stroke="#3d7bff"/><rect x="${-6 + i * 26}" y="-4" width="6" height="2" fill="#ffc83d"/>`).join('') + '<rect x="-20" y="72" width="140" height="8" fill="#8a5a2b"/>',
+    rooftop: '<defs><linearGradient id="fpRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a5c"/><stop offset=".6" stop-color="#ffc83d"/><stop offset="1" stop-color="#ffe7b0"/></linearGradient></defs><rect x="-20" y="-30" width="140" height="140" fill="url(#fpRoof)"/><circle cx="78" cy="10" r="12" fill="#fff4d6"/>'
+      + [[-18, 40, 18], [2, 30, 14], [18, 46, 16], [62, 34, 16], [80, 24, 20], [102, 44, 18]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="80" fill="#6b3a6e" opacity=".75"/>`).join('') + '<path d="M-20 70 h140 M-20 62 h140" stroke="#2a2d34" stroke-width="2"/>' + [-10, 10, 30, 50, 70, 90, 110].map(x => `<path d="M${x} 62 v8" stroke="#2a2d34" stroke-width="2"/>`).join(''),
+    skyline: '<rect x="-20" y="-30" width="140" height="140" fill="#07071a"/><circle cx="16" cy="-6" r="9" fill="#ffc83d" opacity=".9"/>'
+      + [[-18, 30, 16], [0, 4, 14], [16, -14, 12], [30, 18, 14], [46, -24, 12], [60, 8, 16], [78, -6, 14], [94, 22, 16]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="120" fill="#141433" stroke="#ffc83d" stroke-width=".8"/>${[0, 1, 2, 3, 4].map(r => `<rect x="${x + 3}" y="${y + 6 + r * 12}" width="3" height="4" fill="#ffc83d" opacity=".8"/><rect x="${x + w - 6}" y="${y + 10 + r * 12}" width="3" height="4" fill="#ffc83d" opacity=".55"/>`).join('')}`).join('') + '<path d="M52 -24 v-10" stroke="#ffc83d" stroke-width="1.5"/>',
   };
+  for (const [k, C] of Object.entries(CLUBES_PACK)) FONDO_ESP[`club_${k}`] = `<rect x="-20" y="-30" width="140" height="140" fill="${C.c1}"/>` + [-30, -6, 18, 42, 66, 90].map(x => `<path d="M${x} 110 L${x + 40} -30" stroke="${C.c2}" stroke-width="7" opacity=".22"/>`).join('') + `<text x="84" y="6" text-anchor="middle" font-size="22" opacity=".55">${C.ic}</text>`;
+  for (const [k, C] of Object.entries(CAMPEON_PACK)) FONDO_ESP[`camp_${k}`] = `<rect x="-20" y="-30" width="140" height="140" fill="${C.fondo}"/><circle cx="50" cy="30" r="52" fill="${C.c2}" opacity=".12"/>`
+    + '<path d="M36 -16 h28 v8 q0 18 -14 20 q-14 -2 -14 -20Z M46 12 h8 v12 h-8Z M40 24 h20 v6 h-20Z" fill="#ffc83d" opacity=".35"/>' + [[8, -8, '#ff4f8b'], [92, 0, '#7fd8ff'], [16, 30, '#ffc83d'], [86, 40, '#22a35a'], [4, 60, '#ffc83d'], [96, 70, '#ff4f8b']].map(([x, y, c]) => `<rect x="${x}" y="${y}" width="4" height="6" fill="${c}" transform="rotate(30 ${x} ${y})"/>`).join('') + `<text x="50" y="80" text-anchor="middle" font-size="14" opacity=".7">${C.ic}</text>`;
 
   function oscurecer(hex, f) { const n = parseInt(hex.slice(1), 16), c = k => Math.round(((n >> k) & 255) * f); return `rgb(${c(16)},${c(8)},${c(0)})`; }
   function avatarSVG(s, L, modo) {
@@ -5446,7 +5504,9 @@ globalThis.P2C = P2C;
       else h += `<rect x="-20" y="-30" width="140" height="140" fill="${FONDO_LOOK[L.fondo] || FONDO_LOOK.azul}"/>`;
     } else h += `<ellipse cx="50" cy="153" rx="28" ry="4" fill="rgba(0,0,0,.25)"/>`;
     if (L.extra === 'capa') h += `<path d="M31 74 L14 146 L86 146 L69 74Z" fill="#d6283b"/>`;
-    if (L.extra === 'mochila') h += `<rect x="30" y="72" width="40" height="34" rx="8" fill="#3b4a6b"/>`;
+    const mochilaC = L.extra === 'mochila' ? '#3b4a6b' : L.extra === 'mochilaStreet' ? '#ff4f8b' : /^mochila_/.test(L.extra) ? (CLUBES_PACK[L.extra.slice(8)] || {}).c1 : null;
+    const clubX = /^(bufanda|mochila)_/.test(L.extra) ? CLUBES_PACK[L.extra.split('_')[1]] : null, copaX = /^trofeo_/.test(L.extra) ? CAMPEON_PACK[L.extra.slice(7)] : null;
+    if (mochilaC) h += `<rect x="30" y="72" width="40" height="34" rx="8" fill="${mochilaC}"/>`;
     if (L.pelo === 'largo') h += `<path d="M23 40 Q23 12 50 12 Q77 12 77 40 L79 84 Q50 92 21 84Z" fill="${hc}"/>`;
     if (L.pelo === 'afro') h += `<circle cx="50" cy="34" r="33" fill="${hc}"/>`;
     if (L.pelo === 'coleta') h += `<path d="M70 24 Q94 28 86 64 Q80 44 68 36Z" fill="${hc}"/>`;
@@ -5475,23 +5535,35 @@ globalThis.P2C = P2C;
     else if (L.calzado === 'debut') h += zap('#ff4f8b', '<path d="M35 143 h9 M55 143 h9" stroke="#ffc83d" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#1a1640" stroke-width="2"/>');
     else if (L.calzado === 'street') h += zap('#ffc83d', '<path d="M35 143 h10 M54 143 h10" stroke="#1a1640" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#fff"/><rect x="50" y="146" width="19" height="3" fill="#fff"/>');
     else if (L.calzado === 'pro') h += zap('#0b1033', '<path d="M35 143 h9 M55 143 h9" stroke="#3d7bff" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#8b5cf6" stroke-width="2"/>');
+    else if (/^camp_/.test(L.calzado)) { const C = CAMPEON_PACK[L.calzado.slice(5)] || CAMPEON_PACK.copa; h += zap('#ffc83d', `<path d="M35 143 h9 M55 143 h9" stroke="${C.c1}" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="${C.c1}" stroke-width="2"/><circle cx="46" cy="142" r="1.4" fill="#fff"/><circle cx="65" cy="142" r="1.4" fill="#fff"/>`); }
     else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
     const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
     const tc = RV && RV.tc ? RV.tc : L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
-    h += `<rect x="${xa}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/><rect x="${xb - gb}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/>`;
-    // Tatuajes en los brazos (se ven por debajo de la manga, o enteros con tirantes)
+    // Brazos: cada uno en su grupo. La pose los gira desde el hombro; tatuajes, reloj, trofeo y maleta van con su brazo.
     const ca = xa + wa / 2, cb = xb - gb + wa / 2, tat = L.tatuaje;
-    if (tat === 'antebrazo' || tat === 'ambos') h += `<path d="M${ca} 94 l1.6 3.3 3.6 .5 -2.6 2.5 .6 3.6 -3.2 -1.7 -3.2 1.7 .6 -3.6 -2.6 -2.5 3.6 -.5Z" fill="none" stroke="${tinta}" stroke-width="1"/>`;
-    if (tat === 'rosa') h += `<circle cx="${ca}" cy="97" r="2.6" fill="#d6283b" stroke="${tinta}" stroke-width=".8"/><path d="M${ca} 99.5 v6 M${ca} 102 l-2.4 -1.6" stroke="${tinta}" stroke-width="1"/>`;
-    if (tat === 'manga') h += `<path d="M${xa + 1} 78 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 86 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 94 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 102 q${wa / 2} 3 ${wa - 2} 0" stroke="${tinta}" stroke-width="1.6" fill="none" opacity=".85"/><circle cx="${ca}" cy="90" r="2" fill="${tinta}" opacity=".85"/>`;
-    if (tat === 'tribal' || tat === 'ambos') for (const c of tat === 'tribal' ? [ca, cb] : [cb]) h += `<path d="M${c - wa / 2 + .5} 99 h${wa - 1} M${c - wa / 2 + .5} 102 l2 -2 2 2 2 -2 2 2 2 -2" stroke="${tinta}" stroke-width="1.4" fill="none"/>`;
-    if (!sinMangas) h += `<rect x="${xa}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="${xb - gb}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
-    h += `<circle cx="${ca}" cy="110" r="5.5" fill="${sk}"/><circle cx="${cb}" cy="110" r="5.5" fill="${sk}"/>`;
-    if (tat === 'mano') h += `<path d="M${cb} 112.5 l-2.2 -2.2 a1.3 1.3 0 0 1 2.2 -1.3 a1.3 1.3 0 0 1 2.2 1.3Z" fill="${tinta}"/>`;
-    if (L.extra === 'reloj') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/></g>`;
-    if (L.extra === 'relojDep') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/></g>`;
-    if (L.extra === 'relojPro') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/></g>`;
-    if (L.extra === 'relojPremium') h += `<g transform="translate(${xa - 20} 0)"><rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/></g>`;
+    // Pose: [giro del brazo izquierdo, giro del derecho, ¿por delante del cuerpo?]
+    const POSE = { saludo: [0, -128], abiertos: [26, -26], pro: [18, -168], empresario: [-38, 38, true], campeon: [152, -152] }[L.pose] || [0, 0];
+    const recto = (x, y) => (POSE[1] ? ` rotate(${-POSE[1]} ${x} ${y})` : '');   // lo que lleva en la mano se queda derecho
+    const tribal = c => `<path d="M${c - wa / 2 + .5} 99 h${wa - 1} M${c - wa / 2 + .5} 102 l2 -2 2 2 2 -2 2 2 2 -2" stroke="${tinta}" stroke-width="1.4" fill="none"/>`;
+    const manga = x => (sinMangas ? '' : `<rect x="${x}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`);
+    let brL = `<rect x="${xa}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/>`, brR = `<rect x="${xb - gb}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/>`;
+    if (tat === 'antebrazo' || tat === 'ambos') brL += `<path d="M${ca} 94 l1.6 3.3 3.6 .5 -2.6 2.5 .6 3.6 -3.2 -1.7 -3.2 1.7 .6 -3.6 -2.6 -2.5 3.6 -.5Z" fill="none" stroke="${tinta}" stroke-width="1"/>`;
+    if (tat === 'rosa') brL += `<circle cx="${ca}" cy="97" r="2.6" fill="#d6283b" stroke="${tinta}" stroke-width=".8"/><path d="M${ca} 99.5 v6 M${ca} 102 l-2.4 -1.6" stroke="${tinta}" stroke-width="1"/>`;
+    if (tat === 'manga') brL += `<path d="M${xa + 1} 78 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 86 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 94 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 102 q${wa / 2} 3 ${wa - 2} 0" stroke="${tinta}" stroke-width="1.6" fill="none" opacity=".85"/><circle cx="${ca}" cy="90" r="2" fill="${tinta}" opacity=".85"/>`;
+    if (tat === 'tribal') brL += tribal(ca);
+    if (tat === 'tribal' || tat === 'ambos') brR += tribal(cb);
+    brL += manga(xa) + `<circle cx="${ca}" cy="110" r="5.5" fill="${sk}"/>`;
+    brR += manga(xb - gb) + `<circle cx="${cb}" cy="110" r="5.5" fill="${sk}"/>`;
+    if (tat === 'mano') brR += `<path d="M${cb} 112.5 l-2.2 -2.2 a1.3 1.3 0 0 1 2.2 -1.3 a1.3 1.3 0 0 1 2.2 1.3Z" fill="${tinta}"/>`;
+    const reloj = { reloj: '<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/>', relojDep: '<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/>',
+      relojPro: '<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/>',
+      relojPremium: '<rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/>',
+      relojLeg: '<rect x="18.5" y="98.5" width="14" height="8" rx="2.5" fill="#111" stroke="#ffc83d" stroke-width="1.2"/><circle cx="25.5" cy="102.5" r="2.6" fill="#ffc83d"/><path d="M25.5 101 v1.6 l1.2 .8" stroke="#111" stroke-width=".7"/><circle cx="30.5" cy="100" r=".9" fill="#7fd8ff"/>' }[L.extra];
+    if (reloj) brL += `<g transform="translate(${xa - 20} 0)">${reloj}</g>`;
+    if (copaX) brR += `<g transform="translate(${cb} 101)${recto(0, 8)}"><path d="M-7 -12 h14 v4 q0 8 -7 9 q-7 -1 -7 -9Z" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M-7 -10 q-4 0 -4 3 q0 3 4 3 M7 -10 q4 0 4 3 q0 3 -4 3" fill="none" stroke="#ffc83d" stroke-width="1.4"/><rect x="-1.5" y="1" width="3" height="5" fill="#ffc83d"/><rect x="-5" y="6" width="10" height="3.5" rx="1" fill="${copaX.c1}"/><text x="0" y="-4" text-anchor="middle" font-size="5">${copaX.ic}</text></g>`;
+    if (L.extra === 'maletaPro') brR += `<g transform="translate(${cb} 113)${recto(0, -3)}"><path d="M-4 0 v-3 h8 v3" stroke="#222" stroke-width="1.6" fill="none"/><rect x="-11" y="0" width="22" height="13" rx="3" fill="#0b1033"/><path d="M-11 5 h22" stroke="#3d7bff" stroke-width="2"/><path d="M-11 8 h22" stroke="#8b5cf6" stroke-width="1"/></g>`;
+    const gL = POSE[0] ? `<g transform="rotate(${POSE[0]} ${ca} 77)">${brL}</g>` : brL, gR = POSE[1] ? `<g transform="rotate(${POSE[1]} ${cb} 77)">${brR}</g>` : brR;
+    if (!POSE[2]) h += gL + gR;
     h += `<rect x="44" y="58" width="12" height="16" rx="4" fill="${sk}"/>`;
     if (tat === 'cuello') h += `<path d="M53 63 l1 2 2.2 .3 -1.6 1.5 .4 2.2 -2 -1 -2 1 .4 -2.2 -1.6 -1.5 2.2 -.3Z" fill="${tinta}"/>`;
     if (L.ropa === 'sudadera') h += `<path d="M34 72 Q50 56 66 72Z" fill="${rd}"/>`;
@@ -5507,7 +5579,10 @@ globalThis.P2C = P2C;
     if (L.ropa === 'hawaiana') h += `${[[38, 82], [60, 78], [46, 98], [64, 100], [34, 104]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff"/><circle cx="${x}" cy="${y}" r="1.4" fill="#f6c623"/>`).join('')}<path d="M42 68 L50 80 L58 68" fill="none" stroke="#fff" stroke-width="2"/>`;
     if (L.ropa === 'traje') h += `<path d="M43 68 L50 86 L57 68Z" fill="#fff"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#d6283b"/><path d="M43 68 L48 92 M57 68 L52 92" stroke="#444b5c" stroke-width="2"/>`;
     if (RV && RV.ad) h += RV.ad;
-    if (L.extra === 'mochila') h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="#3b4a6b" stroke-width="4"/>`;
+    if (mochilaC) h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="${mochilaC}" stroke-width="4"/>${L.extra === 'mochilaStreet' ? '<circle cx="62" cy="96" r="3" fill="#ffc83d"/>' : clubX ? `<text x="62" y="99" text-anchor="middle" font-size="6">${clubX.ic}</text>` : ''}`;
+    if (/^bufanda_/.test(L.extra) && clubX) h += `<path d="M36 68 Q50 78 64 68 L64 74 Q50 84 36 74Z" fill="${clubX.c2}" stroke="${clubX.c1}" stroke-width="1.2"/><path d="M40 71.5 Q50 78.5 60 71.5" stroke="${clubX.c1}" stroke-width="2" fill="none"/><rect x="56" y="74" width="8" height="22" fill="${clubX.c2}" stroke="${clubX.c1}" stroke-width="1.2"/><path d="M56 80 h8 M56 86 h8 M56 92 h8" stroke="${clubX.c1}" stroke-width="2.4"/><path d="M57 96 v3.5 M60 96 v3.5 M63 96 v3.5" stroke="${clubX.c1}" stroke-width="1.2"/>`;
+    if (L.extra === 'insigniaMag') h += `<circle cx="61" cy="80" r="5.5" fill="#0d0d12" stroke="#ffc83d" stroke-width="1.5"/><path d="M57.5 83 v-4 h1.6 v-2.5 h1.6 v-2 h1.6 v3 h1.6 v5.5Z" fill="#ffc83d"/>`;
+    if (POSE[2]) h += gL + gR;
     if (L.extra === 'cadenaExcl') h += `<path d="M39 70 Q50 92 61 70" fill="none" stroke="#ffc83d" stroke-width="3.5"/><path d="M50 84 l5 6 -5 6 -5 -6Z" fill="#7fd8ff" stroke="#ffc83d" stroke-width="1.2"/>`;
     if (L.extra === 'insignia') h += `<circle cx="61" cy="80" r="5" fill="#1a1640" stroke="#ffc83d" stroke-width="1.5"/><path d="M61 76.5 l1.2 2.5 2.7 .3 -2 1.8 .6 2.7 -2.5 -1.4 -2.5 1.4 .6 -2.7 -2 -1.8 2.7 -.3Z" fill="#ffc83d"/>`;
     if (L.extra === 'cadena') h += `<path d="M41 70 Q50 88 59 70" fill="none" stroke="#f5c518" stroke-width="2.5"/><circle cx="50" cy="83" r="3.2" fill="#f5c518"/>`;
@@ -5584,6 +5659,8 @@ globalThis.P2C = P2C;
     else if (L.gafas === 'sol') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#111"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#111"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#111" stroke-width="2"/><path d="M33 40 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
     else if (L.gafas === 'temporada') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><path d="M47 41 h6" stroke="#d94bff" stroke-width="2"/><path d="M33 40 l5 0 M56 40 l5 0" stroke="#7fd8ff" stroke-width="1.5"/>`;
     else if (L.gafas === 'pro') h += `<path d="M29 38 h18 l-2 9 q-7 3 -14 0Z M53 38 h18 l-2 9 q-7 3 -14 0Z" fill="#3a2d10" stroke="#ffc83d" stroke-width="1.5"/><path d="M47 40 h6" stroke="#ffc83d" stroke-width="1.5"/>`;
+    else if (L.gafas === 'street') h += `<rect x="30" y="37" width="17" height="11" rx="5.5" fill="#ff4f8b" opacity=".85" stroke="#ffc83d" stroke-width="2"/><rect x="53" y="37" width="17" height="11" rx="5.5" fill="#ff4f8b" opacity=".85" stroke="#ffc83d" stroke-width="2"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#ffc83d" stroke-width="2"/>`;
+    else if (L.gafas === 'lux') h += `<path d="M29 38 h18 q0 10 -9 10 q-9 0 -9 -10Z M53 38 h18 q0 10 -9 10 q-9 0 -9 -10Z" fill="#5a3d0a" opacity=".9" stroke="#ffc83d" stroke-width="1.6"/><path d="M47 39 q3 -2 6 0 M29 38 l-4 -1 M71 38 l4 -1" stroke="#ffc83d" stroke-width="1.6" fill="none"/>`;
     else if (L.gafas === 'deportivas') h += `<path d="M26 39 Q50 32 74 39 L72 48 Q50 43 28 48Z" fill="#ff5a1f"/><path d="M30 41 Q50 36 70 41" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/>`;
     else if (L.gafas === 'corazon') { const co = x => `<path d="M${x} 49 l-7 -7 a4 4 0 0 1 7 -4 a4 4 0 0 1 7 4Z" fill="#ff2d6f"/>`; h += co(39) + co(61) + `<path d="M46 42 h8" stroke="#ff2d6f" stroke-width="1.5"/>`; }
     if (L.cabeza === 'gorra') { const g1 = CV || rc, g2 = CV ? oscurecer(CV, 0.7) : rd; h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${g1}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${g2}"/><circle cx="50" cy="10" r="2.5" fill="${g2}"/>${CV === '#1a1640' ? '<path d="M44 24 h12" stroke="#ffc83d" stroke-width="2.5"/>' : ''}`; }
@@ -5592,7 +5669,7 @@ globalThis.P2C = P2C;
     else if (L.cabeza === 'fiesta') h += `<path d="M38 18 L50 -14 L62 18Z" fill="#ff6fb5"/><path d="M41 10 L59 10 M44 2 L56 2" stroke="#f6c623" stroke-width="3"/><circle cx="50" cy="-14" r="4" fill="#f6c623"/>`;
     else if (L.cabeza === 'vaquero') h += `<path d="M32 22 Q32 2 50 5 Q68 2 68 22Z" fill="#8a5a2b"/><ellipse cx="50" cy="22" rx="38" ry="6" fill="#6b4422"/><rect x="32" y="16" width="36" height="4" fill="#2a2d34"/>`;
     else if (L.cabeza === 'corona') h += `<path d="M31 21 L33 1 L42 11 L50 -4 L58 11 L67 1 L69 21Z" fill="#f5c518" stroke="#b08a00" stroke-width="1"/><circle cx="50" cy="15" r="2.5" fill="#e23b3b"/><circle cx="40" cy="16" r="2" fill="#2f6fe0"/><circle cx="60" cy="16" r="2" fill="#22a35a"/>`;
-    if (L.extra === 'auriculares') h += `<path d="M23 42 Q23 7 50 7 Q77 7 77 42" fill="none" stroke="#2a2d34" stroke-width="5"/><rect x="17" y="35" width="10" height="16" rx="4" fill="${rc}"/><rect x="73" y="35" width="10" height="16" rx="4" fill="${rc}"/>`;
+    if (L.extra === 'auriculares' || L.extra === 'auriPro') { const pro = L.extra === 'auriPro', ac = pro ? '#0b1033' : rc; h += `<path d="M23 42 Q23 7 50 7 Q77 7 77 42" fill="none" stroke="${pro ? '#ffc83d' : '#2a2d34'}" stroke-width="5"/><rect x="17" y="35" width="10" height="16" rx="4" fill="${ac}"/><rect x="73" y="35" width="10" height="16" rx="4" fill="${ac}"/>${pro ? '<circle cx="22" cy="43" r="2.2" fill="#3d7bff"/><circle cx="78" cy="43" r="2.2" fill="#3d7bff"/>' : ''}`; }
     return `<svg viewBox="${VISTA_LOOK[modo] || VISTA_LOOK.cuerpo}" class="avatar" aria-hidden="true">${h}</svg>`;
   }
 
@@ -6175,7 +6252,7 @@ globalThis.P2C = P2C;
     { id: 'luxury', ic: '💎', nombre: 'Pack Luxury', precio: 3.99, categoria: 'cosmetico', momentoOferta: 'empresa', unaVez: true, rareza: 'legendario',
       descripcion: 'Para quien ya tiene empresa. El coche se sigue ganando jugando: esto solo cambia su aspecto.',
       contenido: [['ropa', 'trajeLux', '🤵 Traje exclusivo'], ['extra', 'relojPremium', '⌚ Reloj premium (visual)'], ['extra', 'cadenaExcl', '📿 Cadena exclusiva'], ['fondo', 'premium', '✨ Fondo premium'],
-        { tipo: 'skin', vehiculo: 'deportivo', skin: 'negra', t: '🏎️ Aspecto «Negro mate» para tu deportivo (si lo tienes)' }, { tipo: 'texto', t: '🏠 Decoración de casa (próximamente)' }] },
+        { tipo: 'skin', vehiculo: 'deportivo', skin: 'negra', t: '🏎️ Aspecto «Negro mate» para tu deportivo (si lo tienes)' }, { tipo: 'texto', t: '🏠 Decoración de casa y de despacho' }] },
     { id: 'founder', ic: '⭐', nombre: 'Founder Pack', precio: 4.99, categoria: 'apoyo', momentoOferta: 'rentable', unaVez: true, rareza: 'legendario',
       descripcion: 'Para quien quiere apoyar el juego. Sin ventaja competitiva.',
       contenido: [{ tipo: 'sinAnuncios', t: '🚫 Sin anuncios obligatorios' }, ['extra', 'insignia', '⭐ Insignia Founder'], ['ropa', 'founder', '👕 Outfit Founder'], ['fondo', 'founder', '🖼️ Fondo exclusivo'],
@@ -6189,8 +6266,7 @@ globalThis.P2C = P2C;
   ];
   // Deportes futuros: solo para medir interés en el informe. No se venden en P2.4
   const DEPORTES_FUTUROS = [{ id: 'escalada', ic: '🧗', n: 'Escalada' }, { id: 'tenis', ic: '🎾', n: 'Tenis' }, { id: 'basket', ic: '🏀', n: 'Basket' }, { id: 'surf', ic: '🏄', n: 'Surf' }, { id: 'skate', ic: '🛹', n: 'Skate' }];
-  // Aspectos de vehículo (preparado; en P2.4 solo el del Pack Luxury, de prueba)
-  const SKINS_VEHICULO = { deportivo: [{ id: 'normal', n: 'De serie', c: '#e23b3b' }, { id: 'negra', n: 'Negro mate', c: '#1b1b22', premium: 'luxury' }] };
+  // Aspectos de vehículo y decoración: ver 19_packs.js
 
   // ---------- Estado ----------
   const nuevoMon = () => ({ ultimo: {}, cupon: null, oferta: null, pend: null, seq: 0, momentos: [], iapVisto: {}, ultimaOfertaIap: null,
@@ -6372,7 +6448,7 @@ globalThis.P2C = P2C;
   function intersticialMostrado(s) { const m = M(s), k = m.intersticialPend; if (!k) return; m.intersticialPend = null; m.intersticialMs = (s.tele && s.tele.msActivo) || 0; teleMon(s, 'interstitial_shown', { momento: k }); }
   function intersticialContinuar(s) { teleMon(s, 'interstitial_continue', {}); }
 
-  Object.assign(P2, { MONETIZATION, REWARDED, IAP_PRODUCTS, DEPORTES_FUTUROS, SKINS_VEHICULO, nuevoMon, asignarVariante, iapEnVariante, teleMon, vistoMon,
+  Object.assign(P2, { MONETIZATION, REWARDED, IAP_PRODUCTS, DEPORTES_FUTUROS, nuevoMon, asignarVariante, iapEnVariante, teleMon, vistoMon,
     descuentoCupon, cuponVigente, ofertaVigente, precioConDescuento, usarDescuento, candidatosOferta,
     bloqueoRewarded, pedirRewarded, cancelarRewarded, aceptarRewarded, ofrecidoRewarded, bonusOffline,
     momentoNegativo, momentoMon, ofertaIapAhora, marcarIapMostrado, iapMostrado, iapClic, iapIntencion,
@@ -6776,7 +6852,7 @@ globalThis.P2C = P2C;
         const m = mj(s), gana = m && m.tipo === 'final' ? m.p >= 0.6 : azar(s, `${c.id}|final|${T.num}`) < prob(s);
         c.estado = gana ? 'campeon' : 'subcampeon';
         aplicar(s, gana ? C.gana : C.pierde);
-        if (gana) { (s.trofeos = s.trofeos || []).push({ id: c.id, ic: C.ic, n: C.n, semana: s.semana }); P2.celebrar(s, Object.assign({ tipo: 'titulo', n: C.n, ic: C.ic }, C.gana)); }
+        if (gana) { (s.trofeos = s.trofeos || []).push({ id: c.id, ic: C.ic, n: C.n, semana: s.semana }); P2.celebrar(s, Object.assign({ tipo: 'titulo', comp: c.id, n: C.n, ic: C.ic }, C.gana)); }
         R.grandes = (R.grandes || []).concat({ ic: gana ? C.ic : '😖', titulo: gana ? `¡CAMPEONES DE LA ${C.n.toUpperCase()}!` : `Final perdida: ${C.n}`, bien: gana,
           texto: gana ? `${efectoTxt(C.gana)}.` : `Subcampeones. ${efectoTxt(C.pierde)}. La prensa no habla de otra cosa.` });
         R.lineas.push([gana ? C.ic : '😖', gana ? `¡Ganáis la final de la ${C.n}!` : `Perdéis la final de la ${C.n}.`, gana ? 'bien' : 'mal']);
@@ -6839,7 +6915,7 @@ globalThis.P2C = P2C;
     R.lineas.push([X.ic, `${X.n}: ${gana ? '¡la ganáis!' : 'la perdéis.'}`, gana ? 'bien' : 'mal']);
     if (pr.clase === 'titulo') {
       aplicar(s, gana ? { dinero: 1500, rep: 4, marca: 3, confianza: 6 } : { rep: 1, confianza: -3 });
-      if (gana) { (s.trofeos = s.trofeos || []).push({ id: 'liga', ic: '👑', n: `Liga · ${LIGAS[T.liga].corto}`, semana: s.semana }); P2.celebrar(s, { tipo: 'titulo', n: `Liga · ${LIGAS[T.liga].n}`, ic: '👑', dinero: 1500, rep: 4, marca: 3 }); }
+      if (gana) { (s.trofeos = s.trofeos || []).push({ id: 'liga', ic: '👑', n: `Liga · ${LIGAS[T.liga].corto}`, semana: s.semana }); P2.celebrar(s, { tipo: 'titulo', comp: 'liga', n: `Liga · ${LIGAS[T.liga].n}`, ic: '👑', dinero: 1500, rep: 4, marca: 3 }); }
       R.grandes = (R.grandes || []).concat({ ic: gana ? '👑' : '🥈', titulo: gana ? '¡CAMPEONES DE LIGA!' : 'Subcampeones de liga', bien: gana, texto: gana ? '+1.500 €, +4 reputación, +3 marca. Y la temporada que viene, Copa de Europa.' : 'Tan cerca… Aun así, la temporada que viene jugáis la Copa de Europa.' });
     } else if (pr.clase === 'ascenso' && !gana) { aplicar(s, { rep: -1, confianza: -5 }); R.grandes = (R.grandes || []).concat({ ic: '😖', titulo: 'Os quedáis a las puertas', bien: false, texto: 'Perdéis la promoción: seguís en la misma categoría. −5 de confianza del míster.' }); }
     else if (pr.clase === 'ascenso' && gana) R.grandes = (R.grandes || []).concat({ ic: '🎉', titulo: '¡ASCENSO!', bien: true, texto: `Ganáis la promoción: la temporada que viene jugáis en ${LIGAS[LIGAS[T.liga].sube].n}.` });
@@ -6878,6 +6954,92 @@ globalThis.P2C = P2C;
   }
 
   Object.assign(P2, { iniciarPromocion, promoPendiente, enJuego, COMPETICIONES, CONVOCATORIA, TXT_PROMO, prepararCopas, semanaCopas, clasePromocion, jugarPromocion, ajustarMovimiento, trasTemporada, finalEstaSemana });
+})(globalThis.P2 = globalThis.P2 || {});
+
+// ===== 19_packs.js =====
+/* =====================================================================
+   19 · PACKS: qué trae cada pack (ropa, poses, aspecto de vehículos, decoración de casa y despacho, insignias
+   y vitrina). SOLO aspecto: nada de esto toca nivel, reputación, marca, dinero ni resultados.
+   Quien decide si lo tienes es la CUENTA (P2.premiumOk → entitlements del servidor), nunca la partida.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const ok = k => P2.premiumOk(k);
+  const CL = P2.CLUBES_PACK, CP = P2.CAMPEON_PACK;
+
+  // ---------- Aspecto de los vehículos (se ganan jugando; el pack solo cambia el color) ----------
+  const SKINS_VEHICULO = {
+    bici: [{ id: 'normal', n: 'De serie', c: '#3d7bff' }, { id: 'street', n: 'Street (rosa y amarillo)', c: '#ff4f8b', f: '#ffc83d', premium: 'street' }],
+    moto: [{ id: 'normal', n: 'De serie', c: '#ff4f8b' }],
+    cocheUsado: [{ id: 'normal', n: 'De serie', c: '#8fa3c7' }, { id: 'pro', n: 'Pro (azul con franjas)', c: '#14206b', f: '#3d7bff', premium: 'pro' },
+      { id: 'negra', n: 'Negro mate Luxury', c: '#1b1b22', f: '#ffc83d', premium: 'luxury' }],
+    deportivo: [{ id: 'normal', n: 'De serie', c: '#e23b3b' }, { id: 'pro', n: 'Pro (azul con franjas)', c: '#14206b', f: '#3d7bff', premium: 'pro' },
+      { id: 'negra', n: 'Negro mate Luxury', c: '#1b1b22', f: '#ffc83d', premium: 'luxury' }, { id: 'oro', n: 'Oro Magnate', c: '#ffc83d', f: '#111111', premium: 'magnate' }],
+    superdeportivo: [{ id: 'normal', n: 'De serie', c: '#ffc83d' }, { id: 'oro', n: 'Negro y oro Magnate', c: '#0d0d12', f: '#ffc83d', premium: 'magnate' }],
+  };
+  const skinDe = (veh, id) => (SKINS_VEHICULO[veh] || []).find(k => k.id === id) || null;
+  function bloqueoSkin(veh, id) { const k = skinDe(veh, id); if (!k) return 'No existe'; return !k.premium || ok(k.premium) ? null : `💎 ${P2.PACK_NOMBRE[k.premium]} (Premium)`; }
+  function ponerSkin(s, uid, id) {
+    const it = (s.inventario || []).find(x => x.uid === uid); if (!it || bloqueoSkin(it.id, id)) return false;
+    it.skin = id === 'normal' ? undefined : id; return true;
+  }
+
+  // ---------- Decoración (casa y despacho) ----------
+  const DECOR = {
+    casa: [{ id: 'nada', n: 'Como está' }, { id: 'plantas', n: 'Plantas y cojines' }, { id: 'lujo', n: 'Decoración Luxury', premium: 'luxury' },
+      { id: 'mansion', n: 'Decoración de mansión', premium: 'magnate' }, { id: 'founder', n: 'Placa conmemorativa Founder', premium: 'founder' }]
+      .concat(Object.entries(CL).map(([k, C]) => ({ id: `club_${k}`, n: `Rincón ${C.n}`, premium: `club_${k}` })),
+        Object.entries(CP).map(([k, C]) => ({ id: `trofeo_${k}`, n: `Réplica del trofeo · ${C.n}`, premium: `champ_${k}` }))),
+    despacho: [{ id: 'nada', n: 'Básico' }, { id: 'plantas', n: 'Con plantas' }, { id: 'lujo', n: 'Despacho Luxury', premium: 'luxury' }, { id: 'magnate', n: 'Despacho premium Magnate', premium: 'magnate' }],
+  };
+  const decoDe = (tipo, id) => (DECOR[tipo] || []).find(d => d.id === id) || null;
+  function bloqueoDeco(tipo, id) { const d = decoDe(tipo, id); if (!d) return 'No existe'; return !d.premium || ok(d.premium) ? null : `💎 ${P2.PACK_NOMBRE[d.premium]} (Premium)`; }
+  function deco(s) { const d = s.deco && typeof s.deco === 'object' ? s.deco : (s.deco = {}); if (!decoDe('casa', d.casa)) d.casa = 'nada'; if (!decoDe('despacho', d.despacho)) d.despacho = 'nada'; return d; }
+  function ponerDeco(s, tipo, id) { if (bloqueoDeco(tipo, id)) return false; deco(s)[tipo] = id; return true; }
+
+  // ---------- Qué trae cada pack (por SKU del catálogo) ----------
+  // equipar: lo que se pone al comprarlo · skins: [vehículo, aspecto] · deco: [casa|despacho, id]
+  const PACKS = {
+    pack_debut: { equipar: [['ropa', 'debut'], ['calzado', 'debut'], ['cabeza', 'gorraDebut'], ['fondo', 'debut']] },
+    pack_street: { equipar: [['ropa', 'street'], ['pantalon', 'street'], ['calzado', 'street'], ['cabeza', 'gorraStreet'], ['gafas', 'street'], ['extra', 'mochilaStreet'], ['fondo', 'urbano'], ['pose', 'saludo']],
+      skins: [['bici', 'street']] },
+    pack_pro: { equipar: [['ropa', 'pro'], ['calzado', 'pro'], ['extra', 'maletaPro'], ['fondo', 'vestPro'], ['pose', 'pro']], tambien: [['ropa', 'casualPro'], ['extra', 'relojPro'], ['extra', 'auriPro'], ['fondo', 'estadio'], ['gafas', 'pro'], ['pelo', 'degradado']],
+      skins: [['cocheUsado', 'pro'], ['deportivo', 'pro']] },
+    pack_luxury: { equipar: [['ropa', 'trajeLux'], ['pantalon', 'traje'], ['calzado', 'zapatos'], ['gafas', 'lux'], ['extra', 'relojPremium'], ['fondo', 'rooftop'], ['pose', 'empresario']], tambien: [['extra', 'cadenaExcl'], ['fondo', 'premium']],
+      skins: [['cocheUsado', 'negra'], ['deportivo', 'negra']], deco: [['casa', 'lujo'], ['despacho', 'lujo']] },
+    pack_magnate: { equipar: [['ropa', 'magnate'], ['pantalon', 'traje'], ['calzado', 'zapatos'], ['extra', 'relojLeg'], ['fondo', 'skyline']], tambien: [['extra', 'insigniaMag']],
+      skins: [['deportivo', 'oro'], ['superdeportivo', 'oro']], deco: [['casa', 'mansion'], ['despacho', 'magnate']] },
+    founder_pack: { equipar: [['ropa', 'founder'], ['extra', 'insignia'], ['fondo', 'founder']], deco: [['casa', 'founder']] },
+  };
+  for (const k of Object.keys(CL)) PACKS[`club_pack_${k}`] = { equipar: [['ropa', `clubCam_${k}`], ['extra', `bufanda_${k}`], ['fondo', `club_${k}`]], tambien: [['ropa', `clubChaq_${k}`], ['extra', `mochila_${k}`]], deco: [['casa', `club_${k}`]] };
+  for (const k of Object.keys(CP)) PACKS[`champion_pack_${k}`] = { equipar: [['ropa', `camp_${k}`], ['calzado', `camp_${k}`], ['extra', `trofeo_${k}`], ['fondo', `camp_${k}`], ['pose', 'campeon']], deco: [['casa', `trofeo_${k}`]] };
+
+  // Insignias (junto a tu semana) y vitrina (en «Mi historia»): se ven si la cuenta tiene el pack
+  const INSIGNIAS = [['founder', '🏅', 'Founder'], ['magnate', '🏙️', 'Magnate'], ['debut', '🌟', 'Debut']]
+    .concat(Object.entries(CP).map(([k, C]) => [`champ_${k}`, C.ic, `Campeón · ${C.n}`]));
+  const VITRINA = [['debut', '⚽', 'Balón firmado de tu debut'], ['founder', '🏛️', 'Placa conmemorativa Founder'], ['magnate', '🗝️', 'Llave de oro de la ciudad']]
+    .concat(Object.entries(CL).map(([k, C]) => [`club_${k}`, C.ic, `Camiseta firmada y enmarcada de ${C.n}`]), Object.entries(CP).map(([k, C]) => [`champ_${k}`, C.ic, `Réplica del trofeo · ${C.n}`]));
+
+  // Al comprar: te pone lo principal del pack, y el aspecto/decoración donde ya tengas el vehículo o la casa
+  function equiparPack(s, sku) {
+    const K = PACKS[sku]; if (!K || !s) return false;
+    for (const [cap, id] of K.equipar || []) P2.ponerLook(s, cap, id);
+    for (const [veh, sk] of K.skins || []) for (const it of (s.inventario || []).filter(x => x.id === veh)) ponerSkin(s, it.uid, sk);
+    for (const [tipo, id] of K.deco || []) ponerDeco(s, tipo, id);
+    return true;
+  }
+  // Si la cuenta ya no tiene un pack (reembolso, otra cuenta): lo que llevabas de ese pack vuelve a lo básico.
+  // Nunca toca nada más de la partida.
+  function limpiarPremium(s) {
+    if (!s) return;
+    if (s.look) for (const [cap] of P2.CAPAS_LOOK) { const it = P2.itemLook(cap, s.look[cap]); if (it && P2.bloqueoLook(s, it, cap)) s.look[cap] = P2.LOOK_INICIAL[cap]; }
+    for (const it of s.inventario || []) if (it.skin && bloqueoSkin(it.id, it.skin)) it.skin = undefined;
+    const d = deco(s); for (const t of ['casa', 'despacho']) if (bloqueoDeco(t, d[t])) d[t] = 'nada';
+  }
+  // Lo que aparece en la ficha del producto para ver cómo queda ANTES de pagar
+  function lookPack(s, sku) { const K = PACKS[sku], L = Object.assign({}, P2.LOOK_INICIAL, (s && s.look) || {}); if (K) for (const [cap, id] of K.equipar || []) L[cap] = id; return L; }
+
+  Object.assign(P2, { SKINS_VEHICULO, DECOR, PACKS, INSIGNIAS_PACK: INSIGNIAS, VITRINA_PACK: VITRINA, skinDe, bloqueoSkin, ponerSkin, decoDe, bloqueoDeco, ponerDeco, deco, equiparPack, limpiarPremium, lookPack });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 20_ui.js =====
@@ -6947,13 +7109,39 @@ globalThis.P2C = P2C;
   }
 
   // ---------- Tu casa y tu vehículo (se ven: «ahora tengo esto») ----------
-  function casaSVG(id) {
+  // Decoración encima de cualquier vivienda (solo aspecto)
+  function decoCasaSVG(d) {
+    if (!d || d === 'nada') return '';
+    if (d === 'plantas') return '<rect x="4" y="96" width="12" height="12" rx="2" fill="#8a5a2b"/><path d="M10 96 q-8 -14 -2 -22 q4 8 2 22 q2 -16 10 -18 q-2 12 -10 18" fill="#22a35a"/><ellipse cx="40" cy="104" rx="12" ry="4" fill="#ff8a2a"/><ellipse cx="54" cy="104" rx="10" ry="4" fill="#ffc83d"/>';
+    if (d === 'lujo') return '<rect x="40" y="10" width="34" height="24" fill="#2b1f4f" stroke="#ffc83d" stroke-width="3"/><path d="M44 30 l9 -12 7 8 5 -5 6 9Z" fill="#7fd8ff"/><ellipse cx="60" cy="112" rx="40" ry="6" fill="#7b1e3a" opacity=".85"/><path d="M8 70 h10 l-3 10 h-4Z" fill="#ffc83d"/><rect x="12" y="80" width="2" height="26" fill="#c8901a"/><circle cx="13" cy="70" r="9" fill="#ffc83d" opacity=".25"/>';
+    if (d === 'mansion') return '<path d="M60 0 v8" stroke="#c8901a" stroke-width="2"/><path d="M44 14 q16 10 32 0 l-4 6 q-12 6 -24 0Z" fill="#ffc83d"/>' + [46, 53, 60, 67, 74].map(x => `<circle cx="${x}" cy="22" r="1.8" fill="#fff8d6"/>`).join('') + '<circle cx="60" cy="16" r="18" fill="#ffc83d" opacity=".18"/><rect x="6" y="14" width="22" height="30" fill="#5b2bb5" stroke="#ffc83d" stroke-width="3"/><rect x="92" y="14" width="22" height="30" fill="#14206b" stroke="#ffc83d" stroke-width="3"/><path d="M30 120 L40 92 h40 L90 120Z" fill="#a3122a" opacity=".85"/><path d="M40 92 h40" stroke="#ffc83d" stroke-width="2"/>';
+    if (d === 'founder') return '<rect x="44" y="12" width="32" height="22" rx="2" fill="#0b1033" stroke="#ffc83d" stroke-width="2.5"/><path d="M60 15 l2.5 5 5.5 .8 -4 3.8 1 5.4 -5 -2.6 -5 2.6 1 -5.4 -4 -3.8 5.5 -.8Z" fill="#ffc83d"/>';
+    const club = /^club_/.test(d) && P2.CLUBES_PACK[d.slice(5)];
+    if (club) return `<path d="M8 12 h34 l-17 22Z" fill="${club.c1}" stroke="${club.c2}" stroke-width="2"/><text x="25" y="23" text-anchor="middle" font-size="9">${club.ic}</text><path d="M80 10 q14 6 28 0 v6 q-14 6 -28 0Z" fill="${club.c1}"/><path d="M86 12 v6 M94 13 v6 M102 12 v6" stroke="${club.c2}" stroke-width="2"/><rect x="88" y="60" width="22" height="26" rx="2" fill="#fff" stroke="${club.c1}" stroke-width="2"/><text x="99" y="78" text-anchor="middle" font-size="11" font-weight="900" fill="${club.c1}">9</text>`;
+    const copa = /^trofeo_/.test(d) && P2.CAMPEON_PACK[d.slice(7)];
+    if (copa) return `<rect x="78" y="58" width="38" height="4" fill="#8a5a2b"/><path d="M88 34 h18 v5 q0 12 -9 13 q-9 -1 -9 -13Z" fill="#ffc83d" stroke="#c8901a"/><rect x="95.5" y="52" width="3" height="3" fill="#ffc83d"/><rect x="91" y="55" width="12" height="3" fill="${copa.c1}"/><circle cx="97" cy="44" r="18" fill="#ffc83d" opacity=".15"/>`;
+    return '';
+  }
+  // Tu despacho (cuando tienes empresa) con su decoración
+  function despachoSVG(d) {
+    let x = '<rect width="160" height="90" fill="#e9e4ff"/><rect y="70" width="160" height="20" fill="#b9a98f"/><rect x="96" y="10" width="54" height="36" fill="#bfe0ff" stroke="#fff" stroke-width="3"/><path d="M123 10 v36 M96 28 h54" stroke="#fff" stroke-width="2"/>';
+    if (d === 'magnate') x = '<rect width="160" height="90" fill="#0d0d12"/><rect y="70" width="160" height="20" fill="#2a1a10"/><rect x="8" y="6" width="144" height="52" fill="#07071a" stroke="#ffc83d" stroke-width="2"/>' + [[12, 26], [24, 14], [36, 30], [50, 10], [64, 24], [80, 16], [96, 28], [110, 12], [126, 22], [138, 30]].map(([a, b]) => `<rect x="${a}" y="${b}" width="11" height="${58 - b}" fill="#141433" stroke="#ffc83d" stroke-width=".6"/><rect x="${a + 3}" y="${b + 4}" width="2" height="3" fill="#ffc83d"/>`).join('');
+    if (d === 'lujo') x += '<rect x="12" y="10" width="34" height="24" fill="#2b1f4f" stroke="#ffc83d" stroke-width="3"/><path d="M16 30 l9 -12 7 8 5 -5 6 9Z" fill="#7fd8ff"/><ellipse cx="80" cy="84" rx="50" ry="5" fill="#7b1e3a" opacity=".8"/>';
+    if (d === 'plantas' || d === 'lujo') x += '<rect x="6" y="56" width="12" height="14" rx="2" fill="#8a5a2b"/><path d="M12 56 q-8 -14 -2 -22 q4 8 2 22 q2 -16 10 -18 q-2 12 -10 18" fill="#22a35a"/>';
+    const mesa = d === 'magnate' ? '#ffc83d' : d === 'lujo' ? '#5b3a1e' : '#c8b38f';
+    x += `<rect x="40" y="52" width="80" height="8" rx="2" fill="${mesa}"/><rect x="44" y="60" width="6" height="14" fill="${mesa}"/><rect x="110" y="60" width="6" height="14" fill="${mesa}"/><rect x="66" y="40" width="22" height="13" rx="2" fill="#1a1640"/><rect x="68" y="42" width="18" height="9" fill="#7fd8ff"/>`;
+    x += `<path d="M126 44 h12 v22 h-12Z" fill="${d === 'magnate' ? '#111' : d === 'lujo' ? '#4b1f7a' : '#3b4a6b'}"/><rect x="124" y="64" width="16" height="4" rx="2" fill="#222"/>`;
+    if (d === 'magnate') x += '<circle cx="50" cy="44" r="7" fill="#3d7bff" stroke="#ffc83d" stroke-width="1.5"/><path d="M43 44 h14 M50 37 q4 7 0 14 q-4 -7 0 -14" stroke="#ffc83d" stroke-width=".8" fill="none"/><rect x="48" y="51" width="4" height="2" fill="#ffc83d"/>';
+    if (d === 'lujo') x += '<path d="M100 44 h8 l-2 8 h-4Z" fill="#ffc83d"/><circle cx="104" cy="44" r="7" fill="#ffc83d" opacity=".25"/>';
+    return `<svg viewBox="0 0 160 90" aria-hidden="true">${x}</svg>`;
+  }
+  function casaSVG(id, d) {
     const v = id || 'habitacion';
     let x = '';
     if (v === 'habitacion') x = `<rect width="120" height="120" fill="#6d5ccf"/><rect y="88" width="120" height="32" fill="#4a3a9e"/><rect x="12" y="18" width="26" height="34" rx="2" fill="#ffc83d" opacity=".85"/><path d="M16 46 l8 -12 6 8 4 -5 4 9Z" fill="#ff4f8b"/><rect x="70" y="70" width="46" height="22" rx="4" fill="#8fb4ff"/><rect x="72" y="62" width="14" height="10" rx="3" fill="#fff"/>`;
     else if (v === 'piso') x = `<rect width="120" height="120" fill="#2c3fa8"/><rect y="90" width="120" height="30" fill="#1b2a7a"/><rect x="62" y="14" width="46" height="44" rx="3" fill="#0b1033" stroke="#cfd8ff" stroke-width="3"/>${[[66, 30, 8, 28], [78, 22, 9, 36], [92, 34, 10, 24]].map(([a, b, w, h]) => `<rect x="${a}" y="${b}" width="${w}" height="${h}" fill="#3b2a9e"/><rect x="${a + 2}" y="${b + 4}" width="3" height="3" fill="#ffd66b"/>`).join('')}<rect x="8" y="74" width="44" height="18" rx="6" fill="#ff7aa8"/><rect x="14" y="66" width="12" height="10" rx="3" fill="#ffc0d6"/>`;
     else if (v === 'casaPremium') x = `<rect width="120" height="120" fill="#7fd8ff"/><circle cx="96" cy="20" r="10" fill="#ffc83d"/><rect y="86" width="120" height="34" fill="#5b7dff"/><rect x="8" y="94" width="50" height="12" rx="6" fill="#bff3ff"/><rect x="62" y="44" width="52" height="44" fill="#fff"/><path d="M58 46 L88 24 L118 46Z" fill="#1a1640"/><rect x="72" y="58" width="12" height="12" fill="#7fd8ff"/><rect x="92" y="58" width="12" height="12" fill="#7fd8ff"/>`;
-    return `<svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${x}</svg>`;
+    return `<svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${x}${decoCasaSVG(d)}</svg>`;
   }
   function vehiculoSVG(id, skin) {
     const S = (P2.SKINS_VEHICULO[id] || []).find(k => k.id === skin), c = S ? S.c : { bici: '#3d7bff', moto: '#ff4f8b', cocheUsado: '#8fa3c7', deportivo: '#e23b3b', superdeportivo: '#ffc83d' }[id] || '#8fa3c7';
@@ -6963,13 +7151,16 @@ globalThis.P2C = P2C;
     else if (id === 'moto') x = `${rueda(22, 11)}${rueda(80, 11)}<path d="M22 48 L40 30 L68 30 L80 48 Z" fill="${c}"/><rect x="44" y="22" width="20" height="8" rx="4" fill="#1a1640"/><path d="M68 30 L76 18 h6" stroke="#cfd3e6" stroke-width="3" fill="none"/>`;
     else if (id === 'deportivo' || id === 'superdeportivo') x = `<path d="M4 46 Q6 34 24 32 L40 22 Q56 18 70 24 L88 32 Q98 34 98 46Z" fill="${c}"/><path d="M42 26 Q56 21 68 26 L74 32 L38 32Z" fill="#7fd8ff" opacity=".85"/>${rueda(24)}${rueda(78)}${id === 'superdeportivo' ? '<path d="M2 30 h14" stroke="#1a1640" stroke-width="4"/>' : ''}`;
     else x = `<path d="M6 46 L8 30 Q10 26 18 26 L30 14 L70 14 L82 26 Q94 28 94 36 L94 46Z" fill="${c}"/><path d="M34 18 L48 18 L48 26 L26 26Z M52 18 L68 18 L78 26 L52 26Z" fill="#bfe9ff"/>${rueda(26)}${rueda(74)}`;
+    // Aspecto de pack: franjas del segundo color
+    if (S && S.f) x += id === 'bici' ? `<path d="M42 26 L66 26" stroke="${S.f}" stroke-width="4" stroke-linecap="round"/><circle cx="22" cy="48" r="4" fill="${S.f}"/><circle cx="78" cy="48" r="4" fill="${S.f}"/>`
+      : id === 'moto' ? `<path d="M40 36 H70" stroke="${S.f}" stroke-width="3"/>` : `<path d="M${id === 'cocheUsado' ? 10 : 8} 40 H92" stroke="${S.f}" stroke-width="3"/><path d="M${id === 'cocheUsado' ? 10 : 8} 44 H92" stroke="${S.f}" stroke-width="1.2"/>`;
     return `<svg viewBox="0 0 100 60" aria-hidden="true">${x}</svg>`;
   }
   const vivienda = s => (P2.equipado(s, 'vivienda') || { id: 'habitacion' }).id;
   const vehiculo = s => { const P = P2.equipado(s, 'vehiculo'); if (!P) return null; const it = (s.inventario || []).find(i => i.id === P.id); return { P, skin: it && it.skin }; };
   function escena(s, grande) {
     const V = vehiculo(s);
-    return `<div class="escenaCasa ${grande ? 'grande' : ''}">${casaSVG(vivienda(s))}<div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
+    return `<div class="escenaCasa ${grande ? 'grande' : ''}">${casaSVG(vivienda(s), P2.deco(s).casa)}<div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
   }
 
   // ---------- Cabecera y navegación ----------
@@ -7052,7 +7243,7 @@ globalThis.P2C = P2C;
       ${donde === 'momento' ? '<button class="btn w full" data-act="iapNo">No, gracias</button>' : ''}</div>`;
   }
   // Cómo te quedaría el pack (vista previa)
-  function lookPack(s, I) { const L = Object.assign({}, s.look); for (const c of I.contenido) if (Array.isArray(c)) L[c[0]] = c[1]; return L; }
+  function lookPack(s, I) { if (P2.PACKS[OLD_IAP[I.id]]) return P2.lookPack(s, OLD_IAP[I.id]); const L = Object.assign({}, s.look); for (const c of I.contenido) if (Array.isArray(c)) L[c[0]] = c[1]; return L; }
   function rwBtn(s, tipo, data, texto) {
     const lim = (ui.rwSesion || 0) >= P2.MONETIZATION.limitesSesion.rewarded, b = P2.bloqueoRewarded(s, tipo, data);
     if (!b) P2.ofrecidoRewarded(s, tipo, data);
@@ -7191,6 +7382,7 @@ globalThis.P2C = P2C;
       h += `<div class="card"><h3>🤝 Tu parte de la cafetería</h3>${p.vendida ? `<p class="small">La vendiste por ${eur(p.precioVenta)}. Cobraste ${eur(p.dividendos)} en dividendos.</p>` :
         `${kv('Vale ahora', eur(p.valor))}${kv('Has puesto', eur(p.aportado))}${kv('Dividendos cobrados', eur(p.dividendos))}${kv('Cómo va', `${E.ic || ''} ${esc(E.n || '—')}`)}${kv('Próximas noticias', `semana ${p.proximo}`)}
         <p class="small">No la gestionas. Cada ${P2.SOCIO.trimestre} semanas llega el resultado: puede haber dividendo, no haberlo, perder valor o pedirte más capital.</p>`}</div>`; }
+    if (s.negocios.length) h += `<div class="sec"><span>🪑 Tu despacho</span><span>solo aspecto</span></div><div class="card despacho"><div class="despSvg">${despachoSVG(P2.deco(s).despacho)}</div>${htmlDeco(s, 'despacho')}</div>`;
     return h;
   }
   function htmlNegocio(s, n) {
@@ -7391,7 +7583,15 @@ globalThis.P2C = P2C;
       ${pat.length ? `<div class="sec"><span>Posesiones</span></div><div class="card">${pat.map(it => { const P = P2.producto(it.id); return kv(`${P.ic} ${esc(P.n)}`, `${eur(it.precioCompra)} → <span class="oro2">${eur(it.valorActual)}</span>`); }).join('')}</div>` : ''}
       <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>
       ${htmlGaraje(s)}
-      <div class="sec"><span>🏠 Tu casa</span></div><div class="card casaCard">${escena(s, true)}<p class="small">${esc((P2.equipado(s, 'vivienda') || {}).n || '')}. Decoración: próximamente.</p></div>`;
+      <div class="sec"><span>🏠 Tu casa</span></div><div class="card casaCard">${escena(s, true)}<p class="small">${esc((P2.equipado(s, 'vivienda') || {}).n || '')}. Decoración: ${esc((P2.decoDe('casa', P2.deco(s).casa) || {}).n || '')}.</p>${htmlDeco(s, 'casa')}</div>`;
+  }
+  // Selector de decoración (casa o despacho): lo bloqueado lleva a la ficha del pack
+  const skuDe = k => ({ debut: 'pack_debut', street: 'pack_street', pro: 'pack_pro', luxury: 'pack_luxury', magnate: 'pack_magnate', founder: 'founder_pack' }[k]
+    || (/^club_/.test(k) ? `club_pack_${k.slice(5)}` : /^champ_/.test(k) ? `champion_pack_${k.slice(6)}` : ''));
+  function htmlDeco(s, tipo) {
+    const act = P2.deco(s)[tipo];
+    return `<div class="decos" role="group" aria-label="Decoración">${P2.DECOR[tipo].filter(d => !(P2.bloqueoDeco(tipo, d.id) && /^(club_|trofeo_)/.test(d.id))).map(d => { const bl = P2.bloqueoDeco(tipo, d.id);
+      return `<button class="deco ${act === d.id ? 'sel' : ''}" data-act="deco" data-t="${tipo}" data-v="${d.id}" aria-pressed="${act === d.id}" ${bl ? `data-sku="${esc(skuDe(d.premium))}"` : ''}>${bl ? '🔒 ' : ''}${esc(d.n)}</button>`; }).join('')}</div>`;
   }
   function htmlGaraje(s) {
     const inv = (s.inventario || []).filter(it => (P2.producto(it.id) || {}).cat === 'vehiculos'), act = (s.equipado || {}).vehiculo;
@@ -7400,7 +7600,8 @@ globalThis.P2C = P2C;
       ${inv.length ? inv.map(it => { const P = P2.producto(it.id), skins = P2.SKINS_VEHICULO[it.id] || [];
         return `<div class="vehC ${act === it.id ? 'act' : ''}"><div class="vsvg">${vehiculoSVG(it.id, it.skin)}</div><div><b>${P.ic} ${esc(P.n)}</b> ${act === it.id ? '<span class="chip bien">En uso</span>' : `<button class="btn w mini" data-act="equipar" data-id="${P.id}">Usar</button>`}
           <span class="small">Valor ${esc(eur(it.valorActual))} · pagaste ${esc(eur(it.precioCompra))}</span>
-          ${skins.length ? `<span class="small">Aspecto: ${skins.map(k => k.premium ? `🔒 ${esc(k.n)} (Pack ${esc((P2.IAP_PRODUCTS.find(I => I.id === k.premium) || {}).nombre || '')}, prueba)` : esc(k.n)).join(' · ')}</span>` : ''}</div></div>`; }).join('')
+          ${skins.length > 1 ? `<div class="skins" role="group" aria-label="Aspecto">${skins.map(k => { const bl = P2.bloqueoSkin(it.id, k.id), puesto = (it.skin || 'normal') === k.id;
+            return `<button class="skin ${puesto ? 'sel' : ''}" data-act="skin" data-id="${esc(it.uid)}" data-v="${k.id}" aria-pressed="${puesto}" ${bl ? `data-sku="${esc(skuDe(k.premium))}"` : ''}><i style="background:${k.c}${k.f ? `;box-shadow:inset 0 -5px 0 ${k.f}` : ''}"></i>${bl ? '🔒 ' : ''}${esc(k.n)}</button>`; }).join('')}</div>` : ''}</div></div>`; }).join('')
         : '<p class="small">Aún no tienes vehículo: vas andando o en autobús. La bici está en la Tienda.</p>'}
       ${vend.length ? `<p class="small">Vehículos anteriores: ${vend.map(v => `${P2.producto(v.id).ic} ${esc(P2.producto(v.id).n)} (vendido en la sem. ${v.semana})`).join(' · ')}</p>` : ''}
       <p class="small">Próximamente: ${P2.PRODUCTOS.filter(P => P.cat === 'vehiculos' && P.proximamente).map(P => `${P.ic} ${esc(P.n)}`).join(', ')}.</p></div>`;
@@ -7484,7 +7685,7 @@ globalThis.P2C = P2C;
       <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
         ${kv('🚗 Vehículos', H.vehiculos.length ? H.vehiculos.map(P => P.ic).join(' ') : '—')}${kv('🏠 Viviendas', H.viviendas.map(P => P.ic).join(' → '))}
         ${kv('🏆 Títulos', H.trofeos.length ? H.trofeos.map(x => `${x.ic} ${esc(x.n)}`).join(', ') : '—')}
-        ${VITRINA.some(([e]) => P2.tieneEnt(e)) ? kv('💎 Vitrina', VITRINA.filter(([e]) => P2.tieneEnt(e)).map(([, ic, n]) => `${ic} ${esc(n)}`).join(', ')) : ''}
+        ${vitrina().length ? kv('💎 Vitrina', vitrina().map(([, ic, n]) => `${ic} ${esc(n)}`).join(', ')) : ''}
         ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
@@ -7654,7 +7855,8 @@ globalThis.P2C = P2C;
       h = `<small class="eti">🏆 ¡CAMPEONES!</small><div class="copaGrande">${c.ic || '🏆'}</div><h2>${esc(c.n)}</h2>
         <div class="monedas" aria-hidden="true">${Array.from({ length: 14 }, (_, i) => `<i style="left:${(i * 37) % 100}%;animation-delay:${(i % 7) * 0.18}s">🪙</i>`).join('')}</div>
         ${c.dinero ? `${dinero(c.dinero)}<p class="small">Premio por el título</p>` : ''}
-        <div class="chipsCele">${c.rep ? `<span>⭐ +${c.rep} reputación</span>` : ''}${c.marca ? `<span>📣 +${c.marca} marca</span>` : ''}<span>🏆 A tu vitrina</span></div>`;
+        <div class="chipsCele">${c.rep ? `<span>⭐ +${c.rep} reputación</span>` : ''}${c.marca ? `<span>📣 +${c.marca} marca</span>` : ''}<span>🏆 A tu vitrina</span></div>
+        ${c.comp && P2.premiumOk(`champ_${c.comp}`) ? `<div class="celeCampeon"><div class="iapPrev">${P2.avatarSVG(s, Object.assign({}, s.look, { pose: 'campeon', extra: `trofeo_${c.comp}`, ropa: `camp_${c.comp}` }), 'cuerpo')}</div><small>💎 Celebración de campeón</small></div>` : ''}`;
     } else if (c.tipo === 'patrocinio') {
       h = `<small class="eti">🤝 ${c.renov ? 'PATROCINIO RENOVADO' : 'NUEVO PATROCINADOR'}</small>
         <div class="cheque"><div class="chTop"><span>${c.ic}</span><b>${esc(c.n)}</b></div><div class="chFila">Páguese a: <b>${esc(s.nombre || '')}</b></div>
@@ -7692,8 +7894,7 @@ globalThis.P2C = P2C;
     } else if (c.tipo === 'salvados') {
       h = `<small class="eti">🛟 ¡SALVADOS!</small><div class="copaGrande flota">🛟</div><h2>${esc(c.club)} sigue en ${esc(c.liga)}</h2><p>Sufrimiento hasta el final, pero la categoría se queda en casa.</p>`;
     } else if (c.tipo === 'premium') {
-      const iap = SKU_IAP[c.sku] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[c.sku]);
-      h = `<small class="eti">💎 ¡DESBLOQUEADO!</small>${iap && iap.contenido.some(Array.isArray) ? `<div class="iapPrev grande celePack">${P2.avatarSVG(s, null, 'cuerpo')}</div>` : `<div class="copaGrande">${c.ic}</div>`}<h2>${esc(c.n)}</h2>
+      h = `<small class="eti">💎 ¡DESBLOQUEADO!</small>${P2.PACKS[c.sku] ? `<div class="iapPrev grande celePack">${P2.avatarSVG(s, null, 'cuerpo')}</div>` : `<div class="copaGrande">${c.ic}</div>`}<h2>${esc(c.n)}</h2>
         <div class="chipsCele">${(c.includes || []).slice(0, 6).map(x => `<span>${esc(x)}</span>`).join('')}</div><p class="small">Ya está en tu cuenta. Si cambias de móvil o empiezas otra carrera, lo recuperas con «Restaurar compras».</p>`;
     } else if (c.tipo === 'convocatoria') {
       h = `<small class="eti">🌍 ¡CONVOCATORIA!</small><div class="copaGrande">🌍</div><h2>¡Te llama la selección!</h2><p>La temporada que viene juegas el Mundial. Si llegáis a la final, la juegas tú.</p>`;
@@ -7897,10 +8098,7 @@ globalThis.P2C = P2C;
   }
   const nombreEnt = e => ((P2C.CATALOG.entitlements[e] || {}).n || e);
   // Si una compra se reembolsa, lo que llevabas puesto de ese pack vuelve a lo básico
-  function limpiarLook(s) {
-    if (!s || !s.look) return;
-    for (const [cap] of P2.CAPAS_LOOK) { const it = P2.itemLook(cap, s.look[cap]); if (it && P2.bloqueoLook(s, it, cap)) s.look[cap] = P2.LOOK_INICIAL[cap]; }
-  }
+  function limpiarLook(s) { P2.limpiarPremium(s); }
   async function pmAsync(fn) {
     try { await fn(); } catch (e) { ui.pm = Object.assign(ui.pm || {}, { error: e.code || e.message }); }
     limpiarLook(S); if (S) P2.guardar(S); render();
@@ -7960,8 +8158,10 @@ globalThis.P2C = P2C;
     if (pm.paso === 'lento') return `<div class="overlay" role="dialog"><div class="modal"><h2>⏳ Casi…</h2><p>${esc(C.terms.slow)}</p><button class="btn full" data-act="pmSync">Sincronizar compras</button><button class="btn w full" data-act="pmCerrar">Cerrar</button><p class="small">Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
     if (pm.paso === 'error') return `<div class="overlay" role="dialog"><div class="modal"><h2>No se ha completado</h2><p>No se ha cobrado nada.</p><p class="small">Ref. ${esc(pm.orderRef || '')}</p><button class="btn full" data-act="pmCerrar">Volver</button></div></div>`;
     // Ficha del producto: todo antes de pagar
-    const iap = s && SKU_IAP[P.id] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[P.id]);
-    const prev = iap && iap.contenido.some(Array.isArray) ? `<div class="iapPrev grande">${P2.avatarSVG(s, lookPack(s, iap), 'cuerpo')}</div>` : `<div class="grande peq">${(P.assets && P.assets.ic) || '💎'}</div>`;
+    const K = P2.PACKS[P.id], sv = s || { p: { energia: 80 }, hitos: {} };
+    const prevSkins = K && (K.skins || []).length ? `<div class="pmPrevX">${K.skins.filter(([v], i, a) => a.findIndex(x => x[0] === v) === i).slice(0, 2).map(([v, k]) => `<div title="${esc((P2.skinDe(v, k) || {}).n || '')}">${vehiculoSVG(v, k)}</div>`).join('')}</div>` : '';
+    const prevDeco = K && (K.deco || []).length ? `<div class="pmPrevX">${K.deco.map(([tp, d]) => `<div>${tp === 'casa' ? casaSVG(s ? vivienda(s) : 'piso', d) : despachoSVG(d)}</div>`).join('')}</div>` : '';
+    const prev = K ? `<div class="iapPrev grande">${P2.avatarSVG(sv, P2.lookPack(s, P.id), 'cuerpo')}</div>${prevSkins}${prevDeco}` : `<div class="grande peq">${(P.assets && P.assets.ic) || '💎'}</div>`;
     const req = st.requires && !st.requires.ok ? `<div class="pmReq">🔒 ${st.requires.missing.length ? `Necesitas ${st.requires.missing.map(e => `la expansión <b>${esc(nombreEnt(e))}</b>`).join(' y ')}.` : ''}${st.requires.anyCount ? ` Necesitas al menos ${st.requires.anyCount.n} deportes.` : ''}
       ${st.requires.missing.map(e => { const R = P2C.PRODUCTS.find(x => x.entitlements.length === 1 && x.entitlements[0] === e); return R ? `<button class="btn w" data-act="pmVer" data-id="${esc(R.id)}">Ver ${esc(R.name)}</button>` : ''; }).join('')}</div>` : '';
     const puede = st.purchasable;
@@ -8321,13 +8521,11 @@ globalThis.P2C = P2C;
     $('main').classList.remove('conBoton'); document.body.classList.remove('enSeccion');
   }
   // Insignias y vitrina (lo que se ve de las compras en el juego)
-  const INSIGNIAS = [['cosmetic.founder_pack', '🏅', 'Founder'], ['cosmetic.debut_pack', '🌟', 'Debut'], ['cosmetic.press_badge', '📰', 'Prensa']];
-  const insignias = () => INSIGNIAS.filter(([e]) => P2.tieneEnt(e)).map(([, ic, n]) => `<span class="insignia" title="Insignia ${n}" aria-label="Insignia ${n}">${ic}</span>`).join('');
-  const VITRINA = [['cosmetic.debut_pack', '⚽', 'Balón firmado de tu debut'], ['cosmetic.founder_pack', '🏛️', 'Placa conmemorativa Founder'], ['cosmetic.press_badge', '📰', 'Acreditación de prensa']];
-  function equiparPack(sku) {
-    const iap = SKU_IAP[sku] && (P2.IAP_PRODUCTS || []).find(I => I.id === SKU_IAP[sku]); if (!iap || !S) return;
-    for (const c of iap.contenido) if (Array.isArray(c)) P2.ponerLook(S, c[0], c[1]);
-  }
+  // Insignias (junto a tu semana; como mucho 3) y vitrina: datos en 19_packs.js. La de prensa llega por código promocional.
+  const insignias = () => P2.INSIGNIAS_PACK.filter(([k]) => P2.premiumOk(k)).concat(P2.tieneEnt('cosmetic.press_badge') ? [['', '📰', 'Prensa']] : []).slice(0, 3)
+    .map(([, ic, n]) => `<span class="insignia" title="Insignia ${n}" aria-label="Insignia ${n}">${ic}</span>`).join('');
+  const vitrina = () => P2.VITRINA_PACK.filter(([k]) => P2.premiumOk(k)).concat(P2.tieneEnt('cosmetic.press_badge') ? [['', '📰', 'Acreditación de prensa']] : []);
+  function equiparPack(sku) { if (S) P2.equiparPack(S, sku); }
 
   // ---------- Render ----------
   function render() {
@@ -8491,6 +8689,10 @@ globalThis.P2C = P2C;
       case 'iapNo': ui.iapCard = null; render(); break;
       case 'interOk': P2.intersticialContinuar(S); ui.inter = false; guardarYPintar(); break;
       case 'equipar': if (P2.equipar(S, id)) guardarYPintar(); break;
+      // Aspecto de vehículo y decoración: si está bloqueado, se abre la ficha del pack (sin comprar nada)
+      case 'skin': case 'deco': {
+        if (b.dataset.sku) { ui.pm = Object.assign(ui.pm || { tab: 'packs' }, { sku: b.dataset.sku, paso: null, error: null, consent: false }); comercio() && COM.track('product_view', { sku: b.dataset.sku, source: a }); render(); break; }
+        if (a === 'skin' ? P2.ponerSkin(S, id, b.dataset.v) : P2.ponerDeco(S, b.dataset.t, b.dataset.v)) guardarYPintar(); break; }
       case 'venderP': if (ui.venderP !== id) { ui.venderP = id; render(); } else { ui.venderP = null; P2.venderPosesion(S, id); guardarYPintar(); } break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { ui.fiestas = fiestasDe(r.hitos, (r.desbloqueos || []).concat(ui.desbloqueos || [])); ui.desbloqueos = [];

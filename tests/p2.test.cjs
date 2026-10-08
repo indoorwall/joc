@@ -299,7 +299,7 @@ function enClub(oferta = 'puerto', seed = 5) {
 
   {
   // ---------- Personaje: más opciones (edad, ojos, cejas, rasgos, piercings, complexión, tatuajes) ----------
-  check('Personaje: 20 capas en 5 grupos y más de 170 opciones', P2.CAPAS_LOOK.length === 20 && P2.GRUPOS_LOOK.length === 5 && Object.values(P2.ITEMS_LOOK).reduce((a, l) => a + l.length, 0) >= 170);
+  check('Personaje: 21 capas (con la pose) en 5 grupos y más de 170 opciones', P2.CAPAS_LOOK.length === 21 && P2.GRUPOS_LOOK.length === 5 && Object.values(P2.ITEMS_LOOK).reduce((a, l) => a + l.length, 0) >= 170);
   check('Personaje: cada opción se dibuja sin errores en todas las vistas', (() => { try { for (const [c, l] of Object.entries(P2.ITEMS_LOOK)) for (const it of l) for (const m of ['busto', 'cuerpo', 'torso', 'piernas']) if (!/^<svg/.test(P2.avatarSVG({ p: { energia: 80 }, hitos: {} }, Object.assign({}, P2.LOOK_INICIAL, { [c]: it.id }), m))) return false; return true; } catch (e) { return false; } })());
   check('Personaje: una partida antigua recibe los valores nuevos por defecto', (() => { const v = JSON.parse(JSON.stringify(P2.nuevaPartida({ seed: 230 }))); v.look = { pelo: 'afro', colorPelo: 'rubio' }; const m = P2.migrateSave(v); return m.look.pelo === 'afro' && m.look.edad === 'joven' && m.look.tatuaje === 'nada' && m.look.piercing === 'nada'; })());
   check('Personaje: «Al azar» siempre da un look válido', Array.from({ length: 40 }, () => P2.lookAzar()).every(L => JSON.stringify(P2.validarLook(L)) === JSON.stringify(Object.assign({}, P2.LOOK_INICIAL, L))));
@@ -580,6 +580,42 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Nube: borrar una carrera aquí se apunta para borrarla también en la nube', Q2.exportarPartidas().borradas.includes(1) && (Q2.limpiarBorradas([1]), !Q2.exportarPartidas().borradas.length));
 }
 
+// ---------- 6b-ter. Packs: contenido real, bloqueado sin la cuenta, solo aspecto ----------
+{
+  const o = P2.tieneEnt;
+  try {
+    P2.tieneEnt = () => false;
+    const x = P2.nuevaPartida({ seed: 333 });
+    const todos = Object.entries(P2.PACKS);
+    check('Packs: Debut, Street, Pro, Luxury, Magnate, Founder, 3 clubes y 4 de campeón tienen contenido', todos.length === 13 && todos.every(([, K]) => (K.equipar || []).length >= 3));
+    const items = todos.flatMap(([, K]) => (K.equipar || []).concat(K.tambien || []));
+    check('Packs: todo lo que traen existe en el avatar', items.every(([cap, id]) => P2.itemLook(cap, id)), items.filter(([cap, id]) => !P2.itemLook(cap, id)).join(' '));
+    check('Packs: sin el entitlement, todo está bloqueado (ropa, poses, fondos, extras)', items.filter(([cap, id]) => P2.itemLook(cap, id).req && P2.itemLook(cap, id).req.premium).every(([cap, id]) => !P2.ponerLook(x, cap, id)));
+    const skins = todos.flatMap(([, K]) => K.skins || []), decos = todos.flatMap(([, K]) => K.deco || []);
+    check('Packs: aspectos de vehículo y decoración existen y están bloqueados sin el pack', skins.length >= 7 && skins.every(([v, k]) => P2.skinDe(v, k) && P2.bloqueoSkin(v, k)) && decos.length >= 12 && decos.every(([tp, d]) => P2.decoDe(tp, d) && P2.bloqueoDeco(tp, d)));
+    check('Decoración gratis: plantas en casa y en el despacho (no todo es de pago)', P2.ponerDeco(x, 'casa', 'plantas') && P2.ponerDeco(x, 'despacho', 'plantas'));
+    // Con todo comprado
+    P2.tieneEnt = () => true;
+    const y = P2.nuevaPartida({ seed: 334 }); y.inventario.push({ uid: 'v1', id: 'deportivo', precioCompra: 1, valorActual: 1 }, { uid: 'v2', id: 'bici', precioCompra: 1, valorActual: 1 });
+    const antes = JSON.stringify(y.p);
+    P2.equiparPack(y, 'pack_magnate');
+    check('Magnate: traje, reloj legendario, skyline, mansión, despacho premium y deportivo oro', y.look.ropa === 'magnate' && y.look.extra === 'relojLeg' && y.look.fondo === 'skyline' && y.deco.casa === 'mansion' && y.deco.despacho === 'magnate' && y.inventario[0].skin === 'oro');
+    P2.equiparPack(y, 'pack_street');
+    check('Street: ropa, gafas, mochila y bici Street', y.look.ropa === 'street' && y.look.gafas === 'street' && y.look.extra === 'mochilaStreet' && y.inventario[1].skin === 'street');
+    P2.equiparPack(y, 'pack_pro'); check('Pro: outfit, maleta, vestuario y pose Pro', y.look.ropa === 'pro' && y.look.extra === 'maletaPro' && y.look.fondo === 'vestPro' && y.look.pose === 'pro');
+    P2.equiparPack(y, 'pack_luxury'); check('Luxury: traje, gafas, rooftop, pose de empresario y decoración', y.look.ropa === 'trajeLux' && y.look.gafas === 'lux' && y.look.fondo === 'rooftop' && y.look.pose === 'empresario' && y.deco.casa === 'lujo' && y.deco.despacho === 'lujo');
+    P2.equiparPack(y, 'club_pack_puerto'); check('Pack de club: camiseta, bufanda, fondo y rincón en casa', y.look.ropa === 'clubCam_puerto' && y.look.extra === 'bufanda_puerto' && y.deco.casa === 'club_puerto');
+    P2.equiparPack(y, 'champion_pack_europa'); check('Pack Campeón: camiseta, botas, trofeo en la mano, celebración y réplica', y.look.ropa === 'camp_europa' && y.look.calzado === 'camp_europa' && y.look.extra === 'trofeo_europa' && y.look.pose === 'campeon' && y.deco.casa === 'trofeo_europa');
+    check('Packs: equiparlos no toca nivel, energía, reputación, marca ni dinero', JSON.stringify(y.p) === antes);
+    check('Avatar: se dibuja con todo (sin «undefined» ni NaN)', !/undefined|NaN/.test(P2.avatarSVG(y, null, 'cuerpo') + P2.avatarSVG(y, null, 'busto')));
+    // Reembolso: vuelve a lo básico, nada más
+    P2.tieneEnt = e => e !== 'cosmetic.champion_europa' && e !== 'cosmetic.magnate_pack';
+    P2.limpiarPremium(y);
+    check('Sin el pack (reembolso): lo de ese pack vuelve a lo básico; lo demás se queda', y.look.ropa === 'camiseta' && y.look.extra === 'nada' && y.deco.casa === 'nada' && y.deco.despacho === 'lujo' && y.inventario[0].skin === 'negra' && y.inventario[1].skin === 'street' && y.look.pose === 'campeon');   // la celebración vale con cualquier Pack Campeón (tiene otros)
+    check('Partida guardada antes de los packs: se le añade la decoración vacía', (() => { const z = P2.nuevaPartida({ seed: 9 }); delete z.deco; const m = P2.migrateSave(JSON.parse(JSON.stringify(z))); return m.deco.casa === 'nada' && m.deco.despacho === 'nada'; })());
+  } finally { P2.tieneEnt = o; }
+}
+
 // ---------- 6c. P2.2: nivel, reputación y marca; patrocinadores con identidad; telemetría ----------
 {
   const R0 = () => ({ lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [] });
@@ -680,7 +716,7 @@ let informe;
   };
   await page.goto(url);
   check('UI: arranca en la pantalla de inicio', await page.locator('[data-act="empezar"]').isVisible());
-  check('UI: al empezar se elige el personaje (5 grupos, 20 capas y vista previa)', await page.locator('.lookGrupos button').count() === 5 && P2.CAPAS_LOOK.length === 20 && await page.locator('.lookPrev svg').isVisible());
+  check('UI: al empezar se elige el personaje (5 grupos, 21 capas y vista previa)', await page.locator('.lookGrupos button').count() === 5 && P2.CAPAS_LOOK.length === 21 && await page.locator('.lookPrev svg').isVisible());
   await page.fill('#nombre', 'Vega');
   await page.tap('.lookGrupos [data-v="pelo"]'); await page.tap('.lookTabs [data-v="pelo"]'); await page.tap('.lk[data-c="pelo"][data-v="rizos"]');
   await page.tap('.lookGrupos [data-v="ropa"]'); await page.tap('.lookTabs [data-v="colorRopa"]'); await page.tap('.lk[data-c="colorRopa"][data-v="rojo"]');

@@ -145,6 +145,16 @@ Crea **un proyecto por entorno**. Empieza por `dban-staging`; más adelante, `db
    HTTPS.
 3. [ ] Las redirecciones de Stripe vuelven a `APP_URL/?compra=verificando&order=…` y el juego hace el resto.
 
+## 5b. Cuenta (Supabase Auth) — detalle en [ACCOUNTS.md](ACCOUNTS.md)
+
+1. [ ] Aplica también la migración `20261009000000_accounts.sql` y despliega `profile`, `game-saves` y `account-export`.
+2. [ ] Authentication → Providers: activa **Apple** (Services ID, Team ID, Key ID y clave .p8) y **Google** (client ID y
+   secreto de Google Cloud). Añade `APP_URL` a las URLs de redirección.
+3. [ ] Authentication → Email Templates → «Magic Link»: incluye el código `{{ .Token }}` (6 cifras, 10 minutos).
+4. [ ] SMTP propio (Resend, Postmark…) para que los correos no caigan en spam y no te limite el SMTP de pruebas.
+5. [ ] Permiso parental: envío del email al tutor y Edge Function que recibe su respuesta (pendiente de programar).
+6. [ ] Revisión legal: términos, privacidad, edad mínima por país y permiso parental.
+
 ## 6. Pruebas antes de producción (en staging, Stripe TEST)
 
 - [ ] Juega sin cuenta: nada se bloquea.

@@ -13,7 +13,7 @@
   const COLOR_ROPA = { rojo: '#e23b3b', azul: '#2f6fe0', verde: '#22a35a', amarillo: '#f6c623', negro: '#2a2d34', blanco: '#f4f4f4', morado: '#7b4bd6', naranja: '#ff8a2a' };
   const FONDO_LOOK = { azul: '#bfe0ff', verde: '#c6f0d2', naranja: '#ffd9b3', morado: '#dccbff', rosa: '#ffd0e6' };
   const LOOK_INICIAL = { piel: '1', pelo: 'corto', colorPelo: 'castano', cara: 'nada', ropa: 'camiseta', colorRopa: 'azul', pantalon: 'chandal', calzado: 'deportivas', cabeza: 'nada', gafas: 'nada', extra: 'nada', fondo: 'azul',
-    edad: 'joven', complexion: 'normal', ojos: 'redondos', colorOjos: 'marron', cejas: 'normales', rasgo: 'nada', piercing: 'nada', tatuaje: 'nada' };
+    edad: 'joven', complexion: 'normal', ojos: 'redondos', colorOjos: 'marron', cejas: 'normales', rasgo: 'nada', piercing: 'nada', tatuaje: 'nada', pose: 'nada' };
   const VISTA_LOOK = { cara: '16 18 68 52', busto: '6 -12 88 88', cuerpo: '0 -16 100 176', torso: '8 52 84 64', piernas: '14 92 72 64' };
 
   // Capas y prendas (datos). req.hito: se desbloquea al conseguir ese hito
@@ -23,8 +23,14 @@
     ['pelo', '💇', 'Peinado', 'busto', 'pelo'], ['colorPelo', '🎨', 'Color de pelo', 'busto', 'pelo'],
     ['complexion', '💪', 'Complexión', 'cuerpo', 'cuerpo'], ['tatuaje', '🖋️', 'Tatuajes', 'torso', 'cuerpo'],
     ['ropa', '👕', 'Ropa', 'torso', 'ropa'], ['colorRopa', '🖌️', 'Color', 'torso', 'ropa'], ['pantalon', '👖', 'Pantalón', 'piernas', 'ropa'], ['calzado', '👟', 'Calzado', 'piernas', 'ropa'],
-    ['cabeza', '🧢', 'Cabeza', 'busto', 'extras'], ['gafas', '🕶️', 'Gafas', 'busto', 'extras'], ['extra', '🎒', 'Extras', 'cuerpo', 'extras'], ['fondo', '🖼️', 'Fondo', 'busto', 'extras']];
+    ['cabeza', '🧢', 'Cabeza', 'busto', 'extras'], ['gafas', '🕶️', 'Gafas', 'busto', 'extras'], ['extra', '🎒', 'Extras', 'cuerpo', 'extras'], ['pose', '🕺', 'Pose', 'cuerpo', 'extras'], ['fondo', '🖼️', 'Fondo', 'busto', 'extras']];
   const GRUPOS_LOOK = [['cara', '🙂', 'Cara'], ['pelo', '💇', 'Pelo'], ['cuerpo', '💪', 'Cuerpo'], ['ropa', '👕', 'Ropa'], ['extras', '🧢', 'Extras']];
+  // Clubes y competiciones de los packs (colores del club; competiciones ficticias)
+  const CLUBES_PACK = { puerto: { n: 'UD Puerto', ic: '⚓', c1: '#1d3c78', c2: '#ffffff' }, costa: { n: 'Real Costa', ic: '🌊', c1: '#3aa0e0', c2: '#ffffff' }, atletico: { n: 'Atlético Ciudad', ic: '🔴', c1: '#d62839', c2: '#ffffff' } };
+  const CAMPEON_PACK = { copa: { n: 'Copa Federación', ic: '🏆', c1: '#c8901a', c2: '#ffffff', fondo: '#3a2400' }, europa: { n: 'Copa de Europa', ic: '⭐', c1: '#14206b', c2: '#ffc83d', fondo: '#0b1033' },
+    mundial: { n: 'Mundial', ic: '🌍', c1: '#0f7a43', c2: '#ffc83d', fondo: '#06331d' }, liga: { n: 'Liga', ic: '👑', c1: '#5b2bb5', c2: '#ffc83d', fondo: '#1e0d45' } };
+  const porClub = f => Object.entries(CLUBES_PACK).map(([k, C]) => f(k, C));
+  const porCopa = f => Object.entries(CAMPEON_PACK).map(([k, C]) => f(k, C));
   const ITEMS = {
     piel: [6, 0, 8, 1, 9, 2, 3, 4, 5, 7].map((i, k) => ({ id: String(i), n: `Tono ${k + 1}` })),
     edad: [['joven', 'Joven'], ['adulto', 'Adulto/a'], ['maduro', 'Maduro/a'], ['veterano', 'Veterano/a']].map(([id, n]) => ({ id, n })),
@@ -43,29 +49,49 @@
       { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } },
       { id: 'equipoFav', n: 'Camiseta de tu equipo', req: { tienda: 'camiseta' } }, { id: 'chandalMarca', n: 'Chándal de marca', req: { tienda: 'chandal' } }, { id: 'temporada', n: 'Camiseta de la temporada', req: { anuncio: 'temporada' } },
       { id: 'debut', n: 'Outfit Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Sudadera Street', req: { premium: 'street' } }, { id: 'pro', n: 'Outfit Pro', req: { premium: 'pro' } },
-      { id: 'trajeLux', n: 'Traje Luxury', req: { premium: 'luxury' } }, { id: 'founder', n: 'Camiseta Founder', req: { premium: 'founder' } }],
+      { id: 'trajeLux', n: 'Traje Luxury', req: { premium: 'luxury' } }, { id: 'founder', n: 'Camiseta Founder', req: { premium: 'founder' } },
+      { id: 'casualPro', n: 'Traje casual Pro', req: { premium: 'pro' } }, { id: 'magnate', n: 'Traje Magnate', req: { premium: 'magnate' } }]
+      .concat(porClub((k, C) => ({ id: `clubCam_${k}`, n: `Camiseta ${C.n}`, req: { premium: `club_${k}` } })), porClub((k, C) => ({ id: `clubChaq_${k}`, n: `Chaqueta ${C.n}`, req: { premium: `club_${k}` } })),
+        porCopa((k, C) => ({ id: `camp_${k}`, n: `Camiseta campeón · ${C.n}`, req: { premium: `champ_${k}` } }))),
     colorRopa: [['azul', 'Azul'], ['rojo', 'Rojo'], ['verde', 'Verde'], ['amarillo', 'Amarillo'], ['negro', 'Negro'], ['blanco', 'Blanco'], ['morado', 'Morado'], ['naranja', 'Naranja']].map(([id, n]) => ({ id, n })),
     pantalon: [{ id: 'chandal', n: 'Chándal' }, { id: 'corto', n: 'Corto' }, { id: 'vaquero', n: 'Vaqueros' }, { id: 'falda', n: 'Falda' }, { id: 'traje', n: 'De traje', req: { hito: 'empresa' } }, { id: 'street', n: 'Cargo Street', req: { premium: 'street' } }],
     calzado: [{ id: 'deportivas', n: 'Deportivas' }, { id: 'chanclas', n: 'Chanclas' }, { id: 'botas', n: 'Botas de fútbol' }, { id: 'montana', n: 'De montaña' }, { id: 'zapatos', n: 'Zapatos' }, { id: 'doradas', n: 'Botas de oro', req: { hito: 'inversion2' } },
-      { id: 'botasPro', n: 'Botas profesionales', req: { tienda: 'botasPro' } }, { id: 'debut', n: 'Botas Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Zapatillas Street', req: { premium: 'street' } }, { id: 'pro', n: 'Botas Pro', req: { premium: 'pro' } }],
+      { id: 'botasPro', n: 'Botas profesionales', req: { tienda: 'botasPro' } }, { id: 'debut', n: 'Botas Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Zapatillas Street', req: { premium: 'street' } }, { id: 'pro', n: 'Botas Pro', req: { premium: 'pro' } }]
+      .concat(porCopa((k, C) => ({ id: `camp_${k}`, n: `Botas de campeón · ${C.n}`, req: { premium: `champ_${k}` } }))),
     cabeza: [{ id: 'nada', n: 'Nada' }, { id: 'cinta', n: 'Cinta' }, { id: 'gorra', n: 'Gorra' }, { id: 'gorro', n: 'Gorro de lana' }, { id: 'fiesta', n: 'Gorro de fiesta' }, { id: 'vaquero', n: 'Sombrero' }, { id: 'corona', n: 'Corona', req: { hito: 'inversion2' } },
       { id: 'gorraPlana', n: 'Gorra de colección', req: { tienda: 'gorra' } }, { id: 'gorraDebut', n: 'Gorra Debut', req: { premium: 'debut' } }, { id: 'gorraStreet', n: 'Gorra Street', req: { premium: 'street' } }],
     gafas: [['nada', 'Sin gafas'], ['corazon', 'Corazón'], ['redondas', 'Redondas'], ['sol', 'De sol'], ['deportivas', 'Deportivas']].map(([id, n]) => ({ id, n }))
-      .concat([{ id: 'temporada', n: 'Gafas edición temporada', req: { anuncio: 'temporada' } }, { id: 'pro', n: 'Gafas Pro', req: { premium: 'pro' } }]),
+      .concat([{ id: 'temporada', n: 'Gafas edición temporada', req: { anuncio: 'temporada' } }, { id: 'pro', n: 'Gafas Pro', req: { premium: 'pro' } },
+        { id: 'street', n: 'Gafas Street', req: { premium: 'street' } }, { id: 'lux', n: 'Gafas Luxury', req: { premium: 'luxury' } }]),
     extra: [{ id: 'nada', n: 'Nada' }, { id: 'balon', n: 'Balón' }, { id: 'mochila', n: 'Mochila' }, { id: 'auriculares', n: 'Auriculares' }, { id: 'capa', n: 'Capa' },
       { id: 'medalla', n: 'Medalla', req: { hito: 'titular' } }, { id: 'reloj', n: 'Reloj de lujo', req: { hito: 'rentable' } }, { id: 'cadena', n: 'Cadena de oro', req: { hito: 'inversion2' } },
       { id: 'relojDep', n: 'Reloj deportivo', req: { tienda: 'relojDep' } }, { id: 'relojPro', n: 'Reloj Pro', req: { premium: 'pro' } }, { id: 'relojPremium', n: 'Reloj Premium', req: { premium: 'luxury' } },
-      { id: 'cadenaExcl', n: 'Cadena exclusiva', req: { premium: 'luxury' } }, { id: 'insignia', n: 'Insignia Founder', req: { premium: 'founder' } }],
+      { id: 'cadenaExcl', n: 'Cadena exclusiva', req: { premium: 'luxury' } }, { id: 'insignia', n: 'Insignia Founder', req: { premium: 'founder' } },
+      { id: 'mochilaStreet', n: 'Mochila Street', req: { premium: 'street' } }, { id: 'maletaPro', n: 'Maleta deportiva Pro', req: { premium: 'pro' } }, { id: 'auriPro', n: 'Auriculares Pro', req: { premium: 'pro' } },
+      { id: 'relojLeg', n: 'Reloj legendario', req: { premium: 'magnate' } }, { id: 'insigniaMag', n: 'Insignia Magnate', req: { premium: 'magnate' } }]
+      .concat(porClub((k, C) => ({ id: `bufanda_${k}`, n: `Bufanda ${C.n}`, req: { premium: `club_${k}` } })), porClub((k, C) => ({ id: `mochila_${k}`, n: `Mochila ${C.n}`, req: { premium: `club_${k}` } })),
+        porCopa((k, C) => ({ id: `trofeo_${k}`, n: `Trofeo · ${C.n}`, req: { premium: `champ_${k}` } }))),
+    // Poses: los brazos (solo aspecto)
+    pose: [{ id: 'nada', n: 'De pie' }, { id: 'saludo', n: 'Saludo' }, { id: 'abiertos', n: 'Brazos abiertos' }, { id: 'pro', n: 'Pose Pro', req: { premium: 'pro' } },
+      { id: 'empresario', n: 'Pose de empresario', req: { premium: 'luxury' } }, { id: 'campeon', n: 'Celebración de campeón', req: { premium: 'champ' } }],
     fondo: [['azul', 'Azul'], ['verde', 'Verde'], ['naranja', 'Naranja'], ['morado', 'Morado'], ['rosa', 'Rosa']].map(([id, n]) => ({ id, n }))
       .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } },
         { id: 'street', n: 'Fondo Street', req: { coleccion: 'street' } }, { id: 'vestuario', n: 'Fondo Vestuario', req: { coleccion: 'pro' } }, { id: 'lujo', n: 'Fondo Lujo', req: { coleccion: 'lujo' } },
         { id: 'debut', n: 'Fondo Debut', req: { premium: 'debut' } }, { id: 'urbano', n: 'Fondo Urbano', req: { premium: 'street' } }, { id: 'estadio', n: 'Fondo Estadio', req: { premium: 'pro' } },
-        { id: 'premium', n: 'Fondo Premium', req: { premium: 'luxury' } }, { id: 'founder', n: 'Fondo Founder', req: { premium: 'founder' } }]),
+        { id: 'premium', n: 'Fondo Premium', req: { premium: 'luxury' } }, { id: 'founder', n: 'Fondo Founder', req: { premium: 'founder' } },
+        { id: 'vestPro', n: 'Fondo Vestuario Pro', req: { premium: 'pro' } }, { id: 'rooftop', n: 'Fondo Rooftop', req: { premium: 'luxury' } }, { id: 'skyline', n: 'Fondo Skyline', req: { premium: 'magnate' } }])
+      .concat(porClub((k, C) => ({ id: `club_${k}`, n: `Fondo ${C.n}`, req: { premium: `club_${k}` } })), porCopa((k, C) => ({ id: `camp_${k}`, n: `Fondo campeón · ${C.n}`, req: { premium: `champ_${k}` } }))),
   };
   const itemLook = (cap, id) => (ITEMS[cap] || []).find(x => x.id === id);
   // Packs del prototipo → entitlements reales del catálogo (commerce/catalog)
-  const PREMIUM_ENT = { debut: 'cosmetic.debut_pack', street: 'cosmetic.street_pack', pro: 'cosmetic.pro_pack', luxury: 'cosmetic.luxury_pack', founder: 'cosmetic.founder_pack' };
-  P2.PREMIUM_ENT = PREMIUM_ENT;
+  const PREMIUM_ENT = { debut: 'cosmetic.debut_pack', street: 'cosmetic.street_pack', pro: 'cosmetic.pro_pack', luxury: 'cosmetic.luxury_pack', magnate: 'cosmetic.magnate_pack', founder: 'cosmetic.founder_pack' };
+  const PACK_NOMBRE = { debut: 'Pack Debut', street: 'Street Pack', pro: 'Pro Pack', luxury: 'Luxury Pack', magnate: 'Magnate Pack', founder: 'Founder Pack', champ: 'un Pack Campeón' };
+  for (const [k, C] of Object.entries(CLUBES_PACK)) { PREMIUM_ENT[`club_${k}`] = `cosmetic.club_${k}`; PACK_NOMBRE[`club_${k}`] = `Pack ${C.n}`; }
+  for (const [k, C] of Object.entries(CAMPEON_PACK)) { PREMIUM_ENT[`champ_${k}`] = `cosmetic.champion_${k}`; PACK_NOMBRE[`champ_${k}`] = `Pack Campeón · ${C.n}`; }
+  PREMIUM_ENT.champ = Object.keys(CAMPEON_PACK).map(k => `cosmetic.champion_${k}`);   // la celebración: con cualquier Pack Campeón
+  // ¿Tiene la cuenta este pack? (la cuenta decide: P2.tieneEnt lo conecta la interfaz con el comercio)
+  const premiumOk = k => { const E = PREMIUM_ENT[k]; return Array.isArray(E) ? E.some(e => P2.tieneEnt(e)) : !!(E && P2.tieneEnt(E)); };
+  Object.assign(P2, { PREMIUM_ENT, PACK_NOMBRE, premiumOk, CLUBES_PACK, CAMPEON_PACK });
   function bloqueoLook(s, it, cap) {
     if (!it || !it.req) return null;
     if (s && Array.isArray(s.lookDesbloqueos) && s.lookDesbloqueos.includes(`${cap || ''}:${it.id}`)) return null;   // comprado en la Tienda
@@ -74,7 +100,7 @@
     if (it.req.tienda) return `Tienda: ${P2.producto ? (P2.producto(it.req.tienda) || { n: '' }).n : ''}`;
     if (it.req.anuncio) return 'Recompensa de temporada';
     if (it.req.coleccion) return `Completa la colección ${(P2.COLECCIONES || []).find(c => c.id === it.req.coleccion) ? P2.COLECCIONES.find(c => c.id === it.req.coleccion).n : ''}`;
-    if (it.req.premium) { const E = PREMIUM_ENT[it.req.premium]; if (E && P2.tieneEnt(E)) return null; const I = (P2.IAP_PRODUCTS || []).find(x => x.id === it.req.premium); return `💎 ${I ? I.nombre : 'Pack'} (Premium)`; }
+    if (it.req.premium) return premiumOk(it.req.premium) ? null : `💎 ${PACK_NOMBRE[it.req.premium] || 'Pack'} (Premium)`;
     return null;
   }
   function ponerLook(s, cap, id) {
@@ -95,6 +121,7 @@
     if (Math.random() < 0.6) L.rasgo = 'nada';
     if (Math.random() < 0.6) L.piercing = 'nada';
     if (Math.random() < 0.6) L.tatuaje = 'nada';
+    if (Math.random() < 0.7) L.pose = 'nada';
     return L;
   }
   function validarLook(L) {
@@ -124,7 +151,14 @@
     pro: { base: 'chaqueta', tc: '#0b1033', ad: '<path d="M30 92 h40" stroke="#3d7bff" stroke-width="4"/><path d="M31 97 h38" stroke="#8b5cf6" stroke-width="2"/>' },
     trajeLux: { base: 'traje', tc: '#4b1f7a', ad: '<path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#ffc83d"/><circle cx="62" cy="80" r="2" fill="#ffc83d"/>' },
     founder: { base: 'camiseta', tc: '#ffc83d', ad: '<path d="M50 80 l3 6 6.5 .8 -4.8 4.4 1.3 6.4 -6 -3.2 -6 3.2 1.3 -6.4 -4.8 -4.4 6.5 -.8Z" fill="#1a1640"/>' },
+    casualPro: { base: 'chaqueta', tc: '#24345e', ad: '<path d="M42 68 L50 82 L58 68Z" fill="#f4f4f4"/><path d="M40 68 L50 84 L60 68" fill="none" stroke="#18233f" stroke-width="2.5"/><path d="M60 80 l5 -1 v3 h-5Z" fill="#3d7bff"/>' },
+    magnate: { base: 'traje', tc: '#0d0d12', ad: '<path d="M43 68 L48 92 M57 68 L52 92" stroke="#ffc83d" stroke-width="2.4"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#1a1a1a"/><rect x="60" y="77" width="7" height="3" rx="1" fill="#ffc83d"/><circle cx="50" cy="100" r="1.4" fill="#ffc83d"/><circle cx="50" cy="106" r="1.4" fill="#ffc83d"/>' },
   };
+  for (const [k, C] of Object.entries(CLUBES_PACK)) {
+    VAR_ROPA[`clubCam_${k}`] = { base: 'equipacion', c1: C.c1, c2: C.c2, num: '9' };
+    VAR_ROPA[`clubChaq_${k}`] = { base: 'chaqueta', tc: C.c1, ad: `<path d="M30 84 h40 M30 88 h40" stroke="${C.c2}" stroke-width="2"/><text x="60" y="80" text-anchor="middle" font-size="7">${C.ic}</text>` };
+  }
+  for (const [k, C] of Object.entries(CAMPEON_PACK)) VAR_ROPA[`camp_${k}`] = { base: 'equipacion', c1: C.c1, c2: C.c2, num: '★' };
   const VAR_CABEZA = { gorraPlana: '#2a2d34', gorraDebut: '#1a1640', gorraStreet: '#ff4f8b' };
   const FONDO_ESP = {
     street: '<rect x="-20" y="-30" width="140" height="140" fill="#3b1c6e"/><path d="M-20 70 L120 40 M-20 90 L120 60" stroke="#ff4f8b" stroke-width="8" opacity=".6"/>',
@@ -135,7 +169,15 @@
     estadio: '<rect x="-20" y="-30" width="140" height="140" fill="#1d3a9e"/><path d="M-20 80 Q50 50 120 80 L120 110 L-20 110Z" fill="#2c3fa8"/><circle cx="2" cy="-4" r="14" fill="#fff" opacity=".35"/><circle cx="98" cy="-4" r="14" fill="#fff" opacity=".35"/>',
     premium: '<defs><linearGradient id="fpPrem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c8901a"/></linearGradient></defs><rect x="-20" y="-30" width="140" height="140" fill="url(#fpPrem)"/><path d="M50 -4 l9 12 -9 12 -9 -12Z" fill="#fff" opacity=".6"/>',
     founder: '<rect x="-20" y="-30" width="140" height="140" fill="#0b1033"/><rect x="-16" y="-26" width="132" height="132" fill="none" stroke="#ffc83d" stroke-width="4"/><path d="M50 -12 l5 11 12 1 -9 8 3 12 -11 -6 -11 6 3 -12 -9 -8 12 -1Z" fill="#ffc83d"/>',
+    vestPro: '<rect x="-20" y="-30" width="140" height="140" fill="#0b1033"/>' + [0, 1, 2, 3, 4].map(i => `<rect x="${-14 + i * 26}" y="-14" width="22" height="84" rx="3" fill="#18245e" stroke="#3d7bff"/><rect x="${-6 + i * 26}" y="-4" width="6" height="2" fill="#ffc83d"/>`).join('') + '<rect x="-20" y="72" width="140" height="8" fill="#8a5a2b"/>',
+    rooftop: '<defs><linearGradient id="fpRoof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a5c"/><stop offset=".6" stop-color="#ffc83d"/><stop offset="1" stop-color="#ffe7b0"/></linearGradient></defs><rect x="-20" y="-30" width="140" height="140" fill="url(#fpRoof)"/><circle cx="78" cy="10" r="12" fill="#fff4d6"/>'
+      + [[-18, 40, 18], [2, 30, 14], [18, 46, 16], [62, 34, 16], [80, 24, 20], [102, 44, 18]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="80" fill="#6b3a6e" opacity=".75"/>`).join('') + '<path d="M-20 70 h140 M-20 62 h140" stroke="#2a2d34" stroke-width="2"/>' + [-10, 10, 30, 50, 70, 90, 110].map(x => `<path d="M${x} 62 v8" stroke="#2a2d34" stroke-width="2"/>`).join(''),
+    skyline: '<rect x="-20" y="-30" width="140" height="140" fill="#07071a"/><circle cx="16" cy="-6" r="9" fill="#ffc83d" opacity=".9"/>'
+      + [[-18, 30, 16], [0, 4, 14], [16, -14, 12], [30, 18, 14], [46, -24, 12], [60, 8, 16], [78, -6, 14], [94, 22, 16]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="120" fill="#141433" stroke="#ffc83d" stroke-width=".8"/>${[0, 1, 2, 3, 4].map(r => `<rect x="${x + 3}" y="${y + 6 + r * 12}" width="3" height="4" fill="#ffc83d" opacity=".8"/><rect x="${x + w - 6}" y="${y + 10 + r * 12}" width="3" height="4" fill="#ffc83d" opacity=".55"/>`).join('')}`).join('') + '<path d="M52 -24 v-10" stroke="#ffc83d" stroke-width="1.5"/>',
   };
+  for (const [k, C] of Object.entries(CLUBES_PACK)) FONDO_ESP[`club_${k}`] = `<rect x="-20" y="-30" width="140" height="140" fill="${C.c1}"/>` + [-30, -6, 18, 42, 66, 90].map(x => `<path d="M${x} 110 L${x + 40} -30" stroke="${C.c2}" stroke-width="7" opacity=".22"/>`).join('') + `<text x="84" y="6" text-anchor="middle" font-size="22" opacity=".55">${C.ic}</text>`;
+  for (const [k, C] of Object.entries(CAMPEON_PACK)) FONDO_ESP[`camp_${k}`] = `<rect x="-20" y="-30" width="140" height="140" fill="${C.fondo}"/><circle cx="50" cy="30" r="52" fill="${C.c2}" opacity=".12"/>`
+    + '<path d="M36 -16 h28 v8 q0 18 -14 20 q-14 -2 -14 -20Z M46 12 h8 v12 h-8Z M40 24 h20 v6 h-20Z" fill="#ffc83d" opacity=".35"/>' + [[8, -8, '#ff4f8b'], [92, 0, '#7fd8ff'], [16, 30, '#ffc83d'], [86, 40, '#22a35a'], [4, 60, '#ffc83d'], [96, 70, '#ff4f8b']].map(([x, y, c]) => `<rect x="${x}" y="${y}" width="4" height="6" fill="${c}" transform="rotate(30 ${x} ${y})"/>`).join('') + `<text x="50" y="80" text-anchor="middle" font-size="14" opacity=".7">${C.ic}</text>`;
 
   function oscurecer(hex, f) { const n = parseInt(hex.slice(1), 16), c = k => Math.round(((n >> k) & 255) * f); return `rgb(${c(16)},${c(8)},${c(0)})`; }
   function avatarSVG(s, L, modo) {
@@ -162,7 +204,9 @@
       else h += `<rect x="-20" y="-30" width="140" height="140" fill="${FONDO_LOOK[L.fondo] || FONDO_LOOK.azul}"/>`;
     } else h += `<ellipse cx="50" cy="153" rx="28" ry="4" fill="rgba(0,0,0,.25)"/>`;
     if (L.extra === 'capa') h += `<path d="M31 74 L14 146 L86 146 L69 74Z" fill="#d6283b"/>`;
-    if (L.extra === 'mochila') h += `<rect x="30" y="72" width="40" height="34" rx="8" fill="#3b4a6b"/>`;
+    const mochilaC = L.extra === 'mochila' ? '#3b4a6b' : L.extra === 'mochilaStreet' ? '#ff4f8b' : /^mochila_/.test(L.extra) ? (CLUBES_PACK[L.extra.slice(8)] || {}).c1 : null;
+    const clubX = /^(bufanda|mochila)_/.test(L.extra) ? CLUBES_PACK[L.extra.split('_')[1]] : null, copaX = /^trofeo_/.test(L.extra) ? CAMPEON_PACK[L.extra.slice(7)] : null;
+    if (mochilaC) h += `<rect x="30" y="72" width="40" height="34" rx="8" fill="${mochilaC}"/>`;
     if (L.pelo === 'largo') h += `<path d="M23 40 Q23 12 50 12 Q77 12 77 40 L79 84 Q50 92 21 84Z" fill="${hc}"/>`;
     if (L.pelo === 'afro') h += `<circle cx="50" cy="34" r="33" fill="${hc}"/>`;
     if (L.pelo === 'coleta') h += `<path d="M70 24 Q94 28 86 64 Q80 44 68 36Z" fill="${hc}"/>`;
@@ -191,23 +235,35 @@
     else if (L.calzado === 'debut') h += zap('#ff4f8b', '<path d="M35 143 h9 M55 143 h9" stroke="#ffc83d" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#1a1640" stroke-width="2"/>');
     else if (L.calzado === 'street') h += zap('#ffc83d', '<path d="M35 143 h10 M54 143 h10" stroke="#1a1640" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#fff"/><rect x="50" y="146" width="19" height="3" fill="#fff"/>');
     else if (L.calzado === 'pro') h += zap('#0b1033', '<path d="M35 143 h9 M55 143 h9" stroke="#3d7bff" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#8b5cf6" stroke-width="2"/>');
+    else if (/^camp_/.test(L.calzado)) { const C = CAMPEON_PACK[L.calzado.slice(5)] || CAMPEON_PACK.copa; h += zap('#ffc83d', `<path d="M35 143 h9 M55 143 h9" stroke="${C.c1}" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="${C.c1}" stroke-width="2"/><circle cx="46" cy="142" r="1.4" fill="#fff"/><circle cx="65" cy="142" r="1.4" fill="#fff"/>`); }
     else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
     const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
     const tc = RV && RV.tc ? RV.tc : L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
-    h += `<rect x="${xa}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/><rect x="${xb - gb}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/>`;
-    // Tatuajes en los brazos (se ven por debajo de la manga, o enteros con tirantes)
+    // Brazos: cada uno en su grupo. La pose los gira desde el hombro; tatuajes, reloj, trofeo y maleta van con su brazo.
     const ca = xa + wa / 2, cb = xb - gb + wa / 2, tat = L.tatuaje;
-    if (tat === 'antebrazo' || tat === 'ambos') h += `<path d="M${ca} 94 l1.6 3.3 3.6 .5 -2.6 2.5 .6 3.6 -3.2 -1.7 -3.2 1.7 .6 -3.6 -2.6 -2.5 3.6 -.5Z" fill="none" stroke="${tinta}" stroke-width="1"/>`;
-    if (tat === 'rosa') h += `<circle cx="${ca}" cy="97" r="2.6" fill="#d6283b" stroke="${tinta}" stroke-width=".8"/><path d="M${ca} 99.5 v6 M${ca} 102 l-2.4 -1.6" stroke="${tinta}" stroke-width="1"/>`;
-    if (tat === 'manga') h += `<path d="M${xa + 1} 78 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 86 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 94 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 102 q${wa / 2} 3 ${wa - 2} 0" stroke="${tinta}" stroke-width="1.6" fill="none" opacity=".85"/><circle cx="${ca}" cy="90" r="2" fill="${tinta}" opacity=".85"/>`;
-    if (tat === 'tribal' || tat === 'ambos') for (const c of tat === 'tribal' ? [ca, cb] : [cb]) h += `<path d="M${c - wa / 2 + .5} 99 h${wa - 1} M${c - wa / 2 + .5} 102 l2 -2 2 2 2 -2 2 2 2 -2" stroke="${tinta}" stroke-width="1.4" fill="none"/>`;
-    if (!sinMangas) h += `<rect x="${xa}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="${xb - gb}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
-    h += `<circle cx="${ca}" cy="110" r="5.5" fill="${sk}"/><circle cx="${cb}" cy="110" r="5.5" fill="${sk}"/>`;
-    if (tat === 'mano') h += `<path d="M${cb} 112.5 l-2.2 -2.2 a1.3 1.3 0 0 1 2.2 -1.3 a1.3 1.3 0 0 1 2.2 1.3Z" fill="${tinta}"/>`;
-    if (L.extra === 'reloj') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/></g>`;
-    if (L.extra === 'relojDep') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/></g>`;
-    if (L.extra === 'relojPro') h += `<g transform="translate(${xa - 20} 0)"><rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/></g>`;
-    if (L.extra === 'relojPremium') h += `<g transform="translate(${xa - 20} 0)"><rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/></g>`;
+    // Pose: [giro del brazo izquierdo, giro del derecho, ¿por delante del cuerpo?]
+    const POSE = { saludo: [0, -128], abiertos: [26, -26], pro: [18, -168], empresario: [-38, 38, true], campeon: [152, -152] }[L.pose] || [0, 0];
+    const recto = (x, y) => (POSE[1] ? ` rotate(${-POSE[1]} ${x} ${y})` : '');   // lo que lleva en la mano se queda derecho
+    const tribal = c => `<path d="M${c - wa / 2 + .5} 99 h${wa - 1} M${c - wa / 2 + .5} 102 l2 -2 2 2 2 -2 2 2 2 -2" stroke="${tinta}" stroke-width="1.4" fill="none"/>`;
+    const manga = x => (sinMangas ? '' : `<rect x="${x}" y="72" width="${wa}" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`);
+    let brL = `<rect x="${xa}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/>`, brR = `<rect x="${xb - gb}" y="74" width="${wa}" height="34" rx="5.5" fill="${sk}"/>`;
+    if (tat === 'antebrazo' || tat === 'ambos') brL += `<path d="M${ca} 94 l1.6 3.3 3.6 .5 -2.6 2.5 .6 3.6 -3.2 -1.7 -3.2 1.7 .6 -3.6 -2.6 -2.5 3.6 -.5Z" fill="none" stroke="${tinta}" stroke-width="1"/>`;
+    if (tat === 'rosa') brL += `<circle cx="${ca}" cy="97" r="2.6" fill="#d6283b" stroke="${tinta}" stroke-width=".8"/><path d="M${ca} 99.5 v6 M${ca} 102 l-2.4 -1.6" stroke="${tinta}" stroke-width="1"/>`;
+    if (tat === 'manga') brL += `<path d="M${xa + 1} 78 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 86 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 94 q${wa / 2} 4 ${wa - 2} 0 M${xa + 1} 102 q${wa / 2} 3 ${wa - 2} 0" stroke="${tinta}" stroke-width="1.6" fill="none" opacity=".85"/><circle cx="${ca}" cy="90" r="2" fill="${tinta}" opacity=".85"/>`;
+    if (tat === 'tribal') brL += tribal(ca);
+    if (tat === 'tribal' || tat === 'ambos') brR += tribal(cb);
+    brL += manga(xa) + `<circle cx="${ca}" cy="110" r="5.5" fill="${sk}"/>`;
+    brR += manga(xb - gb) + `<circle cx="${cb}" cy="110" r="5.5" fill="${sk}"/>`;
+    if (tat === 'mano') brR += `<path d="M${cb} 112.5 l-2.2 -2.2 a1.3 1.3 0 0 1 2.2 -1.3 a1.3 1.3 0 0 1 2.2 1.3Z" fill="${tinta}"/>`;
+    const reloj = { reloj: '<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/>', relojDep: '<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/>',
+      relojPro: '<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/>',
+      relojPremium: '<rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/>',
+      relojLeg: '<rect x="18.5" y="98.5" width="14" height="8" rx="2.5" fill="#111" stroke="#ffc83d" stroke-width="1.2"/><circle cx="25.5" cy="102.5" r="2.6" fill="#ffc83d"/><path d="M25.5 101 v1.6 l1.2 .8" stroke="#111" stroke-width=".7"/><circle cx="30.5" cy="100" r=".9" fill="#7fd8ff"/>' }[L.extra];
+    if (reloj) brL += `<g transform="translate(${xa - 20} 0)">${reloj}</g>`;
+    if (copaX) brR += `<g transform="translate(${cb} 101)${recto(0, 8)}"><path d="M-7 -12 h14 v4 q0 8 -7 9 q-7 -1 -7 -9Z" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M-7 -10 q-4 0 -4 3 q0 3 4 3 M7 -10 q4 0 4 3 q0 3 -4 3" fill="none" stroke="#ffc83d" stroke-width="1.4"/><rect x="-1.5" y="1" width="3" height="5" fill="#ffc83d"/><rect x="-5" y="6" width="10" height="3.5" rx="1" fill="${copaX.c1}"/><text x="0" y="-4" text-anchor="middle" font-size="5">${copaX.ic}</text></g>`;
+    if (L.extra === 'maletaPro') brR += `<g transform="translate(${cb} 113)${recto(0, -3)}"><path d="M-4 0 v-3 h8 v3" stroke="#222" stroke-width="1.6" fill="none"/><rect x="-11" y="0" width="22" height="13" rx="3" fill="#0b1033"/><path d="M-11 5 h22" stroke="#3d7bff" stroke-width="2"/><path d="M-11 8 h22" stroke="#8b5cf6" stroke-width="1"/></g>`;
+    const gL = POSE[0] ? `<g transform="rotate(${POSE[0]} ${ca} 77)">${brL}</g>` : brL, gR = POSE[1] ? `<g transform="rotate(${POSE[1]} ${cb} 77)">${brR}</g>` : brR;
+    if (!POSE[2]) h += gL + gR;
     h += `<rect x="44" y="58" width="12" height="16" rx="4" fill="${sk}"/>`;
     if (tat === 'cuello') h += `<path d="M53 63 l1 2 2.2 .3 -1.6 1.5 .4 2.2 -2 -1 -2 1 .4 -2.2 -1.6 -1.5 2.2 -.3Z" fill="${tinta}"/>`;
     if (L.ropa === 'sudadera') h += `<path d="M34 72 Q50 56 66 72Z" fill="${rd}"/>`;
@@ -223,7 +279,10 @@
     if (L.ropa === 'hawaiana') h += `${[[38, 82], [60, 78], [46, 98], [64, 100], [34, 104]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff"/><circle cx="${x}" cy="${y}" r="1.4" fill="#f6c623"/>`).join('')}<path d="M42 68 L50 80 L58 68" fill="none" stroke="#fff" stroke-width="2"/>`;
     if (L.ropa === 'traje') h += `<path d="M43 68 L50 86 L57 68Z" fill="#fff"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#d6283b"/><path d="M43 68 L48 92 M57 68 L52 92" stroke="#444b5c" stroke-width="2"/>`;
     if (RV && RV.ad) h += RV.ad;
-    if (L.extra === 'mochila') h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="#3b4a6b" stroke-width="4"/>`;
+    if (mochilaC) h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="${mochilaC}" stroke-width="4"/>${L.extra === 'mochilaStreet' ? '<circle cx="62" cy="96" r="3" fill="#ffc83d"/>' : clubX ? `<text x="62" y="99" text-anchor="middle" font-size="6">${clubX.ic}</text>` : ''}`;
+    if (/^bufanda_/.test(L.extra) && clubX) h += `<path d="M36 68 Q50 78 64 68 L64 74 Q50 84 36 74Z" fill="${clubX.c2}" stroke="${clubX.c1}" stroke-width="1.2"/><path d="M40 71.5 Q50 78.5 60 71.5" stroke="${clubX.c1}" stroke-width="2" fill="none"/><rect x="56" y="74" width="8" height="22" fill="${clubX.c2}" stroke="${clubX.c1}" stroke-width="1.2"/><path d="M56 80 h8 M56 86 h8 M56 92 h8" stroke="${clubX.c1}" stroke-width="2.4"/><path d="M57 96 v3.5 M60 96 v3.5 M63 96 v3.5" stroke="${clubX.c1}" stroke-width="1.2"/>`;
+    if (L.extra === 'insigniaMag') h += `<circle cx="61" cy="80" r="5.5" fill="#0d0d12" stroke="#ffc83d" stroke-width="1.5"/><path d="M57.5 83 v-4 h1.6 v-2.5 h1.6 v-2 h1.6 v3 h1.6 v5.5Z" fill="#ffc83d"/>`;
+    if (POSE[2]) h += gL + gR;
     if (L.extra === 'cadenaExcl') h += `<path d="M39 70 Q50 92 61 70" fill="none" stroke="#ffc83d" stroke-width="3.5"/><path d="M50 84 l5 6 -5 6 -5 -6Z" fill="#7fd8ff" stroke="#ffc83d" stroke-width="1.2"/>`;
     if (L.extra === 'insignia') h += `<circle cx="61" cy="80" r="5" fill="#1a1640" stroke="#ffc83d" stroke-width="1.5"/><path d="M61 76.5 l1.2 2.5 2.7 .3 -2 1.8 .6 2.7 -2.5 -1.4 -2.5 1.4 .6 -2.7 -2 -1.8 2.7 -.3Z" fill="#ffc83d"/>`;
     if (L.extra === 'cadena') h += `<path d="M41 70 Q50 88 59 70" fill="none" stroke="#f5c518" stroke-width="2.5"/><circle cx="50" cy="83" r="3.2" fill="#f5c518"/>`;
@@ -300,6 +359,8 @@
     else if (L.gafas === 'sol') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#111"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#111"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#111" stroke-width="2"/><path d="M33 40 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
     else if (L.gafas === 'temporada') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><path d="M47 41 h6" stroke="#d94bff" stroke-width="2"/><path d="M33 40 l5 0 M56 40 l5 0" stroke="#7fd8ff" stroke-width="1.5"/>`;
     else if (L.gafas === 'pro') h += `<path d="M29 38 h18 l-2 9 q-7 3 -14 0Z M53 38 h18 l-2 9 q-7 3 -14 0Z" fill="#3a2d10" stroke="#ffc83d" stroke-width="1.5"/><path d="M47 40 h6" stroke="#ffc83d" stroke-width="1.5"/>`;
+    else if (L.gafas === 'street') h += `<rect x="30" y="37" width="17" height="11" rx="5.5" fill="#ff4f8b" opacity=".85" stroke="#ffc83d" stroke-width="2"/><rect x="53" y="37" width="17" height="11" rx="5.5" fill="#ff4f8b" opacity=".85" stroke="#ffc83d" stroke-width="2"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#ffc83d" stroke-width="2"/>`;
+    else if (L.gafas === 'lux') h += `<path d="M29 38 h18 q0 10 -9 10 q-9 0 -9 -10Z M53 38 h18 q0 10 -9 10 q-9 0 -9 -10Z" fill="#5a3d0a" opacity=".9" stroke="#ffc83d" stroke-width="1.6"/><path d="M47 39 q3 -2 6 0 M29 38 l-4 -1 M71 38 l4 -1" stroke="#ffc83d" stroke-width="1.6" fill="none"/>`;
     else if (L.gafas === 'deportivas') h += `<path d="M26 39 Q50 32 74 39 L72 48 Q50 43 28 48Z" fill="#ff5a1f"/><path d="M30 41 Q50 36 70 41" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/>`;
     else if (L.gafas === 'corazon') { const co = x => `<path d="M${x} 49 l-7 -7 a4 4 0 0 1 7 -4 a4 4 0 0 1 7 4Z" fill="#ff2d6f"/>`; h += co(39) + co(61) + `<path d="M46 42 h8" stroke="#ff2d6f" stroke-width="1.5"/>`; }
     if (L.cabeza === 'gorra') { const g1 = CV || rc, g2 = CV ? oscurecer(CV, 0.7) : rd; h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${g1}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${g2}"/><circle cx="50" cy="10" r="2.5" fill="${g2}"/>${CV === '#1a1640' ? '<path d="M44 24 h12" stroke="#ffc83d" stroke-width="2.5"/>' : ''}`; }
@@ -308,7 +369,7 @@
     else if (L.cabeza === 'fiesta') h += `<path d="M38 18 L50 -14 L62 18Z" fill="#ff6fb5"/><path d="M41 10 L59 10 M44 2 L56 2" stroke="#f6c623" stroke-width="3"/><circle cx="50" cy="-14" r="4" fill="#f6c623"/>`;
     else if (L.cabeza === 'vaquero') h += `<path d="M32 22 Q32 2 50 5 Q68 2 68 22Z" fill="#8a5a2b"/><ellipse cx="50" cy="22" rx="38" ry="6" fill="#6b4422"/><rect x="32" y="16" width="36" height="4" fill="#2a2d34"/>`;
     else if (L.cabeza === 'corona') h += `<path d="M31 21 L33 1 L42 11 L50 -4 L58 11 L67 1 L69 21Z" fill="#f5c518" stroke="#b08a00" stroke-width="1"/><circle cx="50" cy="15" r="2.5" fill="#e23b3b"/><circle cx="40" cy="16" r="2" fill="#2f6fe0"/><circle cx="60" cy="16" r="2" fill="#22a35a"/>`;
-    if (L.extra === 'auriculares') h += `<path d="M23 42 Q23 7 50 7 Q77 7 77 42" fill="none" stroke="#2a2d34" stroke-width="5"/><rect x="17" y="35" width="10" height="16" rx="4" fill="${rc}"/><rect x="73" y="35" width="10" height="16" rx="4" fill="${rc}"/>`;
+    if (L.extra === 'auriculares' || L.extra === 'auriPro') { const pro = L.extra === 'auriPro', ac = pro ? '#0b1033' : rc; h += `<path d="M23 42 Q23 7 50 7 Q77 7 77 42" fill="none" stroke="${pro ? '#ffc83d' : '#2a2d34'}" stroke-width="5"/><rect x="17" y="35" width="10" height="16" rx="4" fill="${ac}"/><rect x="73" y="35" width="10" height="16" rx="4" fill="${ac}"/>${pro ? '<circle cx="22" cy="43" r="2.2" fill="#3d7bff"/><circle cx="78" cy="43" r="2.2" fill="#3d7bff"/>' : ''}`; }
     return `<svg viewBox="${VISTA_LOOK[modo] || VISTA_LOOK.cuerpo}" class="avatar" aria-hidden="true">${h}</svg>`;
   }
 
