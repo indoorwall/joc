@@ -357,6 +357,18 @@
   .pruebas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .pruebas .btn { width: 100%; min-height: 44px; font-size: 14px; padding: 8px; }
 
+  /* Desenlaces: cartel con el dinero que ganas o que te pierdes */
+  .desenlace { border-radius: 18px; padding: 14px; margin: 10px 0; text-align: left; }
+  .desenlace.bien { background: linear-gradient(160deg, #e7f9ee, #c9f0d8); border: 3px solid #2ecc71; }
+  .desenlace.mal { background: linear-gradient(160deg, #fdecea, #f9d3ce); border: 3px solid #e0483a; }
+  .desenlace .dst { font-size: 20px; font-weight: 900; text-align: center; line-height: 1.2; }
+  .desenlace .dss { font-size: 14px; text-align: center; color: var(--dim); margin: 4px 0 6px; }
+  .desenlace .dsh { font-size: 12px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; margin: 10px 0 4px; color: var(--dim); }
+  .desenlace .dsl { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; padding: 3px 0; border-bottom: 1px dashed rgba(0,0,0,.12); }
+  .desenlace .dsl b { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .desenlace.bien .dsl b { color: #157a43; } .desenlace.mal .dsl b { color: #b3261e; }
+  .desenlace .dsl.tot { border-bottom: 0; font-size: 17px; font-weight: 900; }
+  .desenlace .dse { font-size: 13px; padding: 2px 0; }
   /* Minijuegos decisivos (capa a pantalla completa) */
   .mj { position: fixed; inset: 0; z-index: 50; display: flex; flex-direction: column; justify-content: center; padding: calc(var(--safe-top) + 12px) 14px calc(var(--safe-bottom) + 16px);
     background: radial-gradient(120% 80% at 50% 0%, var(--bg1), var(--bg2)); color: #fff; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -689,6 +701,8 @@ const CFG = {
   // Vidas para reintentar (1 reintento por momento); se recupera 1 vida cada vidaSemanas.
   // Lesiones graves: pocas, más si juegas agotado/a (energía < 25): meses fuera y nivel perdido
   lesionGrave: { prob: 0.04, probAgotado: 0.15, semanas: [8, 14], nivel: [1, 3], tipos: ['rotura de fibras', 'ligamento de la rodilla', 'fractura de un dedo del pie', 'lesión de espalda'] },
+  // Desenlaces: lo que pasa al subir, al quedarte a las puertas (hasta 2 puestos de la zona) o al bajar
+  desenlace: { ayudaJuegos: 6000, felSube: 12, repSube: 5, felQueda: 8, repQueda: 2, felBaja: 12, repBaja: 4, felSalva: 8, puestosCerca: 2 },
   minijuegos: { exito: 0.66, perfecto: 0.95, desastre: 0.34, simuladoMax: 0.8, vidasMax: 3, vidaSemanas: 6, anuncioSeg: 5 },
   // Números rojos: el banco manda una carta y te da un plazo (en semanas de juego). Si sigues en
   // negativo, cobra intereses cada semana y embarga tus bienes hasta cubrir la deuda (venta forzosa).
@@ -1787,6 +1801,10 @@ function semanaClub(s, R, mods) {
   if (P.mj) {
     R.opo.push([P.mj.ok ? '⚡' : '😖', P.mj.ok ? `Jugada decisiva: ${P.mj.perfecto ? '¡perfecta!' : 'me sale'} y cambia el partido.` : `Jugada decisiva: fallo${P.mj.desastre ? ' estrepitoso' : ''} y lo aprovecha el rival.`]);
     consecuenciasMJ(s, R, P.mj);
+    const yoN = mi.nombre, rv = club(s, P.rivalId).nombre, marc = P.casa ? `${yoN} ${P.gf}-${P.gc} ${rv}` : `${rv} ${P.gc}-${P.gf} ${yoN}`;
+    const res = P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'empate' ? 'Empate' : 'Derrota';
+    const resMJ = { tipo: 'momentoRes', ok: P.mj.ok, ic: (MJ[depDe(s)] || MJ.futbol).ic, titulo: res, texto: P.mj.ok ? `La jugada decisiva es tuya${P.mj.perfecto ? ' y sale perfecta' : ''}.` : 'Fallas en el momento decisivo y el rival lo aprovecha.', marcador: marc };
+    if (s.pendiente) s.cola.unshift(resMJ); else s.pendiente = resMJ;
   } else if (juega) prepararMomento(s, P, yo);
 
   // Economía personal
@@ -1919,8 +1937,11 @@ function abrirMercado(s, R, ventana) {
 function finTemporada(s, R) {
   const T = s.temporada, c = s.contrato, yo = c.clubId, orden = clasificacion(T);
   const pos = orden.indexOf(yo) + 1, z = zona(T.liga, pos), tramo = tramoActual(s);
-  const info = { tipo: 'fin', clubId: yo, año: T.año, liga: T.liga, pos, zona: z, tabla: orden.map(id => [id, { ...T.tabla[id] }]), primas: [], tramo: { ...tramo } };
+  const info = { tipo: 'fin', clubId: yo, año: T.año, liga: T.liga, pos, zona: z, tabla: orden.map(id => [id, { ...T.tabla[id] }]), primas: [], tramo: { ...tramo }, gana: [], pierde: [], efectos: [] };
+  const it0 = infoLiga(T.liga), primaMarcas = s.patros.reduce((a, pt) => a + (pt.primaTitulo || 0), 0), sueldoAntes = c.salario;
+  const mjs = (s.mjTemp || []).filter(m => m.año === T.año);
   balancePatros(s, R, z);
+  if ((z === 'ascenso' || z === 'campeon') && primaMarcas) info.gana.push([`Primas de tus marcas por ${z === 'campeon' ? 'el título' : 'el ascenso'}`, primaMarcas]);
   s.patroTemp = { partidos: 0, pj: 0, tit: 0, goles: 0 };
   guardarTarjeta(s, { tipo: 'futbol', dep: depDe(s), titulo: `Temporada ${T.año}/${String(T.año + 1).slice(2)}`, sub: club(s, yo).nombre, pos, liga: infoLiga(T.liga).L.n, pj: tramo.pj, goles: tramo.goles, asist: tramo.asist, reb: tramo.reb || 0, nota: tramo.pj ? nf(tramo.sumaNota / tramo.pj) : '—' });
   if (z === 'ascenso' || z === 'campeon') {
@@ -1930,13 +1951,36 @@ function finTemporada(s, R) {
         const imp = Math.round(c.primaAscenso * tipoImpuesto(c.primaAscenso));
         s.p.dinero += c.primaAscenso - imp; s.acum.ingresosPers += c.primaAscenso - imp; s.acum.impuestos += imp;
         info.primas.push(`Prima por ${z === 'campeon' ? 'título' : 'ascenso'}: +${cr(c.primaAscenso)} (−${cr(imp)} de impuestos)`);
+        info.gana.push([`Prima del club por ${z === 'campeon' ? 'el título' : 'el ascenso'} (neta)`, c.primaAscenso - imp]);
         R.eco.push([`Prima por ${z === 'campeon' ? 'título' : 'ascenso'} (neta)`, c.primaAscenso - imp]);
       } else info.primas.push(`Sin prima por ascenso: necesitabas ${CFG.club.partidosMinPrimaAscenso} partidos jugados (tienes ${tramo.pj}).`);
     }
     if (c.subidaAscenso) { const antes = c.salario, it = infoLiga(T.liga), nueva = z === 'ascenso' && it.tier > 1 ? `${it.pais}-${it.tier - 1}` : T.liga;
-      c.salario = Math.max(antes, Math.min(red(c.salario * (1 + c.subidaAscenso / 100), 10), topeSueldoLiga(nueva))); info.primas.push(`Cláusula de ascenso: sueldo ${cr(antes)} → ${cr(c.salario)} (+${c.subidaAscenso} %)`); }
+      c.salario = Math.max(antes, Math.min(red(c.salario * (1 + c.subidaAscenso / 100), 10), topeSueldoLiga(nueva))); info.primas.push(`Cláusula de ascenso: sueldo ${cr(antes)} → ${cr(c.salario)} (+${c.subidaAscenso} %)`);
+      if (c.salario > antes) info.gana.push([`Subida de sueldo: ${cr(antes)} → ${cr(c.salario)}/semana (un año)`, (c.salario - antes) * 52]); }
+    const F = CFG.desenlace;
+    s.p.rep = clamp(s.p.rep + F.repSube, 0, 100); s.p.fel = clamp(s.p.fel + F.felSube, 0, 100); sumarSeg(s, alcance(s) * 2);
+    info.efectos.push(`+${F.felSube} de ánimo y +${F.repSube} de fama: la ciudad lo celebra contigo`);
+  } else {
+    // ¿Os habéis quedado a las puertas? Lo que te pierdes, en euros
+    const F = CFG.desenlace, linea = it0.tier === 1 ? 1 : CFG.temporada.ascienden, cerca = pos > linea && pos <= linea + F.puestosCerca;
+    const lucha = mjs.some(m => m.que === 'ascenso' || m.que === 'titulo');
+    if (cerca || lucha) {
+      info.quedaste = it0.tier === 1 ? 'titulo' : 'ascenso';
+      if (c.primaAscenso) info.pierde.push([`Prima del club por ${info.quedaste === 'titulo' ? 'el título' : 'el ascenso'}`, c.primaAscenso]);
+      if (c.subidaAscenso) info.pierde.push([`Subida de sueldo del ${c.subidaAscenso} % (un año)`, Math.round(c.salario * c.subidaAscenso / 100) * 52]);
+      if (primaMarcas) info.pierde.push([`Primas de tus marcas por ${info.quedaste === 'titulo' ? 'el título' : 'el ascenso'}`, primaMarcas]);
+      s.p.fel = clamp(s.p.fel - F.felQueda, 0, 100); s.p.rep = clamp(s.p.rep - F.repQueda, 0, 100);
+      info.efectos.push(`−${F.felQueda} de ánimo y −${F.repQueda} de fama: la afición está decepcionada`);
+      if (mjs.some(m => !m.ok)) info.efectos.push('Fallaste en el momento decisivo y la prensa no lo olvida');
+    } else if (z !== 'descenso' && mjs.some(m => m.que === 'descenso')) {
+      info.salvados = true; s.p.fel = clamp(s.p.fel + F.felSalva, 0, 100); info.efectos.push(`+${F.felSalva} de ánimo: ¡salvados en el último suspiro!`);
+    }
   }
-  if (z === 'descenso' && c.bajadaDescenso) { const antes = c.salario; c.salario = red(c.salario * (1 - c.bajadaDescenso / 100), 10); info.primas.push(`Cláusula de descenso: sueldo ${cr(antes)} → ${cr(c.salario)} (−${c.bajadaDescenso} %)`); }
+  if (z === 'descenso' && c.bajadaDescenso) { const antes = c.salario; c.salario = red(c.salario * (1 - c.bajadaDescenso / 100), 10); info.primas.push(`Cláusula de descenso: sueldo ${cr(antes)} → ${cr(c.salario)} (−${c.bajadaDescenso} %)`); info.pierde.push([`Bajada de sueldo: ${cr(antes)} → ${cr(c.salario)}/semana (un año)`, (antes - c.salario) * 52]); }
+  if (z === 'descenso') { const F = CFG.desenlace; s.p.fel = clamp(s.p.fel - F.felBaja, 0, 100); s.p.rep = clamp(s.p.rep - F.repBaja, 0, 100); info.efectos.push(`−${F.felBaja} de ánimo y −${F.repBaja} de fama: descenso`); for (const pt of s.patros) pt.rel = Math.max(0, pt.rel - 10); if (s.patros.length) info.efectos.push('Tus marcas bajan la relación (−10): pagan por verte arriba'); }
+  info.sueldo = [sueldoAntes, c.salario];
+  s.mjTemp = (s.mjTemp || []).filter(m => m.año !== T.año);
 
   actualizarMundo(s, T.liga, orden);
   cumpleaños(s, R);
@@ -2456,6 +2500,8 @@ function resolver(opcion) {
     else return false;
   } else if (ev.tipo === 'cartaBanco' || ev.tipo === 'embargo' || ev.tipo === 'quiebraForzada' || ev.tipo === 'concurso') {
     if (opcion === 'empresa') s.hoja = 'bienes';
+    msg = ''; // ya está en el diario
+  } else if (ev.tipo === 'desenlace') {
     msg = ''; // ya está en el diario
   } else if (ev.tipo === 'minijuego') {
     const r = resolverMinijuego(s, ev, opcion);
@@ -3808,10 +3854,10 @@ function competirEsc(s, R, c) {
   // Dinero
   const coste = costeComp(s, c), premio = premioDe(s, c, pos);
   pagarEsc(s, R, coste, `Inscripción${coste > A.ins ? ' y viaje' : ''}: ${A.n}`);
-  let bruto = premio;
+  let bruto = premio, impPrem = 0;
   if (premio) R.eco.push([c.amb === 'jjoo' ? 'Premio del Consejo Superior de Deportes por la medalla' : `Premio (${pos}º)`, premio]);
   if (pos <= pod && ORDEN_AMB.indexOf(c.amb) >= 1) for (const pt of s.patros) if (pt.primaPodio) { const b = Math.round(pt.primaPodio * K.factorPrima[c.amb]); bruto += b; R.eco.push([`Prima de ${pt.marca} por el podio`, b]); }
-  if (bruto) { const imp = Math.round(bruto * tipoImpuesto(bruto)); s.p.dinero += bruto - imp; if (imp) { R.eco.push([`Impuestos de premios (${Math.round(tipoImpuesto(bruto) * 100)} %)`, -imp]); s.acum.impuestos += imp; } E.anual.premios += premio; }
+  if (bruto) { const imp = Math.round(bruto * tipoImpuesto(bruto)); impPrem = imp; s.p.dinero += bruto - imp; if (imp) { R.eco.push([`Impuestos de premios (${Math.round(tipoImpuesto(bruto) * 100)} %)`, -imp]); s.acum.impuestos += imp; } E.anual.premios += premio; }
   // Reputación y seguidores
   const f = pos === 1 ? 1.6 : pos <= pod ? 1.2 : ronda === 'final' ? 0.7 : ronda === 'semifinal' ? 0.35 : 0.1;
   // Una competición pequeña no te hace famoso/a: cuanto más cerca estás de su techo de fama, menos suma
@@ -3825,7 +3871,7 @@ function competirEsc(s, R, c) {
   if (c.amb === 'esp' || c.amb === 'cesp') E.anual.mejorEsp = Math.min(E.anual.mejorEsp, pos);
   if (c.amb === 'mundo') { E.anual.cm = true; E.anual.mejorMundo = Math.min(E.anual.mejorMundo, pos); const m = E.mejorMundoMod[c.mod] = E.mejorMundoMod[c.mod] || {}; m[E.año] = Math.min(m[E.año] || 99, pos); if (ronda === 'final') E.finales += 1; }
   if (['mundial', 'europeo', 'jjoo'].includes(c.amb) && pos <= pod) E.medallas.push({ año: E.año, amb: c.amb, mod: c.mod, pos });
-  if (c.amb === 'clasif' && pos <= A.plazas) { E.olimpico = { año: E.año, mod: c.mod }; R.opo.push(['🏅', `¡Plaza para los Juegos de Verano de ${SEDES_JJOO[E.año] || E.año} (${MODS[c.mod].n.toLowerCase()})!`]); celebrar = true; }
+  if (c.amb === 'clasif' && pos <= A.plazas) { E.olimpico = { año: E.año, mod: c.mod }; s.p.dinero += CFG.desenlace.ayudaJuegos; R.eco.push(['Ayuda de la federación por clasificarte para los Juegos', CFG.desenlace.ayudaJuegos]); R.opo.push(['🏅', `¡Plaza para los Juegos de Verano de ${SEDES_JJOO[E.año] || E.año} (${MODS[c.mod].n.toLowerCase()})!`]); celebrar = true; }
   const nombre = nombreComp(c, s);
   E.palmares.unshift({ año: E.año, mes: mesEsc(s), n: nombre, lugar: c.lugar, mod: c.mod, amb: c.amb, pos, N, ronda, marca }); E.palmares = E.palmares.slice(0, 40);
   const ic = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : MODS[c.mod].ic;
@@ -3835,6 +3881,7 @@ function competirEsc(s, R, c) {
     `Tu nivel de ${MODS[c.mod].n.toLowerCase()} ${nf(L)} ${sg(r1(fz))} por tu forma (energía ${s.p.energia}) ${sg(r1(animo))} por felicidad ${sg(r1(cab))} por cabeza y presión${piel ? ` ${sg(r1(piel))} por la piel` : ''} ${sg(r1(suerte))} de suerte${resbalon ? ' − 40 por el resbalón' : ''} = ${nf(score)}, frente a una media de ${nf(media)} (± ${nf(A.sd)}) entre ${N} participantes${juv ? ' de tu categoría' : ''}.`]);
   R.comp = { pos, N, ronda, amb: c.amb, podio: pos <= pod };
   if (TX.trasComp) TX.trasComp(s, R, c, pos, z, marca);
+  if (mjC) desenlaceInd(s, c, pos, N, premio, bruto - premio, impPrem, mjC);
   if (mjC) { R.escLineas.push([mjC.ok ? '⚡' : '😖', mjC.ok ? `Momento decisivo: ${mjC.perfecto ? '¡perfecto!' : 'me sale'} (${sg(r1(bonoMJ))} puntos).` : `Momento decisivo: fallo (${sg(r1(bonoMJ))} puntos).`]); consecuenciasMJ(s, R, mjC); }
   else prepararMomentoEsc(s, c, pos, ronda, antes, nombre);
   if (c.amb === 'jjoo') {
@@ -5568,6 +5615,8 @@ function popup() {
   if (POPUPS_ESC[ev.tipo]) return popupEsc(s, ev);
   if (ev.tipo === 'retiro' && ev.motor === 'individual') return popupRetiroEsc(s, ev);
   if (ev.tipo === 'minijuego') return popupMinijuego(s, ev);
+  if (ev.tipo === 'desenlace') return `<div class="pi">${ev.bien ? '🎉' : '😖'}</div>${cartelDesenlace(ev.bien, ev.titulo, ev.sub, ev.gana, ev.pierde, ev.efectos)}
+    <button class="btn ${ev.bien ? 'g' : 'w'} full" data-act="resolver" data-v="ok">${ev.bien ? '¡A seguir así!' : 'Seguir adelante'}</button>`;
   if (ev.tipo === 'escenario') {
     const ind = esInd(s), c = ind ? null : miClub(s);
     const lugar = ind ? nombreEscenario(s, ev.n) : c.estadio;
@@ -5596,9 +5645,10 @@ function popup() {
     const i = infoLiga(ev.liga), mi = club(s, ev.clubId), z = ev.zona, t = ev.tramo;
     const ban = z === 'campeon' ? '🏆 ¡Campeones!' : z === 'ascenso' ? '🎉 ¡Ascenso!' : z === 'descenso' ? '😢 Descenso' : `${ev.pos}º puesto`;
     return `<div class="pi">${z === 'campeon' ? '🏆' : z === 'ascenso' ? '🎉' : z === 'descenso' ? '😢' : '🏁'}</div><h2>Fin de la temporada ${ev.año}/${String(ev.año + 1).slice(2)}</h2>
+      ${htmlDesenlaceFin(s, ev)}
       <p class="pd"><b>${ban}</b> · ${esc(mi.nombre)} en ${esc(i.L.n)}${ev.ligaNueva !== ev.liga ? `<br>La próxima temporada: ${esc(nombreLiga(ev.ligaNueva))}` : ''}</p>
       <div class="chips" style="justify-content:center">${chip('👕', `${t.pj} partidos`)}${chip(TXE.icGol, `${t.goles} ${TXE.uGol(2)}`)}${chip('⭐', `nota ${t.pj ? nf(t.sumaNota / t.pj) : '—'}`)}${chip('🎂', `${s.edad} años`)}</div>
-      ${ev.primas.map(p => `<p class="small">💰 ${esc(p)}</p>`).join('')}
+      ${(ev.gana && ev.gana.length) || (ev.pierde && ev.pierde.length) ? '' : ev.primas.map(p => `<p class="small">💰 ${esc(p)}</p>`).join('')}
       <div style="margin-top:10px">${tablaHTML(ev.liga, ev.tabla, ev.clubId)}</div>
       <button class="btn w full" data-act="resolver" data-v="tarjeta">📸 Ver mi tarjeta de la temporada</button>
       <button class="btn g full" data-act="resolver" data-v="ok">Continuar</button>`;
@@ -6141,6 +6191,7 @@ function resolverMinijuego(s, ev, op) {
   else return null;
   const K = CFG.minijuegos, ok = score >= K.exito, perfecto = score >= K.perfecto, desastre = score < K.desastre;
   s.mj = { semana: s.semana, score, ok, perfecto, desastre, simulado, dif: ev.dif, motor: ev.motor, que: ev.que || null, amb: ev.amb || null, titulo: ev.titulo };
+  if (ev.motor === 'equipo' && s.temporada) (s.mjTemp = s.mjTemp || []).push({ año: s.temporada.año, que: ev.que, ok });
   s.cont.mj = (s.cont.mj || 0) + 1;
   if (ok) s.cont.mjOk = (s.cont.mjOk || 0) + 1;
   if (perfecto && !simulado) s.cont.mjPerfecto = (s.cont.mjPerfecto || 0) + 1;
@@ -6176,6 +6227,52 @@ function bonoMJInd(s, A) {
   const mj = s.mj && s.mj.semana === s.semana && s.mj.motor === 'individual' ? s.mj : null;
   if (!mj) return [0, null];
   return [A.sd * (mj.ok ? (mj.perfecto ? 1.4 : 0.9) : (mj.desastre ? -1.8 : -1.1)), mj];
+}
+// Cartel grande del desenlace: el dinero que ganas (o que te pierdes) y las consecuencias
+function cartelDesenlace(bien, titulo, sub, gana, pierde, efectos) {
+  const tot = l => l.reduce((a, [, v]) => a + v, 0), fila = ([txt, v], signo) => `<div class="dsl"><span>${esc(txt)}</span><b>${v < 0 ? '−' : signo}${cr(Math.abs(Math.round(v)))}</b></div>`;
+  return `<div class="desenlace ${bien ? 'bien' : 'mal'}"><div class="dst">${esc(titulo)}</div>${sub ? `<div class="dss">${esc(sub)}</div>` : ''}
+    ${gana.length ? `<div class="dsh">💰 Lo que ganas</div>${gana.map(x => fila(x, '+')).join('')}<div class="dsl tot"><span>Total</span><b>${tot(gana) < 0 ? '−' : '+'}${cr(Math.abs(Math.round(tot(gana))))}</b></div>` : ''}
+    ${pierde.length ? `<div class="dsh">💸 Lo que te pierdes</div>${pierde.map(x => fila(x, '−')).join('')}<div class="dsl tot"><span>Total</span><b>−${cr(Math.round(tot(pierde)))}</b></div>` : ''}
+    ${efectos.length ? `<div class="dsh">${bien ? '✨ Además' : '⚠️ Consecuencias'}</div>${efectos.map(e => `<div class="dse">• ${esc(e)}</div>`).join('')}` : ''}</div>`;
+}
+function htmlDesenlaceFin(s, ev) {
+  const z = ev.zona, gana = ev.gana || [], pierde = ev.pierde || [], efectos = ev.efectos || [];
+  const nueva = ev.ligaNueva && ev.ligaNueva !== ev.liga ? infoLiga(ev.ligaNueva).L.n : '';
+  if (z === 'campeon') return cartelDesenlace(true, '🏆 ¡FELICIDADES! ¡Campeones de liga!', `El ${club(s, ev.clubId).nombre} es el mejor de ${infoLiga(ev.liga).L.n}.`, gana, pierde, efectos);
+  if (z === 'ascenso') return cartelDesenlace(true, `🎉 ¡FELICIDADES! ¡Subís a ${nueva}!`, 'Nueva división: más público, más sueldo y más fama.', gana, pierde, efectos);
+  if (z === 'descenso') return cartelDesenlace(false, `😢 Descenso a ${nueva}`, 'Menos público, menos sueldo y menos fama la próxima temporada.', gana, pierde, efectos);
+  if (ev.quedaste) return cartelDesenlace(false, ev.quedaste === 'titulo' ? '😖 Se escapa el título' : `😖 Os quedáis en ${infoLiga(ev.liga).L.n}`, `Terminas ${ev.pos}º: a ${ev.pos - (ev.quedaste === 'titulo' ? 1 : CFG.temporada.ascienden)} ${ev.pos - (ev.quedaste === 'titulo' ? 1 : CFG.temporada.ascienden) === 1 ? 'puesto' : 'puestos'} de conseguirlo.`, gana, pierde, efectos);
+  if (ev.salvados) return cartelDesenlace(true, '😅 ¡Salvados!', `Seguís en ${infoLiga(ev.liga).L.n}.`, gana, pierde, efectos);
+  return '';
+}
+// Individuales: tras una competición con momento decisivo, su desenlace con el dinero delante
+function desenlaceInd(s, c, pos, N, premio, primas, imp, mj) {
+  const A = AMBITOS[c.amb], pod = A.podio || 3, F = CFG.desenlace, E = s.esc;
+  const meta = c.amb === 'clasif' ? A.plazas : A.final === 2 ? 1 : pod, logrado = pos <= meta;
+  const gana = [], pierde = [], efectos = [];
+  if (premio) gana.push([`Premio (${pos}º)`, premio]);
+  if (c.amb === 'clasif' && pos <= A.plazas) gana.push(['Ayuda de la federación por clasificarte', F.ayudaJuegos]);
+  if (primas) gana.push(['Primas de tus marcas por el podio', primas]);
+  if (imp) gana.push(['Impuestos', -imp]);
+  let titulo, sub;
+  const nom = nombreComp(c, s);
+  if (logrado) {
+    titulo = c.amb === 'clasif' ? '🎟️ ¡FELICIDADES! ¡Te clasificas para los Juegos!' : pos === 1 ? `🥇 ¡FELICIDADES! ¡Ganas ${nom}!` : `🏅 ¡FELICIDADES! ¡Podio en ${nom}!`;
+    sub = c.amb === 'clasif' ? `Plaza para los Juegos de ${SEDES_JJOO[E.año] || E.año}: allí hay premio de ${cr(AMBITOS.jjoo.premio[0])} por el oro.` : `Puesto ${pos} de ${N}.`;
+    s.p.fel = clamp(s.p.fel + F.felSube, 0, 100); efectos.push(`+${F.felSube} de ánimo: ¡a celebrarlo!`);
+  } else {
+    titulo = c.amb === 'clasif' ? '😖 Te quedas sin Juegos' : A.final === 2 ? `😖 Pierdes: ${nom}` : `😖 Te quedas sin podio en ${nom}`;
+    sub = `Puesto ${pos} de ${N}.${c.amb === 'clasif' ? ` Había ${A.plazas} plazas. Siguiente oportunidad: el próximo ciclo de los Juegos.` : ''}`;
+    const pPod = premioDe(s, c, meta) - premio;
+    if (pPod > 0) pierde.push([`Premio del ${meta}º puesto`, pPod]);
+    const pm = s.patros.reduce((a, pt) => a + (pt.primaPodio ? Math.round(pt.primaPodio * (CFG.escalada.factorPrima[c.amb] || 0)) : 0), 0);
+    if (pm > primas) pierde.push(['Primas de tus marcas por el podio', pm - primas]);
+    if (c.amb === 'clasif') { pierde.push(['Ayuda de la federación por clasificarte', F.ayudaJuegos]); pierde.push(['Lo que podías ganar con el oro en los Juegos', AMBITOS.jjoo.premio[0]]); }
+    s.p.fel = clamp(s.p.fel - F.felQueda, 0, 100); efectos.push(`−${F.felQueda} de ánimo`);
+  }
+  if (!mj.ok) efectos.push(mj.dif >= 3 ? 'Fallaste en el momento decisivo: tus marcas bajan la relación' : 'Fallaste en el momento decisivo');
+  encolar(s, { tipo: 'desenlace', bien: logrado, titulo, sub, gana, pierde, efectos });
 }
 function popupMinijuego(s, ev) {
   const J = MJ[ev.dep] || MJ.futbol, p = mjParams(s, ev), V = vidasMJ(s), est = '★'.repeat(ev.dif) + '☆'.repeat(5 - ev.dif);
@@ -6773,6 +6870,9 @@ function render() {
     : h === 'logros' ? hojaLogros() : h === 'pantallas' ? hojaPantallas() : h === 'ajustes' ? hojaAjustes() : h.startsWith('negocio:') ? hojaNegocio(h.slice(8)) : h.startsWith('club:') ? hojaClub(h.slice(5)) : '';
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
+  // Sin confeti si lo que se ve es una mala noticia (fallo, descenso, quedarse a las puertas…)
+  const ev = S.pendiente, triste = !!ev && ((ev.tipo === 'momentoRes' && !ev.ok) || (ev.tipo === 'desenlace' && !ev.bien) || (ev.tipo === 'fin' && (ev.zona === 'descenso' || ev.quedaste)));
+  if (triste) celebrar = false;
   if (celebrar) { document.body.insertAdjacentHTML('beforeend', confeti()); setTimeout(() => document.querySelectorAll('body > .confetti').forEach(x => x.remove()), 3500); celebrar = false; }
   if (S.aviso) { $('toast').innerHTML = `<div>${esc(S.aviso)}</div>`; S.aviso = null; }
   if (bajarDiario) { window.scrollTo(0, 0); bajarDiario = false; }

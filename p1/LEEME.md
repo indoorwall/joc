@@ -462,7 +462,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-197 de 197 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+201 de 201 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -628,6 +628,18 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    - **Más exigente**: las marcas rompen el contrato si fallas su objetivo 2 temporadas seguidas; lesiones graves (4 %, o
      15 % si juegas agotado/a): 8–14 semanas y −1 a −3 de nivel; con nota media < 5,5 te llama un club menos y pagan
      un 15 % menos (≥ 7: +10 %). Las vidas acaban ahora entre ~0,6 y ~4 millones según cómo juegues.
+6q. **Desenlaces que se notan (con el dinero delante).**
+   - Tras el partido decisivo: ventana con el marcador («¡Victoria!» / «Derrota») y quién decidió la jugada.
+   - Fin de temporada con cartel grande: **«🎉 ¡FELICIDADES! ¡Subís a …!»** o «🏆 ¡Campeones!» con **lo que ganas** en euros
+     (prima del club neta, primas de tus marcas, subida de sueldo de un año) y el total; además +12 de ánimo, +5 de fama
+     y seguidores. Si te quedas a las puertas (hasta 2 puestos de la zona, o si te jugaste el ascenso en un minijuego):
+     **«😖 Os quedáis en …»** con **lo que te pierdes** (prima, subida de sueldo, primas de marcas) y las consecuencias
+     (−8 de ánimo, −2 de fama, la prensa recuerda tu fallo). Descenso: bajada de sueldo de un año en euros, −12 de ánimo,
+     −4 de fama y −10 de relación con tus marcas. Salvarse en la última jornada: «😅 ¡Salvados!» (+8 de ánimo).
+   - Individuales, tras una competición con momento decisivo: «¡FELICIDADES! ¡Podio / Ganas / Te clasificas para los
+     Juegos!» con premio, primas de marcas e impuestos, o «Te quedas sin podio / sin Juegos» con lo que te pierdes. Nueva:
+     ayuda de la federación de 6.000 € por clasificarte para los Juegos.
+   - Sin confeti cuando la noticia es mala.
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

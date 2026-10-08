@@ -1520,13 +1520,15 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       // Jugarlo perfecto: el equipo suma goles; jugarlo fatal: el rival
       if (visto) {
         const base = JSON.parse(JSON.stringify(G.S));
-        const jugar = sc => { G.S = JSON.parse(JSON.stringify(base)); G.resolver('res:' + sc); limpiar(); G.avanzarSemana(); limpiar(); return G.S; };
+        const jugar = sc => { G.S = JSON.parse(JSON.stringify(base)); G.resolver('res:' + sc); limpiar(); G.avanzarSemana(); const pend = [G.S.pendiente].concat(G.S.cola).filter(Boolean).map(e => e.tipo + ':' + e.ok); limpiar(); G.S._pend = pend; return G.S; };
         const a = jugar(1), b = jugar(0);
         const pa = a.ultimo && a.ultimo.partido, pb = b.ultimo && b.ultimo.partido;
         out.efecto = !!(pa && pb && pa.mj && pb.mj && pa.mj.perfecto && pb.mj.desastre && (pa.gf - pa.gc) > (pb.gf - pb.gc));
         out.consecuencia = b.mods.some(m => /momento decisivo/.test(m.motivo)) && b.p.fel < a.p.fel;
         out.diario = a.ultimo.opo.some(([, x]) => /Jugada decisiva/.test(x)) && b.ultimo.opo.some(([, x]) => /Jugada decisiva: fallo/.test(x));
         out.logro = !!a.logros.heroe;
+        // Tras el partido decisivo, ventana con el marcador (y sin confeti si fallas)
+        out.resPartido = a._pend.includes('momentoRes:true') && b._pend.includes('momentoRes:false');
         // Simular nunca da un «perfecto»
         let maxSim = 0; for (let k = 0; k < 40; k++) maxSim = Math.max(maxSim, G.mjSimulado(visto));
         out.simulado = maxSim <= G.CFG.minijuegos.simuladoMax;
@@ -1541,9 +1543,11 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
         for (const m of ['bloque', 'dificultad', 'velocidad', 'combinada', cl.mod]) G.S.esc.mejorMundoMod[m] = { [G.S.esc.año]: 5, [G.S.esc.año - 1]: 5 };   // requisito: top 24 en Copa del Mundo
         const ev = G.momentoDecisivo(); out.indSale = !!ev && ev.amb === 'clasif' && ev.dif === 4 && /Juegos/.test(ev.siFallas);
         const base = JSON.parse(JSON.stringify(G.S));
-        const comp = sc => { G.S = JSON.parse(JSON.stringify(base)); G.S.pendiente = ev; G.resolver('res:' + sc); limpiar(); G.avanzarSemana(); return G.S.esc.palmares[0] || {}; };
+        const des = {};
+        const comp = sc => { G.S = JSON.parse(JSON.stringify(base)); G.S.pendiente = ev; G.resolver('res:' + sc); limpiar(); G.avanzarSemana(); for (let g = 0; G.S.pendiente && G.S.pendiente.tipo !== 'desenlace' && g < 10; g++) G.resolver('ok') || G.resolver('0') || G.resolver('si'); des[sc] = G.S.pendiente; return G.S.esc.palmares[0] || {}; };
         const bien = comp(1), mal = comp(0);
         out.indEfecto = bien.amb === 'clasif' && mal.amb === 'clasif' && bien.pos < mal.pos && mal.pos > 10;   // 10 plazas: fallar te deja fuera
+        out.indDesenlace = !!(des[1] && des[1].tipo === 'desenlace' && des[1].bien && des[1].gana.some(([x]) => /federación/.test(x)) && des[0] && !des[0].bien && des[0].pierde.length >= 2);
       }
       // Vidas: empiezan en 3 y se recupera 1 cada 6 semanas
       G.S.vidas = { n: 0, sem: G.S.semana }; G.S.semana += 13; out.vidas = G.vidasMJ().n === 2;
@@ -1554,8 +1558,30 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Minijuegos: jugarlo bien da goles a tu equipo y fallarlo se los da al rival', r.efecto);
     check('Minijuegos: fallar tiene consecuencias (ánimo, selección, prensa) y acertar se celebra (logro)', r.consecuencia && r.diario && r.logro);
     check('Minijuegos: «Simular» nunca da un perfecto (jugarlo compensa)', r.simulado);
+    check('Minijuegos: tras el partido decisivo sale el resultado en grande', r.resPartido);
     check('Minijuegos: en individuales, el clasificatorio para los Juegos tiene minijuego y fallarlo te hunde en la clasificación', r.indDif && r.indSale && r.indEfecto);
+    check('Desenlaces: en individuales, «¡Te clasificas!» con la ayuda en euros o «Te quedas sin Juegos» con lo que te pierdes', r.indDesenlace);
     check('Minijuegos: las vidas se recuperan con el tiempo (1 cada 6 semanas, máximo 3)', r.vidas);
+    const fin = await page.evaluate(() => {
+      const G = __P1, out = {}; G.silencio = true;
+      const limpiar = () => { for (let g = 0; G.S.pendiente && G.S.pendiente.tipo !== 'minijuego' && G.S.pendiente.tipo !== 'fin' && g < 30; g++) G.resolver('0') || G.resolver('ok') || G.resolver('si') || G.resolver('aceptar') || G.resolver('quedarse') || G.resolver('corto') || G.resolver('1'); };
+      G.nueva(41, 'delantero', 'futbol'); G.S.p.rep = 45;
+      for (let i = 0; i < 300 && G.S.fase !== 'club'; i++) { limpiar(); G.elegir(G.S.fase === 'barrio' ? 'plaza' : 'entrenarSolo'); G.avanzarSemana(); }
+      let base = null;
+      for (let i = 0; i < 400 && !base; i++) { limpiar(); const S = G.S; S.p.energia = 90; S.p.nivel = Math.max(S.p.nivel, G.club(S.contrato.clubId).fuerza + 12); S.lesion = 0;
+        const T = S.temporada; if (T.jornada === 17) { const yo = S.contrato.clubId, o = Object.keys(T.tabla).filter(x => x !== yo); for (const id of o) T.tabla[id].pts = 20; T.tabla[yo].pts = 30; T.tabla[o[0]].pts = 34; T.tabla[o[1]].pts = 30; T.tabla[o[1]].gf = 99; }
+        G.elegir('normal'); G.avanzarSemana(); if (G.S.pendiente && G.S.pendiente.tipo === 'minijuego' && T.jornada === 17) base = JSON.stringify(G.S); }
+      if (!base) return out;
+      const jugar = sc => { G.S = JSON.parse(base); G.S.contrato.primaAscenso = 4000; G.S.contrato.subidaAscenso = 30; G.resolver('res:' + sc); G.avanzarSemana(); limpiar(); return G.S.pendiente; };
+      const sube = jugar(1), queda = jugar(0);
+      out.sube = !!sube && sube.tipo === 'fin' && sube.zona === 'ascenso' && sube.gana.some(([x, v]) => /Prima del club/.test(x) && v > 0) && sube.gana.some(([x]) => /Subida de sueldo/.test(x));
+      out.queda = !!queda && queda.tipo === 'fin' && !!queda.quedaste && queda.pierde.some(([x, v]) => /Prima del club/.test(x) && v === 4000) && queda.efectos.length > 0;
+      G.silencio = false; G.S.pendiente = sube; G.render(); out.htmlSube = /FELICIDADES/.test(document.getElementById('modal').innerText) && /Lo que ganas/i.test(document.getElementById('modal').innerText);
+      G.S.pendiente = queda; G.render(); out.htmlQueda = /Os quedáis/.test(document.getElementById('modal').innerText) && /Lo que te pierdes/i.test(document.getElementById('modal').innerText);
+      return out;
+    });
+    check('Desenlaces: si subes, «¡FELICIDADES!» con las primas y la subida de sueldo en euros', fin.sube && fin.htmlSube, JSON.stringify(fin));
+    check('Desenlaces: si te quedas a las puertas, «Os quedáis…» con lo que te pierdes en euros y las consecuencias', fin.queda && fin.htmlQueda, JSON.stringify(fin));
     // Interfaz: jugar con toques, fallar, reintentar con vida y luego con anuncio de prueba
     const ui = await page.evaluate(async () => {
       const G = __P1, out = {}, espera = ms => new Promise(f => setTimeout(f, ms));
