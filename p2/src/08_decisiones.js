@@ -351,7 +351,7 @@
 
   // Patrimonio = tu dinero + valor de tus empresas (+ participación)
   // Patrimonio = dinero disponible + empresas + participación + tus cosas con valor (vehículo, vivienda, joyas…)
-  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio && !s.socio.vendida ? s.socio.valor : 0) + (P2.valorPosesiones ? P2.valorPosesiones(s) : 0)); }
+  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio && !s.socio.vendida ? s.socio.valor : 0) + (P2.valorPosesiones ? P2.valorPosesiones(s) : 0) + (P2.valorExpansiones ? P2.valorExpansiones(s) : 0)); }
 
   Object.assign(P2, { SECCIONES, GRUPOS, revisarSecciones, seccionesVisibles, encolar, siguiente, conseguirHito, revisarHitos, siguienteHito, DECISIONES, vistaPendiente, elegirOportunidad, patrimonio });
 })(globalThis.P2 = globalThis.P2 || {});

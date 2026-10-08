@@ -1013,13 +1013,17 @@
     return htmlSemana(s);
   }
   // ---- Mi mundo: todo lo demás, con iconos grandes ----
+  // Ayudas para las pantallas de expansiones y Prestige (21_ui_*.js)
+  const HX = { esc, eur, kv, nf, fmt, opcion, ui, $, get S() { return S; }, render: () => render(), guardar: () => { if (S) P2.guardar(S); },
+    hecho: (ok, txt, cls) => { if (ok === null || ok === undefined) { if (txt) ui.flash = txt; if (S) P2.guardar(S); render(); } else { ui.flash = ok; render(); } },
+    premium: sku => { ui.pm = Object.assign(ui.pm || { tab: 'expansiones' }, { sku, paso: null, error: null, consent: false }); render(); }, irA: v => irA(v) };
   const MUNDO = [['personaje', '👤', 'Perfil', '#8b5cf6'], ['relaciones', '❤️', 'Vida', '#ff4f8b'], ['tienda', '🛍️', 'Tienda', '#d94bff'], ['inversiones', '📈', 'Inversiones', '#12bfae'],
     ['liga', '📊', 'Liga', '#2f7bff', 'Al fichar'], ['marcas', '🤝', 'Marcas', '#ff9a2e', 'Al fichar'], ['empresa', '💼', 'Empresa', '#0b8a7e', 'Más adelante'], ['patrimonio', '💰', 'Patrimonio', '#e8a000'],
     ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['premium', '💎', 'Premium', '#111827'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
   function htmlMundo(s) {
     const vis = P2.seccionesVisibles(s).map(x => x.id), av = avisos(s), nuevas = s.seccionesNuevas || [];
     return `<div class="velo" data-act="cerrarMundo"><div class="hoja" role="dialog" aria-label="Mi mundo"><div class="asa"></div><h3>🌍 Mi mundo</h3>
-      <div class="iconos">${MUNDO.map(([id, ic, n, c, lock]) => { const ok = vis.includes(id);
+      <div class="iconos">${MUNDO.concat(P2.UIX ? P2.UIX.mundo(s) : []).map(([id, ic, n, c, lock]) => { const ok = vis.includes(id);
         return `<button class="icono ${ok ? '' : 'lock'}" ${ok ? `data-act="vista" data-v="${id}"` : 'disabled'}><span style="background:${c}">${ic}</span>${n}${ok ? '' : `<small>🔒 ${lock}</small>`}${ok && nuevas.includes(id) ? '<em>Nuevo</em>' : ok && av[id] ? '<em>!</em>' : ''}</button>`; }).join('')}</div>
       <p class="nota">Aquí está todo lo demás. Entra cuando quieras: para jugar no hace falta.</p>
       <div class="mundoAcc"><button data-act="guardarSalir">💾<span>Guardar y salir</span></button><button data-act="carreras">🗂️<span>Mis carreras</span></button><button data-act="cuenta">👤<span>${conCuenta() ? 'Mi cuenta' : 'Cuenta'}</span></button></div>
@@ -1535,7 +1539,8 @@
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = '';
     const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
-      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones, premium: htmlPremium }[ui.vista] || (() => '');
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones, premium: htmlPremium }[ui.vista]
+      || (P2.UIX && P2.UIX.vistas[ui.vista] ? s => P2.UIX.vistas[ui.vista](s, HX) : () => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
     if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && !cele && !ui.cu && !(ui.pm && (ui.pm.sku || ui.pm.paso)) && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
     const capa = ui.cu ? htmlCuCapa() : ui.pm && (ui.pm.sku || ui.pm.paso) ? htmlPmCapa(S) : ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
@@ -1586,6 +1591,7 @@
     if (a !== 'venderP') ui.venderP = null;
     if (a !== 'carBorrar') ui.borrarCar = null;
     if (cuAccion(a, b)) return;
+    if (P2.UIX && P2.UIX.acciones[a]) { P2.UIX.acciones[a](S, b, HX); return; }
     switch (a) {
       case 'deporte': { const X = P2.DEPORTES[b.dataset.v]; if (!X) break; if ($('nombre')) ui.nombre = $('nombre').value;
         if (!P2.deporteDisponible(X.id)) { ui.pm = { tab: 'deportes', sku: SKU_DEPORTE[X.entitlement], paso: null, error: null, consent: false }; comercio() && COM.track('product_view', { sku: ui.pm.sku, source: 'intro' }); render(); break; }

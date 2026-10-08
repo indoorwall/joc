@@ -44,6 +44,7 @@
     if (s.fase === 'club') P2.semanaPatros(s, R);
     for (const n of s.negocios.slice()) P2.semanaNegocio(s, n, R, { gestion: R.gestion && n === s.negocios[0] });
     P2.semanaSocio(s, R);
+    if (P2.semanaExpansiones) P2.semanaExpansiones(s, R);   // club, inmuebles, agencia, eventos, media (si los tienes)
     P2.procesarAgenda(s, R);
 
     // Recuperación, lesiones

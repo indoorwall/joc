@@ -3,11 +3,11 @@
 export const SPORT_MODULE_INTERFACE = ['careerEngine', 'competitionEngine', 'rankingEngine', 'economyHooks', 'events', 'businesses', 'sponsors', 'items', 'prestigeCareers'];
 export const SPORTS = [
   { id: 'football', n: 'Fútbol', entitlement: null, status: 'active' },
-  { id: 'climbing', n: 'Escalada', entitlement: 'sport.climbing', status: 'testing' },
-  { id: 'tennis', n: 'Tenis', entitlement: 'sport.tennis', status: 'coming_soon' },
-  { id: 'basketball', n: 'Basket', entitlement: 'sport.basketball', status: 'coming_soon' },
-  { id: 'skate', n: 'Skate', entitlement: 'sport.skate', status: 'coming_soon' },
-  { id: 'surf', n: 'Surf', entitlement: 'sport.surf', status: 'coming_soon' },
+  { id: 'climbing', n: 'Escalada', entitlement: 'sport.climbing', status: 'active', game: 'escalada' },
+  { id: 'tennis', n: 'Tenis', entitlement: 'sport.tennis', status: 'active', game: 'tenis' },
+  { id: 'basketball', n: 'Basket', entitlement: 'sport.basketball', status: 'active', game: 'basket' },
+  { id: 'skate', n: 'Skate', entitlement: 'sport.skate', status: 'active', game: 'skate' },
+  { id: 'surf', n: 'Surf', entitlement: 'sport.surf', status: 'active', game: 'surf' },
 ];
 export const SPORT_MODULES = {};
 export function registerSportModule(mod) {
@@ -24,16 +24,17 @@ export function canPlaySport(id, entitlements = []) {
   if (!m || !m.careerEngine) return { ok: false, reason: 'coming_soon', owned: true };
   return { ok: true };
 }
-// Escalada: datos del módulo (el motor jugable llega en una fase posterior → careerEngine null = «Próximamente»)
-registerSportModule({
-  id: 'climbing',
-  careerEngine: null, competitionEngine: null, rankingEngine: null,
-  economyHooks: { income: ['premios', 'sponsors', 'clases', 'campus', 'routesetting'] },
-  events: ['lesión de dedos', 'vía nueva en el rocódromo', 'convocatoria de la selección'],
-  businesses: ['clases', 'routesetting', 'tienda', 'rocódromo', 'eventos', 'cadena'],
-  sponsors: ['marca de pies de gato', 'marca de cuerdas', 'bebida energética'],
-  items: ['pies de gato', 'magnesera', 'arnés'],
-  prestigeCareers: ['world_climbing_president'],
-  ladder: ['rocódromo local', 'autonómico', 'nacional', 'internacional', 'profesional'],
-  disciplines: ['bloque', 'dificultad', 'velocidad'],
-});
+// Módulos jugables: el motor de carrera es el del juego (p2/src/00_deportes.js + 03/04), con el formato de cada deporte
+const MODULOS = {
+  climbing: { format: 'circuito', ladder: ['rocódromos', 'autonómico', 'nacional', 'internacional'], disciplines: ['bloque', 'dificultad', 'velocidad'], extra: ['proyectos en roca (grados 6a–9a)'],
+    economyHooks: { income: ['premios', 'sponsors', 'clases', 'campus', 'routesetting'] }, businesses: ['clases', 'routesetting', 'tienda', 'rocódromo', 'eventos', 'cadena'], prestigeCareers: ['world_climbing_president'] },
+  tennis: { format: 'sets', ladder: ['club', 'autonómico', 'nacional', 'internacional'], surfaces: ['tierra', 'dura', 'hierba'], extra: ['viajes', 'fatiga', 'premios'],
+    economyHooks: { income: ['premios', 'sponsors', 'clases'] }, businesses: ['clases', 'academia', 'pistas', 'club', 'torneos', 'alto rendimiento'], prestigeCareers: ['world_tennis_president'] },
+  basketball: { format: 'puntos', ladder: ['autonómica', 'nacional plata', 'nacional oro', 'primera nacional'], roles: ['base', 'alero', 'pívot'], extra: ['minutos', 'estadísticas', 'playoffs', 'selección'],
+    economyHooks: { income: ['sueldo', 'primas', 'sponsors'] }, businesses: ['campus', 'academia', 'gimnasio', '3x3', 'pabellón', 'club'], prestigeCareers: ['world_basket_president'] },
+  skate: { format: 'circuito', ladder: ['barrio', 'autonómica', 'nacional', 'pro tour'], disciplines: ['street', 'park'], extra: ['estilo', 'partes de vídeo', 'reputación callejera'],
+    economyHooks: { income: ['premios', 'sponsors', 'vídeos'] }, businesses: ['skateshop', 'marca', 'tablas', 'ropa', 'skatepark', 'eventos'], prestigeCareers: [] },
+  surf: { format: 'circuito', ladder: ['locales', 'autonómico', 'nacional', 'mundial'], conditions: ['olas pequeñas', 'olas buenas', 'olas grandes'], extra: ['viajes de surf', 'tablas', 'clima'],
+    economyHooks: { income: ['premios', 'sponsors', 'escuela'] }, businesses: ['escuela', 'alquiler', 'shop', 'shaping', 'surf camp', 'alojamiento', 'eventos'], prestigeCareers: [] },
+};
+for (const s of SPORTS) if (MODULOS[s.id]) registerSportModule(Object.assign({ id: s.id, careerEngine: 'p2', competitionEngine: 'p2', rankingEngine: MODULOS[s.id].format, events: [], sponsors: [], items: [] }, MODULOS[s.id]));

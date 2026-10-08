@@ -876,3 +876,9 @@ select.inp { background: #fff; }
 .dep small { font-size: 11px; color: var(--dim); font-weight: 800; }
 .dep.sel { border-color: var(--dc, var(--blue)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dc, #3d7bff) 30%, transparent); }
 .dep.lock { opacity: .78; }
+
+/* ---------- Expansiones ---------- */
+.kv .col { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.kv .col .btn { white-space: nowrap; }
+.mal { color: var(--bad); }
+details.mercado summary { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }

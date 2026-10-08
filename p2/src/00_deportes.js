@@ -117,7 +117,7 @@
       material: { botas: ['🎾', 'Raqueta buena', 'Encordado nuevo: entrenas un poco mejor.'], botasPro: ['🎾', 'Raqueta de competición', 'Hecha a tu medida.'] },
       re: [['el míster', 'tu entrenador'], ['del míster', 'de tu entrenador'], ['al míster', 'a tu entrenador'], ['míster', 'entrenador'], ['el once', 'el cuadro final'], ['del once', 'del cuadro final'],
         ['Partido en la plaza', 'Peloteo en la pista'], ['la plaza', 'la pista municipal'], ['futbolista', 'tenista'], ['fútbol', 'tenis'], ['estadio', 'pista central'], ['penalti', 'punto de break'],
-        ['goles', 'aces'], ['gol', 'ace'], ['Titular', 'Cuadro principal'], ['titular', 'en el cuadro principal'], ['banquillo', 'fuera del cuadro'], ['suplente', 'desde la previa'], ['empate', 'partido igualado']],
+        ['goles', 'aces'], ['gol', 'ace'], ['TITULAR', 'EN EL CUADRO PRINCIPAL'], ['Titular', 'Cuadro principal'], ['titular', 'en el cuadro principal'], ['banquillo', 'fuera del cuadro'], ['suplente', 'desde la previa'], ['empate', 'partido igualado']],
     },
 
     basket: { penTxt: ['¡Perfecto! +3 puntos para tu equipo, +12 de confianza y más fama', '+2 puntos para tu equipo, +8 de confianza y más fama', 'Desastre: los fallas y el rival anota un triple, −18 de confianza', 'Los fallas y el rival anota en la contra: −12 de confianza'], emojis: { '🥅': '🗑️', '🧤': '🖐️', '👟': '👟' },
@@ -216,7 +216,7 @@
     },
   };
   // Lo que cambia en los deportes de circuito y en los individuales (además de su lista propia)
-  const RE_CIRCUITO = [['el partido', 'la competición'], ['del partido', 'de la competición'], ['al partido', 'a la competición'], ['un partido', 'una competición'], ['los partidos', 'las competiciones'],
+  const RE_CIRCUITO = [['TITULAR', 'FINALISTA'], ['el partido', 'la competición'], ['del partido', 'de la competición'], ['al partido', 'a la competición'], ['un partido', 'una competición'], ['los partidos', 'las competiciones'],
     ['partidos', 'competiciones'], ['partido', 'competición'], ['Titular', 'Finalista'], ['titulares', 'finalistas'], ['de titular', 'en la final'], ['titular', 'finalista'], ['suplente', 'semifinalista'],
     ['banquillo', 'fuera de la final'], ['marcas un gol', 'logras un podio'], ['un gol', 'un podio'], ['goles', 'podios'], ['gol', 'podio'], ['empate', 'resultado discreto'], ['jornada', 'prueba'], ['Jornada', 'Prueba'],
     ['la liga', 'el circuito'], ['liga', 'circuito'], ['vestuario', 'equipo']];
