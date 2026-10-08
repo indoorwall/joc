@@ -388,6 +388,14 @@
     if (circ) R.lineas.push([icR, `Jornada ${pj.j + 1}${condTxt}: ${juega ? `${puesto}º de ${gc}${detalle ? ` · ${detalle}` : ''}` : 'no compites'}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
     else R.lineas.push([icR, `Jornada ${pj.j + 1}${condTxt}: ${pj.local ? 'vs' : 'en casa del'} ${rival} ${gf}-${gc}${F === 'sets' && detalle ? ` (${detalle})` : ''}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}${F === 'goles' ? (goles ? ` · ${goles === 1 ? 'marcas un gol' : 'marcas 2 goles'}` : '') : F === 'puntos' ? (juega ? ` · ${detalle}` : '') : (goles ? ` · ${goles} ${goles === 1 ? 'ace' : 'aces'}` : '')}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
     viajes(s, R, F, pj, juega);
+    // Deportes individuales: premios en metálico por podio (circuito) o por partido ganado (tenis)
+    if (D.individual && juega) {
+      const base = { regional: 40, tercera: 90, segunda: 240, primera: 700 }[T.liga] || 0;
+      const pr = F === 'circuito' ? (puesto <= 3 ? Math.round(base * [1, 0.6, 0.35][puesto - 1]) : 0) : resultado === 'victoria' ? Math.round(base * 0.3) : 0;
+      if (pr) { s.p.dinero += pr; s.acum.primas += pr; R.ingresos.push([F === 'circuito' ? `Premio por el ${puesto}º puesto` : 'Premio por partido ganado', pr]); R.lineas.push(['🏅', `Premio: +${eur(pr)}.`, 'bien']); }
+    }
+    // Tenis: los partidos largos cansan más
+    if (D.id === 'tenis' && juega) P.energia = clamp(P.energia - (gf + gc >= 3 ? 8 : 4), 0, E.max);
     R.lineas.push(['📊', `Vais ${R.partido.pos}º de ${T.calendario[0].length * 2}. Confianza del míster ${Math.round(s.confianza)} (${dConf >= 0 ? '+' : ''}${nf(dConf)}).`]);
     if (prima) R.lineas.push(['💶', `Prima por victoria: +${eur(prima)}.`, 'bien']);
     if (lesion) R.lineas.push(['🤕', `Te lesionas: ${lesion} ${lesion === 1 ? 'semana' : 'semanas'} de baja.`, 'mal']);
@@ -402,7 +410,7 @@
   function detallePrueba(s, F, cond, puesto, n, juega, sets, nota, goles) {
     if (!juega) return '';
     const h = ((s.seed >>> 0) + s.semana * 31) % 97 / 97;
-    if (F === 'puntos') { const reb = Math.round((s.especialidad === 'pivot' ? 6 : 2) + h * 5 + Math.max(0, nota - 6)), ast = Math.round((s.especialidad === 'base' ? 5 : 1) + h * 4); return `${goles} pts, ${reb} reb, ${ast} ast`; }
+    if (F === 'puntos') { const reb = Math.round((s.especialidad === 'pivot' ? 6 : 2) + h * 5 + Math.max(0, nota - 6)), ast = Math.round((s.especialidad === 'base' ? 5 : 1) + h * 4), min = Math.round(nota >= 6 ? 22 + h * 12 : 12 + h * 10); return `${min} min, ${goles} pts, ${reb} reb, ${ast} ast`; }
     if (F === 'sets') {
       if (!sets) return '';
       const [a, b] = sets, juegos = [];

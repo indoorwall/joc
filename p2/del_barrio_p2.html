@@ -2945,8 +2945,8 @@ globalThis.P2C = P2C;
   // ---- Oportunidades de inversión (la segunda puerta que abre el capítulo) ----
   // Cada una con una estructura financiera distinta: coste = lo que pones tú hoy
   const OPORTUNIDADES = [
-    { id: 'local', ic: '🏢', n: 'Comprar el local de tu peluquería', coste: 3500, precio: 14000, hipoteca: { importe: 10500, interes: 0.002, plazo: 156 }, revaloriza: 0.0005,
-      d: 'Entrada de 3.500 € e hipoteca de 10.500 € que paga la peluquería (unos 90 €/semana). Desaparece el alquiler (450 €/semana) y el local es tuyo: vale dinero.' },
+    { id: 'local', ic: '🏢', n: 'Comprar el local de tu negocio', coste: 3500, precio: 14000, hipoteca: { importe: 10500, interes: 0.002, plazo: 156 }, revaloriza: 0.0005,
+      d: 'Entrada de 3.500 € e hipoteca de 10.500 € que paga el negocio (unos 90 €/semana). Desaparece el alquiler (450 €/semana) y el local es tuyo: vale dinero.' },
     { id: 'segunda', ic: '💈', n: 'Abrir una segunda peluquería', coste: 3500, traspaso: 6000, prestamo: { importe: 4000, interes: 0.012, plazo: 60 }, caja: 1500,
       d: 'Entrada de 2.000 € + 1.500 € de caja, y un préstamo de 4.000 € a cargo del nuevo negocio. Más beneficio posible, más gestión y más riesgo.' },
     { id: 'socio', ic: '🤝', n: 'Entrar como socio en la cafetería de un compañero', coste: 3000,
@@ -3295,6 +3295,99 @@ globalThis.P2C = P2C;
   Object.assign(P2, { DEPORTES, activarDeporte, deporteDe, V, tx, deporteDisponible, condicion, NOMBRE_COND, bonusEspecialidad });
 })(globalThis.P2 = globalThis.P2 || {});
 
+// ===== 00_negocios_deporte.js =====
+/* =====================================================================
+   00c · NEGOCIOS DE CADA DEPORTE (los que promete la ficha de cada expansión)
+   Misma economía que la peluquería (caja separada, demanda con fama, personal, precio, marketing,
+   crisis, préstamos, venta), con sus números: ticket, demanda, capacidad, alquiler y coste por cliente.
+   Solo se ven en las carreras de ese deporte. Importes de juego.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { NEGOCIOS } = P2;
+
+  // id, nombre, icono, qué es, unidad del precio, { traspaso, ticket, demanda, capEmp, alquiler, fijos, coste (por cliente, en % del ticket), sueldo, empMax, req }
+  const L = {
+    escalada: [
+      ['clases', 'Escuela de escalada', '🧗', 'Cursos de iniciación y grupos de tecnificación en el rocódromo.', 'por clase', { traspaso: 3600, ticket: 14, demanda: 112, capEmp: 45, alquiler: 330, fijos: 90, coste: 0.06 }],
+      ['routesetting', 'Equipadora de bloques y vías', '🔩', 'Equipas y cambias los bloques de los rocódromos de la zona.', 'por encargo', { traspaso: 4200, ticket: 140, demanda: 12.6, capEmp: 5, alquiler: 160, fijos: 110, coste: 0.18, sueldo: 380 }],
+      ['tienda', 'Tienda de material de escalada', '🛍️', 'Pies de gato, cuerdas, magnesio y arneses.', 'ticket medio', { traspaso: 4800, ticket: 34, demanda: 73, capEmp: 55, alquiler: 520, fijos: 130, coste: 0.45 }],
+      ['rocodromo', 'Rocódromo de bloque', '🏟️', 'Tu propio rocódromo: entradas, bonos y cumpleaños.', 'por entrada', { traspaso: 14000, ticket: 11, demanda: 426, capEmp: 170, alquiler: 1900, fijos: 650, coste: 0.05, empMax: 6 }],
+      ['eventos', 'Organizadora de opens', '🎪', 'Opens de bloque y festivales de escalada.', 'por inscripción', { traspaso: 3000, ticket: 28, demanda: 37, capEmp: 35, alquiler: 0, fijos: 260, coste: 0.2 }],
+      ['cadena', 'Cadena de rocódromos', '🏙️', 'Tres rocódromos con tu marca en la ciudad.', 'por entrada', { traspaso: 42000, ticket: 11, demanda: 1159, capEmp: 210, alquiler: 5600, fijos: 1900, coste: 0.05, empMax: 10, req: 'rocodromo' }],
+    ],
+    tenis: [
+      ['clases', 'Clases de tenis', '🎾', 'Clases particulares y grupos en pistas alquiladas.', 'por clase', { traspaso: 3200, ticket: 22, demanda: 69, capEmp: 28, alquiler: 280, fijos: 80, coste: 0.08 }],
+      ['academia', 'Academia de tenis', '🏫', 'Escuela con grupos por niveles y torneos internos.', 'cuota semanal', { traspaso: 6500, ticket: 30, demanda: 77, capEmp: 30, alquiler: 650, fijos: 220, coste: 0.06, empMax: 5 }],
+      ['pistas', 'Alquiler de pistas', '🟩', 'Pistas de tenis y pádel por horas.', 'por hora', { traspaso: 9000, ticket: 14, demanda: 201, capEmp: 160, alquiler: 1100, fijos: 380, coste: 0.04 }],
+      ['club', 'Club de tenis', '🏛️', 'Socios, cafetería, pistas y escuela.', 'cuota semanal', { traspaso: 16000, ticket: 9, demanda: 631, capEmp: 220, alquiler: 2200, fijos: 900, coste: 0.08, empMax: 7 }],
+      ['torneos', 'Organizadora de torneos', '🏆', 'Torneos para aficionados y juveniles.', 'por inscripción', { traspaso: 2800, ticket: 30, demanda: 32, capEmp: 35, alquiler: 0, fijos: 240, coste: 0.22 }],
+      ['altoRendimiento', 'Centro de alto rendimiento', '🚀', 'Para los mejores juniors: entrenamiento, físico y viajes.', 'cuota semanal', { traspaso: 38000, ticket: 160, demanda: 99, capEmp: 9, alquiler: 3600, fijos: 1600, coste: 0.12, empMax: 8, sueldo: 520, req: 'academia' }],
+    ],
+    basket: [
+      ['campus', 'Campus de baloncesto', '🏕️', 'Campus de verano y de Navidad.', 'por niño', { traspaso: 3000, ticket: 45, demanda: 30, capEmp: 18, alquiler: 260, fijos: 120, coste: 0.18 }],
+      ['academia', 'Academia de baloncesto', '🏫', 'Escuela de fundamentos para todas las edades.', 'cuota semanal', { traspaso: 5800, ticket: 16, demanda: 136, capEmp: 50, alquiler: 600, fijos: 200, coste: 0.05 }],
+      ['gimnasio', 'Gimnasio de preparación física', '🏋️', 'Fuerza y salto para deportistas.', 'cuota semanal', { traspaso: 7000, ticket: 12, demanda: 209, capEmp: 110, alquiler: 950, fijos: 320, coste: 0.05 }],
+      ['tres', 'Liga 3x3', '🏀', 'Torneos y liga de 3x3 en la calle.', 'por equipo', { traspaso: 2600, ticket: 36, demanda: 24, capEmp: 30, alquiler: 0, fijos: 230, coste: 0.18 }],
+      ['pabellon', 'Pabellón', '🏟️', 'Alquilas pista a clubes, colegios y empresas.', 'por hora', { traspaso: 18000, ticket: 38, demanda: 134, capEmp: 70, alquiler: 1900, fijos: 900, coste: 0.06, empMax: 5 }],
+      ['club', 'Club de baloncesto', '🔶', 'Equipos de cantera y un sénior en la liga autonómica.', 'cuota semanal', { traspaso: 30000, ticket: 14, demanda: 572, capEmp: 160, alquiler: 2600, fijos: 1500, coste: 0.08, empMax: 8, req: 'academia' }],
+    ],
+    skate: [
+      ['skateshop', 'Skateshop', '🛹', 'La tienda del barrio: tablas, ruedas, zapatillas.', 'ticket medio', { traspaso: 4000, ticket: 32, demanda: 69, capEmp: 55, alquiler: 450, fijos: 110, coste: 0.45 }],
+      ['marca', 'Marca de skate', '🏷️', 'Tu propia marca: tablas y camisetas con tu nombre.', 'por pedido', { traspaso: 5200, ticket: 40, demanda: 57, capEmp: 45, alquiler: 300, fijos: 260, coste: 0.42 }],
+      ['tablas', 'Fábrica de tablas', '🪵', 'Prensas, madera de arce y gráficos.', 'por tabla', { traspaso: 7500, ticket: 45, demanda: 80, capEmp: 30, alquiler: 650, fijos: 280, coste: 0.38 }],
+      ['ropa', 'Marca de ropa urbana', '👕', 'Sudaderas, gorras y colaboraciones.', 'por pedido', { traspaso: 6000, ticket: 38, demanda: 69, capEmp: 60, alquiler: 400, fijos: 300, coste: 0.4 }],
+      ['skatepark', 'Skatepark cubierto', '🌀', 'Entradas, clases y cumpleaños bajo techo.', 'por entrada', { traspaso: 13000, ticket: 9, demanda: 466, capEmp: 180, alquiler: 1600, fijos: 600, coste: 0.04, empMax: 5 }],
+      ['eventos', 'Organizadora de contests', '🎪', 'Contests, música y sponsors.', 'por entrada', { traspaso: 3200, ticket: 14, demanda: 86, capEmp: 70, alquiler: 0, fijos: 300, coste: 0.18 }],
+    ],
+    surf: [
+      ['escuela', 'Escuela de surf', '🏄', 'Cursos de iniciación en la playa.', 'por clase', { traspaso: 3400, ticket: 25, demanda: 47, capEmp: 30, alquiler: 220, fijos: 90, coste: 0.1 }],
+      ['alquiler', 'Alquiler de tablas', '🏖️', 'Tablas y neoprenos por horas.', 'por alquiler', { traspaso: 2600, ticket: 15, demanda: 57, capEmp: 80, alquiler: 200, fijos: 80, coste: 0.12 }],
+      ['shop', 'Surf shop', '🛍️', 'Tablas, quillas, neoprenos y ropa.', 'ticket medio', { traspaso: 4500, ticket: 38, demanda: 62, capEmp: 50, alquiler: 480, fijos: 120, coste: 0.45 }],
+      ['shaping', 'Taller de shaping', '🪚', 'Tablas a medida hechas a mano.', 'por tabla', { traspaso: 5000, ticket: 320, demanda: 6.1, capEmp: 4, alquiler: 280, fijos: 120, coste: 0.32, sueldo: 380 }],
+      ['surfcamp', 'Surf camp', '⛺', 'Semanas de surf con alojamiento y comidas.', 'por semana', { traspaso: 12000, ticket: 260, demanda: 16.6, capEmp: 8, alquiler: 1200, fijos: 450, coste: 0.25, empMax: 5 }],
+      ['alojamiento', 'Alojamiento surfero', '🏠', 'Hostal junto a la playa.', 'por noche', { traspaso: 16000, ticket: 32, demanda: 150, capEmp: 80, alquiler: 1800, fijos: 700, coste: 0.1, empMax: 6 }],
+      ['eventos', 'Organizadora de campeonatos', '🎪', 'Campeonatos y festivales de surf.', 'por inscripción', { traspaso: 3000, ticket: 30, demanda: 32, capEmp: 35, alquiler: 0, fijos: 260, coste: 0.2 }],
+    ],
+  };
+
+  function crear(dep, [id, n, ic, d, unidad, o]) {
+    const sueldo = o.sueldo || 300, tk = o.ticket;
+    const r = x => Math.round(x / 10) * 10;
+    NEGOCIOS[`${dep}_${id}`] = {
+      n, ic, d, unidad, deporte: dep, req: o.req ? `${dep}_${o.req}` : null, traspaso: o.traspaso, cajas: [r(o.traspaso / 3), r(o.traspaso * 0.67), r(o.traspaso * 1.2)],
+      arranque: { fianza: r(o.alquiler * 2), stock: r(o.traspaso * 0.06), reparaciones: r(o.traspaso * 0.04), primeraSemana: 0.6 },
+      mejorasIniciales: [
+        { id: 'sillon', ic: '🧰', n: 'Material y equipamiento de segunda mano', coste: r(o.traspaso * 0.2), ef: { capacidad: 0.15 }, d: '+15 % de capacidad para siempre' },
+        { id: 'reforma', ic: '🎨', n: 'Lavado de cara y nueva imagen', coste: r(o.traspaso * 0.35), ef: { fama: 12, famaObjetivo: 5 }, d: '+12 de fama ya y +5 a la fama a la que tiende' },
+        { id: 'reapertura', ic: '🎈', n: 'Jornada de puertas abiertas', coste: r(o.traspaso * 0.1), ef: { fama: 7 }, d: '+7 de fama ya' },
+      ],
+      demandaBase: o.demanda, capacidadEmpleado: o.capEmp, empleadosMax: o.empMax || 4, alquiler: o.alquiler, fijos: o.fijos, consumoCliente: Math.round(tk * o.coste * 100) / 100,
+      famaInicial: 40, historialVendedor: [0.03, 0.01, -0.02, 0.025, -0.005, 0.005].map(f => Math.round(o.traspaso * f)),
+      configInicial: { precio: 'barato', sueldo: 'bajo', empleados: Math.max(2, Math.min(o.empMax || 4, Math.round((o.empMax || 4) * 0.6))), marketing: 'nada' },
+      precios: {
+        barato: { n: 'Barato', valor: Math.round(tk * 0.8), demanda: 1.3, justo: 1.1, competidor: 0.88 },
+        normal: { n: 'Normal', valor: tk, demanda: 1.0, justo: 1.0, competidor: 0.75 },
+        caro: { n: 'Premium', valor: Math.round(tk * 1.4), demanda: 0.55, justo: 0.8, competidor: 0.92 },
+      },
+      sueldos: {
+        bajo: { n: 'Bajo', coste: Math.round(sueldo * 0.83), calidad: 0.8, fuga: 0.06, capacidad: 0.9 },
+        normal: { n: 'Normal', coste: sueldo, calidad: 1.0, fuga: 0.02 },
+        alto: { n: 'Alto', coste: Math.round(sueldo * 1.23), calidad: 1.18, fuga: 0 },
+      },
+      marketing: {
+        nada: { n: 'Nada', coste: 0, demanda: 1, fama: 0 },
+        redes: { n: 'Redes', coste: r(Math.max(40, o.traspaso * 0.012)), demanda: 1.05, fama: 2 },
+        fuerte: { n: 'Campaña', coste: r(Math.max(150, o.traspaso * 0.045)), demanda: 1.12, fama: 5 },
+      },
+    };
+  }
+  for (const [dep, l] of Object.entries(L)) for (const x of l) crear(dep, x);
+  NEGOCIOS.peluqueria.unidad = 'por corte';
+  // Negocios que se pueden comprar en esta carrera: la peluquería (siempre) y los de tu deporte
+  P2.negociosDeCarrera = s => Object.keys(NEGOCIOS).filter(k => !NEGOCIOS[k].deporte || NEGOCIOS[k].deporte === ((s && s.deporte) || 'futbol'));
+})(globalThis.P2 = globalThis.P2 || {});
+
 // ===== 01_util.js =====
 /* =====================================================================
    01 · UTILIDADES: azar con semilla (la partida es reproducible), formato
@@ -3539,7 +3632,10 @@ globalThis.P2C = P2C;
     return { deporte: s.deporte || 'futbol', nombre: s.nombre, semana: s.semana, fase: s.fase, edad: s.edad, dinero: s.p.dinero, club: of ? of.club : null,
       patrimonio: P2.patrimonio ? P2.patrimonio(s) : s.p.dinero, look: s.look, trofeos: (s.trofeos || []).length, empresas: (s.negocios || []).length };
   }
-  function listarPartidas() {
+  // Leer otras carreras activa su deporte un momento: al acabar se vuelve al que estaba
+  function sinCambiarDeporte(fn) { const prev = P2.deporteActivo; try { return fn(); } finally { if (prev && P2.activarDeporte) P2.activarDeporte(prev); } }
+  function listarPartidas() { return sinCambiarDeporte(listarPartidas_); }
+  function listarPartidas_() {
     const x = indice(), max = ranurasMax(), ls = LS(), out = [];
     for (let i = 0; i < totalRanuras(); i++) {
       let s = null, raw = null;
@@ -3580,7 +3676,8 @@ globalThis.P2C = P2C;
     return j;
   }
   // Copiar una carrera a otra ranura libre (probar otro camino sin perder el tuyo)
-  function copiarPartida(i, j) {
+  function copiarPartida(i, j) { return sinCambiarDeporte(() => copiarPartida_(i, j)); }
+  function copiarPartida_(i, j) {
     const ls = LS(); if (!ls || !okRanura(i) || !okRanura(j) || i === j || j >= ranurasMax()) return false;
     let raw = null; try { raw = ls.getItem(claveRanura(i)); if (!raw || ls.getItem(claveRanura(j))) return false; } catch (_) { return false; }
     const s = migrateSave(JSON.parse(raw)); if (!s) return false;
@@ -3600,7 +3697,8 @@ globalThis.P2C = P2C;
   function limpiarBorradas(lista) { const x = indice(); x.borradas = (x.borradas || []).filter(i => !(lista || []).includes(i)); escribirIndice(x); }
   // Traer carreras de la cuenta. Por defecto solo rellena ranuras vacías o más antiguas que la copia; nunca escribe algo
   // que no sea una partida válida. Las ranuras de pago solo se escriben si las tienes (si no, se quedan en la nube).
-  function importarPartidas(blob, { forzar = false } = {}) {
+  function importarPartidas(blob, opc) { return sinCambiarDeporte(() => importarPartidas_(blob, opc)); }
+  function importarPartidas_(blob, { forzar = false } = {}) {
     const ls = LS(), r = { escritas: [], omitidas: [], invalidas: [] };
     if (!ls || !blob || !Array.isArray(blob.ranuras)) return r;
     const x = indice(), max = ranurasMax();
@@ -4246,6 +4344,14 @@ globalThis.P2C = P2C;
     if (circ) R.lineas.push([icR, `Jornada ${pj.j + 1}${condTxt}: ${juega ? `${puesto}º de ${gc}${detalle ? ` · ${detalle}` : ''}` : 'no compites'}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
     else R.lineas.push([icR, `Jornada ${pj.j + 1}${condTxt}: ${pj.local ? 'vs' : 'en casa del'} ${rival} ${gf}-${gc}${F === 'sets' && detalle ? ` (${detalle})` : ''}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}${F === 'goles' ? (goles ? ` · ${goles === 1 ? 'marcas un gol' : 'marcas 2 goles'}` : '') : F === 'puntos' ? (juega ? ` · ${detalle}` : '') : (goles ? ` · ${goles} ${goles === 1 ? 'ace' : 'aces'}` : '')}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
     viajes(s, R, F, pj, juega);
+    // Deportes individuales: premios en metálico por podio (circuito) o por partido ganado (tenis)
+    if (D.individual && juega) {
+      const base = { regional: 40, tercera: 90, segunda: 240, primera: 700 }[T.liga] || 0;
+      const pr = F === 'circuito' ? (puesto <= 3 ? Math.round(base * [1, 0.6, 0.35][puesto - 1]) : 0) : resultado === 'victoria' ? Math.round(base * 0.3) : 0;
+      if (pr) { s.p.dinero += pr; s.acum.primas += pr; R.ingresos.push([F === 'circuito' ? `Premio por el ${puesto}º puesto` : 'Premio por partido ganado', pr]); R.lineas.push(['🏅', `Premio: +${eur(pr)}.`, 'bien']); }
+    }
+    // Tenis: los partidos largos cansan más
+    if (D.id === 'tenis' && juega) P.energia = clamp(P.energia - (gf + gc >= 3 ? 8 : 4), 0, E.max);
     R.lineas.push(['📊', `Vais ${R.partido.pos}º de ${T.calendario[0].length * 2}. Confianza del míster ${Math.round(s.confianza)} (${dConf >= 0 ? '+' : ''}${nf(dConf)}).`]);
     if (prima) R.lineas.push(['💶', `Prima por victoria: +${eur(prima)}.`, 'bien']);
     if (lesion) R.lineas.push(['🤕', `Te lesionas: ${lesion} ${lesion === 1 ? 'semana' : 'semanas'} de baja.`, 'mal']);
@@ -4260,7 +4366,7 @@ globalThis.P2C = P2C;
   function detallePrueba(s, F, cond, puesto, n, juega, sets, nota, goles) {
     if (!juega) return '';
     const h = ((s.seed >>> 0) + s.semana * 31) % 97 / 97;
-    if (F === 'puntos') { const reb = Math.round((s.especialidad === 'pivot' ? 6 : 2) + h * 5 + Math.max(0, nota - 6)), ast = Math.round((s.especialidad === 'base' ? 5 : 1) + h * 4); return `${goles} pts, ${reb} reb, ${ast} ast`; }
+    if (F === 'puntos') { const reb = Math.round((s.especialidad === 'pivot' ? 6 : 2) + h * 5 + Math.max(0, nota - 6)), ast = Math.round((s.especialidad === 'base' ? 5 : 1) + h * 4), min = Math.round(nota >= 6 ? 22 + h * 12 : 12 + h * 10); return `${min} min, ${goles} pts, ${reb} reb, ${ast} ast`; }
     if (F === 'sets') {
       if (!sets) return '';
       const [a, b] = sets, juegos = [];
@@ -4731,7 +4837,11 @@ globalThis.P2C = P2C;
   function bloqueoCompra(s, tipo, i) {
     if (!P2.tieneHito(s, 'contrato')) return 'Primero, un contrato profesional.';
     if (!mercadoAbierto(s)) return 'Tu asesor aún no te ha enseñado ningún traspaso.';
-    if (s.negocios.length && !s.oportunidad) return 'Primero, que tu primera empresa funcione.';
+    const T = NEGOCIOS[tipo];
+    if (!T || (T.deporte && T.deporte !== (s.deporte || 'futbol'))) return 'No es de tu deporte.';
+    if (s.negocios.length && !(s.oportunidad || (T.deporte && P2.tieneHito(s, 'rentable')))) return T.deporte ? 'Primero, que tu primera empresa sea rentable 6 semanas.' : 'Primero, que tu primera empresa funcione.';
+    if (s.negocios.length >= 6) return 'Ya llevas 6 negocios: no te da la vida para más.';
+    if (T.req && !s.negocios.some(n => n.tipo === T.req)) return `Necesitas tener ${NEGOCIOS[T.req].n.toLowerCase()}.`;
     if (s.p.dinero < capitalNecesario(tipo, i, s)) return `Necesitas ${eur(capitalNecesario(tipo, i, s))}.`;
     return null;
   }
@@ -4746,7 +4856,7 @@ globalThis.P2C = P2C;
     ponerEnMarcha(n, R);
     s.negocios.push(n);
     P2.tele(s, 'empresa', { caja });
-    P2.anotar(s, T.ic, `Compro una ${T.n.toLowerCase()}: traspaso ${eur(traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
+    P2.anotar(s, T.ic, `Compro ${T.deporte ? 'el negocio' : 'una'} ${T.n.toLowerCase()}: traspaso ${eur(traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
     P2.celebrar(s, { tipo: 'negocio', n: T.n, ic: T.ic, invertido: traspaso + caja, texto: 'Ya eres empresario/a' });
     P2.conseguirHito(s, 'empresa', R);
     return n;
@@ -4862,11 +4972,11 @@ globalThis.P2C = P2C;
         { id: 'no', n: 'No invertir', ventaja: 'Guardas para tu negocio', coste: 'Tu amigo se decepciona', riesgo: 'Ninguno', tags: ['dinero'], fx: () => 'Le dices que ahora no puedes.' },
       ] },
     { id: 'empresaTeNecesita', ambito: 'carrera', fases: ['club', 'amateur'], enfria: 5, cond: s => s.negocios.some(n => n.rachaNeg >= 1 || n.ctx.averia || n.ctx.competidor), peso: () => 3,
-      ic: '📞', titulo: 'Tu encargada te llama: la peluquería te necesita', texto: () => 'Hay lío en el negocio y quieren que estés esta semana.',
+      ic: '📞', titulo: 'Tu encargada te llama: el negocio te necesita', texto: () => 'Hay lío en el negocio y quieren que estés esta semana.',
       ops: [
-        { id: 'ir', n: 'Dedicar la semana a la peluquería', ventaja: 'Arreglas el problema: +6 fama del negocio, mejor ambiente', coste: 'La semana entera y −4 confianza del míster', riesgo: 'Si el equipo pierde, te lo echarán en cara', tags: ['dinero'], ocupaSemana: true, fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama + 6); n.moral = r1(clamp(n.moral + 0.08, 0.7, 1.1)); mods(s).gestion = true; s.confianza = clamp(s.confianza - 4, 0, 100); return 'Pasas la semana en la peluquería.'; } },
+        { id: 'ir', n: 'Dedicar la semana al negocio', ventaja: 'Arreglas el problema: +6 fama del negocio, mejor ambiente', coste: 'La semana entera y −4 confianza del míster', riesgo: 'Si el equipo pierde, te lo echarán en cara', tags: ['dinero'], ocupaSemana: true, fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama + 6); n.moral = r1(clamp(n.moral + 0.08, 0.7, 1.1)); mods(s).gestion = true; s.confianza = clamp(s.confianza - 4, 0, 100); return 'Pasas la semana en la peluquería.'; } },
         { id: 'encargado', n: 'Que lo resuelva ella (200 € de caja)', ventaja: 'No pierdes entrenos', coste: '200 € de la caja', riesgo: '40 %: no lo arregla (−4 fama)', tags: ['seguro'], fx: s => { const n = s.negocios[0]; n.caja -= 200; if (rnd(s) < 0.6) return 'Lo arregla con dinero.'; n.fama = r1(n.fama - 4); return 'No lo arregla del todo: −4 fama del negocio.'; } },
-        { id: 'ignorar', n: 'Ahora no puedo', ventaja: 'Te centras en el fútbol', coste: '−6 fama del negocio', riesgo: 'El equipo se desanima', tags: ['deporte'], fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama - 6); n.moral = r1(clamp(n.moral - 0.05, 0.7, 1.1)); return 'Lo dejas estar. En la peluquería no sienta bien.'; } },
+        { id: 'ignorar', n: 'Ahora no puedo', ventaja: 'Te centras en el fútbol', coste: '−6 fama del negocio', riesgo: 'El equipo se desanima', tags: ['deporte'], fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama - 6); n.moral = r1(clamp(n.moral - 0.05, 0.7, 1.1)); return 'Lo dejas estar. En el negocio no sienta bien.'; } },
       ] },
     { id: 'clinic', ambito: 'carrera', fases: ['club'], unaVez: true, cond: s => enClub(s) && s.p.rep >= 25, peso: () => 2,
       ic: '⚽', titulo: 'Te invitan a dar un clínic a niños', texto: () => 'Una escuela de fútbol de la ciudad quiere que pases una semana con sus chavales.',
@@ -4883,7 +4993,7 @@ globalThis.P2C = P2C;
         { id: 'nada', n: 'No cambiar nada', ventaja: 'Sin gastos', coste: 'Pierdes clientes', riesgo: 'Puede hacerte mucho daño', tags: ['dinero'], fx: (s, n) => { n.ctx.competidor = 99; return 'Aguantas como estás.'; } },
       ] },
     { id: 'aumento', ambito: 'empresa', enfria: 10, cond: (s, n) => n.semanas >= 5 && n.empleados >= 2 && n.sueldo !== 'alto', peso: () => 2,
-      ic: '💬', titulo: 'Una empleada pide un aumento', texto: () => 'Dice que en otras peluquerías pagan más.',
+      ic: '💬', titulo: 'Una empleada pide un aumento', texto: () => 'Dice que en otros negocios como el tuyo pagan más.',
       ops: [
         { id: 'subir', n: 'Subir sueldos', ventaja: 'Mejor ambiente y calidad', coste: 'Más coste cada semana', riesgo: 'Ninguno', tags: ['seguro'], fx: (s, n) => { n.sueldo = n.sueldo === 'bajo' ? 'normal' : 'alto'; n.moral = r1(clamp(n.moral + 0.06, 0.7, 1.1)); return 'Subes sueldos.'; } },
         { id: 'bonus', n: 'Un bonus único (300 €)', ventaja: 'Contenta por ahora', coste: '300 € de caja', riesgo: 'Volverá a pedirlo', tags: ['dinero'], fx: (s, n) => { n.caja -= 300; n.moral = r1(clamp(n.moral + 0.03, 0.7, 1.1)); return 'Le das un bonus.'; } },
@@ -4917,7 +5027,7 @@ globalThis.P2C = P2C;
         { id: 'tal', n: 'Apañaros con lo que hay', ventaja: 'Sin coste extra', coste: 'Colas', riesgo: 'Clientes que se van y fama', tags: ['seguro'], fx: (s, n) => { n.ctx.temporadaAlta = 3; return 'A apretar.'; } },
       ] },
     { id: 'estrella', ambito: 'empresa', unaVez: true, cond: (s, n) => n.semanas >= 8 && n.sueldo !== 'alto', peso: () => 2,
-      ic: '⭐', titulo: 'Tu mejor peluquera recibe una oferta', texto: () => 'Una cadena quiere llevársela. Media clientela viene por ella.',
+      ic: '⭐', titulo: 'Tu mejor empleada recibe una oferta', texto: () => 'Una cadena quiere llevársela. Media clientela viene por ella.',
       ops: [
         { id: 'igualar', n: 'Subir sueldos a «alto»', ventaja: 'Se queda y mejora la calidad', coste: 'Más coste semanal', riesgo: 'Ninguno', tags: ['seguro'], fx: (s, n) => { n.sueldo = 'alto'; n.estrella = true; return 'Se queda.'; } },
         { id: 'socia', n: 'Ofrecerle un pequeño % (600 €)', ventaja: 'Calidad +8 % y mejor ambiente', coste: '600 € de caja', riesgo: 'Ninguno', tags: ['riesgo'], fx: (s, n) => { n.caja -= 600; n.estrella = true; n.moral = r1(clamp(n.moral + 0.08, 0.7, 1.1)); return 'Ahora es un poco socia.'; } },
@@ -5232,7 +5342,7 @@ globalThis.P2C = P2C;
         const ops = OPORTUNIDADES.map(o => op(o.id, `${o.ic} ${o.n}`, o.d, `Pones tú: ${eur(o.coste)}${o.hipoteca ? ` (hipoteca de ${eur(o.hipoteca.importe)})` : o.prestamo ? ` (préstamo de ${eur(o.prestamo.importe)} para el nuevo negocio)` : ''}`, o.id === 'segunda' ? 'Dos negocios que gestionar y una deuda' : o.id === 'local' ? 'Si la peluquería va mal, la hipoteca sigue ahí' : 'Puede no dar dividendo, perder valor o pedirte más dinero',
           { tags: o.id === 'socio' ? ['seguro'] : ['dinero', 'riesgo'], bloqueo: s.p.dinero < o.coste ? `Tienes ${eur(s.p.dinero)}: puedes ahorrar y elegirla después en «Empresa»` : null }));
         ops.push(op('luego', 'Decidir más adelante', 'Ahorras antes de dar el paso', 'Nada', 'Ninguno', { tags: ['seguro'] }));
-        return { ic: '🔑', titulo: 'Se abre tu segunda oportunidad de inversión', texto: 'Tu peluquería lleva semanas dando dinero. El banco, tu asesor y tus contactos te traen tres caminos. Elige con cuál empieza tu imperio.', ops };
+        return { ic: '🔑', titulo: 'Se abre tu segunda oportunidad de inversión', texto: 'Tu negocio lleva semanas dando dinero. El banco, tu asesor y tus contactos te traen tres caminos. Elige con cuál empieza tu imperio.', ops };
       },
       resolver(s, ev, id) {
         if (id === 'luego') { s.oportunidadAbierta = true; return { texto: 'Lo piensas con calma. La tienes en «Empresa».', titulo: 'Inversión', ic: '🔑' }; }
@@ -5262,7 +5372,7 @@ globalThis.P2C = P2C;
       const n = s.negocios[0], H = o.hipoteca;
       n.local = true; n.valorLocal = o.precio; n.fianza = 0;
       n.hipoteca = { deuda: H.importe, interes: H.interes * rebaja, cuota: Math.ceil(H.importe / H.plazo) };
-      t = `Compras el local (${eur(o.precio)}): pones ${eur(o.coste)} y una hipoteca de ${eur(H.importe)} que paga la peluquería. Adiós al alquiler.`;
+      t = `Compras el local (${eur(o.precio)}): pones ${eur(o.coste)} y una hipoteca de ${eur(H.importe)} que paga el negocio. Adiós al alquiler.`;
     }
     if (id === 'segunda') {
       const n = P2.nuevoNegocio('peluqueria', o.caja), P = o.prestamo;
@@ -7865,9 +7975,10 @@ globalThis.P2C = P2C;
         ${kv('Traspaso', eur(T.traspaso))}${kv('Beneficio de las últimas semanas', `~${eur(media)}/semana`)}${kv('Cómo la deja', `${T.configInicial.empleados} empleados, sueldos bajos, precios baratos · alquiler ${eur(T.alquiler)}/semana`)}
         <p class="small">Además del traspaso pones dinero en la caja. Poca caja: compras antes, pero cualquier avería o mala racha te deja en números rojos. Mucha caja: tardas más en reunirla, pero aguantas y puedes aprovechar oportunidades.</p>
         ${T.cajas.map((c, i) => { const b = P2.bloqueoCompra(s, 'peluqueria', i); return opcion({ id: String(i), n: `Comprar con ${eur(c)} de caja`, ventaja: `Total: ${eur(T.traspaso + c)}`, coste: i === 0 ? 'Margen mínimo' : i === 1 ? 'Margen razonable' : 'Mucho margen', riesgo: i === 0 ? 'Una semana mala y estás en crisis' : i === 2 ? 'Tardas más en comprar' : '', bloqueo: b }, 'comprar'); }).join('')}</div>`;
-      return h;
+      return h + htmlMercado(s);
     }
     for (const n of s.negocios) h += htmlNegocio(s, n);
+    h += htmlMercado(s);
     if (P2.tieneHito(s, 'rentable') && !s.oportunidad) {
       h += `<div class="card"><h3>🔑 Segunda inversión</h3>${OPORTUNIDADES.map(o => opcion({ id: o.id, n: `${o.ic} ${o.n}`, ventaja: o.d, coste: `Pones tú: ${eur(o.coste)}`, bloqueo: s.p.dinero < o.coste ? `Tienes ${eur(s.p.dinero)}` : null }, 'oportunidad')).join('')}</div>`;
     }
@@ -7877,6 +7988,16 @@ globalThis.P2C = P2C;
         <p class="small">No la gestionas. Cada ${P2.SOCIO.trimestre} semanas llega el resultado: puede haber dividendo, no haberlo, perder valor o pedirte más capital.</p>`}</div>`; }
     if (s.negocios.length) h += `<div class="sec"><span>🪑 Tu despacho</span><span>solo aspecto</span></div><div class="card despacho"><div class="despSvg">${despachoSVG(P2.deco(s).despacho)}</div>${htmlDeco(s, 'despacho')}</div>`;
     return h;
+  }
+  // Negocios en traspaso de tu deporte (la peluquería está arriba)
+  function htmlMercado(s) {
+    const l = P2.negociosDeCarrera(s).filter(k => NEGOCIOS[k].deporte); if (!l.length || !P2.mercadoAbierto(s)) return '';
+    const D = P2.deporteDe(s);
+    return `<div class="sec"><span>${D.ic} Negocios de ${esc(D.n.toLowerCase())} en traspaso</span><span>${l.length}</span></div>${l.map(k => { const T = NEGOCIOS[k], tengo = s.negocios.some(n => n.tipo === k);
+      const b0 = P2.bloqueoCompra(s, k, 0);
+      return `<details class="card mercado"><summary><b>${T.ic} ${esc(T.n)}</b><span class="small">${tengo ? '✅ ya es tuyo · ' : ''}traspaso ${eur(T.traspaso)}${b0 && /Necesitas tener|primera empresa|6 negocios/.test(b0) ? ` · 🔒 ${esc(b0)}` : ''}</span></summary>
+        <p class="small">${esc(T.d)}</p>${kv('Precio normal', `${eur(T.precios.normal.valor)} ${esc(T.unidad)}`)}${kv('Alquiler y fijos', `${eur(T.alquiler + T.fijos)}/semana`)}${kv('Cómo lo dejan', `${T.configInicial.empleados} empleados, sueldos bajos, precios baratos`)}
+        ${T.cajas.map((c, i) => { const b = P2.bloqueoCompra(s, k, i); return `<button class="opt" data-act="comprar" data-t="${k}" data-id="${i}" ${b ? 'disabled' : ''}><b>Comprar con ${eur(c)} de caja</b><span class="ls"><span class="l"><i class="v">✓</i> Total: ${eur(P2.capitalNecesario(k, i, s))}</span></span>${b ? `<span class="bl">🔒 ${esc(b)}</span>` : ''}</button>`; }).join('')}</details>`; }).join('')}`;
   }
   function htmlNegocio(s, n) {
     const T = NEGOCIOS[n.tipo], x = P2.calcularSemana(s, n), v = P2.valorNegocio(n), bm = Math.round(P2.beneficioMedio(n));
@@ -7888,7 +8009,7 @@ globalThis.P2C = P2C;
       <div class="datos dos">${dato('Caja de la empresa', eur(n.caja))}${dato('Valor', eur(v))}${dato('Fama del negocio', Math.round(n.fama))}${dato('Beneficio medio', `${eur(bm)}/sem`)}</div>
       ${ctx.length ? `<div class="resumen" style="margin-top:8px">${ctx.map(t => chip(t)).join('')}</div>` : ''}
       ${n.ultimo ? `<p class="small">Última semana: ${n.ultimo.clientes} clientes, ${n.ultimo.beneficio >= 0 ? 'beneficio' : 'pérdidas'} ${eur(n.ultimo.beneficio)}${n.ultimo.colas > 5 ? `, ${n.ultimo.colas} se fueron por las colas` : ''}.</p>` : '<p class="small">Aún no ha pasado ninguna semana contigo al mando.</p>'}
-      <div class="sec">Precio por corte</div>${seg('precio', T.precios)}
+      <div class="sec">Precio ${esc(T.unidad || 'por cliente')}</div>${seg('precio', T.precios)}
       <div class="sec">Sueldos</div>${seg('sueldo', T.sueldos)}
       <div class="sec">Empleados</div><div class="paso"><button data-act="empleados" data-neg="${n.id}" data-v="-1" aria-label="Menos">−</button><b>${n.empleados}</b><button data-act="empleados" data-neg="${n.id}" data-v="1" aria-label="Más">+</button><span class="small">cada uno atiende ~${T.capacidadEmpleado} clientes/semana</span></div>
       <div class="sec">Publicidad</div>${seg('marketing', T.marketing)}
@@ -9226,7 +9347,8 @@ globalThis.P2C = P2C;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { ui.fiestas = fiestasDe(r.hitos, (r.desbloqueos || []).concat(ui.desbloqueos || [])); ui.desbloqueos = [];
         if (r.ir) { ui.fiestas = []; irA(r.ir); } else { ui.dec = r; ui.paso = 'decidido'; guardarYPintar(); window.scrollTo(0, 0); } } break; }
-      case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
+      case 'comprar': { const R = { lineas: [], hitos: [] }, tipo = b.dataset.t && NEGOCIOS[b.dataset.t] ? b.dataset.t : 'peluqueria', T = NEGOCIOS[tipo];
+        if (P2.comprarNegocio(S, tipo, Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: T.ic, titulo: `Compras: ${T.n.toLowerCase()}`, texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
       case 'config': if (P2.configurar(S, neg, b.dataset.c, b.dataset.v)) guardarYPintar(); break;
       case 'empleados': { const n = S.negocios.find(x => x.id === neg); if (n && P2.configurar(S, neg, 'empleados', n.empleados + Number(b.dataset.v))) guardarYPintar(); break; }
       case 'aportar': case 'retirar': { const x = Number(($(`imp_${neg}`) || {}).value) || 0; if ((a === 'aportar' ? P2.aportar : P2.retirar)(S, neg, x)) guardarYPintar(); break; }

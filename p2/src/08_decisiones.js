@@ -260,7 +260,7 @@
         const ops = OPORTUNIDADES.map(o => op(o.id, `${o.ic} ${o.n}`, o.d, `Pones tú: ${eur(o.coste)}${o.hipoteca ? ` (hipoteca de ${eur(o.hipoteca.importe)})` : o.prestamo ? ` (préstamo de ${eur(o.prestamo.importe)} para el nuevo negocio)` : ''}`, o.id === 'segunda' ? 'Dos negocios que gestionar y una deuda' : o.id === 'local' ? 'Si la peluquería va mal, la hipoteca sigue ahí' : 'Puede no dar dividendo, perder valor o pedirte más dinero',
           { tags: o.id === 'socio' ? ['seguro'] : ['dinero', 'riesgo'], bloqueo: s.p.dinero < o.coste ? `Tienes ${eur(s.p.dinero)}: puedes ahorrar y elegirla después en «Empresa»` : null }));
         ops.push(op('luego', 'Decidir más adelante', 'Ahorras antes de dar el paso', 'Nada', 'Ninguno', { tags: ['seguro'] }));
-        return { ic: '🔑', titulo: 'Se abre tu segunda oportunidad de inversión', texto: 'Tu peluquería lleva semanas dando dinero. El banco, tu asesor y tus contactos te traen tres caminos. Elige con cuál empieza tu imperio.', ops };
+        return { ic: '🔑', titulo: 'Se abre tu segunda oportunidad de inversión', texto: 'Tu negocio lleva semanas dando dinero. El banco, tu asesor y tus contactos te traen tres caminos. Elige con cuál empieza tu imperio.', ops };
       },
       resolver(s, ev, id) {
         if (id === 'luego') { s.oportunidadAbierta = true; return { texto: 'Lo piensas con calma. La tienes en «Empresa».', titulo: 'Inversión', ic: '🔑' }; }
@@ -290,7 +290,7 @@
       const n = s.negocios[0], H = o.hipoteca;
       n.local = true; n.valorLocal = o.precio; n.fianza = 0;
       n.hipoteca = { deuda: H.importe, interes: H.interes * rebaja, cuota: Math.ceil(H.importe / H.plazo) };
-      t = `Compras el local (${eur(o.precio)}): pones ${eur(o.coste)} y una hipoteca de ${eur(H.importe)} que paga la peluquería. Adiós al alquiler.`;
+      t = `Compras el local (${eur(o.precio)}): pones ${eur(o.coste)} y una hipoteca de ${eur(H.importe)} que paga el negocio. Adiós al alquiler.`;
     }
     if (id === 'segunda') {
       const n = P2.nuevoNegocio('peluqueria', o.caja), P = o.prestamo;

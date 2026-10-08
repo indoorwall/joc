@@ -181,7 +181,11 @@
   function bloqueoCompra(s, tipo, i) {
     if (!P2.tieneHito(s, 'contrato')) return 'Primero, un contrato profesional.';
     if (!mercadoAbierto(s)) return 'Tu asesor aún no te ha enseñado ningún traspaso.';
-    if (s.negocios.length && !s.oportunidad) return 'Primero, que tu primera empresa funcione.';
+    const T = NEGOCIOS[tipo];
+    if (!T || (T.deporte && T.deporte !== (s.deporte || 'futbol'))) return 'No es de tu deporte.';
+    if (s.negocios.length && !(s.oportunidad || (T.deporte && P2.tieneHito(s, 'rentable')))) return T.deporte ? 'Primero, que tu primera empresa sea rentable 6 semanas.' : 'Primero, que tu primera empresa funcione.';
+    if (s.negocios.length >= 6) return 'Ya llevas 6 negocios: no te da la vida para más.';
+    if (T.req && !s.negocios.some(n => n.tipo === T.req)) return `Necesitas tener ${NEGOCIOS[T.req].n.toLowerCase()}.`;
     if (s.p.dinero < capitalNecesario(tipo, i, s)) return `Necesitas ${eur(capitalNecesario(tipo, i, s))}.`;
     return null;
   }
@@ -196,7 +200,7 @@
     ponerEnMarcha(n, R);
     s.negocios.push(n);
     P2.tele(s, 'empresa', { caja });
-    P2.anotar(s, T.ic, `Compro una ${T.n.toLowerCase()}: traspaso ${eur(traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
+    P2.anotar(s, T.ic, `Compro ${T.deporte ? 'el negocio' : 'una'} ${T.n.toLowerCase()}: traspaso ${eur(traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
     P2.celebrar(s, { tipo: 'negocio', n: T.n, ic: T.ic, invertido: traspaso + caja, texto: 'Ya eres empresario/a' });
     P2.conseguirHito(s, 'empresa', R);
     return n;

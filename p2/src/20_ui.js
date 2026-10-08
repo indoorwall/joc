@@ -335,9 +335,10 @@
         ${kv('Traspaso', eur(T.traspaso))}${kv('Beneficio de las últimas semanas', `~${eur(media)}/semana`)}${kv('Cómo la deja', `${T.configInicial.empleados} empleados, sueldos bajos, precios baratos · alquiler ${eur(T.alquiler)}/semana`)}
         <p class="small">Además del traspaso pones dinero en la caja. Poca caja: compras antes, pero cualquier avería o mala racha te deja en números rojos. Mucha caja: tardas más en reunirla, pero aguantas y puedes aprovechar oportunidades.</p>
         ${T.cajas.map((c, i) => { const b = P2.bloqueoCompra(s, 'peluqueria', i); return opcion({ id: String(i), n: `Comprar con ${eur(c)} de caja`, ventaja: `Total: ${eur(T.traspaso + c)}`, coste: i === 0 ? 'Margen mínimo' : i === 1 ? 'Margen razonable' : 'Mucho margen', riesgo: i === 0 ? 'Una semana mala y estás en crisis' : i === 2 ? 'Tardas más en comprar' : '', bloqueo: b }, 'comprar'); }).join('')}</div>`;
-      return h;
+      return h + htmlMercado(s);
     }
     for (const n of s.negocios) h += htmlNegocio(s, n);
+    h += htmlMercado(s);
     if (P2.tieneHito(s, 'rentable') && !s.oportunidad) {
       h += `<div class="card"><h3>🔑 Segunda inversión</h3>${OPORTUNIDADES.map(o => opcion({ id: o.id, n: `${o.ic} ${o.n}`, ventaja: o.d, coste: `Pones tú: ${eur(o.coste)}`, bloqueo: s.p.dinero < o.coste ? `Tienes ${eur(s.p.dinero)}` : null }, 'oportunidad')).join('')}</div>`;
     }
@@ -347,6 +348,16 @@
         <p class="small">No la gestionas. Cada ${P2.SOCIO.trimestre} semanas llega el resultado: puede haber dividendo, no haberlo, perder valor o pedirte más capital.</p>`}</div>`; }
     if (s.negocios.length) h += `<div class="sec"><span>🪑 Tu despacho</span><span>solo aspecto</span></div><div class="card despacho"><div class="despSvg">${despachoSVG(P2.deco(s).despacho)}</div>${htmlDeco(s, 'despacho')}</div>`;
     return h;
+  }
+  // Negocios en traspaso de tu deporte (la peluquería está arriba)
+  function htmlMercado(s) {
+    const l = P2.negociosDeCarrera(s).filter(k => NEGOCIOS[k].deporte); if (!l.length || !P2.mercadoAbierto(s)) return '';
+    const D = P2.deporteDe(s);
+    return `<div class="sec"><span>${D.ic} Negocios de ${esc(D.n.toLowerCase())} en traspaso</span><span>${l.length}</span></div>${l.map(k => { const T = NEGOCIOS[k], tengo = s.negocios.some(n => n.tipo === k);
+      const b0 = P2.bloqueoCompra(s, k, 0);
+      return `<details class="card mercado"><summary><b>${T.ic} ${esc(T.n)}</b><span class="small">${tengo ? '✅ ya es tuyo · ' : ''}traspaso ${eur(T.traspaso)}${b0 && /Necesitas tener|primera empresa|6 negocios/.test(b0) ? ` · 🔒 ${esc(b0)}` : ''}</span></summary>
+        <p class="small">${esc(T.d)}</p>${kv('Precio normal', `${eur(T.precios.normal.valor)} ${esc(T.unidad)}`)}${kv('Alquiler y fijos', `${eur(T.alquiler + T.fijos)}/semana`)}${kv('Cómo lo dejan', `${T.configInicial.empleados} empleados, sueldos bajos, precios baratos`)}
+        ${T.cajas.map((c, i) => { const b = P2.bloqueoCompra(s, k, i); return `<button class="opt" data-act="comprar" data-t="${k}" data-id="${i}" ${b ? 'disabled' : ''}><b>Comprar con ${eur(c)} de caja</b><span class="ls"><span class="l"><i class="v">✓</i> Total: ${eur(P2.capitalNecesario(k, i, s))}</span></span>${b ? `<span class="bl">🔒 ${esc(b)}</span>` : ''}</button>`; }).join('')}</details>`; }).join('')}`;
   }
   function htmlNegocio(s, n) {
     const T = NEGOCIOS[n.tipo], x = P2.calcularSemana(s, n), v = P2.valorNegocio(n), bm = Math.round(P2.beneficioMedio(n));
@@ -358,7 +369,7 @@
       <div class="datos dos">${dato('Caja de la empresa', eur(n.caja))}${dato('Valor', eur(v))}${dato('Fama del negocio', Math.round(n.fama))}${dato('Beneficio medio', `${eur(bm)}/sem`)}</div>
       ${ctx.length ? `<div class="resumen" style="margin-top:8px">${ctx.map(t => chip(t)).join('')}</div>` : ''}
       ${n.ultimo ? `<p class="small">Última semana: ${n.ultimo.clientes} clientes, ${n.ultimo.beneficio >= 0 ? 'beneficio' : 'pérdidas'} ${eur(n.ultimo.beneficio)}${n.ultimo.colas > 5 ? `, ${n.ultimo.colas} se fueron por las colas` : ''}.</p>` : '<p class="small">Aún no ha pasado ninguna semana contigo al mando.</p>'}
-      <div class="sec">Precio por corte</div>${seg('precio', T.precios)}
+      <div class="sec">Precio ${esc(T.unidad || 'por cliente')}</div>${seg('precio', T.precios)}
       <div class="sec">Sueldos</div>${seg('sueldo', T.sueldos)}
       <div class="sec">Empleados</div><div class="paso"><button data-act="empleados" data-neg="${n.id}" data-v="-1" aria-label="Menos">−</button><b>${n.empleados}</b><button data-act="empleados" data-neg="${n.id}" data-v="1" aria-label="Más">+</button><span class="small">cada uno atiende ~${T.capacidadEmpleado} clientes/semana</span></div>
       <div class="sec">Publicidad</div>${seg('marketing', T.marketing)}
@@ -1696,7 +1707,8 @@
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { ui.fiestas = fiestasDe(r.hitos, (r.desbloqueos || []).concat(ui.desbloqueos || [])); ui.desbloqueos = [];
         if (r.ir) { ui.fiestas = []; irA(r.ir); } else { ui.dec = r; ui.paso = 'decidido'; guardarYPintar(); window.scrollTo(0, 0); } } break; }
-      case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
+      case 'comprar': { const R = { lineas: [], hitos: [] }, tipo = b.dataset.t && NEGOCIOS[b.dataset.t] ? b.dataset.t : 'peluqueria', T = NEGOCIOS[tipo];
+        if (P2.comprarNegocio(S, tipo, Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: T.ic, titulo: `Compras: ${T.n.toLowerCase()}`, texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
       case 'config': if (P2.configurar(S, neg, b.dataset.c, b.dataset.v)) guardarYPintar(); break;
       case 'empleados': { const n = S.negocios.find(x => x.id === neg); if (n && P2.configurar(S, neg, 'empleados', n.empleados + Number(b.dataset.v))) guardarYPintar(); break; }
       case 'aportar': case 'retirar': { const x = Number(($(`imp_${neg}`) || {}).value) || 0; if ((a === 'aportar' ? P2.aportar : P2.retirar)(S, neg, x)) guardarYPintar(); break; }

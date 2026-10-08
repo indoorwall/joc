@@ -103,11 +103,11 @@
         { id: 'no', n: 'No invertir', ventaja: 'Guardas para tu negocio', coste: 'Tu amigo se decepciona', riesgo: 'Ninguno', tags: ['dinero'], fx: () => 'Le dices que ahora no puedes.' },
       ] },
     { id: 'empresaTeNecesita', ambito: 'carrera', fases: ['club', 'amateur'], enfria: 5, cond: s => s.negocios.some(n => n.rachaNeg >= 1 || n.ctx.averia || n.ctx.competidor), peso: () => 3,
-      ic: '📞', titulo: 'Tu encargada te llama: la peluquería te necesita', texto: () => 'Hay lío en el negocio y quieren que estés esta semana.',
+      ic: '📞', titulo: 'Tu encargada te llama: el negocio te necesita', texto: () => 'Hay lío en el negocio y quieren que estés esta semana.',
       ops: [
-        { id: 'ir', n: 'Dedicar la semana a la peluquería', ventaja: 'Arreglas el problema: +6 fama del negocio, mejor ambiente', coste: 'La semana entera y −4 confianza del míster', riesgo: 'Si el equipo pierde, te lo echarán en cara', tags: ['dinero'], ocupaSemana: true, fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama + 6); n.moral = r1(clamp(n.moral + 0.08, 0.7, 1.1)); mods(s).gestion = true; s.confianza = clamp(s.confianza - 4, 0, 100); return 'Pasas la semana en la peluquería.'; } },
+        { id: 'ir', n: 'Dedicar la semana al negocio', ventaja: 'Arreglas el problema: +6 fama del negocio, mejor ambiente', coste: 'La semana entera y −4 confianza del míster', riesgo: 'Si el equipo pierde, te lo echarán en cara', tags: ['dinero'], ocupaSemana: true, fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama + 6); n.moral = r1(clamp(n.moral + 0.08, 0.7, 1.1)); mods(s).gestion = true; s.confianza = clamp(s.confianza - 4, 0, 100); return 'Pasas la semana en la peluquería.'; } },
         { id: 'encargado', n: 'Que lo resuelva ella (200 € de caja)', ventaja: 'No pierdes entrenos', coste: '200 € de la caja', riesgo: '40 %: no lo arregla (−4 fama)', tags: ['seguro'], fx: s => { const n = s.negocios[0]; n.caja -= 200; if (rnd(s) < 0.6) return 'Lo arregla con dinero.'; n.fama = r1(n.fama - 4); return 'No lo arregla del todo: −4 fama del negocio.'; } },
-        { id: 'ignorar', n: 'Ahora no puedo', ventaja: 'Te centras en el fútbol', coste: '−6 fama del negocio', riesgo: 'El equipo se desanima', tags: ['deporte'], fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama - 6); n.moral = r1(clamp(n.moral - 0.05, 0.7, 1.1)); return 'Lo dejas estar. En la peluquería no sienta bien.'; } },
+        { id: 'ignorar', n: 'Ahora no puedo', ventaja: 'Te centras en el fútbol', coste: '−6 fama del negocio', riesgo: 'El equipo se desanima', tags: ['deporte'], fx: s => { const n = s.negocios[0]; n.fama = r1(n.fama - 6); n.moral = r1(clamp(n.moral - 0.05, 0.7, 1.1)); return 'Lo dejas estar. En el negocio no sienta bien.'; } },
       ] },
     { id: 'clinic', ambito: 'carrera', fases: ['club'], unaVez: true, cond: s => enClub(s) && s.p.rep >= 25, peso: () => 2,
       ic: '⚽', titulo: 'Te invitan a dar un clínic a niños', texto: () => 'Una escuela de fútbol de la ciudad quiere que pases una semana con sus chavales.',
@@ -124,7 +124,7 @@
         { id: 'nada', n: 'No cambiar nada', ventaja: 'Sin gastos', coste: 'Pierdes clientes', riesgo: 'Puede hacerte mucho daño', tags: ['dinero'], fx: (s, n) => { n.ctx.competidor = 99; return 'Aguantas como estás.'; } },
       ] },
     { id: 'aumento', ambito: 'empresa', enfria: 10, cond: (s, n) => n.semanas >= 5 && n.empleados >= 2 && n.sueldo !== 'alto', peso: () => 2,
-      ic: '💬', titulo: 'Una empleada pide un aumento', texto: () => 'Dice que en otras peluquerías pagan más.',
+      ic: '💬', titulo: 'Una empleada pide un aumento', texto: () => 'Dice que en otros negocios como el tuyo pagan más.',
       ops: [
         { id: 'subir', n: 'Subir sueldos', ventaja: 'Mejor ambiente y calidad', coste: 'Más coste cada semana', riesgo: 'Ninguno', tags: ['seguro'], fx: (s, n) => { n.sueldo = n.sueldo === 'bajo' ? 'normal' : 'alto'; n.moral = r1(clamp(n.moral + 0.06, 0.7, 1.1)); return 'Subes sueldos.'; } },
         { id: 'bonus', n: 'Un bonus único (300 €)', ventaja: 'Contenta por ahora', coste: '300 € de caja', riesgo: 'Volverá a pedirlo', tags: ['dinero'], fx: (s, n) => { n.caja -= 300; n.moral = r1(clamp(n.moral + 0.03, 0.7, 1.1)); return 'Le das un bonus.'; } },
@@ -158,7 +158,7 @@
         { id: 'tal', n: 'Apañaros con lo que hay', ventaja: 'Sin coste extra', coste: 'Colas', riesgo: 'Clientes que se van y fama', tags: ['seguro'], fx: (s, n) => { n.ctx.temporadaAlta = 3; return 'A apretar.'; } },
       ] },
     { id: 'estrella', ambito: 'empresa', unaVez: true, cond: (s, n) => n.semanas >= 8 && n.sueldo !== 'alto', peso: () => 2,
-      ic: '⭐', titulo: 'Tu mejor peluquera recibe una oferta', texto: () => 'Una cadena quiere llevársela. Media clientela viene por ella.',
+      ic: '⭐', titulo: 'Tu mejor empleada recibe una oferta', texto: () => 'Una cadena quiere llevársela. Media clientela viene por ella.',
       ops: [
         { id: 'igualar', n: 'Subir sueldos a «alto»', ventaja: 'Se queda y mejora la calidad', coste: 'Más coste semanal', riesgo: 'Ninguno', tags: ['seguro'], fx: (s, n) => { n.sueldo = 'alto'; n.estrella = true; return 'Se queda.'; } },
         { id: 'socia', n: 'Ofrecerle un pequeño % (600 €)', ventaja: 'Calidad +8 % y mejor ambiente', coste: '600 € de caja', riesgo: 'Ninguno', tags: ['riesgo'], fx: (s, n) => { n.caja -= 600; n.estrella = true; n.moral = r1(clamp(n.moral + 0.08, 0.7, 1.1)); return 'Ahora es un poco socia.'; } },

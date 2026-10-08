@@ -285,8 +285,8 @@
   // ---- Oportunidades de inversión (la segunda puerta que abre el capítulo) ----
   // Cada una con una estructura financiera distinta: coste = lo que pones tú hoy
   const OPORTUNIDADES = [
-    { id: 'local', ic: '🏢', n: 'Comprar el local de tu peluquería', coste: 3500, precio: 14000, hipoteca: { importe: 10500, interes: 0.002, plazo: 156 }, revaloriza: 0.0005,
-      d: 'Entrada de 3.500 € e hipoteca de 10.500 € que paga la peluquería (unos 90 €/semana). Desaparece el alquiler (450 €/semana) y el local es tuyo: vale dinero.' },
+    { id: 'local', ic: '🏢', n: 'Comprar el local de tu negocio', coste: 3500, precio: 14000, hipoteca: { importe: 10500, interes: 0.002, plazo: 156 }, revaloriza: 0.0005,
+      d: 'Entrada de 3.500 € e hipoteca de 10.500 € que paga el negocio (unos 90 €/semana). Desaparece el alquiler (450 €/semana) y el local es tuyo: vale dinero.' },
     { id: 'segunda', ic: '💈', n: 'Abrir una segunda peluquería', coste: 3500, traspaso: 6000, prestamo: { importe: 4000, interes: 0.012, plazo: 60 }, caja: 1500,
       d: 'Entrada de 2.000 € + 1.500 € de caja, y un préstamo de 4.000 € a cargo del nuevo negocio. Más beneficio posible, más gestión y más riesgo.' },
     { id: 'socio', ic: '🤝', n: 'Entrar como socio en la cafetería de un compañero', coste: 3000,
