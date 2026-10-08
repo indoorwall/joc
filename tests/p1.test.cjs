@@ -27,7 +27,12 @@ async function openPage(browser, opts) {
   return { ctx, page, errors, requests };
 }
 const st = page => page.evaluate(() => JSON.parse(JSON.stringify(__P1.S)));
-async function tap(page, sel) { await page.locator(sel).first().tap(); }
+// Si acabas de firmar un contrato, se cierra como lo haría un jugador: tocar el papel (salta la animación) y «¡Hecho!»
+async function cerrarFirma(page) {
+  if (!(await page.locator('#firma').count())) return false;
+  await page.locator('#firma .papel').tap(); await page.waitForTimeout(120); await page.locator('#firmaOk').tap(); return true;
+}
+async function tap(page, sel) { await cerrarFirma(page); await page.locator(sel).first().tap(); }
 async function shot(page, name) { if (SHOTS) { await page.waitForTimeout(350); await page.screenshot({ path: path.join(SHOTS, name + '.png') }); } }
 
 (async () => {
@@ -1687,6 +1692,32 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
     check('Rendimiento: en individuales, malas competiciones seguidas te sacan del equipo nacional', r.nacional);
     check('Rendimiento: en boxeo, derrotas seguidas: el promotor te baja la bolsa y sales del ranking', r.box);
     check('Rendimiento: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  /* ---------- Firma de contratos: animación con las cláusulas pactadas ---------- */
+  {
+    const { ctx, page, errors } = await openPage(browser, iphone);
+    await page.evaluate(() => { const G = __P1; G.silencio = true; G.CFG.club.probSuceso = 0;
+      const limpiar = () => { for (let g = 0; G.S.pendiente && g < 30; g++) { if (G.S.pendiente.tipo === 'ofertas') return; G.resolver('0') || G.resolver('ok') || G.resolver('si') || G.resolver('corto') || G.resolver('1'); } };
+      G.nueva(61, 'delantero', 'futbol'); G.S.nombre = 'Leo'; G.S.p.rep = 60;
+      for (let i = 0; i < 300 && !(G.S.pendiente && G.S.pendiente.tipo === 'ofertas'); i++) { limpiar(); if (G.S.pendiente) break; G.S.p.nivel = Math.max(G.S.p.nivel, 60); G.elegir(G.S.fase === 'barrio' ? 'plaza' : 'entrenarSolo'); G.avanzarSemana(); }
+      G.silencio = false; G.render(); });
+    await page.locator('#modal [data-act=resolver][data-v="0"]').first().tap();
+    const club = await page.evaluate(() => { const f = document.getElementById('firma'); return f ? { txt: f.innerText, firmas: f.querySelectorAll('.ftrazo').length, sello: !!f.querySelector('.fsello') } : null; });
+    const sal = await page.evaluate(() => __P1.S.contrato.salario);
+    check('Firma: al fichar sale el contrato con las cláusulas pactadas (sueldo, duración, primas, rendimiento), las firmas y el sello',
+      !!club && club.txt.includes(String(sal).replace(/\B(?=(\d{3})+(?!\d))/g, '.')) && /Duración/.test(club.txt) && /Rendimiento/.test(club.txt) && /Leo/.test(club.txt) && club.firmas === 2 && club.sello, JSON.stringify(club).slice(0, 200));
+    await shot(page, '60_firma_contrato');
+    const cerrada = await cerrarFirma(page) && !(await page.locator('#firma').count());
+    check('Firma: se cierra con «¡Hecho!» (tocar el papel salta la animación)', cerrada);
+    // Patrocinio: también se firma
+    const marca = await page.evaluate(() => { const G = __P1, S = G.S; const P = G.CFG.patrocinio.futbol || []; const o = Object.values(P)[0];
+      S.pendiente = { tipo: 'patrocinio', cat: 'local', ofertas: [{ id: 'barPaco', marca: 'Bar Paco', cat: 'local', ic: '🍺', año: 500, temporadas: 2, tipo: 'fijo', obj: { t: 'Juega 10 partidos' } }] };
+      G.render(); G.resolver('0'); const f = document.getElementById('firma'); return f ? f.innerText : ''; });
+    check('Firma: los contratos con marcas también se firman, con su pago, su objetivo y cuándo lo rompen', /Contrato de patrocinio/i.test(marca) && /Bar Paco/.test(marca) && /500/.test(marca) && /Objetivo/.test(marca) && /rompen/.test(marca), marca.slice(0, 160));
+    await cerrarFirma(page);
+    check('Firma: sin errores de JavaScript', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 

@@ -357,6 +357,29 @@
   .pruebas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .pruebas .btn { width: 100%; min-height: 44px; font-size: 14px; padding: 8px; }
 
+  /* Firma de contratos */
+  .firma { position: fixed; inset: 0; z-index: 55; background: rgba(5, 8, 20, .78); display: flex; align-items: center; justify-content: center; padding: calc(var(--safe-top) + 10px) 12px calc(var(--safe-bottom) + 10px); overflow-y: auto; }
+  .firma .papel { position: relative; width: 100%; max-width: 440px; background: #fffdf5; color: #2a2d34; border-radius: 10px; padding: 16px 16px 14px; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    background-image: repeating-linear-gradient(#fffdf5 0 27px, #f1ead6 27px 28px); animation: papel .45s ease both; font-family: Georgia, 'Times New Roman', serif; }
+  @keyframes papel { from { transform: translateY(60px) rotate(-3deg); opacity: 0; } }
+  .fcab { display: flex; gap: 10px; align-items: center; border-bottom: 2px solid #2a2d34; padding-bottom: 8px; }
+  .ftit { font-size: 19px; font-weight: 900; text-transform: uppercase; letter-spacing: .04em; } .fpartes { font-size: 13px; color: #555; }
+  .fclaus { list-style: none; margin: 10px 0; padding: 0; counter-reset: c; }
+  .fclaus li { display: flex; gap: 8px; font-size: 14px; line-height: 1.3; padding: 4px 0; opacity: 0; animation: clausula .35s ease forwards; }
+  .fclaus li span:first-child { flex: none; width: 22px; text-align: center; }
+  @keyframes clausula { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
+  .ffirmas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 50px; }
+  .ffirmas > div { border-top: 1.5px solid #2a2d34; padding-top: 2px; } .ffirmas span { display: block; font-size: 11px; color: #666; }
+  .ffirmas svg { width: 100%; height: 46px; display: block; margin-top: -44px; }
+  .ftrazo { font: italic 30px 'Segoe Script', 'Brush Script MT', 'Snell Roundhand', cursive; fill: transparent; stroke: #1d3fa0; stroke-width: .9;
+    stroke-dasharray: 900; stroke-dashoffset: 900; animation: trazo 1.2s ease forwards, tinta .3s 1.1s forwards; }
+  @keyframes trazo { to { stroke-dashoffset: 0; } } @keyframes tinta { to { fill: #1d3fa0; } }
+  .fsello { position: absolute; right: 22px; bottom: 96px; border: 4px solid #c62828; color: #c62828; font: 900 22px system-ui, sans-serif; letter-spacing: .12em; padding: 4px 10px; border-radius: 8px;
+    transform: rotate(-14deg) scale(3); opacity: 0; animation: sello .35s ease-out forwards; pointer-events: none; }
+  @keyframes sello { to { transform: rotate(-14deg) scale(1); opacity: .9; } }
+  .firma #firmaOk { opacity: 0; animation: clausula .3s ease forwards; }
+  .firma.ya .fclaus li, .firma.ya .fsello, .firma.ya #firmaOk, .firma.ya .ftrazo { animation-delay: 0s !important; animation-duration: .01s !important; }
+  @media (prefers-reduced-motion: reduce) { .fclaus li, #firmaOk { opacity: 1 !important; } .fsello { opacity: .9 !important; transform: rotate(-14deg) scale(1) !important; } .ftrazo { fill: #1d3fa0; stroke-dashoffset: 0; } }
   /* Desenlaces: cartel con el dinero que ganas o que te pierdes */
   .desenlace { border-radius: 18px; padding: 14px; margin: 10px 0; text-align: left; }
   .desenlace.bien { background: linear-gradient(160deg, #e7f9ee, #c9f0d8); border: 3px solid #2ecc71; }
@@ -2469,6 +2492,7 @@ function resolver(opcion) {
       if (!o) return false;
       if (o.renovacion) s.mejoras += 1;
       const msgs = firmar(s, o, ev.ventana);
+      prepararFirma(s, { tipo: 'club', titulo: o.renovacion ? 'Renovación de contrato' : ev.ventana === 'inicio' ? 'Primer contrato profesional' : 'Contrato profesional', fichaje: o.fichaje });
       if (!ACCIONES[s.plan] || !ACCIONES[s.plan].fases.includes('club')) s.plan = 'normal';
       revisarEscenario(s);
       msg = `${o.renovacion ? 'Renuevo con' : 'Firmo por'} el ${club(s, o.clubId).nombre}: ${cr(o.salario)}/semana. ${msgs.join(' ')}`; ic = '✍️';
@@ -2489,6 +2513,7 @@ function resolver(opcion) {
       s.p.dinero += prima - imp; s.acum.ingresosPers += prima - imp; s.acum.impuestos += imp;
       msg = `Firmo ${c.temporadasRestantes} temporadas por ${cr(sal)} por semana y cobro ahora ${cr(prima - imp)} netos de prima.`;
     } else return false;
+    prepararFirma(s, { tipo: 'club', titulo: 'Mejora de contrato', fichaje: opcion === 'largo' ? red(c.salario * N.largoPrimaSemanas, 10) : 0, fichajeTxt: 'Prima por firmar más años' });
   } else if (ev.tipo === 'suceso') {
     const e = SUCESOS[ev.id], op = e && e.ops[Number(opcion)];
     if (!op || !opcionPosible(s, e, Number(opcion), ev.data || {})) return false;
@@ -4279,6 +4304,7 @@ function resolverPatro(s, ev, op) {
     for (const x of ev.ofertas) if (!o || x.id !== o.id) vetarMarca(s, x.id, CFG.patrocinio.rechazoSemanas);
     if (!o) return ['💼', act ? `Sigo con ${act.marca}.` : `No firmo con ${ev.ofertas.map(x => x.marca).join(' ni con ')} por ahora.`];
     firmarPatro(s, o);
+    prepararFirma(s, { tipo: 'marca', marca: o });
     return ['💼', `Firmo con ${o.marca}: ${o.año ? `${cr(o.año)} al año` : 'material gratis'} durante ${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}${o.primaPodio || o.primaGol ? ', con primas' : ''}. Objetivo: ${o.obj.t.toLowerCase()}.`];
   }
   if (ev.tipo === 'eventoPatro') {
@@ -6249,6 +6275,55 @@ function bonoMJInd(s, A) {
   return [A.sd * (mj.ok ? (mj.perfecto ? 1.4 : 0.9) : (mj.desastre ? -1.8 : -1.1)), mj];
 }
 // Cartel grande del desenlace: el dinero que ganas (o que te pierdes) y las consecuencias
+/* ---- Firma de contratos: el papel, las cláusulas pactadas, las firmas y el sello ---- */
+let contratoPorFirmar = null;
+function prepararFirma(s, d) {
+  if (silencio) return;
+  const nombre = s.nombre || 'Tu nombre', cl = [];
+  if (d.tipo === 'club') {
+    const c = s.contrato, mi = miClub(s), F = CFG.rendimiento;
+    cl.push(['💶', `Sueldo: <b>${cr(c.salario)}/semana</b> (unos ${cr(c.salario * 52)} al año, antes de impuestos)`]);
+    cl.push(['📄', `Duración: <b>${c.temporadasRestantes} ${c.temporadasRestantes === 1 ? 'temporada' : 'temporadas'}</b>`]);
+    if (d.fichaje) cl.push(['🎁', `${d.fichajeTxt || 'Prima de fichaje'}: <b>${cr(d.fichaje)}</b> al firmar`]);
+    if (c.primaVictoria) cl.push(['🏆', `Prima por victoria: <b>${cr(c.primaVictoria)}</b>`]);
+    if (c.primaGol) cl.push([TXE.icGol, `Prima por ${TXE.uGol(1)}: <b>${cr(c.primaGol)}</b>`]);
+    if (c.primaAscenso) cl.push(['⬆️', `Prima de ascenso: <b>${cr(c.primaAscenso)}</b>${c.subidaAscenso ? ` y <b>+${c.subidaAscenso} %</b> de sueldo si subís` : ''}`]);
+    if (c.bajadaDescenso) cl.push(['📉', `Cláusula de descenso: <b>−${c.bajadaDescenso} %</b> de sueldo si bajáis`]);
+    cl.push(['🏠', `Gastos de vida: <b>${cr(c.vida)}/semana</b>${c.familia ? ' (vives con tu familia)' : ''}`]);
+    cl.push(['🤝', `Rendimiento: si la confianza del club baja de <b>${F.rescinde}</b>, rescisión con ${F.indemnizacion} semanas de indemnización`]);
+    contratoPorFirmar = { titulo: d.titulo, parte: mi.nombre, escudo: escudoClub(mi, 46), nombre, firmaOtra: mi.siglas, clausulas: cl };
+  } else {
+    const o = d.marca;
+    cl.push(['💰', o.año ? `Pago: <b>${cr(o.año)} al año</b>${o.tipo === 'variable' ? ' (fijo más bajo, con primas)' : ''}` : '<b>Material gratis</b>']);
+    cl.push(['📄', `Duración: <b>${o.temporadas} ${o.temporadas === 1 ? 'año' : 'años'}</b>`]);
+    if (o.primaPodio) cl.push(['🏅', `Prima por podio: <b>${cr(o.primaPodio)}</b> (más en las grandes competiciones)`]);
+    if (o.primaTitulo) cl.push(['🏆', `Prima por título o ascenso: <b>${cr(o.primaTitulo)}</b>`]);
+    if (o.primaGol) cl.push([TXE.icGol, `Prima por ${TXE.uGol(1)}: <b>${cr(o.primaGol)}</b>`]);
+    if (o.obj) cl.push(['🎯', `Objetivo de temporada: <b>${esc(o.obj.t)}</b>`]);
+    cl.push(['📣', 'Compromisos: alguna tarde para actos, anuncios o redes']);
+    cl.push(['✂️', `Si fallas su objetivo ${CFG.patrocinio.fallosRompe} temporadas seguidas o la relación baja de ${CFG.patrocinio.relRuptura}, rompen el contrato`]);
+    contratoPorFirmar = { titulo: 'Contrato de patrocinio', parte: o.marca, escudo: `<span style="font-size:40px">${o.ic || '💼'}</span>`, nombre, firmaOtra: o.marca, clausulas: cl };
+  }
+}
+function mostrarFirma(d) {
+  const viejo = document.getElementById('firma'); if (viejo) viejo.remove();
+  const n = d.clausulas.length, t0 = 0.35, paso = 0.28, tFirma = t0 + n * paso + 0.2;
+  const el = document.createElement('div'); el.id = 'firma'; el.className = 'firma';
+  el.innerHTML = `<div class="papel" style="--tf:${tFirma.toFixed(2)}s">
+    <div class="fcab">${d.escudo}<div><div class="ftit">${esc(d.titulo)}</div><div class="fpartes">Entre <b>${esc(d.parte)}</b> y <b>${esc(d.nombre)}</b></div></div></div>
+    <ol class="fclaus">${d.clausulas.map(([ic, txt], i) => `<li style="animation-delay:${(t0 + i * paso).toFixed(2)}s"><span>${ic}</span><span>${txt}</span></li>`).join('')}</ol>
+    <div class="ffirmas"><div><svg viewBox="0 0 160 46"><text x="6" y="34" class="ftrazo" style="animation-delay:${tFirma.toFixed(2)}s, ${(tFirma + 1.1).toFixed(2)}s">${esc(d.nombre)}</text></svg><span>Firma: ${esc(d.nombre)}</span></div>
+      <div><svg viewBox="0 0 160 46"><text x="6" y="34" class="ftrazo" style="animation-delay:${(tFirma + 1.3).toFixed(2)}s, ${(tFirma + 2.4).toFixed(2)}s">${esc(d.firmaOtra)}</text></svg><span>Firma: ${esc(d.parte)}</span></div></div>
+    <div class="fsello" style="animation-delay:${(tFirma + 2.3).toFixed(2)}s">FIRMADO</div>
+    <button class="btn g full" id="firmaOk" style="animation-delay:${(tFirma + 2.6).toFixed(2)}s">✍️ ¡Hecho!</button></div>`;
+  document.body.appendChild(el);
+  sonar('logro');
+  const sello = setTimeout(() => sonar('gol'), (tFirma + 2.3) * 1000);
+  const cerrar = () => { clearTimeout(sello); el.remove(); };
+  el.querySelector('#firmaOk').onclick = cerrar;
+  // tocar el papel salta la animación
+  el.onclick = e => { if (e.target.id !== 'firmaOk') el.classList.add('ya'); };
+}
 /* ---- Rendimiento: si fallas mucho, se nota ---- */
 function confianzaClub(s) { const c = s.contrato; if (!c) return 0; if (c.confianza == null) c.confianza = CFG.rendimiento.confianzaInicial; return c.confianza; }
 function sumarConfianza(s, d) { if (!s.contrato || !d) return; s.contrato.confianza = clamp(Math.round(confianzaClub(s) + d), 0, 100); }
@@ -6986,6 +7061,7 @@ function render() {
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
   // Sin confeti si lo que se ve es una mala noticia (fallo, descenso, quedarse a las puertas…)
   if (hayMalaNoticia(S)) { celebrar = false; quitarConfeti(); }
+  if (contratoPorFirmar) { const d = contratoPorFirmar; contratoPorFirmar = null; mostrarFirma(d); }
   if (celebrar) { document.body.insertAdjacentHTML('beforeend', confeti()); setTimeout(() => document.querySelectorAll('body > .confetti').forEach(x => x.remove()), 3500); celebrar = false; }
   if (S.aviso) { $('toast').innerHTML = `<div>${esc(S.aviso)}</div>`; S.aviso = null; }
   if (bajarDiario) { window.scrollTo(0, 0); bajarDiario = false; }

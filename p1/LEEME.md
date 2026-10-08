@@ -462,7 +462,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-208 de 208 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+212 de 212 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -641,6 +641,12 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
      ayuda de la federación de 6.000 € por clasificarte para los Juegos.
    - Sin confeti cuando la noticia es mala: ni en el fallo del minijuego, ni en el resultado, ni en el desenlace, ni en el
      resto de ventanas de la semana en la que fallas un momento decisivo (también se quita el que quedara de antes).
+6s. **Firma de contratos animada.** Al fichar, renovar, mejorar el contrato o firmar con una marca sale el contrato en
+   papel: escudo y partes, las **cláusulas pactadas** una a una (sueldo semanal y anual, duración, prima de fichaje,
+   primas por victoria, gol o punto, prima y subida por ascenso, cláusula de descenso, gastos de vida y la cláusula de
+   rendimiento; en las marcas, pago, primas por podio o título, objetivo, compromisos y cuándo rompen), tu firma a mano,
+   la del club o la marca y el sello «FIRMADO». Tocar el papel salta la animación; «¡Hecho!» la cierra. Con «reducir
+   movimiento» se muestra ya firmado.
 6r. **Si fallas mucho, bajas (más realista).**
    - **Fútbol y baloncesto: confianza del club** (0–100, empieza en 60 con cada contrato; se ve en Carrera). Sube y baja
      cada partido según tu nota (≥ 7: +3; 6–7: +1; 5–6: −1; < 5: −3) y mucho con los momentos decisivos (acierto +8/+12,
