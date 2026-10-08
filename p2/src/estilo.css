@@ -596,3 +596,9 @@ body[data-etapa] { --bg1: #dff0ff; --bg2: #f4ecff; --bg3: #f4ecff; }
 .fiesta { overflow: hidden; }
 .mundoBtn { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-bottom) + 14px); }
 body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 90px); }
+
+/* Variedad semanal: subtítulo de la versión y la destacada */
+.op { position: relative; }
+.op .tx small { display: block; font-size: 13px; font-weight: 800; opacity: .9; margin-top: 1px; }
+.op.dest { outline: 4px solid var(--oro2); outline-offset: 2px; }
+.op .fuego { position: absolute; top: -12px; right: 14px; background: var(--oro2); color: #3a2600; font-size: 12px; font-weight: 900; border-radius: 999px; padding: 2px 10px; box-shadow: 0 2px 0 var(--oro2-d); }

@@ -22,7 +22,7 @@
     if (!especial) P2.tele(s, 'accion', { id: accion });
     if (accion === '__acto') R.lineas.push(['📣', 'Dedicas la semana al acto de tu patrocinador.']);
     else if (accion === '__evento') R.lineas.push(['⏳', `La semana se va en: ${(opc && opc.motivo) || 'lo que has decidido'}.`]);
-    else P2.aplicarAccion(s, accion, R);
+    else { const x = P2.aplicarAccionSemana(s, accion, R); R.variante = x.v ? { ic: x.v.ic, n: x.v.n, i: x.v.i } : null; R.destacada = x.dest; }
     if (R.plazaX2 && accion === 'plaza') { const extra = r1(s.p.rep - repAntes); s.p.rep = r1(clamp(s.p.rep + extra, 0, 100)); R.lineas.push(['👀', `El ojeador estaba en la plaza: tu reputación sube el doble (+${nf(extra)} más).`, 'bien']); }
     s.accionesHechas = (s.accionesHechas || 0) + 1;
 

@@ -280,14 +280,17 @@
     // 7) Tienda: el mismo jugador ahorrando, comprando con cabeza o a lo loco
     const consumo = Object.fromEntries(Object.keys(CONSUMO).map(c => [c, resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: c }), 100, { seguir: true }))]));
     // 8) P2.4 · Perfiles de gasto y anuncios con recompensa simulados (mismas semillas)
+    // (el doble de partidas: la diferencia que se mide es pequeña y con pocas partidas sale ruido)
+    const seeds2 = Array.from({ length: n * 2 }, (_, i) => 3000 + i);
+    const jugar2 = (B, max, opc) => seeds2.map(sd => jugarPartida(B, sd, max, opc));
     const perfiles = {
-      ahorrador: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
-      moderado: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta' }), 100, { seguir: true })),
-      caprichoso: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'caprichos' }), 100, { seguir: true })),
-      inversor: resumen(jugar(crearBot('equilibrada', 'agresiva', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
-      rewardedModerado: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'moderado' }), 100, { seguir: true })),
-      rewardedMaximo: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'maximo' }), 100, { seguir: true })),
-      ahorradorRewardedMax: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra', rewarded: 'maximo' }), 100, { seguir: true })),
+      ahorrador: resumen(jugar2(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
+      moderado: resumen(jugar2(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta' }), 100, { seguir: true })),
+      caprichoso: resumen(jugar2(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'caprichos' }), 100, { seguir: true })),
+      inversor: resumen(jugar2(crearBot('equilibrada', 'agresiva', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
+      rewardedModerado: resumen(jugar2(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'moderado' }), 100, { seguir: true })),
+      rewardedMaximo: resumen(jugar2(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'maximo' }), 100, { seguir: true })),
+      ahorradorRewardedMax: resumen(jugar2(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra', rewarded: 'maximo' }), 100, { seguir: true })),
     };
     const pel = analisisPeluqueria();
     const R = rejilla, eq = deportivas.equilibrada;

@@ -275,10 +275,10 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Pareja y Contactos se ven bloqueados («más adelante»)', P2.personasVisibles(r1).filter(R => R.bloqueada).map(R => R.id).join() === 'pareja,contactos');
   const v0 = P2.valorRel(r1, 'marc');
   for (let i = 0; i < 30; i++) { r1.pendiente = null; r1.cola = []; P2.jugarSemana(r1, 'descansar'); }
-  check('No hay pérdida automática de relación (30 semanas sin decisiones: igual)', P2.valorRel(r1, 'marc') === v0 && P2.valorRel(r1, 'madre') === 75);
-  P2.cambiarRel(r1, 'madre', -10, 'Prueba');
+  check('No hay pérdida automática de relación (30 semanas sin decisiones: nada baja)', P2.valorRel(r1, 'marc') >= v0 && P2.valorRel(r1, 'madre') >= 75 && P2.valorRel(r1, 'padre') >= 60 && P2.valorRel(r1, 'dani') >= 55);
+  const vm0 = P2.valorRel(r1, 'madre'); P2.cambiarRel(r1, 'madre', -10, 'Prueba');
   const g2 = P2.migrateSave(JSON.parse(JSON.stringify(r1)));
-  check('Las relaciones se guardan (valor e historia)', P2.valorRel(g2, 'madre') === 65 && g2.relaciones.madre.historia[0].t === 'Prueba');
+  check('Las relaciones se guardan (valor e historia)', P2.valorRel(g2, 'madre') === vm0 - 10 && g2.relaciones.madre.historia.slice(-1)[0].t === 'Prueba');
   check('El estado se describe con palabras', P2.estadoRel(78) === 'Confía mucho en ti' && P2.estadoRel(20) === 'Relación rota');
   // Consecuencia diferida: ayudar a Marc → semanas después te presenta a Pilar (una sola vez)
   const r2 = P2.nuevaPartida({ seed: 103 }); r2.p.dinero = 500; r2.semana = 5;
@@ -304,6 +304,16 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Personaje: una partida antigua recibe los valores nuevos por defecto', (() => { const v = JSON.parse(JSON.stringify(P2.nuevaPartida({ seed: 230 }))); v.look = { pelo: 'afro', colorPelo: 'rubio' }; const m = P2.migrateSave(v); return m.look.pelo === 'afro' && m.look.edad === 'joven' && m.look.tatuaje === 'nada' && m.look.piercing === 'nada'; })());
   check('Personaje: «Al azar» siempre da un look válido', Array.from({ length: 40 }, () => P2.lookAzar()).every(L => JSON.stringify(P2.validarLook(L)) === JSON.stringify(Object.assign({}, P2.LOOK_INICIAL, L))));
   check('Personaje: la apariencia no cambia el juego (complexión y edad son solo estética)', (() => { const a = P2.nuevaPartida({ seed: 231 }), b = P2.nuevaPartida({ seed: 231 }); Object.assign(b.look, { complexion: 'fuerte', edad: 'veterano', tatuaje: 'manga' }); for (let w = 0; w < 10; w++) for (const g of [a, b]) { resolverTodo(g); P2.jugarSemana(g, P2.POLITICAS.equilibrada.accion(g)) || P2.jugarSemana(g, 'descansar'); } const z = g => { const x = JSON.parse(JSON.stringify(g)); delete x.look; delete x.tele; delete x.monVariante; return JSON.stringify(x); }; return z(a) === z(b); })());
+
+  // ---------- Variedad semanal ----------
+  const vv = P2.nuevaPartida({ seed: 240 }), nombres = [];
+  for (let w = 0; w < 8; w++) { nombres.push(P2.varianteSemana(vv, 'entrenar').n); vv.semana++; }
+  check('Variedad: la versión de cada acción cambia cada semana (nunca la misma dos semanas seguidas)', nombres.every((n, i) => i === 0 || n !== nombres[i - 1]) && new Set(nombres).size >= 3);
+  const vd = P2.nuevaPartida({ seed: 241 }); vd.semana = 2;
+  check('Variedad: cada semana hay una opción destacada entre las que puedes hacer', P2.accionesDisponibles(vd).some(x => x.id === P2.destacadaSemana(vd)));
+  check('Variedad: las versiones están compensadas (rinden más ⇔ cansan más)', Object.values(P2.VARIANTES).every(l => l.every(v => !(v.m > 1.1) || (v.e || 0) < 0) && Math.abs(l.reduce((a, v) => a + (v.m || 1), 0) / l.length - 1) <= 0.06));
+  const va1 = P2.nuevaPartida({ seed: 242 }), va2 = P2.nuevaPartida({ seed: 242 }); P2.varianteSemana(va2, 'plaza'); P2.destacadaSemana(va2);
+  check('Variedad: consultar la semana no toca el azar de la partida', va1.rng === va2.rng);
 
   // ---------- P2.4 · Monetization Lab (todo simulado) ----------
   const MON = P2.MONETIZATION, RWC = MON.rewarded;
@@ -554,11 +564,11 @@ let informe;
   check('UI: como mucho 3 opciones grandes y cada una dice lo que da', await page.locator('.pant > .ops > .op').count() === 3 && await page.evaluate(() => [...document.querySelectorAll('.pant > .ops > .op')].every(b => b.querySelector('.chip'))));
   const box = await page.locator('.op').first().boundingBox(), vh = page.viewportSize().height;
   check('UI: la primera opción se ve sin desplazarse en un iPhone 13', box && box.y + box.height < vh, JSON.stringify(box));
-  check('UI: lo que dice el botón coincide con lo que pasa (entrenar: −25 energía)', (await page.textContent('.op[data-id="entrenar"]')).includes('−25'));
+  check('UI: cada opción dice cuánta energía cuesta o da', await page.evaluate(() => [...document.querySelectorAll('.pant > .ops > .op')].every(b => /⚡/.test(b.textContent))));
   const s0 = await page.evaluate(() => __P2.S.semana);
   await page.tap('.op[data-id="entrenar"]');
   check('UI: un toque en la opción juega la semana', await page.evaluate(s0 => __P2.S.semana === s0 + 1 && __P2.S.cont.entrenar === 1, s0));
-  check('UI: después sale la pantalla de resultado con los números que cambian', (await page.textContent('.res h2')).includes('entrenado') && (await page.textContent('.cambios')).includes('Nivel') && (await page.textContent('#main')).includes('Entrenas duro'));
+  check('UI: después sale la pantalla de resultado con los números que cambian', await page.locator('.res h2').isVisible() && (await page.textContent('.cambios')).includes('Nivel'));
   const antes = await page.evaluate(() => ({ d: __P2.S.p.dinero, s: __P2.S.semana, n: __P2.S.p.nivel }));
   await page.reload();
   const despues = await page.evaluate(() => ({ d: __P2.S.p.dinero, s: __P2.S.semana, n: __P2.S.p.nivel }));

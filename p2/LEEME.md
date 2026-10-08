@@ -18,6 +18,10 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
 - **Resultado** a pantalla completa: marcador del partido, números que cambian y «Siguiente semana ▶». «¿Por qué?» opcional.
 - **Situaciones**: una pregunta por pantalla y respuestas grandes con lo que implica cada una.
 - **Celebraciones** para hitos y novedades (con confeti).
+- **Cada semana es distinta**: las acciones básicas tienen 3 o 4 versiones que rotan cada semana (nunca la misma dos
+  semanas seguidas), por ejemplo «Sprints en la playa», «Técnica en el parque», «Torneo nocturno 3×3», «Camarero en una boda» o
+  «Tarde de consola con Marc». Cada versión está compensada (rinde más y cansa más, o rinde menos y da un extra) y una opción
+  sale «🔥 destacada» (+20 %). Datos en `p2/src/17_variedad.js`. El simulador confirma que el equilibrio sigue igual.
 - **🌍 Mi mundo**: Perfil, Vida, Tienda, Inversiones, Liga, Marcas, Empresa, Patrimonio, Historia, Hitos y Ajustes, con lo que aún no
   está abierto en gris y su candado. «‹ Jugar» vuelve al juego.
 

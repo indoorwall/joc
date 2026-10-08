@@ -607,7 +607,7 @@
     const una = rng => {
       const c = JSON.parse(JSON.stringify(Object.assign({}, s, { tele: null, diario: [] }))); if (rng != null) c.rng = rng;
       const a = { dinero: c.p.dinero, energia: c.p.energia, nivel: c.p.nivel, rep: c.p.rep, marca: c.p.marca || 0 };
-      try { P2.aplicarAccion(c, id, { lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [] }); } catch (_) { return null; }
+      try { P2.aplicarAccionSemana(c, id, { lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [] }); } catch (_) { return null; }
       return { dinero: c.p.dinero - a.dinero, energia: c.p.energia - a.energia, nivel: c.p.nivel - a.nivel, rep: c.p.rep - a.rep, marca: (c.p.marca || 0) - a.marca };
     };
     const x = una(null), y = una((s.rng ^ 0x5bd1e995) >>> 0);
@@ -634,7 +634,8 @@
     return { top, resto: libres.filter(x => !top.includes(x)), bloq };
   }
   function tarjetaOp(s, x, i) {
-    return `<button class="op ${COLORES_OP[i % COLORES_OP.length]}" data-act="jugarYa" data-id="${x.id}"><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips">${chipsAccion(s, x.id)}</span></span><span class="go" aria-hidden="true">›</span></button>`;
+    const v = P2.varianteSemana(s, x.id), dest = P2.destacadaSemana(s) === x.id;
+    return `<button class="op ${COLORES_OP[i % COLORES_OP.length]} ${dest ? 'dest' : ''}" data-act="jugarYa" data-id="${x.id}">${dest ? '<span class="fuego">🔥 Esta semana rinde +20 %</span>' : ''}<span class="ic">${v ? v.ic : x.A.ic}</span><span class="tx"><b>${esc(v ? v.n : x.A.n)}</b>${v && v.d ? `<small>${esc(v.d)}</small>` : ''}<span class="chips">${chipsAccion(s, x.id)}</span></span><span class="go" aria-hidden="true">›</span></button>`;
   }
   function escenaExterior(s) {
     const e = etapa(s), V = vehiculo(s);
@@ -674,13 +675,14 @@
   }
   function htmlResultado(s) {
     const { R, id, a, b } = ui.res, P = R.partido, A = P2.ACCIONES[id] || {};
-    const ic = P ? (P.resultado === 'victoria' ? '🎉' : P.resultado === 'derrota' ? '😣' : '🤝') : A.ic || '📅';
-    const tit = P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : TIT_ACC[id] || 'Semana jugada';
+    const ic = P ? (P.resultado === 'victoria' ? '🎉' : P.resultado === 'derrota' ? '😣' : '🤝') : (R.variante && R.variante.ic) || A.ic || '📅';
+    const V = R.variante, nom = V && V.i ? V.n : TIT_ACC[id];
+    const tit = P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : V && V.i ? `¡${V.n}!` : TIT_ACC[id] || 'Semana jugada';
     const filas = filaCambio('💶', 'Dinero', a.dinero, b.dinero, true) + filaCambio('⚡', 'Energía', a.energia, b.energia) + filaCambio('💪', 'Nivel', a.nivel, b.nivel) + filaCambio('⭐', 'Reputación', a.rep, b.rep)
       + (s.contrato ? filaCambio('📣', 'Marca', a.marca, b.marca) + filaCambio('👔', 'Confianza del míster', a.confianza, b.confianza) : '');
     const lineas = R.lineas.filter(l => !P || !/^Jornada \d+:/.test(l[1])).slice(0, 3);
     const sig = ui.fiestas && ui.fiestas.length ? 'Continuar ▶' : s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶';
-    return `<div class="pant res"><div class="grande">${ic}</div><h2>${esc(tit)}</h2><p>Semana ${R.semana} ${P ? `· ${esc(TIT_ACC[id] || '')}` : 'completada'}</p>
+    return `<div class="pant res"><div class="grande">${ic}</div><h2>${esc(tit)}</h2><p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
       ${P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>
         <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.goles ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : ''}</small></div>` : ''}
       <div class="cambios">${filas || '<div class="cam"><span>Sin cambios en tus números</span></div>'}</div>
