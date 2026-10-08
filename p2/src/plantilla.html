@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f3d2c">
+<title>Del barrio al negocio · P2</title>
+<!--
+  PROTOTIPO P2 — Capítulo 1: del barrio a tu primera empresa.
+  Juego de gestión por decisiones: una acción por semana, sin partidos jugables.
+  ARCHIVO GENERADO por p2/build.cjs a partir de p2/src (no editar a mano):
+    00 configuración y datos · 01 utilidades · 02 estado y guardado (saveVersion 2)
+    03 liga · 04 carrera · 05 patrocinios · 06 negocios · 07 eventos · 08 decisiones e hitos
+    09 semana · 10 simulación y balance · 20 interfaz
+  Sin anuncios, compras, cuentas ni conexiones. Clubes y marcas ficticios; importes de juego.
+-->
+<style>
+/*CSS*/
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top"></header>
+  <main id="main"><p id="arranque" style="color:#fff;text-align:center;padding-top:40vh">Cargando…</p></main>
+  <nav id="nav"></nav>
+</div>
+<script>
+window.addEventListener('error', function (e) { var a = document.getElementById('main'); if (a && !a.dataset.ok) a.innerHTML = '<p style="color:#fff;padding:20px">El juego no ha podido arrancar: ' + String(e.message).replace(/</g, '&lt;') + '</p>'; });
+/*JS*/
+P2.arrancar(); document.getElementById('main').dataset.ok = '1';
+</script>
+</body>
+</html>

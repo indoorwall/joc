@@ -1,0 +1,307 @@
+{
+ "partidasPorPolitica": 150,
+ "politicas": {
+  "todoTrabajo": {
+   "politica": "Todo trabajo",
+   "pruebasPct": 0,
+   "contratoPct": 100,
+   "semanaContrato": 32.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 37.6,
+   "capituloPct": 67,
+   "semanaCapitulo": 49.2,
+   "patrimonio": 10755,
+   "nivel": 49.8,
+   "fama": 13.6,
+   "crisisMedia": 6.1,
+   "trabajosMax": 7,
+   "ofertas": {
+    "puerto": 137,
+    "atleticoFormacion+puerto": 13
+   },
+   "primerClub": {
+    "puerto": 150
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  },
+  "todoEntreno": {
+   "politica": "Todo entrenamiento",
+   "pruebasPct": 0,
+   "contratoPct": 100,
+   "semanaContrato": 16.2,
+   "empresaPct": 0,
+   "semanaEmpresa": "—",
+   "capituloPct": 0,
+   "semanaCapitulo": "—",
+   "patrimonio": 32501,
+   "nivel": 73.4,
+   "fama": 78.7,
+   "crisisMedia": 0,
+   "trabajosMax": 0,
+   "ofertas": {
+    "puerto": 99,
+    "atleticoFormacion+puerto": 40,
+    "atleticoFilial+puerto": 11
+   },
+   "primerClub": {
+    "puerto": 99,
+    "atleticoFormacion": 40,
+    "atleticoFilial": 11
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  },
+  "todoDescanso": {
+   "politica": "Todo descanso",
+   "pruebasPct": 0,
+   "contratoPct": 100,
+   "semanaContrato": 20.4,
+   "empresaPct": 0,
+   "semanaEmpresa": "—",
+   "capituloPct": 0,
+   "semanaCapitulo": "—",
+   "patrimonio": 23146,
+   "nivel": 52.8,
+   "fama": 23.1,
+   "crisisMedia": 0,
+   "trabajosMax": 0,
+   "ofertas": {
+    "puerto": 150
+   },
+   "primerClub": {
+    "puerto": 150
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  },
+  "todoFutbol": {
+   "politica": "Todo fútbol",
+   "pruebasPct": 100,
+   "contratoPct": 100,
+   "semanaContrato": 13.1,
+   "empresaPct": 0,
+   "semanaEmpresa": "—",
+   "capituloPct": 0,
+   "semanaCapitulo": "—",
+   "patrimonio": 30951,
+   "nivel": 69.2,
+   "fama": 80.6,
+   "crisisMedia": 0,
+   "trabajosMax": 0,
+   "ofertas": {
+    "puerto": 116,
+    "atleticoFormacion+puerto": 34
+   },
+   "primerClub": {
+    "puerto": 116,
+    "atleticoFormacion": 34
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  },
+  "dineroPrimero": {
+   "politica": "Dinero primero",
+   "pruebasPct": 19,
+   "contratoPct": 100,
+   "semanaContrato": 22.3,
+   "empresaPct": 100,
+   "semanaEmpresa": 31.3,
+   "capituloPct": 100,
+   "semanaCapitulo": 38.8,
+   "patrimonio": 17815,
+   "nivel": 49.1,
+   "fama": 27.8,
+   "crisisMedia": 0,
+   "trabajosMax": 6,
+   "ofertas": {
+    "puerto": 136,
+    "atleticoFormacion+puerto": 14
+   },
+   "primerClub": {
+    "puerto": 150
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  },
+  "deportePrimero": {
+   "politica": "Deporte primero",
+   "pruebasPct": 49,
+   "contratoPct": 100,
+   "semanaContrato": 13.5,
+   "empresaPct": 100,
+   "semanaEmpresa": 40.8,
+   "capituloPct": 66,
+   "semanaCapitulo": 51.1,
+   "patrimonio": 25713,
+   "nivel": 67.8,
+   "fama": 55,
+   "crisisMedia": 3.6,
+   "trabajosMax": 0,
+   "ofertas": {
+    "puerto": 113,
+    "atleticoFormacion+puerto": 29,
+    "atleticoFilial+puerto": 8
+   },
+   "primerClub": {
+    "puerto": 113,
+    "atleticoFormacion": 29,
+    "atleticoFilial": 8
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  },
+  "patrociniosPrimero": {
+   "politica": "Patrocinios primero",
+   "pruebasPct": 100,
+   "contratoPct": 100,
+   "semanaContrato": 13.1,
+   "empresaPct": 100,
+   "semanaEmpresa": 27,
+   "capituloPct": 81,
+   "semanaCapitulo": 34.9,
+   "patrimonio": 17607,
+   "nivel": 50.9,
+   "fama": 65.7,
+   "crisisMedia": 10.4,
+   "trabajosMax": 0,
+   "ofertas": {
+    "puerto": 119,
+    "atleticoFormacion+puerto": 31
+   },
+   "primerClub": {
+    "puerto": 150
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  },
+  "equilibrada": {
+   "politica": "Equilibrada",
+   "pruebasPct": 59,
+   "contratoPct": 100,
+   "semanaContrato": 11.6,
+   "empresaPct": 100,
+   "semanaEmpresa": 29,
+   "capituloPct": 100,
+   "semanaCapitulo": 36.1,
+   "patrimonio": 18863,
+   "nivel": 65.6,
+   "fama": 40.3,
+   "crisisMedia": 0,
+   "trabajosMax": 0,
+   "ofertas": {
+    "puerto": 62,
+    "atleticoFormacion+puerto": 88
+   },
+   "primerClub": {
+    "puerto": 62,
+    "atleticoFormacion": 88
+   },
+   "energiaNegativa": false,
+   "atascos": 0
+  }
+ },
+ "atleticoVsPuerto": {
+  "atletico": {
+   "partidas": 210,
+   "nivel": 80,
+   "patrimonio": 31522,
+   "semanaEmpresa": 31,
+   "capituloPct": 55
+  },
+  "puerto": {
+   "partidas": 990,
+   "nivel": 55.6,
+   "patrimonio": 20185,
+   "semanaEmpresa": 33.6,
+   "capituloPct": 51
+  }
+ },
+ "mismaPartida": {
+  "puerto": {
+   "partidas": 88,
+   "patrimonioSem25": 4272,
+   "patrimonioSem40": 14594,
+   "patrimonioSem60": 24863,
+   "semanaEmpresa": 27.6,
+   "semanaCapitulo": 35.8,
+   "nivelSem70": 57.6,
+   "fama": 60.3
+  },
+  "atletico": {
+   "partidas": 88,
+   "patrimonioSem25": 2522,
+   "patrimonioSem40": 20206,
+   "patrimonioSem60": 39954,
+   "semanaEmpresa": 28.6,
+   "semanaCapitulo": 35,
+   "nivelSem70": 84.9,
+   "fama": 100
+  }
+ },
+ "peluqueria": {
+  "normal": {
+   "mejor": "Normal/Normal/2 emp/Nada",
+   "beneficio12sem": 3739
+  },
+  "competidor": {
+   "mejor": "Premium/Normal/1 emp/Nada",
+   "beneficio12sem": 2405
+  },
+  "temporadaAlta": {
+   "mejor": "Normal/Normal/3 emp/Nada",
+   "beneficio12sem": 8639
+  },
+  "averia": {
+   "mejor": "Normal/Bajo/3 emp/Nada",
+   "beneficio12sem": 1989
+  },
+  "influencer": {
+   "mejor": "Normal/Bajo/3 emp/Redes",
+   "beneficio12sem": 7317
+  },
+  "distintas": 5
+ },
+ "comprobaciones": [
+  {
+   "t": "Repetir una sola acción no es lo mejor",
+   "ok": true
+  },
+  {
+   "t": "Sin carrera no hay empresa, y trabajar en vez de jugar es más lento (todo trabajo tarda 8+ semanas más que equilibrada)",
+   "ok": true
+  },
+  {
+   "t": "No se puede trabajar indefinidamente (máx. semanas de trabajo en el barrio ≤ 8)",
+   "ok": true
+  },
+  {
+   "t": "Las pruebas dan conjuntos de ofertas distintos",
+   "ok": true
+  },
+  {
+   "t": "Atlético y Puerto: Puerto da más dinero al principio; Atlético más nivel y más patrimonio a medio plazo",
+   "ok": true
+  },
+  {
+   "t": "Patrocinios primero no gana a la vez en dinero y deporte",
+   "ok": true
+  },
+  {
+   "t": "La peluquería no tiene una única configuración óptima",
+   "ok": true
+  },
+  {
+   "t": "Ninguna ruta legítima queda bloqueada (todas firman contrato)",
+   "ok": true
+  },
+  {
+   "t": "Energía nunca negativa",
+   "ok": true
+  },
+  {
+   "t": "Sin decisiones atascadas",
+   "ok": true
+  }
+ ]
+}
