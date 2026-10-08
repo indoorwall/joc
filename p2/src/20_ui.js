@@ -725,7 +725,7 @@
   function htmlMinijuego(s) {
     const J = ui.mj, M = P2.MINIJUEGOS[J.tipo];
     if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${M.ic}</div><small class="eti">MOMENTO DECISIVO</small><h2>${esc(M.n)}</h2><p>${esc(M.d)}</p>${corazones(s)}
-      <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular (sin jugar)</button></div>`;
+      <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular: lo decide tu nivel (${Math.round(P2.probSimular(s) * 100)} % de acierto)</button></div>`;
     if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span></div><h2>¿A qué lado chutas?</h2>
       <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div></div>`;
     if (J.fase === 'barra') {
@@ -737,12 +737,16 @@
     }
     // fin
     const p = J.p, bien = p >= 0.6, tit = J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
-    const ef = J.tipo === 'prueba' ? `${P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }) >= 0 ? '+' : ''}${P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 })} puntos en la prueba`
-      : J.tipo === 'torneo' ? `${p >= 0.4 ? 'Ayuda' : 'Resta'} en el torneo` : bien ? 'Un gol más para tu equipo y +0,5 de nota' : 'Sin gol extra';
+    const bp = P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }), bt = P2.bonusTorneo({ mjSemana: { tipo: 'torneo', p, semana: 0 }, semana: 0 });
+    const ef = J.tipo === 'prueba' ? `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`
+      : J.tipo === 'torneo' ? `${bt >= 0 ? '+' : ''}${nf(bt)} en la final del torneo`
+        : p >= 0.9 ? '¡Perfecto! +2 goles para tu equipo, +12 de confianza y más fama' : bien ? '+1 gol para tu equipo, +8 de confianza y más fama'
+          : p <= 0.1 ? 'Desastre: el rival marca dos en la contra, −18 de confianza y la prensa te cae encima' : 'El rival marca en la contra: −12 de confianza y −1,5 de reputación';
     const v = P2.vidas(S);
     return `<div class="pant res mj"><div class="grande">${bien ? '🎉' : '😬'}</div><h2>${tit}</h2><p>${esc(ef)}</p>${corazones(s)}
       <button class="cta ${bien ? 'oro' : ''}" data-act="mjFin">${bien ? '¡Genial! Seguir ▶' : 'Seguir con este resultado ▶'}</button>
-      ${!bien ? (v.n > 0 ? `<button class="cta reintentar" data-act="mjReintentar">🔁 Reintentar (−1 ❤️)</button>` : `${rwBtn(s, 'vida', { contexto: 'minijuego' }, 'Ver anuncio: +1 vida')}<p class="small">O espera: recuperas una vida en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`) : ''}</div>`;
+      ${!bien && !J.simulado && J.reintentos < P2.VIDAS.reintentosPorMomento ? (v.n > 0 ? `<button class="cta reintentar" data-act="mjReintentar">🔁 Reintentar (−1 ❤️)</button><p class="small">Solo un reintento por momento decisivo.</p>` : `${rwBtn(s, 'vida', { contexto: 'minijuego' }, 'Ver anuncio: +1 vida')}<p class="small">O espera: recuperas una vida en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`) : ''}
+      ${J.simulado ? '<p class="small">Simulado: lo ha decidido tu nivel.</p>' : ''}</div>`;
   }
   let mjAnim = null;
   function animarMinijuego() {
@@ -764,7 +768,9 @@
   function jugarConfirmado(id, opc) {
     const a0 = foto(S), v0 = P2.varianteSemana(S, id), R = P2.jugarSemana(S, id, opc); if (!R) return;
     ui.res = { R, id, a: a0, b: foto(S), v: v0 }; ui.fiestas = fiestasDe(R.hitos, R.desbloqueos); ui.paso = 'resultado'; ui.masOps = false; ui.desbloqueos = [];
-    if (R.partido && R.partido.resultado === 'victoria') ui.confeti = true;
+    // Sin confeti cuando la noticia es mala (como en P1): si fallas el momento decisivo, no hay fiesta
+    const fallo = opc && opc.minijuego && opc.minijuego.p < 0.6;
+    if (R.partido && R.partido.resultado === 'victoria' && !fallo) ui.confeti = true;
     guardarYPintar(); window.scrollTo(0, 0);
   }
 
@@ -871,9 +877,9 @@
         J.res.push(clamp(1 - Math.max(0, Math.abs(pos - 50) - z / 4) / 40, 0, 1));
         if (J.res.length >= P2.MINIJUEGOS[J.tipo].rondas) terminarMinijuego();
         render(); break; }
-      case 'mjSimular': ui.mj.p = P2.MINIJUEGOS[ui.mj.tipo].neutro; ui.mj.simulado = true; ui.mj.fase = 'fin'; { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: J.p, simulado: true }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); } break;
+      case 'mjSimular': { const J = ui.mj, ok = Math.random() < P2.probSimular(S); J.p = ok ? P2.P_SIM.acierto : P2.P_SIM.fallo; J.parada = !ok; J.simulado = true; J.fase = 'fin'; render(); break; }
       case 'mjReintentar': if (P2.usarVida(S)) { ui.mj.res = []; ui.mj.reintentos++; ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; guardarYPintar(); } break;
-      case 'mjFin': { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
+      case 'mjFin': { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos, simulado: !!J.simulado }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
       case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
         if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }
         render(); window.scrollTo(0, 0); break;

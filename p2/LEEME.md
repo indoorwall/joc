@@ -22,13 +22,17 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
   semanas seguidas), por ejemplo «Sprints en la playa», «Técnica en el parque», «Torneo nocturno 3×3», «Camarero en una boda» o
   «Tarde de consola con Marc». Cada versión está compensada (rinde más y cansa más, o rinde menos y da un extra) y una opción
   sale «🔥 destacada» (+20 %). Datos en `p2/src/17_variedad.js`. El simulador confirma que el equilibrio sigue igual.
-- **Minijuegos en los momentos decisivos** (`p2/src/18_minijuegos.js`): el día de las pruebas (3 tiros), la final del torneo
-  del barrio (3 jugadas) y el penalti del partido decisivo (ascenso, descenso o última jornada: elige esquina y chuta). Barra de
-  tiempo: para en el verde. Ayudan, pero no lo deciden todo (prueba −4…+6; penalti marcado = un gol más y +0,5 de nota).
-  Siempre se pueden **simular** (resultado neutro, igual que antes).
-- **Vidas** (❤️, máximo 3): sirven solo para **repetir un minijuego** que ha salido mal, nunca para deshacer una decisión. Se
-  recargan solas (1 cada 4 semanas) y con un anuncio simulado (+1, una vez por semana). *Cambio de criterio respecto a P2.4,
-  que no tenía vidas: lo pidió el responsable del juego.*
+- **Minijuegos en los momentos decisivos, con consecuencias como en P1** (`p2/src/18_minijuegos.js`): el día de las pruebas
+  (3 tiros), la final del torneo del barrio (3 jugadas) y el penalti del partido decisivo (ascenso, descenso o última jornada:
+  elige esquina y chuta). Barra de tiempo: para en el verde.
+  - **Penalti**: aciertas → +1 gol para tu equipo (+2 si es perfecto), +8/+12 de confianza, reputación y marca. Fallas → +1 gol
+    para el rival (+2 si es un desastre), −12/−18 de confianza, −1,5/−3 de reputación y la prensa encima. Cambia de verdad el
+    marcador y la clasificación. Si fallas, no hay confeti.
+  - **Pruebas**: −5 … +7 puntos. **Torneo**: −5 … +7 en la final.
+  - **Simular**: lo decide tu nivel, como mucho un 80 % de acierto (nunca perfecto). Lo simulado no se puede reintentar.
+- **Vidas** (❤️, máximo 3, como en P1): **un reintento por momento decisivo**, nunca para deshacer una decisión. Se recupera
+  1 cada 6 semanas y, sin vidas, con un anuncio simulado (+1, una vez por semana). *Cambio de criterio respecto a P2.4, que
+  no tenía vidas: lo pidió el responsable del juego.*
 - **🌍 Mi mundo** (botón arriba a la derecha): Perfil, Vida, Tienda, Inversiones, Liga, Marcas, Empresa, Patrimonio, Historia, Hitos y Ajustes, con lo que aún no
   está abierto en gris y su candado. «‹ Jugar» vuelve al juego.
 

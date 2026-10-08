@@ -1435,7 +1435,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         break;
       }
       case 'torneo': {
-        const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8) + (P2.bonusTorneo ? P2.bonusTorneo(s) : 0));
+        const bt = P2.bonusTorneo ? P2.bonusTorneo(s) : 0;
+        if (bt) L.push([bt > 0 ? '⭐' : '😖', bt > 0 ? `Tus jugadas en la final suman (+${nf(bt)}).` : `Fallas jugadas clave en la final (${nf(bt)}).`, bt > 0 ? 'bien' : 'mal']);
+        const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8) + bt);
         W.push(`Torneo: nivel + reputación × 0,2 + azar (±8) = ${nf(f)}. Ganar: 52 · semifinal: 46.`);
         if (f >= 52) { P.rep = r1(P.rep + 10); invitar(s, 'torneo', R); L.push(['🏆', '¡Ganas el torneo local! +10 de reputación y un ojeador te invita a las pruebas.', 'bien']); }
         else if (f >= 46) { P.rep = r1(P.rep + 5); L.push(['🥈', 'Llegas a semifinales: +5 de reputación.']); }
@@ -1592,19 +1594,21 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const extra = rol === 'titular' ? (P.nivel - umbral) * 0.35 + (r - 0.5) * 3 : rol === 'suplente' ? (P.nivel - umbral) * 0.12 : 0;
     const res = P2.jugarJornada(s, T, extra);
     const m = res.find(x => x.l === T.yo || x.v === T.yo);
-    const pen = juega && P2.penalti ? P2.penalti(s) : null;   // penalti decisivo (minijuego)
-    if (pen === 'gol') { if (m.l === T.yo) m.gl++; else m.gv++; }
+    const pen = juega && P2.penalti ? P2.penalti(s) : null;   // penalti decisivo (minijuego): cambia de verdad el marcador
+    const nosotros = m.l === T.yo ? 'gl' : 'gv', ellos = m.l === T.yo ? 'gv' : 'gl';
+    if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 2 : 1;
+    if (pen === 'fallo' || pen === 'desastre') m[ellos] += pen === 'desastre' ? 2 : 1;
     const gf = m.l === T.yo ? m.gl : m.gv, gc = m.l === T.yo ? m.gv : m.gl;
     const resultado = gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
     let nota = null, goles = 0;
     if (juega) {
       const ra = resultado === 'victoria' ? 0.4 : resultado === 'derrota' ? -0.4 : 0;
       nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) + (s.ayudaCompanero ? 0.5 : 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
-      if (pen === 'gol') nota += 0.5; else if (pen === 'fallo') nota -= 0.3;
+      if (pen === 'gol' || pen === 'perfecto') nota += pen === 'perfecto' ? 1 : 0.5; else if (pen) nota -= pen === 'desastre' ? 1 : 0.6;
       nota = r1(clamp(nota, 3, 10));
       const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
       if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
-      if (pen === 'gol') goles++;
+      if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
       s.stats.jugados++; s.stats.goles += goles; s.stats.notas.push(nota); s.stats.notasTemp.push(nota);
       if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) s.stats.titular++; } else s.stats.suplente++;
     }
@@ -1645,6 +1649,14 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     P2.tele(s, 'partido', { rol, amateur: !!O.amateur });
     if (P.lesion > 0 && rol === 'lesionado') P.nivel = r1(Math.max(CFG.inicio.nivel, P.nivel - 0.2));
 
+    if (pen) {
+      const bien = pen === 'gol' || pen === 'perfecto', grande = pen === 'perfecto' || pen === 'desastre';
+      s.confianza = clamp(s.confianza + (bien ? (grande ? 12 : 8) : (grande ? -18 : -12)), 0, 100);
+      P.rep = r1(clamp(P.rep + (bien ? (grande ? 3 : 1.5) : (grande ? -3 : -1.5)), 0, 100));
+      if (bien) P2.sumarMarca(s, grande ? 2 : 1);
+      R.lineas.push(bien ? ['⭐', `¡Momento decisivo ${grande ? 'perfecto' : 'superado'}! ${grande ? 'Doblete' : 'Gol'} en el último minuto: el míster y la afición te adoran (+${grande ? 12 : 8} confianza).`, 'bien']
+        : ['😖', `Fallas en el momento decisivo${pen === 'desastre' ? ' y el rival marca dos en la contra' : ' y el rival marca en la contra'}. La prensa no lo perdona (−${grande ? 18 : 12} confianza, −${grande ? 3 : 1.5} reputación).`, 'mal']);
+    } else if (P2.penalti && P2.penalti(s) && !juega) R.lineas.push(['🪑', 'No juegas: el momento decisivo lo vive otro desde el campo.']);
     const rival = P2.nombreEquipo(T, pj.rival);
     R.partido = { jornada: pj.j + 1, local: pj.local, rival, gf, gc, resultado, rol, nota, goles, prima, lesion, contexto: ctx, pos: P2.posicion(T) };
     const icR = resultado === 'victoria' ? '✅' : resultado === 'derrota' ? '❌' : '🤝';
@@ -4511,7 +4523,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     torneo: { ic: '🏆', n: 'Final del torneo', d: 'Tres jugadas decisivas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
     penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Elige esquina y chuta en el momento justo.', rondas: 1, neutro: 0.4 },
   };
-  const VIDAS = { max: 3, recargaSemanas: 4 };
+  const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1 };   // como en P1
 
   // ¿Esta semana hay un momento decisivo con minijuego?
   function minijuegoSemana(s, accion) {
@@ -4523,12 +4535,15 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     }
     return null;
   }
-  // Lo que aporta: con p = neutro (simular) no cambia nada
+  // Lo que aporta (p = neutro no cambia nada; los bots y la simulación de balance no juegan minijuegos)
   const mj = s => (s.mjSemana && s.mjSemana.semana === s.semana ? s.mjSemana : null);
-  function bonusPrueba(s) { const m = mj(s); return m && m.tipo === 'prueba' ? Math.round((m.p - MINIJUEGOS.prueba.neutro) * 10) : 0; }   // −4 … +6
+  function bonusPrueba(s) { const m = mj(s); return m && m.tipo === 'prueba' ? Math.round((m.p - MINIJUEGOS.prueba.neutro) * 12) : 0; }   // −5 … +7
   function bonusTorneo(s) { const m = mj(s); return m && m.tipo === 'torneo' ? r1((m.p - MINIJUEGOS.torneo.neutro) * 12) : 0; }        // −5 … +7
-  // Penalti: si lo metes (p ≥ 0,6) es un gol más para tu equipo y +0,5 de nota; si lo fallas, −0,3
-  function penalti(s) { const m = mj(s); return m && m.tipo === 'penalti' ? (m.p >= 0.6 ? 'gol' : m.p <= 0.3 ? 'fallo' : null) : null; }
+  // Penalti (como en P1): aciertas → +1 gol para tu equipo (+2 si es perfecto); fallas → +1 para el rival (+2 si es un desastre)
+  function penalti(s) { const m = mj(s); if (!m || m.tipo !== 'penalti') return null; return m.p >= 0.9 ? 'perfecto' : m.p >= 0.6 ? 'gol' : m.p <= 0.1 ? 'desastre' : 'fallo'; }
+  // «Simular»: lo decide tu nivel, como mucho un 80 % (nunca perfecto)
+  function probSimular(s) { return clamp(0.3 + (s.p.nivel - 50) / 50, 0.15, 0.8); }
+  const P_SIM = { acierto: 0.72, fallo: 0.25 };
 
   // ---------- Vidas ----------
   const vidas = s => (s.vidas && typeof s.vidas === 'object' ? s.vidas : (s.vidas = { n: VIDAS.max, recarga: s.semana || 1 }));
@@ -4542,7 +4557,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   }
   const semanasParaVida = s => { const v = vidas(s); return v.n >= VIDAS.max ? 0 : Math.max(1, VIDAS.recargaSemanas - (s.semana - v.recarga)); };
 
-  Object.assign(P2, { MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
+  Object.assign(P2, { probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 20_ui.js =====
@@ -5273,7 +5288,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function htmlMinijuego(s) {
     const J = ui.mj, M = P2.MINIJUEGOS[J.tipo];
     if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${M.ic}</div><small class="eti">MOMENTO DECISIVO</small><h2>${esc(M.n)}</h2><p>${esc(M.d)}</p>${corazones(s)}
-      <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular (sin jugar)</button></div>`;
+      <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular: lo decide tu nivel (${Math.round(P2.probSimular(s) * 100)} % de acierto)</button></div>`;
     if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span></div><h2>¿A qué lado chutas?</h2>
       <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div></div>`;
     if (J.fase === 'barra') {
@@ -5285,12 +5300,16 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     }
     // fin
     const p = J.p, bien = p >= 0.6, tit = J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
-    const ef = J.tipo === 'prueba' ? `${P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }) >= 0 ? '+' : ''}${P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 })} puntos en la prueba`
-      : J.tipo === 'torneo' ? `${p >= 0.4 ? 'Ayuda' : 'Resta'} en el torneo` : bien ? 'Un gol más para tu equipo y +0,5 de nota' : 'Sin gol extra';
+    const bp = P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }), bt = P2.bonusTorneo({ mjSemana: { tipo: 'torneo', p, semana: 0 }, semana: 0 });
+    const ef = J.tipo === 'prueba' ? `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`
+      : J.tipo === 'torneo' ? `${bt >= 0 ? '+' : ''}${nf(bt)} en la final del torneo`
+        : p >= 0.9 ? '¡Perfecto! +2 goles para tu equipo, +12 de confianza y más fama' : bien ? '+1 gol para tu equipo, +8 de confianza y más fama'
+          : p <= 0.1 ? 'Desastre: el rival marca dos en la contra, −18 de confianza y la prensa te cae encima' : 'El rival marca en la contra: −12 de confianza y −1,5 de reputación';
     const v = P2.vidas(S);
     return `<div class="pant res mj"><div class="grande">${bien ? '🎉' : '😬'}</div><h2>${tit}</h2><p>${esc(ef)}</p>${corazones(s)}
       <button class="cta ${bien ? 'oro' : ''}" data-act="mjFin">${bien ? '¡Genial! Seguir ▶' : 'Seguir con este resultado ▶'}</button>
-      ${!bien ? (v.n > 0 ? `<button class="cta reintentar" data-act="mjReintentar">🔁 Reintentar (−1 ❤️)</button>` : `${rwBtn(s, 'vida', { contexto: 'minijuego' }, 'Ver anuncio: +1 vida')}<p class="small">O espera: recuperas una vida en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`) : ''}</div>`;
+      ${!bien && !J.simulado && J.reintentos < P2.VIDAS.reintentosPorMomento ? (v.n > 0 ? `<button class="cta reintentar" data-act="mjReintentar">🔁 Reintentar (−1 ❤️)</button><p class="small">Solo un reintento por momento decisivo.</p>` : `${rwBtn(s, 'vida', { contexto: 'minijuego' }, 'Ver anuncio: +1 vida')}<p class="small">O espera: recuperas una vida en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`) : ''}
+      ${J.simulado ? '<p class="small">Simulado: lo ha decidido tu nivel.</p>' : ''}</div>`;
   }
   let mjAnim = null;
   function animarMinijuego() {
@@ -5312,7 +5331,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function jugarConfirmado(id, opc) {
     const a0 = foto(S), v0 = P2.varianteSemana(S, id), R = P2.jugarSemana(S, id, opc); if (!R) return;
     ui.res = { R, id, a: a0, b: foto(S), v: v0 }; ui.fiestas = fiestasDe(R.hitos, R.desbloqueos); ui.paso = 'resultado'; ui.masOps = false; ui.desbloqueos = [];
-    if (R.partido && R.partido.resultado === 'victoria') ui.confeti = true;
+    // Sin confeti cuando la noticia es mala (como en P1): si fallas el momento decisivo, no hay fiesta
+    const fallo = opc && opc.minijuego && opc.minijuego.p < 0.6;
+    if (R.partido && R.partido.resultado === 'victoria' && !fallo) ui.confeti = true;
     guardarYPintar(); window.scrollTo(0, 0);
   }
 
@@ -5419,9 +5440,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         J.res.push(clamp(1 - Math.max(0, Math.abs(pos - 50) - z / 4) / 40, 0, 1));
         if (J.res.length >= P2.MINIJUEGOS[J.tipo].rondas) terminarMinijuego();
         render(); break; }
-      case 'mjSimular': ui.mj.p = P2.MINIJUEGOS[ui.mj.tipo].neutro; ui.mj.simulado = true; ui.mj.fase = 'fin'; { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: J.p, simulado: true }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); } break;
+      case 'mjSimular': { const J = ui.mj, ok = Math.random() < P2.probSimular(S); J.p = ok ? P2.P_SIM.acierto : P2.P_SIM.fallo; J.parada = !ok; J.simulado = true; J.fase = 'fin'; render(); break; }
       case 'mjReintentar': if (P2.usarVida(S)) { ui.mj.res = []; ui.mj.reintentos++; ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; guardarYPintar(); } break;
-      case 'mjFin': { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
+      case 'mjFin': { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos, simulado: !!J.simulado }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
       case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
         if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }
         render(); window.scrollTo(0, 0); break;

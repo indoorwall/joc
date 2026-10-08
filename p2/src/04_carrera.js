@@ -78,7 +78,9 @@
         break;
       }
       case 'torneo': {
-        const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8) + (P2.bonusTorneo ? P2.bonusTorneo(s) : 0));
+        const bt = P2.bonusTorneo ? P2.bonusTorneo(s) : 0;
+        if (bt) L.push([bt > 0 ? '⭐' : '😖', bt > 0 ? `Tus jugadas en la final suman (+${nf(bt)}).` : `Fallas jugadas clave en la final (${nf(bt)}).`, bt > 0 ? 'bien' : 'mal']);
+        const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8) + bt);
         W.push(`Torneo: nivel + reputación × 0,2 + azar (±8) = ${nf(f)}. Ganar: 52 · semifinal: 46.`);
         if (f >= 52) { P.rep = r1(P.rep + 10); invitar(s, 'torneo', R); L.push(['🏆', '¡Ganas el torneo local! +10 de reputación y un ojeador te invita a las pruebas.', 'bien']); }
         else if (f >= 46) { P.rep = r1(P.rep + 5); L.push(['🥈', 'Llegas a semifinales: +5 de reputación.']); }
@@ -235,19 +237,21 @@
     const extra = rol === 'titular' ? (P.nivel - umbral) * 0.35 + (r - 0.5) * 3 : rol === 'suplente' ? (P.nivel - umbral) * 0.12 : 0;
     const res = P2.jugarJornada(s, T, extra);
     const m = res.find(x => x.l === T.yo || x.v === T.yo);
-    const pen = juega && P2.penalti ? P2.penalti(s) : null;   // penalti decisivo (minijuego)
-    if (pen === 'gol') { if (m.l === T.yo) m.gl++; else m.gv++; }
+    const pen = juega && P2.penalti ? P2.penalti(s) : null;   // penalti decisivo (minijuego): cambia de verdad el marcador
+    const nosotros = m.l === T.yo ? 'gl' : 'gv', ellos = m.l === T.yo ? 'gv' : 'gl';
+    if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 2 : 1;
+    if (pen === 'fallo' || pen === 'desastre') m[ellos] += pen === 'desastre' ? 2 : 1;
     const gf = m.l === T.yo ? m.gl : m.gv, gc = m.l === T.yo ? m.gv : m.gl;
     const resultado = gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
     let nota = null, goles = 0;
     if (juega) {
       const ra = resultado === 'victoria' ? 0.4 : resultado === 'derrota' ? -0.4 : 0;
       nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) + (s.ayudaCompanero ? 0.5 : 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
-      if (pen === 'gol') nota += 0.5; else if (pen === 'fallo') nota -= 0.3;
+      if (pen === 'gol' || pen === 'perfecto') nota += pen === 'perfecto' ? 1 : 0.5; else if (pen) nota -= pen === 'desastre' ? 1 : 0.6;
       nota = r1(clamp(nota, 3, 10));
       const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
       if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
-      if (pen === 'gol') goles++;
+      if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
       s.stats.jugados++; s.stats.goles += goles; s.stats.notas.push(nota); s.stats.notasTemp.push(nota);
       if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) s.stats.titular++; } else s.stats.suplente++;
     }
@@ -288,6 +292,14 @@
     P2.tele(s, 'partido', { rol, amateur: !!O.amateur });
     if (P.lesion > 0 && rol === 'lesionado') P.nivel = r1(Math.max(CFG.inicio.nivel, P.nivel - 0.2));
 
+    if (pen) {
+      const bien = pen === 'gol' || pen === 'perfecto', grande = pen === 'perfecto' || pen === 'desastre';
+      s.confianza = clamp(s.confianza + (bien ? (grande ? 12 : 8) : (grande ? -18 : -12)), 0, 100);
+      P.rep = r1(clamp(P.rep + (bien ? (grande ? 3 : 1.5) : (grande ? -3 : -1.5)), 0, 100));
+      if (bien) P2.sumarMarca(s, grande ? 2 : 1);
+      R.lineas.push(bien ? ['⭐', `¡Momento decisivo ${grande ? 'perfecto' : 'superado'}! ${grande ? 'Doblete' : 'Gol'} en el último minuto: el míster y la afición te adoran (+${grande ? 12 : 8} confianza).`, 'bien']
+        : ['😖', `Fallas en el momento decisivo${pen === 'desastre' ? ' y el rival marca dos en la contra' : ' y el rival marca en la contra'}. La prensa no lo perdona (−${grande ? 18 : 12} confianza, −${grande ? 3 : 1.5} reputación).`, 'mal']);
+    } else if (P2.penalti && P2.penalti(s) && !juega) R.lineas.push(['🪑', 'No juegas: el momento decisivo lo vive otro desde el campo.']);
     const rival = P2.nombreEquipo(T, pj.rival);
     R.partido = { jornada: pj.j + 1, local: pj.local, rival, gf, gc, resultado, rol, nota, goles, prima, lesion, contexto: ctx, pos: P2.posicion(T) };
     const icR = resultado === 'victoria' ? '✅' : resultado === 'derrota' ? '❌' : '🤝';

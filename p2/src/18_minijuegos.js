@@ -17,7 +17,7 @@
     torneo: { ic: '🏆', n: 'Final del torneo', d: 'Tres jugadas decisivas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
     penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Elige esquina y chuta en el momento justo.', rondas: 1, neutro: 0.4 },
   };
-  const VIDAS = { max: 3, recargaSemanas: 4 };
+  const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1 };   // como en P1
 
   // ¿Esta semana hay un momento decisivo con minijuego?
   function minijuegoSemana(s, accion) {
@@ -29,12 +29,15 @@
     }
     return null;
   }
-  // Lo que aporta: con p = neutro (simular) no cambia nada
+  // Lo que aporta (p = neutro no cambia nada; los bots y la simulación de balance no juegan minijuegos)
   const mj = s => (s.mjSemana && s.mjSemana.semana === s.semana ? s.mjSemana : null);
-  function bonusPrueba(s) { const m = mj(s); return m && m.tipo === 'prueba' ? Math.round((m.p - MINIJUEGOS.prueba.neutro) * 10) : 0; }   // −4 … +6
+  function bonusPrueba(s) { const m = mj(s); return m && m.tipo === 'prueba' ? Math.round((m.p - MINIJUEGOS.prueba.neutro) * 12) : 0; }   // −5 … +7
   function bonusTorneo(s) { const m = mj(s); return m && m.tipo === 'torneo' ? r1((m.p - MINIJUEGOS.torneo.neutro) * 12) : 0; }        // −5 … +7
-  // Penalti: si lo metes (p ≥ 0,6) es un gol más para tu equipo y +0,5 de nota; si lo fallas, −0,3
-  function penalti(s) { const m = mj(s); return m && m.tipo === 'penalti' ? (m.p >= 0.6 ? 'gol' : m.p <= 0.3 ? 'fallo' : null) : null; }
+  // Penalti (como en P1): aciertas → +1 gol para tu equipo (+2 si es perfecto); fallas → +1 para el rival (+2 si es un desastre)
+  function penalti(s) { const m = mj(s); if (!m || m.tipo !== 'penalti') return null; return m.p >= 0.9 ? 'perfecto' : m.p >= 0.6 ? 'gol' : m.p <= 0.1 ? 'desastre' : 'fallo'; }
+  // «Simular»: lo decide tu nivel, como mucho un 80 % (nunca perfecto)
+  function probSimular(s) { return clamp(0.3 + (s.p.nivel - 50) / 50, 0.15, 0.8); }
+  const P_SIM = { acierto: 0.72, fallo: 0.25 };
 
   // ---------- Vidas ----------
   const vidas = s => (s.vidas && typeof s.vidas === 'object' ? s.vidas : (s.vidas = { n: VIDAS.max, recarga: s.semana || 1 }));
@@ -48,5 +51,5 @@
   }
   const semanasParaVida = s => { const v = vidas(s); return v.n >= VIDAS.max ? 0 : Math.max(1, VIDAS.recargaSemanas - (s.semana - v.recarga)); };
 
-  Object.assign(P2, { MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
+  Object.assign(P2, { probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
 })(globalThis.P2 = globalThis.P2 || {});
