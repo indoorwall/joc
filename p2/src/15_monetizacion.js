@@ -140,7 +140,7 @@
   function bloqueoRewarded(s, tipo, data = {}) {
     if (!activa()) return 'Desactivado';
     const C = MONETIZATION.rewarded[tipo]; if (!C || !C.activo) return 'Desactivado';
-    if (s.pendiente) return 'Primero decide';   // nunca durante una decisión (ni para cambiarla)
+    if (s.pendiente) return 'Antes, decide lo pendiente en «Jugar»';   // nunca durante una decisión (ni para cambiarla)
     const u = M(s).ultimo[tipo];
     if (C.cadaSemanas && u != null && s.semana - u < C.cadaSemanas) return `Otra vez en ${C.cadaSemanas - (s.semana - u)} ${C.cadaSemanas - (s.semana - u) === 1 ? 'semana' : 'semanas'}`;
     if (tipo === 'cupon') {

@@ -1,5 +1,6 @@
 # Futbol + tycoon — prototips
 
+- **P2.5 — Interfaz clara de pasar pantallas: un toque por semana, resultado a pantalla completa y «Mi mundo» para todo lo demás**: ver [`p2/LEEME.md`](p2/LEEME.md).
 - **P2.4 — Monetization Lab totalmente simulado (anuncios con recompensa, compras de prueba de intención, test A/B local, lista de deseos, garaje, colecciones, Mi historia)**: sin anuncios ni pagos reales; ver [`p2/LEEME.md`](p2/LEEME.md).
 - **P2.3 — Nueva identidad visual de juego móvil (azul noche, morado y oro, fondos por etapa), navegación en botones grandes (Inicio, Carrera, Vida, Imperio, Perfil), 🛍️ Tienda (gasto opcional, posesiones con valor) y ❤️ Relaciones (decisiones con consecuencias diferidas)**: ver [`p2/LEEME.md`](p2/LEEME.md).
 - **P2.2 — Del barrio al negocio, capítulo 1 (fútbol, congelado para pruebas con personas)**: nivel, reputación deportiva y marca personal separados; patrocinadores con identidad y exclusividades; telemetría local con «Informe de prueba» en Ajustes; juego de gestión por decisiones, del barrio a tu primera

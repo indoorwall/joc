@@ -1,4 +1,4 @@
-# Del barrio al negocio · P2.4 (capítulo 1 + Monetization Lab)
+# Del barrio al negocio · P2.5 (capítulo 1 + Monetization Lab)
 
 Juego de gestión por decisiones, vertical para iPhone. **Empiezas como deportista → construyes tu carrera →
 ganas dinero → inviertes → creas tu primera empresa → se abre tu imperio.** No hay partidos jugables:
@@ -7,6 +7,19 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Abrir: [`del_barrio_p2.html`](del_barrio_p2.html) (un solo archivo, sin conexiones).
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
+
+## P2.5 · Interfaz clara: pasar pantallas
+
+Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no cambian):
+- **Tema claro de día**, sin barra de botones abajo.
+- **Semana:** tu personaje en su escenario (barrio, club, empresa, magnate), el objetivo con su barra y **3 botones grandes**
+  que dicen exactamente lo que das y recibes (💪 +2,6 · ⚡ −25; «≈» si depende del azar). El resto, en «Más opciones».
+  **Un toque juega la semana.**
+- **Resultado** a pantalla completa: marcador del partido, números que cambian y «Siguiente semana ▶». «¿Por qué?» opcional.
+- **Situaciones**: una pregunta por pantalla y respuestas grandes con lo que implica cada una.
+- **Celebraciones** para hitos y novedades (con confeti).
+- **🌍 Mi mundo**: Perfil, Vida, Tienda, Inversiones, Liga, Marcas, Empresa, Patrimonio, Historia, Hitos y Ajustes, con lo que aún no
+  está abierto en gris y su candado. «‹ Jugar» vuelve al juego.
 
 ## P2.4 · Monetization Lab (todo simulado)
 

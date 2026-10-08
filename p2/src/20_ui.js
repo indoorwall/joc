@@ -91,6 +91,13 @@
 
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
+    const SEC = P2.SECCIONES.find(x => x.id === ui.vista);
+    if (ui.vista !== 'semana') return `<button class="atras" data-act="vista" data-v="semana">‹ Jugar</button><div class="hwho"><b>${SEC ? `${SEC.ic} ${esc(SEC.id === 'relaciones' ? 'Vida' : SEC.id === 'personaje' ? 'Perfil' : SEC.n)}` : ''}</b></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>`;
+    return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
+      <div class="hwho"><b>Semana ${s.semana}</b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>
+      <div class="ener" aria-label="Energía ${Math.round(s.p.energia)}">⚡<div class="bar"><i style="width:${Math.round(s.p.energia)}%"></i></div>${Math.round(s.p.energia)}</div>`;
+  }
+  function htmlTopViejo(s) {
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
       <div class="hwho"><b>${esc(s.nombre)}</b><span>${esc(nombreFase(s))}</span></div>
       <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}${(s.secciones || []).includes('marcas') ? pill('📣', Math.floor(s.p.marca || 0)) : ''}</div>`;
@@ -587,24 +594,186 @@
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
 
+
+  // =====================================================================
+  //  BUCLE PRINCIPAL (P2.5): pasar pantallas. Semana → Resultado → (Situación / Celebración) → Semana
+  //  Un botón grande por pantalla. Lo demás está en «Mi mundo», solo si quieres.
+  // =====================================================================
+  const COLORES_OP = ['azul', 'naranja', 'rosa', 'turquesa', 'violeta'];
+  // Lo que da cada acción, a la vista (vista previa sobre una copia: no toca la partida ni su azar)
+  const EXTRA_OP = { jornada: '📋 Prueba si tu nivel llega (≈50)', torneo: '🏆 Si ganas: invitación', campus: '📋 Te proponen para las pruebas', preparador: '📋 +3 en la prueba',
+    gestionar: '💼 Tu empresa rinde más', prensa: '📣 Más marca personal', entrenoExtra: '👔 Le gusta al míster' };
+  function previaAccion(s, id) {
+    const una = rng => {
+      const c = JSON.parse(JSON.stringify(Object.assign({}, s, { tele: null, diario: [] }))); if (rng != null) c.rng = rng;
+      const a = { dinero: c.p.dinero, energia: c.p.energia, nivel: c.p.nivel, rep: c.p.rep, marca: c.p.marca || 0 };
+      try { P2.aplicarAccion(c, id, { lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [] }); } catch (_) { return null; }
+      return { dinero: c.p.dinero - a.dinero, energia: c.p.energia - a.energia, nivel: c.p.nivel - a.nivel, rep: c.p.rep - a.rep, marca: (c.p.marca || 0) - a.marca };
+    };
+    const x = una(null), y = una((s.rng ^ 0x5bd1e995) >>> 0);
+    if (!x) return { d: {}, aprox: false };
+    return { d: x, aprox: !!y && ['nivel', 'rep', 'marca', 'dinero'].some(k => Math.abs(x[k] - y[k]) > 0.05) };
+  }
+  const ETQ = { nivel: '💪', rep: '⭐', marca: '📣', dinero: '💶', energia: '⚡', confianza: '👔' };
+  function chipsAccion(s, id) {
+    const { d, aprox } = previaAccion(s, id), l = [];
+    for (const k of ['nivel', 'rep', 'marca', 'dinero', 'energia']) {
+      const v = d[k]; if (!v || Math.abs(v) < 0.05) continue;
+      l.push(`<span class="chip">${ETQ[k]} ${aprox && k !== 'energia' ? '≈' : ''}${v > 0 ? '+' : '−'}${k === 'dinero' ? eur(Math.abs(v)) : nf(Math.round(Math.abs(v) * 10) / 10)}</span>`);
+    }
+    if (EXTRA_OP[id]) l.push(`<span class="chip">${esc(EXTRA_OP[id])}</span>`);
+    return l.join('');
+  }
+  // Orden de las opciones: lo especial de la semana primero, después lo básico de tu fase
+  const PRIORIDAD = ['jornada', 'torneo', 'campus', 'preparador', 'entrenar', 'entrenoExtra', 'plaza', 'prensa', 'gestionar', 'trabajar', 'mediaJornada', 'descansar'];
+  function opcionesSemana(s) {
+    const l = P2.accionesDisponibles(s).sort((a, b) => PRIORIDAD.indexOf(a.id) - PRIORIDAD.indexOf(b.id));
+    const libres = l.filter(x => !x.bloqueo), bloq = l.filter(x => x.bloqueo);
+    let top = libres.slice(0, 3);
+    if (s.p.energia < 45 && !top.some(x => x.id === 'descansar')) { const d = libres.find(x => x.id === 'descansar'); if (d) top = top.slice(0, 2).concat(d); }
+    return { top, resto: libres.filter(x => !top.includes(x)), bloq };
+  }
+  function tarjetaOp(s, x, i) {
+    return `<button class="op ${COLORES_OP[i % COLORES_OP.length]}" data-act="jugarYa" data-id="${x.id}"><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips">${chipsAccion(s, x.id)}</span></span><span class="go" aria-hidden="true">›</span></button>`;
+  }
+  function escenaExterior(s) {
+    const e = etapa(s), V = vehiculo(s);
+    const edif = { barrio: [[14, 70], [66, 96], [null, 60, 72]], club: [], empresa: [[10, 110], [58, 140], [null, 120, 60], [null, 90, 14]], magnate: [[10, 120], [58, 150], [null, 130, 60], [null, 100, 14]] }[e] || [];
+    return `<div class="exterior e-${e}"><span class="sol"></span>${e === 'club' ? '<span class="grada"></span><span class="foco f1"></span><span class="foco f2"></span>' : ''}
+      ${edif.map(([l, h, r]) => `<span class="edif" style="${l != null ? `left:${l}px` : `right:${r}px`};height:${h}px"></span>`).join('')}
+      <div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
+  }
+  function objetivo(s) {
+    const H = P2.siguienteHito(s), K = CFG.captacion, hechos = HITOS.filter(h => s.hitos[h.id]).length;
+    let p, izq, der;
+    if (s.fase === 'barrio') { p = 100 * s.p.rep / K.repOjeador; izq = `⭐ Reputación ${Math.floor(s.p.rep)} de ${K.repOjeador}`; const q = P2.semanasCaptacion(s); der = `${q} ${q === 1 ? 'semana' : 'semanas'}`; }
+    else if (s.fase === 'pruebas') { const k = s.invitacion.dia - s.semana + 1; p = 100 * (1 - Math.max(0, k) / 3); izq = `📋 Pruebas ${k <= 1 ? 'al final de esta semana' : `en ${k} semanas`}`; der = `💪 Nivel ${nf(s.p.nivel)}`; }
+    else { p = 100 * hechos / HITOS.length; izq = `🏅 ${hechos} de ${HITOS.length} hitos`; const T = s.temporada; der = T && T.jornada ? `${P2.posicion(T)}º en la liga` : ''; }
+    return `<div class="obj"><b>🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b><div class="prog"><i style="width:${Math.max(3, Math.min(100, Math.round(p)))}%"></i></div><div class="fila"><span>${izq}</span><span>${der}</span></div></div>`;
+  }
+  function htmlSemana(s) {
+    const o = opcionesSemana(s), enEquipo = s.fase === 'club' || s.fase === 'amateur', pj = enEquipo && s.temporada ? P2.partidoDeLaJornada(s.temporada) : null;
+    const mas = ui.masOps ? `<div class="ops">${o.resto.map((x, i) => tarjetaOp(s, x, i + 3)).join('')}${o.bloq.map(x => `<button class="op gris" disabled><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips"><span class="chip">🔒 ${esc(x.bloqueo)}</span></span></span></button>`).join('')}</div>` : '';
+    return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlDeseo(s)}
+      ${pj ? `<div class="partidoProx">⚽ Esta semana: ${pj.local ? 'en casa contra' : 'visitas a'} <b>${esc(P2.nombreEquipo(s.temporada, pj.rival))}</b></div>` : ''}
+      <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
+      <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>
+      ${o.resto.length || o.bloq.length ? `<button class="masOps" data-act="masOps">${ui.masOps ? 'Menos opciones' : `Más opciones (${o.resto.length + o.bloq.length})`}</button>` : ''}${mas}
+      ${htmlExtrasInicio(s)}
+      <button class="mundoBtn" data-act="mundo">🌍 Mi mundo${hayNovedad(s) ? ' <i aria-label="hay novedades"></i>' : ''}</button></div>`;
+  }
+  const hayNovedad = s => (s.seccionesNuevas || []).length > 0 || Object.values(avisos(s)).some(Boolean);
+
+  // ---- Resultado de la semana: pantalla completa con los números que cambian ----
+  const TIT_ACC = { entrenar: '¡Has entrenado duro!', plaza: '¡Partidazo en la plaza!', trabajar: '¡Semana de repartos!', descansar: '¡Como nuevo!', jornada: 'Jornada abierta', torneo: 'Torneo local', campus: 'Campus de tecnificación', preparador: 'Sesión con el preparador',
+    entrenoExtra: 'Entreno extra', mediaJornada: 'Media jornada', prensa: 'Prensa y redes', gestionar: 'Semana en la empresa', __acto: 'Acto de patrocinio', __evento: 'Semana especial' };
+  function filaCambio(ic, n, a, b, din) {
+    const d = Math.round((b - a) * 10) / 10; if (Math.abs(d) < 0.05) return '';
+    const f = v => (din ? eur(v) : nf(Math.round(v * 10) / 10));
+    return `<div class="cam"><span>${ic} ${n}</span><span class="v ${d >= 0 ? 'mas1' : 'menos1'}"><span data-cuenta="${a}|${b}|${din ? 1 : 0}">${f(b)}</span> <small>(${d >= 0 ? '+' : '−'}${din ? eur(Math.abs(d)) : nf(Math.abs(d))})</small></span></div>`;
+  }
+  function htmlResultado(s) {
+    const { R, id, a, b } = ui.res, P = R.partido, A = P2.ACCIONES[id] || {};
+    const ic = P ? (P.resultado === 'victoria' ? '🎉' : P.resultado === 'derrota' ? '😣' : '🤝') : A.ic || '📅';
+    const tit = P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : TIT_ACC[id] || 'Semana jugada';
+    const filas = filaCambio('💶', 'Dinero', a.dinero, b.dinero, true) + filaCambio('⚡', 'Energía', a.energia, b.energia) + filaCambio('💪', 'Nivel', a.nivel, b.nivel) + filaCambio('⭐', 'Reputación', a.rep, b.rep)
+      + (s.contrato ? filaCambio('📣', 'Marca', a.marca, b.marca) + filaCambio('👔', 'Confianza del míster', a.confianza, b.confianza) : '');
+    const lineas = R.lineas.filter(l => !P || !/^Jornada \d+:/.test(l[1])).slice(0, 3);
+    const sig = ui.fiestas && ui.fiestas.length ? 'Continuar ▶' : s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶';
+    return `<div class="pant res"><div class="grande">${ic}</div><h2>${esc(tit)}</h2><p>Semana ${R.semana} ${P ? `· ${esc(TIT_ACC[id] || '')}` : 'completada'}</p>
+      ${P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>
+        <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.goles ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : ''}</small></div>` : ''}
+      <div class="cambios">${filas || '<div class="cam"><span>Sin cambios en tus números</span></div>'}</div>
+      ${lineas.length ? `<div class="lineasRes">${lineas.map(linea).join('')}</div>` : ''}
+      ${R.porque.length || R.ingresos.length || R.lineas.length > lineas.length ? `<details class="por"><summary>❓ ¿Por qué?</summary>${R.lineas.slice(3).map(linea).join('')}${R.porque.map(x => `<p>${esc(x)}</p>`).join('')}${R.ingresos.map(([x, v]) => kv(esc(x), `${v >= 0 ? '+' : '−'}${eur(Math.abs(v))}`)).join('')}</details>` : ''}
+      <button class="cta" data-act="seguir">${sig}</button></div>`;
+  }
+  // ---- Después de decidir algo ----
+  function htmlDecidido(s) {
+    const D = ui.dec, W = D.semanaJugada ? s.ultimo : null;
+    return `<div class="pant res"><div class="grande">${D.ic || '✅'}</div><h2>${esc(D.titulo || '')}</h2>${D.texto ? `<p>${esc(D.texto)}</p>` : ''}
+      ${(D.lineas || []).concat(W ? W.lineas : []).slice(0, 4).length ? `<div class="lineasRes">${(D.lineas || []).concat(W ? W.lineas : []).slice(0, 4).map(linea).join('')}</div>` : ''}
+      <button class="cta" data-act="seguir">${ui.fiestas && ui.fiestas.length || s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶'}</button></div>`;
+  }
+  // ---- Situación: una pregunta, respuestas grandes con lo que implica cada una ----
+  function htmlSitu(s) {
+    const v = P2.vistaPendiente(s);
+    if (!v) return htmlSemana(s);
+    const persona = (P2.EVENTOS_RELACION.concat(P2.EVENTOS_POSESION || []).find(E => s.pendiente.tipo === 'suceso' && E.id === s.pendiente.id) || {}).rel;
+    const R = persona && P2.persona(persona);
+    return `<div class="pant"><div class="sit ${v.fiesta ? 'dorada' : ''} ${v.grande ? 'mega' : ''}">${v.grande ? `<div class="megaTop">${decorSVG('empresa')}<span>🔓</span></div>` : ''}
+      ${R && R.look ? `<div class="quien">${caraDe(R)}</div>` : `<div class="grande peq">${v.ic}</div>`}<h2>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
+      ${v.ops.map(o => `<button class="resp ${o.prin ? 'prin' : ''}" data-act="decidir" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''}><b>${esc(o.n)}</b>
+        <span class="ls">${o.ventaja ? `<span class="l"><i class="v">✓</i> ${esc(o.ventaja)}</span>` : ''}${o.coste ? `<span class="l"><i class="c">−</i> ${esc(o.coste)}</span>` : ''}${o.riesgo && o.riesgo !== 'Ninguno' && o.riesgo !== '—' ? `<span class="l"><i class="r">⚠</i> ${esc(o.riesgo)}</span>` : ''}</span>
+        ${o.ocupaSemana ? '<span class="ocupa">⏳ Ocupa la semana entera</span>' : ''}${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`).join('')}</div></div>`;
+  }
+  // ---- Celebraciones: hitos y novedades ----
+  function htmlFiesta(s) {
+    const F = ui.fiestas[0];
+    if (F.tipo === 'hito') return `<div class="pant fiesta"><div class="rayos"></div><div class="grande">🏅</div><small class="eti">¡HITO CONSEGUIDO!</small><h2>${esc(F.H.n)}</h2><p>Se abre: ${esc(F.H.abre)}</p>
+      <div class="exterior mini">${'<span class="sol"></span>'}<div class="pj">${P2.avatarSVG(Object.assign({}, s, { ultimo: { partido: { resultado: 'victoria' } } }), null, 'cuerpo')}</div></div>
+      <button class="cta oro" data-act="seguir">¡Genial! ▶</button></div>`;
+    return `<div class="pant fiesta"><div class="rayos"></div><div class="grande">${F.x.ic}</div><small class="eti">🔓 NUEVO</small><h2>${esc(F.x.n)}</h2><p>${esc(F.x.d || '')} Lo tienes en 🌍 Mi mundo.</p>
+      <button class="cta oro" data-act="verNuevo" data-v="${F.x.id}">Ver ahora</button><button class="masOps" data-act="seguir">Más tarde</button></div>`;
+  }
+  function htmlJuego(s) {
+    if (ui.paso === 'resultado' && ui.res) return htmlResultado(s);
+    if (ui.paso === 'decidido' && ui.dec) return htmlDecidido(s);
+    if (ui.paso === 'fiesta' && ui.fiestas && ui.fiestas.length) return htmlFiesta(s);
+    ui.paso = null;
+    if (s.pendiente) return htmlSitu(s);
+    return htmlSemana(s);
+  }
+  // ---- Mi mundo: todo lo demás, con iconos grandes ----
+  const MUNDO = [['personaje', '👤', 'Perfil', '#8b5cf6'], ['relaciones', '❤️', 'Vida', '#ff4f8b'], ['tienda', '🛍️', 'Tienda', '#d94bff'], ['inversiones', '📈', 'Inversiones', '#12bfae'],
+    ['liga', '📊', 'Liga', '#2f7bff', 'Al fichar'], ['marcas', '🤝', 'Marcas', '#ff9a2e', 'Al fichar'], ['empresa', '💼', 'Empresa', '#0b8a7e', 'Más adelante'], ['patrimonio', '💰', 'Patrimonio', '#e8a000'],
+    ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
+  function htmlMundo(s) {
+    const vis = P2.seccionesVisibles(s).map(x => x.id), av = avisos(s), nuevas = s.seccionesNuevas || [];
+    return `<div class="velo" data-act="cerrarMundo"><div class="hoja" role="dialog" aria-label="Mi mundo"><div class="asa"></div><h3>🌍 Mi mundo</h3>
+      <div class="iconos">${MUNDO.map(([id, ic, n, c, lock]) => { const ok = vis.includes(id);
+        return `<button class="icono ${ok ? '' : 'lock'}" ${ok ? `data-act="vista" data-v="${id}"` : 'disabled'}><span style="background:${c}">${ic}</span>${n}${ok ? '' : `<small>🔒 ${lock}</small>`}${ok && nuevas.includes(id) ? '<em>Nuevo</em>' : ok && av[id] ? '<em>!</em>' : ''}</button>`; }).join('')}</div>
+      <p class="nota">Aquí está todo lo demás. Entra cuando quieras: para jugar no hace falta.</p>
+      <button class="cerrar" data-act="cerrarMundo">Volver al juego</button></div></div>`;
+  }
+  function contar() {
+    if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.querySelectorAll('[data-cuenta]').forEach(el => {
+      const [a, b, din] = el.dataset.cuenta.split('|'), A = +a, B = +b, t0 = performance.now();
+      const paso = tt => { const p = Math.min(1, (tt - t0) / 700), v = A + (B - A) * (1 - Math.pow(1 - p, 3)); el.textContent = din === '1' ? eur(v) : nf(Math.round(v * 10) / 10); if (p < 1) requestAnimationFrame(paso); };
+      requestAnimationFrame(paso);
+    });
+  }
+  function confeti() {
+    if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cols = ['#ff4f8b', '#2f7bff', '#ffc22e', '#12bfae', '#8b5cf6', '#ff9a2e'];
+    for (let i = 0; i < 50; i++) { const c = document.createElement('i'); c.className = 'confeti'; c.style.left = Math.random() * 100 + 'vw'; c.style.background = cols[i % cols.length]; c.style.animationDuration = (1.6 + Math.random() * 1.8) + 's'; c.style.animationDelay = Math.random() * .4 + 's'; document.body.appendChild(c); setTimeout(() => c.remove(), 4000); }
+  }
+  const foto = s => ({ dinero: s.p.dinero, energia: s.p.energia, nivel: s.p.nivel, rep: s.p.rep, marca: s.p.marca || 0, confianza: s.confianza });
+  function fiestasDe(hitos, desb) { return (hitos || []).map(H => ({ tipo: 'hito', H })).concat((desb || []).filter(x => x.id !== 'empresa').map(x => ({ tipo: 'nuevo', x }))); }
+
   // ---------- Render ----------
   function render() {
     if (!S) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
     // Secciones abiertas por algo hecho fuera de la semana (firmar una marca, comprar…): se avisa aquí
     const nuevas = P2.revisarSecciones(S, null);
-    if (nuevas.length) { ui.desbloqueos = (ui.desbloqueos || []).concat(nuevas); P2.guardar(S); }
+    if (nuevas.length) { ui.fiestas = (ui.fiestas || []).concat(fiestasDe([], nuevas)); if (!ui.paso) ui.paso = 'fiesta'; P2.guardar(S); }
     if (!P2.seccionesVisibles(S).some(x => x.id === ui.vista)) ui.vista = 'semana';
     pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);
-    $('nav').innerHTML = htmlNav(S);
-    const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlExtrasInicio(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
+    $('nav').innerHTML = '';
+    const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
       relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
     if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
     const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
-    $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + htmlSubtabs(S) + V(S) + capa;
+    const mundo = ui.mundo ? htmlMundo(S) : '';
+    $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + V(S) + capa + mundo;
     ui.flash = '';
-    $('main').classList.toggle('conBoton', ui.vista === 'semana');
+    $('main').classList.remove('conBoton');
+    document.body.classList.toggle('enSeccion', ui.vista !== 'semana');
+    contar();
+    if (ui.confeti) { ui.confeti = false; confeti(); }
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
   function pintarEtapa(e) {
@@ -637,9 +806,21 @@
         break;
       case 'lookAzar': if ($('nombre')) ui.nombre = $('nombre').value; if (S) { S.look = P2.validarLook(P2.lookAzar()); guardarYPintar(); } else { ui.look = P2.validarLook(P2.lookAzar()); render(); } break;
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
+      // Un toque juega la semana
+      case 'jugarYa': { const a0 = foto(S), R = P2.jugarSemana(S, id); if (!R) break;
+        ui.res = { R, id, a: a0, b: foto(S) }; ui.fiestas = fiestasDe(R.hitos, R.desbloqueos); ui.paso = 'resultado'; ui.masOps = false; ui.desbloqueos = [];
+        if (R.partido && R.partido.resultado === 'victoria') ui.confeti = true;
+        guardarYPintar(); window.scrollTo(0, 0); break; }
+      case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
+        if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }
+        render(); window.scrollTo(0, 0); break;
+      case 'verNuevo': ui.fiestas = []; ui.paso = null; irA(b.dataset.v); break;
+      case 'masOps': ui.masOps = !ui.masOps; render(); break;
+      case 'mundo': ui.mundo = true; render(); break;
+      case 'cerrarMundo': if (e.target !== b && b.classList.contains('velo')) break; ui.mundo = false; render(); break;
       case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
-      case 'vista': ui.nuevaCompra = null; irA(b.dataset.v); break;
+      case 'vista': ui.nuevaCompra = null; ui.mundo = false; irA(b.dataset.v); break;
       case 'grupo': { const g = b.dataset.g, vis = P2.seccionesVisibles(S).filter(x => x.grupo === g).map(x => x.id), u = (ui.ultimaDe || {})[g];
         irA(vis.includes(u) ? u : vis[0] || 'semana'); break; }
       case 'cat': ui.cat = b.dataset.v; render(); break;
@@ -668,7 +849,8 @@
       case 'equipar': if (P2.equipar(S, id)) guardarYPintar(); break;
       case 'venderP': if (ui.venderP !== id) { ui.venderP = id; render(); } else { ui.venderP = null; P2.venderPosesion(S, id); guardarYPintar(); } break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
-      case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { if (r.ir) irA(r.ir); else { guardarYPintar(); window.scrollTo(0, 0); } } break; }
+      case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { ui.fiestas = fiestasDe(r.hitos, (r.desbloqueos || []).concat(ui.desbloqueos || [])); ui.desbloqueos = [];
+        if (r.ir) { ui.fiestas = []; irA(r.ir); } else { ui.dec = r; ui.paso = 'decidido'; guardarYPintar(); window.scrollTo(0, 0); } } break; }
       case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
       case 'config': if (P2.configurar(S, neg, b.dataset.c, b.dataset.v)) guardarYPintar(); break;
       case 'empleados': { const n = S.negocios.find(x => x.id === neg); if (n && P2.configurar(S, neg, 'empleados', n.empleados + Number(b.dataset.v))) guardarYPintar(); break; }

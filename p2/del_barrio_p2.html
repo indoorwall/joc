@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1033">
-<title>Del barrio al negocio · P2.4</title>
+<meta name="theme-color" content="#dff0ff">
+<title>Del barrio al negocio · P2.5</title>
 <!--
   PROTOTIPO P2.4 — Capítulo 1 + MONETIZATION LAB (todo simulado: sin anuncios reales, sin pagos, sin SDK, sin servidor). Lista para pruebas con personas (telemetría local).
   Juego de gestión por decisiones: una acción por semana, sin partidos jugables.
@@ -450,6 +450,169 @@ textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; ma
 .lookGrupos button { border: 2px solid var(--line); background: var(--panel); border-radius: 12px; min-height: 48px; padding: 2px; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0; color: var(--ink); }
 .lookGrupos button span { font-size: 18px; }
 .lookGrupos button.sel { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 3px 0 #3b2a9e; }
+
+/* =====================================================================
+   P2.5 · TEMA CLARO Y BUCLE DE PASAR PANTALLAS (sobrescribe lo anterior)
+   Cielo de día, tarjetas blancas, botones grandes de colores con relieve.
+   ===================================================================== */
+:root {
+  --bg1: #dff0ff; --bg2: #f4ecff; --ink: #1d1a3a; --dim: #6f6b8f; --line: #e6e3f5; --panel: #f4f2fd; --card: #ffffff;
+  --azul: #2f7bff; --azul-d: #1d55c9; --rosa: #ff4f8b; --rosa-d: #c92d63; --naranja: #ff9a2e; --naranja-d: #c96d10;
+  --turquesa: #12bfae; --turquesa-d: #0b8a7e; --violeta: #8b5cf6; --violeta-d: #5f35c9; --oro2: #ffc22e; --oro2-d: #c88c00;
+  --f: "Nunito", ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+html, body { background: var(--bg2); color: var(--ink); }
+body { background: linear-gradient(180deg, var(--bg1), var(--bg2)) fixed; }
+#decor, nav#nav { display: none !important; }
+main { padding: 0 16px calc(var(--safe-bottom) + 28px); }
+.card { box-shadow: 0 4px 0 #e2dcf7, 0 6px 18px rgba(40,30,120,.06); }
+.sec, .card .sec { color: var(--dim); }
+.blanco { color: var(--dim); }
+.intro { color: var(--ink); }
+.intro h1 { background: linear-gradient(90deg, #5f35c9, #2f7bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* Barra superior */
+#top { flex-wrap: wrap; color: var(--ink); background: linear-gradient(rgba(223,240,255,.95), rgba(223,240,255,.8)); padding: calc(var(--safe-top) + 10px) 16px 8px; gap: 8px 10px; }
+.hava { width: 46px; height: 46px; border: 3px solid #fff; box-shadow: 0 3px 10px rgba(40,30,120,.18); background: #bfe0ff; }
+.hwho b { font-size: 18px; }
+.hwho span { color: var(--dim); font-weight: 800; }
+.dinero { background: #fff; border-radius: 999px; padding: 6px 12px; font-weight: 900; font-size: 17px; box-shadow: 0 3px 10px rgba(40,30,120,.12); white-space: nowrap; }
+.dinero b { color: #c88c00; }
+.ener { flex-basis: 100%; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 900; color: var(--dim); }
+.ener .bar { flex: 1; height: 10px; border-radius: 6px; background: #e6e3f5; overflow: hidden; }
+.ener .bar i { display: block; height: 100%; background: linear-gradient(90deg, #ffd34d, #ff9a2e); border-radius: 6px; }
+.atras { background: #fff; border-radius: 999px; padding: 8px 14px; font-weight: 900; font-size: 15px; color: var(--violeta-d); box-shadow: 0 3px 10px rgba(40,30,120,.12); min-height: 40px; cursor: pointer; border: 0; }
+
+.pant { display: grid; gap: 14px; padding-top: 6px; animation: entra .35s cubic-bezier(.2,1.2,.4,1); }
+@keyframes entra { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+.pant h1 { font-size: 25px; font-weight: 900; margin: 4px 0 0; text-wrap: balance; }
+
+/* Escenario exterior por etapa */
+.exterior { position: relative; height: 180px; border-radius: 26px; overflow: hidden; background: linear-gradient(180deg, #a9d6ff 0%, #cfe6ff 62%, #8fd0a8 62.5%, #7cc596 100%); }
+.exterior.e-club { background: linear-gradient(180deg, #8fc4ff 0%, #c4dcff 55%, #5fb878 55.5%, #4fa968 100%); }
+.exterior.e-empresa { background: linear-gradient(180deg, #ffd6a8 0%, #ffe9d2 62%, #b9c3d8 62.5%, #a7b2c9 100%); }
+.exterior.e-magnate { background: linear-gradient(180deg, #ffe08a 0%, #fff1c9 62%, #d6c08a 62.5%, #c9b073 100%); }
+.exterior .sol { position: absolute; right: 22px; top: 16px; width: 36px; height: 36px; border-radius: 50%; background: #ffe066; box-shadow: 0 0 0 10px rgba(255,224,102,.35); }
+.exterior .edif { position: absolute; bottom: 38%; width: 44px; border-radius: 6px 6px 0 0; background: #fff; opacity: .75; }
+.exterior .grada { position: absolute; left: 0; right: 0; bottom: 45%; height: 40px; background: repeating-linear-gradient(90deg, #ffffff 0 10px, #e9eefc 10px 20px); opacity: .8; }
+.exterior .foco { position: absolute; top: 8px; width: 16px; height: 50px; border-radius: 4px; background: #fff; box-shadow: 0 0 22px 8px rgba(255,255,255,.8); }
+.exterior .foco.f1 { left: 18px; } .exterior .foco.f2 { left: 64px; }
+.exterior .pj { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); width: 98px; animation: bota 2.4s ease-in-out infinite; }
+.exterior .pj svg, .exterior .veh svg { width: 100%; height: auto; display: block; }
+.exterior .veh { position: absolute; right: 16px; bottom: 8px; width: 92px; }
+.exterior.mini { height: 150px; }
+@keyframes bota { 50% { transform: translate(-50%, -4px); } }
+
+/* Objetivo */
+.obj { background: #fff; border-radius: 22px; padding: 12px 14px; box-shadow: 0 4px 0 #e2dcf7; display: grid; gap: 6px; }
+.obj b { font-size: 17px; }
+.obj .fila { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 800; color: var(--dim); }
+.prog { height: 14px; border-radius: 8px; background: #ece9f8; overflow: hidden; }
+.prog i { display: block; height: 100%; border-radius: 8px; background: linear-gradient(90deg, var(--violeta), var(--azul)); }
+.partidoProx { background: #fff; border-radius: 18px; padding: 10px 14px; font-weight: 800; box-shadow: 0 4px 0 #e2dcf7; }
+.deseoBar { color: var(--ink); background: #fff; border-color: #ffb3cc; margin: 0; }
+.deseoBar small { color: var(--dim); }
+
+/* Opciones de la semana: un toque juega */
+.ops { display: grid; gap: 10px; }
+.op { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 0; border-radius: 22px; padding: 14px 16px; color: #fff; min-height: 84px; cursor: pointer; transition: transform .08s; }
+.op:active:not(:disabled) { transform: translateY(4px); }
+.op .ic { font-size: 36px; width: 50px; text-align: center; flex: none; }
+.op .tx { flex: 1; min-width: 0; }
+.op .tx b { display: block; font-size: 19px; font-weight: 900; line-height: 1.15; }
+.op .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.op .chip { background: rgba(255,255,255,.25); color: #fff; font-size: 13px; padding: 2px 9px; }
+.op .go { font-size: 26px; font-weight: 900; opacity: .85; }
+.op.azul { background: var(--azul); box-shadow: 0 6px 0 var(--azul-d); }
+.op.naranja { background: var(--naranja); box-shadow: 0 6px 0 var(--naranja-d); }
+.op.rosa { background: var(--rosa); box-shadow: 0 6px 0 var(--rosa-d); }
+.op.turquesa { background: var(--turquesa); box-shadow: 0 6px 0 var(--turquesa-d); }
+.op.violeta { background: var(--violeta); box-shadow: 0 6px 0 var(--violeta-d); }
+.op.gris { background: #e9e6f5; color: var(--dim); box-shadow: none; cursor: not-allowed; min-height: 64px; }
+.op.gris .chip { background: #fff; color: var(--dim); }
+.masOps { justify-self: center; background: none; border: 0; color: var(--dim); font-weight: 900; font-size: 15px; padding: 8px 12px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 40px; }
+
+/* Botón grande que late */
+.cta { width: 100%; min-height: 64px; border: 0; border-radius: 22px; background: var(--violeta); box-shadow: 0 7px 0 var(--violeta-d); color: #fff; font-size: 22px; font-weight: 900; cursor: pointer; animation: late 1.6s ease-in-out infinite; }
+.cta:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--violeta-d); }
+.cta.oro { background: var(--oro2); box-shadow: 0 7px 0 var(--oro2-d); color: #3a2600; }
+@keyframes late { 50% { transform: scale(1.025); } }
+
+/* Resultado */
+.res { text-align: center; min-height: calc(100vh - 140px); align-content: center; }
+.res .grande { font-size: 84px; line-height: 1; animation: salta .6s cubic-bezier(.2,1.6,.4,1); }
+.grande.peq { font-size: 56px; }
+@keyframes salta { from { transform: scale(.2) rotate(-20deg); } }
+.res h2 { font-size: 30px; font-weight: 900; margin: 0; }
+.res > p { margin: 0; color: var(--dim); font-weight: 800; }
+.cambios { display: grid; gap: 8px; }
+.cam { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #fff; border-radius: 18px; padding: 12px 16px; font-weight: 900; font-size: 17px; box-shadow: 0 4px 0 #e2dcf7; }
+.cam .v { font-size: 20px; white-space: nowrap; }
+.cam .v small { font-size: 14px; }
+.cam .mas1 { color: #0b8a7e; } .cam .menos1 { color: #d1355f; }
+.marcador { background: #fff; border-radius: 22px; padding: 12px; box-shadow: 0 4px 0 #e2dcf7; display: grid; gap: 4px; border: 3px solid #e2dcf7; }
+.marcador.victoria { border-color: #12bfae; } .marcador.derrota { border-color: #ff9ab4; }
+.marcador b { font-size: 18px; } .marcador b span { font-size: 28px; margin: 0 8px; color: var(--violeta-d); }
+.marcador small { color: var(--dim); font-weight: 800; }
+.lineasRes { background: #fff; border-radius: 18px; padding: 6px 12px; text-align: left; box-shadow: 0 4px 0 #e2dcf7; }
+.res details.por { text-align: left; background: #fff; border-radius: 16px; padding: 0 12px; }
+
+/* Situación */
+.sit { background: #fff; border-radius: 26px; padding: 18px 16px; box-shadow: 0 6px 0 #e2dcf7; display: grid; gap: 10px; text-align: center; overflow: hidden; }
+.sit.dorada { border: 3px solid var(--oro2); background: linear-gradient(180deg, #fff6d6, #fff 40%); }
+.sit .quien { width: 92px; height: 92px; border-radius: 50%; overflow: hidden; margin: 0 auto; border: 4px solid var(--rosa); background: #ffe1ec; }
+.sit .quien svg { width: 100%; height: 100%; display: block; }
+.sit h2 { margin: 0; font-size: 23px; font-weight: 900; text-wrap: balance; }
+.sit > p { margin: 0; color: var(--dim); font-weight: 800; }
+.resp { width: 100%; text-align: left; background: #f6f4ff; border: 0; border-radius: 18px; padding: 12px 14px; box-shadow: 0 5px 0 #dcd6f5; display: grid; gap: 3px; cursor: pointer; }
+.resp.prin { background: #eef3ff; box-shadow: 0 5px 0 #b9cdfa; }
+.resp:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 #dcd6f5; }
+.resp:disabled { opacity: .5; cursor: not-allowed; }
+.resp b { font-size: 18px; }
+.resp .l { display: block; font-size: 13px; color: var(--dim); font-weight: 700; }
+.resp .l i { font-style: normal; font-weight: 900; } .resp .v { color: #0b8a7e; } .resp .c { color: #b7791f; } .resp .r { color: #d1355f; }
+.resp .bl { font-size: 12px; font-weight: 800; color: #d1355f; }
+.sit.mega { padding-top: 0; } .sit .megaTop { margin: 0 -16px 6px; }
+
+/* Celebración */
+.fiesta { text-align: center; min-height: calc(100vh - 140px); align-content: center; position: relative; }
+.fiesta .rayos { position: absolute; left: 50%; top: 14%; width: 420px; height: 420px; margin-left: -210px; background: repeating-conic-gradient(rgba(255,194,46,.25) 0 10deg, transparent 10deg 20deg); border-radius: 50%; z-index: -1; animation: gira 14s linear infinite; }
+.fiesta h2 { font-size: 30px; font-weight: 900; margin: 0; text-wrap: balance; }
+.fiesta > p { margin: 0; color: var(--dim); font-weight: 800; }
+.fiesta .eti { font-weight: 900; letter-spacing: .1em; color: #c88c00; }
+.confeti { position: fixed; top: -12px; width: 10px; height: 14px; border-radius: 3px; z-index: 30; animation: cae linear forwards; pointer-events: none; }
+@keyframes cae { to { transform: translateY(110vh) rotate(720deg); } }
+
+/* Mi mundo */
+.mundoBtn { position: sticky; bottom: calc(var(--safe-bottom) + 12px); justify-self: center; display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 0; border-radius: 999px; padding: 12px 22px; font-weight: 900; font-size: 16px; box-shadow: 0 6px 18px rgba(40,30,120,.2); cursor: pointer; z-index: 4; min-height: 48px; }
+.mundoBtn i { width: 10px; height: 10px; border-radius: 50%; background: var(--rosa); display: inline-block; }
+.velo { position: fixed; inset: 0; background: rgba(29,26,58,.35); z-index: 20; display: flex; align-items: flex-end; justify-content: center; animation: aparece .2s; }
+.hoja { width: 100%; max-width: 480px; background: #fff; border-radius: 28px 28px 0 0; padding: 10px 16px calc(var(--safe-bottom) + 20px); animation: sube .3s cubic-bezier(.2,1.2,.4,1); max-height: 90vh; overflow: auto; }
+@keyframes sube { from { transform: translateY(100%); } }
+.hoja .asa { width: 44px; height: 5px; border-radius: 3px; background: #dcd8ee; margin: 0 auto 12px; }
+.hoja h3 { margin: 0 0 12px; font-size: 22px; font-weight: 900; }
+.iconos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 8px; }
+.icono { display: grid; justify-items: center; align-content: start; gap: 4px; background: none; border: 0; font-size: 12px; font-weight: 900; position: relative; cursor: pointer; color: var(--ink); }
+.icono span { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; font-size: 30px; box-shadow: 0 4px 0 rgba(0,0,0,.12); }
+.icono.lock { cursor: default; } .icono.lock span { background: #eceaf6 !important; filter: grayscale(1); opacity: .6; box-shadow: none; }
+.icono small { font-size: 10px; color: var(--dim); font-weight: 800; }
+.icono em { position: absolute; top: -6px; right: 0; font-style: normal; background: var(--rosa); color: #fff; font-size: 10px; border-radius: 999px; padding: 1px 6px; }
+.hoja .nota { font-size: 13px; color: var(--dim); font-weight: 800; text-align: center; }
+.hoja .cerrar { width: 100%; margin-top: 12px; min-height: 50px; border: 0; border-radius: 16px; background: #f1eefc; font-weight: 900; font-size: 17px; cursor: pointer; color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .cta, .exterior .pj, .pant, .res .grande { animation: none !important; } }
+
+/* Secciones en claro (antes pensadas para fondo oscuro) */
+.cats button { color: var(--ink); background: #fff; border-color: var(--line); }
+.pers.bloq, .inv.iotra, .inv.iprox { background: #f1eefc; color: var(--dim); }
+.pers.bloq .estado, .inv.iotra .small, .inv.iprox .small { color: var(--dim); }
+.inv.iotra .chip, .inv.iprox .chip { background: #fff; color: var(--dim); }
+.lookGrupos button { color: var(--ink); }
+.flash { top: 110px; }
+
+body[data-etapa] { --bg1: #dff0ff; --bg2: #f4ecff; --bg3: #f4ecff; }
+.fiesta { overflow: hidden; }
+.mundoBtn { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-bottom) + 14px); }
+body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 90px); }
 
 </style>
 </head>
@@ -3899,7 +4062,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function bloqueoRewarded(s, tipo, data = {}) {
     if (!activa()) return 'Desactivado';
     const C = MONETIZATION.rewarded[tipo]; if (!C || !C.activo) return 'Desactivado';
-    if (s.pendiente) return 'Primero decide';   // nunca durante una decisión (ni para cambiarla)
+    if (s.pendiente) return 'Antes, decide lo pendiente en «Jugar»';   // nunca durante una decisión (ni para cambiarla)
     const u = M(s).ultimo[tipo];
     if (C.cadaSemanas && u != null && s.semana - u < C.cadaSemanas) return `Otra vez en ${C.cadaSemanas - (s.semana - u)} ${C.cadaSemanas - (s.semana - u) === 1 ? 'semana' : 'semanas'}`;
     if (tipo === 'cupon') {
@@ -4263,6 +4426,13 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
+    const SEC = P2.SECCIONES.find(x => x.id === ui.vista);
+    if (ui.vista !== 'semana') return `<button class="atras" data-act="vista" data-v="semana">‹ Jugar</button><div class="hwho"><b>${SEC ? `${SEC.ic} ${esc(SEC.id === 'relaciones' ? 'Vida' : SEC.id === 'personaje' ? 'Perfil' : SEC.n)}` : ''}</b></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>`;
+    return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
+      <div class="hwho"><b>Semana ${s.semana}</b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>
+      <div class="ener" aria-label="Energía ${Math.round(s.p.energia)}">⚡<div class="bar"><i style="width:${Math.round(s.p.energia)}%"></i></div>${Math.round(s.p.energia)}</div>`;
+  }
+  function htmlTopViejo(s) {
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
       <div class="hwho"><b>${esc(s.nombre)}</b><span>${esc(nombreFase(s))}</span></div>
       <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}${(s.secciones || []).includes('marcas') ? pill('📣', Math.floor(s.p.marca || 0)) : ''}</div>`;
@@ -4759,24 +4929,186 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
 
+
+  // =====================================================================
+  //  BUCLE PRINCIPAL (P2.5): pasar pantallas. Semana → Resultado → (Situación / Celebración) → Semana
+  //  Un botón grande por pantalla. Lo demás está en «Mi mundo», solo si quieres.
+  // =====================================================================
+  const COLORES_OP = ['azul', 'naranja', 'rosa', 'turquesa', 'violeta'];
+  // Lo que da cada acción, a la vista (vista previa sobre una copia: no toca la partida ni su azar)
+  const EXTRA_OP = { jornada: '📋 Prueba si tu nivel llega (≈50)', torneo: '🏆 Si ganas: invitación', campus: '📋 Te proponen para las pruebas', preparador: '📋 +3 en la prueba',
+    gestionar: '💼 Tu empresa rinde más', prensa: '📣 Más marca personal', entrenoExtra: '👔 Le gusta al míster' };
+  function previaAccion(s, id) {
+    const una = rng => {
+      const c = JSON.parse(JSON.stringify(Object.assign({}, s, { tele: null, diario: [] }))); if (rng != null) c.rng = rng;
+      const a = { dinero: c.p.dinero, energia: c.p.energia, nivel: c.p.nivel, rep: c.p.rep, marca: c.p.marca || 0 };
+      try { P2.aplicarAccion(c, id, { lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [] }); } catch (_) { return null; }
+      return { dinero: c.p.dinero - a.dinero, energia: c.p.energia - a.energia, nivel: c.p.nivel - a.nivel, rep: c.p.rep - a.rep, marca: (c.p.marca || 0) - a.marca };
+    };
+    const x = una(null), y = una((s.rng ^ 0x5bd1e995) >>> 0);
+    if (!x) return { d: {}, aprox: false };
+    return { d: x, aprox: !!y && ['nivel', 'rep', 'marca', 'dinero'].some(k => Math.abs(x[k] - y[k]) > 0.05) };
+  }
+  const ETQ = { nivel: '💪', rep: '⭐', marca: '📣', dinero: '💶', energia: '⚡', confianza: '👔' };
+  function chipsAccion(s, id) {
+    const { d, aprox } = previaAccion(s, id), l = [];
+    for (const k of ['nivel', 'rep', 'marca', 'dinero', 'energia']) {
+      const v = d[k]; if (!v || Math.abs(v) < 0.05) continue;
+      l.push(`<span class="chip">${ETQ[k]} ${aprox && k !== 'energia' ? '≈' : ''}${v > 0 ? '+' : '−'}${k === 'dinero' ? eur(Math.abs(v)) : nf(Math.round(Math.abs(v) * 10) / 10)}</span>`);
+    }
+    if (EXTRA_OP[id]) l.push(`<span class="chip">${esc(EXTRA_OP[id])}</span>`);
+    return l.join('');
+  }
+  // Orden de las opciones: lo especial de la semana primero, después lo básico de tu fase
+  const PRIORIDAD = ['jornada', 'torneo', 'campus', 'preparador', 'entrenar', 'entrenoExtra', 'plaza', 'prensa', 'gestionar', 'trabajar', 'mediaJornada', 'descansar'];
+  function opcionesSemana(s) {
+    const l = P2.accionesDisponibles(s).sort((a, b) => PRIORIDAD.indexOf(a.id) - PRIORIDAD.indexOf(b.id));
+    const libres = l.filter(x => !x.bloqueo), bloq = l.filter(x => x.bloqueo);
+    let top = libres.slice(0, 3);
+    if (s.p.energia < 45 && !top.some(x => x.id === 'descansar')) { const d = libres.find(x => x.id === 'descansar'); if (d) top = top.slice(0, 2).concat(d); }
+    return { top, resto: libres.filter(x => !top.includes(x)), bloq };
+  }
+  function tarjetaOp(s, x, i) {
+    return `<button class="op ${COLORES_OP[i % COLORES_OP.length]}" data-act="jugarYa" data-id="${x.id}"><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips">${chipsAccion(s, x.id)}</span></span><span class="go" aria-hidden="true">›</span></button>`;
+  }
+  function escenaExterior(s) {
+    const e = etapa(s), V = vehiculo(s);
+    const edif = { barrio: [[14, 70], [66, 96], [null, 60, 72]], club: [], empresa: [[10, 110], [58, 140], [null, 120, 60], [null, 90, 14]], magnate: [[10, 120], [58, 150], [null, 130, 60], [null, 100, 14]] }[e] || [];
+    return `<div class="exterior e-${e}"><span class="sol"></span>${e === 'club' ? '<span class="grada"></span><span class="foco f1"></span><span class="foco f2"></span>' : ''}
+      ${edif.map(([l, h, r]) => `<span class="edif" style="${l != null ? `left:${l}px` : `right:${r}px`};height:${h}px"></span>`).join('')}
+      <div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
+  }
+  function objetivo(s) {
+    const H = P2.siguienteHito(s), K = CFG.captacion, hechos = HITOS.filter(h => s.hitos[h.id]).length;
+    let p, izq, der;
+    if (s.fase === 'barrio') { p = 100 * s.p.rep / K.repOjeador; izq = `⭐ Reputación ${Math.floor(s.p.rep)} de ${K.repOjeador}`; const q = P2.semanasCaptacion(s); der = `${q} ${q === 1 ? 'semana' : 'semanas'}`; }
+    else if (s.fase === 'pruebas') { const k = s.invitacion.dia - s.semana + 1; p = 100 * (1 - Math.max(0, k) / 3); izq = `📋 Pruebas ${k <= 1 ? 'al final de esta semana' : `en ${k} semanas`}`; der = `💪 Nivel ${nf(s.p.nivel)}`; }
+    else { p = 100 * hechos / HITOS.length; izq = `🏅 ${hechos} de ${HITOS.length} hitos`; const T = s.temporada; der = T && T.jornada ? `${P2.posicion(T)}º en la liga` : ''; }
+    return `<div class="obj"><b>🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b><div class="prog"><i style="width:${Math.max(3, Math.min(100, Math.round(p)))}%"></i></div><div class="fila"><span>${izq}</span><span>${der}</span></div></div>`;
+  }
+  function htmlSemana(s) {
+    const o = opcionesSemana(s), enEquipo = s.fase === 'club' || s.fase === 'amateur', pj = enEquipo && s.temporada ? P2.partidoDeLaJornada(s.temporada) : null;
+    const mas = ui.masOps ? `<div class="ops">${o.resto.map((x, i) => tarjetaOp(s, x, i + 3)).join('')}${o.bloq.map(x => `<button class="op gris" disabled><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips"><span class="chip">🔒 ${esc(x.bloqueo)}</span></span></span></button>`).join('')}</div>` : '';
+    return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlDeseo(s)}
+      ${pj ? `<div class="partidoProx">⚽ Esta semana: ${pj.local ? 'en casa contra' : 'visitas a'} <b>${esc(P2.nombreEquipo(s.temporada, pj.rival))}</b></div>` : ''}
+      <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
+      <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>
+      ${o.resto.length || o.bloq.length ? `<button class="masOps" data-act="masOps">${ui.masOps ? 'Menos opciones' : `Más opciones (${o.resto.length + o.bloq.length})`}</button>` : ''}${mas}
+      ${htmlExtrasInicio(s)}
+      <button class="mundoBtn" data-act="mundo">🌍 Mi mundo${hayNovedad(s) ? ' <i aria-label="hay novedades"></i>' : ''}</button></div>`;
+  }
+  const hayNovedad = s => (s.seccionesNuevas || []).length > 0 || Object.values(avisos(s)).some(Boolean);
+
+  // ---- Resultado de la semana: pantalla completa con los números que cambian ----
+  const TIT_ACC = { entrenar: '¡Has entrenado duro!', plaza: '¡Partidazo en la plaza!', trabajar: '¡Semana de repartos!', descansar: '¡Como nuevo!', jornada: 'Jornada abierta', torneo: 'Torneo local', campus: 'Campus de tecnificación', preparador: 'Sesión con el preparador',
+    entrenoExtra: 'Entreno extra', mediaJornada: 'Media jornada', prensa: 'Prensa y redes', gestionar: 'Semana en la empresa', __acto: 'Acto de patrocinio', __evento: 'Semana especial' };
+  function filaCambio(ic, n, a, b, din) {
+    const d = Math.round((b - a) * 10) / 10; if (Math.abs(d) < 0.05) return '';
+    const f = v => (din ? eur(v) : nf(Math.round(v * 10) / 10));
+    return `<div class="cam"><span>${ic} ${n}</span><span class="v ${d >= 0 ? 'mas1' : 'menos1'}"><span data-cuenta="${a}|${b}|${din ? 1 : 0}">${f(b)}</span> <small>(${d >= 0 ? '+' : '−'}${din ? eur(Math.abs(d)) : nf(Math.abs(d))})</small></span></div>`;
+  }
+  function htmlResultado(s) {
+    const { R, id, a, b } = ui.res, P = R.partido, A = P2.ACCIONES[id] || {};
+    const ic = P ? (P.resultado === 'victoria' ? '🎉' : P.resultado === 'derrota' ? '😣' : '🤝') : A.ic || '📅';
+    const tit = P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : TIT_ACC[id] || 'Semana jugada';
+    const filas = filaCambio('💶', 'Dinero', a.dinero, b.dinero, true) + filaCambio('⚡', 'Energía', a.energia, b.energia) + filaCambio('💪', 'Nivel', a.nivel, b.nivel) + filaCambio('⭐', 'Reputación', a.rep, b.rep)
+      + (s.contrato ? filaCambio('📣', 'Marca', a.marca, b.marca) + filaCambio('👔', 'Confianza del míster', a.confianza, b.confianza) : '');
+    const lineas = R.lineas.filter(l => !P || !/^Jornada \d+:/.test(l[1])).slice(0, 3);
+    const sig = ui.fiestas && ui.fiestas.length ? 'Continuar ▶' : s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶';
+    return `<div class="pant res"><div class="grande">${ic}</div><h2>${esc(tit)}</h2><p>Semana ${R.semana} ${P ? `· ${esc(TIT_ACC[id] || '')}` : 'completada'}</p>
+      ${P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>
+        <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.goles ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : ''}</small></div>` : ''}
+      <div class="cambios">${filas || '<div class="cam"><span>Sin cambios en tus números</span></div>'}</div>
+      ${lineas.length ? `<div class="lineasRes">${lineas.map(linea).join('')}</div>` : ''}
+      ${R.porque.length || R.ingresos.length || R.lineas.length > lineas.length ? `<details class="por"><summary>❓ ¿Por qué?</summary>${R.lineas.slice(3).map(linea).join('')}${R.porque.map(x => `<p>${esc(x)}</p>`).join('')}${R.ingresos.map(([x, v]) => kv(esc(x), `${v >= 0 ? '+' : '−'}${eur(Math.abs(v))}`)).join('')}</details>` : ''}
+      <button class="cta" data-act="seguir">${sig}</button></div>`;
+  }
+  // ---- Después de decidir algo ----
+  function htmlDecidido(s) {
+    const D = ui.dec, W = D.semanaJugada ? s.ultimo : null;
+    return `<div class="pant res"><div class="grande">${D.ic || '✅'}</div><h2>${esc(D.titulo || '')}</h2>${D.texto ? `<p>${esc(D.texto)}</p>` : ''}
+      ${(D.lineas || []).concat(W ? W.lineas : []).slice(0, 4).length ? `<div class="lineasRes">${(D.lineas || []).concat(W ? W.lineas : []).slice(0, 4).map(linea).join('')}</div>` : ''}
+      <button class="cta" data-act="seguir">${ui.fiestas && ui.fiestas.length || s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶'}</button></div>`;
+  }
+  // ---- Situación: una pregunta, respuestas grandes con lo que implica cada una ----
+  function htmlSitu(s) {
+    const v = P2.vistaPendiente(s);
+    if (!v) return htmlSemana(s);
+    const persona = (P2.EVENTOS_RELACION.concat(P2.EVENTOS_POSESION || []).find(E => s.pendiente.tipo === 'suceso' && E.id === s.pendiente.id) || {}).rel;
+    const R = persona && P2.persona(persona);
+    return `<div class="pant"><div class="sit ${v.fiesta ? 'dorada' : ''} ${v.grande ? 'mega' : ''}">${v.grande ? `<div class="megaTop">${decorSVG('empresa')}<span>🔓</span></div>` : ''}
+      ${R && R.look ? `<div class="quien">${caraDe(R)}</div>` : `<div class="grande peq">${v.ic}</div>`}<h2>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
+      ${v.ops.map(o => `<button class="resp ${o.prin ? 'prin' : ''}" data-act="decidir" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''}><b>${esc(o.n)}</b>
+        <span class="ls">${o.ventaja ? `<span class="l"><i class="v">✓</i> ${esc(o.ventaja)}</span>` : ''}${o.coste ? `<span class="l"><i class="c">−</i> ${esc(o.coste)}</span>` : ''}${o.riesgo && o.riesgo !== 'Ninguno' && o.riesgo !== '—' ? `<span class="l"><i class="r">⚠</i> ${esc(o.riesgo)}</span>` : ''}</span>
+        ${o.ocupaSemana ? '<span class="ocupa">⏳ Ocupa la semana entera</span>' : ''}${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`).join('')}</div></div>`;
+  }
+  // ---- Celebraciones: hitos y novedades ----
+  function htmlFiesta(s) {
+    const F = ui.fiestas[0];
+    if (F.tipo === 'hito') return `<div class="pant fiesta"><div class="rayos"></div><div class="grande">🏅</div><small class="eti">¡HITO CONSEGUIDO!</small><h2>${esc(F.H.n)}</h2><p>Se abre: ${esc(F.H.abre)}</p>
+      <div class="exterior mini">${'<span class="sol"></span>'}<div class="pj">${P2.avatarSVG(Object.assign({}, s, { ultimo: { partido: { resultado: 'victoria' } } }), null, 'cuerpo')}</div></div>
+      <button class="cta oro" data-act="seguir">¡Genial! ▶</button></div>`;
+    return `<div class="pant fiesta"><div class="rayos"></div><div class="grande">${F.x.ic}</div><small class="eti">🔓 NUEVO</small><h2>${esc(F.x.n)}</h2><p>${esc(F.x.d || '')} Lo tienes en 🌍 Mi mundo.</p>
+      <button class="cta oro" data-act="verNuevo" data-v="${F.x.id}">Ver ahora</button><button class="masOps" data-act="seguir">Más tarde</button></div>`;
+  }
+  function htmlJuego(s) {
+    if (ui.paso === 'resultado' && ui.res) return htmlResultado(s);
+    if (ui.paso === 'decidido' && ui.dec) return htmlDecidido(s);
+    if (ui.paso === 'fiesta' && ui.fiestas && ui.fiestas.length) return htmlFiesta(s);
+    ui.paso = null;
+    if (s.pendiente) return htmlSitu(s);
+    return htmlSemana(s);
+  }
+  // ---- Mi mundo: todo lo demás, con iconos grandes ----
+  const MUNDO = [['personaje', '👤', 'Perfil', '#8b5cf6'], ['relaciones', '❤️', 'Vida', '#ff4f8b'], ['tienda', '🛍️', 'Tienda', '#d94bff'], ['inversiones', '📈', 'Inversiones', '#12bfae'],
+    ['liga', '📊', 'Liga', '#2f7bff', 'Al fichar'], ['marcas', '🤝', 'Marcas', '#ff9a2e', 'Al fichar'], ['empresa', '💼', 'Empresa', '#0b8a7e', 'Más adelante'], ['patrimonio', '💰', 'Patrimonio', '#e8a000'],
+    ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
+  function htmlMundo(s) {
+    const vis = P2.seccionesVisibles(s).map(x => x.id), av = avisos(s), nuevas = s.seccionesNuevas || [];
+    return `<div class="velo" data-act="cerrarMundo"><div class="hoja" role="dialog" aria-label="Mi mundo"><div class="asa"></div><h3>🌍 Mi mundo</h3>
+      <div class="iconos">${MUNDO.map(([id, ic, n, c, lock]) => { const ok = vis.includes(id);
+        return `<button class="icono ${ok ? '' : 'lock'}" ${ok ? `data-act="vista" data-v="${id}"` : 'disabled'}><span style="background:${c}">${ic}</span>${n}${ok ? '' : `<small>🔒 ${lock}</small>`}${ok && nuevas.includes(id) ? '<em>Nuevo</em>' : ok && av[id] ? '<em>!</em>' : ''}</button>`; }).join('')}</div>
+      <p class="nota">Aquí está todo lo demás. Entra cuando quieras: para jugar no hace falta.</p>
+      <button class="cerrar" data-act="cerrarMundo">Volver al juego</button></div></div>`;
+  }
+  function contar() {
+    if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.querySelectorAll('[data-cuenta]').forEach(el => {
+      const [a, b, din] = el.dataset.cuenta.split('|'), A = +a, B = +b, t0 = performance.now();
+      const paso = tt => { const p = Math.min(1, (tt - t0) / 700), v = A + (B - A) * (1 - Math.pow(1 - p, 3)); el.textContent = din === '1' ? eur(v) : nf(Math.round(v * 10) / 10); if (p < 1) requestAnimationFrame(paso); };
+      requestAnimationFrame(paso);
+    });
+  }
+  function confeti() {
+    if (matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cols = ['#ff4f8b', '#2f7bff', '#ffc22e', '#12bfae', '#8b5cf6', '#ff9a2e'];
+    for (let i = 0; i < 50; i++) { const c = document.createElement('i'); c.className = 'confeti'; c.style.left = Math.random() * 100 + 'vw'; c.style.background = cols[i % cols.length]; c.style.animationDuration = (1.6 + Math.random() * 1.8) + 's'; c.style.animationDelay = Math.random() * .4 + 's'; document.body.appendChild(c); setTimeout(() => c.remove(), 4000); }
+  }
+  const foto = s => ({ dinero: s.p.dinero, energia: s.p.energia, nivel: s.p.nivel, rep: s.p.rep, marca: s.p.marca || 0, confianza: s.confianza });
+  function fiestasDe(hitos, desb) { return (hitos || []).map(H => ({ tipo: 'hito', H })).concat((desb || []).filter(x => x.id !== 'empresa').map(x => ({ tipo: 'nuevo', x }))); }
+
   // ---------- Render ----------
   function render() {
     if (!S) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
     // Secciones abiertas por algo hecho fuera de la semana (firmar una marca, comprar…): se avisa aquí
     const nuevas = P2.revisarSecciones(S, null);
-    if (nuevas.length) { ui.desbloqueos = (ui.desbloqueos || []).concat(nuevas); P2.guardar(S); }
+    if (nuevas.length) { ui.fiestas = (ui.fiestas || []).concat(fiestasDe([], nuevas)); if (!ui.paso) ui.paso = 'fiesta'; P2.guardar(S); }
     if (!P2.seccionesVisibles(S).some(x => x.id === ui.vista)) ui.vista = 'semana';
     pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);
-    $('nav').innerHTML = htmlNav(S);
-    const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlExtrasInicio(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
+    $('nav').innerHTML = '';
+    const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
       relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
     if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
     const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
-    $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + htmlSubtabs(S) + V(S) + capa;
+    const mundo = ui.mundo ? htmlMundo(S) : '';
+    $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + V(S) + capa + mundo;
     ui.flash = '';
-    $('main').classList.toggle('conBoton', ui.vista === 'semana');
+    $('main').classList.remove('conBoton');
+    document.body.classList.toggle('enSeccion', ui.vista !== 'semana');
+    contar();
+    if (ui.confeti) { ui.confeti = false; confeti(); }
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
   function pintarEtapa(e) {
@@ -4809,9 +5141,21 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         break;
       case 'lookAzar': if ($('nombre')) ui.nombre = $('nombre').value; if (S) { S.look = P2.validarLook(P2.lookAzar()); guardarYPintar(); } else { ui.look = P2.validarLook(P2.lookAzar()); render(); } break;
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
+      // Un toque juega la semana
+      case 'jugarYa': { const a0 = foto(S), R = P2.jugarSemana(S, id); if (!R) break;
+        ui.res = { R, id, a: a0, b: foto(S) }; ui.fiestas = fiestasDe(R.hitos, R.desbloqueos); ui.paso = 'resultado'; ui.masOps = false; ui.desbloqueos = [];
+        if (R.partido && R.partido.resultado === 'victoria') ui.confeti = true;
+        guardarYPintar(); window.scrollTo(0, 0); break; }
+      case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
+        if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }
+        render(); window.scrollTo(0, 0); break;
+      case 'verNuevo': ui.fiestas = []; ui.paso = null; irA(b.dataset.v); break;
+      case 'masOps': ui.masOps = !ui.masOps; render(); break;
+      case 'mundo': ui.mundo = true; render(); break;
+      case 'cerrarMundo': if (e.target !== b && b.classList.contains('velo')) break; ui.mundo = false; render(); break;
       case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
-      case 'vista': ui.nuevaCompra = null; irA(b.dataset.v); break;
+      case 'vista': ui.nuevaCompra = null; ui.mundo = false; irA(b.dataset.v); break;
       case 'grupo': { const g = b.dataset.g, vis = P2.seccionesVisibles(S).filter(x => x.grupo === g).map(x => x.id), u = (ui.ultimaDe || {})[g];
         irA(vis.includes(u) ? u : vis[0] || 'semana'); break; }
       case 'cat': ui.cat = b.dataset.v; render(); break;
@@ -4840,7 +5184,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       case 'equipar': if (P2.equipar(S, id)) guardarYPintar(); break;
       case 'venderP': if (ui.venderP !== id) { ui.venderP = id; render(); } else { ui.venderP = null; P2.venderPosesion(S, id); guardarYPintar(); } break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
-      case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { if (r.ir) irA(r.ir); else { guardarYPintar(); window.scrollTo(0, 0); } } break; }
+      case 'decidir': { const r = P2.resolverDecision(S, id); if (r) { ui.fiestas = fiestasDe(r.hitos, (r.desbloqueos || []).concat(ui.desbloqueos || [])); ui.desbloqueos = [];
+        if (r.ir) { ui.fiestas = []; irA(r.ir); } else { ui.dec = r; ui.paso = 'decidido'; guardarYPintar(); window.scrollTo(0, 0); } } break; }
       case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
       case 'config': if (P2.configurar(S, neg, b.dataset.c, b.dataset.v)) guardarYPintar(); break;
       case 'empleados': { const n = S.negocios.find(x => x.id === neg); if (n && P2.configurar(S, neg, 'empleados', n.empleados + Number(b.dataset.v))) guardarYPintar(); break; }
