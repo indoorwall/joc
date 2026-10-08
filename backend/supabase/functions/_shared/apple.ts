@@ -9,7 +9,10 @@ export function createAppleVerifier() {
     const lib: any = await import('npm:@apple/app-store-server-library');
     const roots = (env('APPLE_ROOT_CERTS_B64') || '').split(',').filter(Boolean).map(b => Uint8Array.from(atob(b), c => c.charCodeAt(0)));
     if (!roots.length) throw Object.assign(new Error('apple_not_configured'), { code: 'apple_not_configured', status: 503 });
-    const environment = env('APPLE_ENV') === 'Production' ? lib.Environment.PRODUCTION : lib.Environment.SANDBOX;
+    // Falla cerrado: APPLE_ENV obligatorio y, en producción, solo Production (nada de aceptar compras de sandbox)
+    const appleEnv = env('APPLE_ENV'), appEnv = env('APP_ENV');
+    if (!['Production', 'Sandbox'].includes(appleEnv) || (appEnv === 'production' && appleEnv !== 'Production')) throw Object.assign(new Error('apple_env_invalid'), { code: 'apple_env_invalid', status: 503 });
+    const environment = appleEnv === 'Production' ? lib.Environment.PRODUCTION : lib.Environment.SANDBOX;
     verifier = new lib.SignedDataVerifier(roots, true, environment, env('APPLE_BUNDLE_ID'), Number(env('APPLE_APP_ID')) || undefined);
     return verifier;
   }

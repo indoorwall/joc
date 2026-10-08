@@ -17,7 +17,7 @@ node tests/p2.test.cjs                        # juego + interfaz Premium (Chromi
 
 Resultado de esta entrega (8 de octubre de 2026):
 
-- **`commerce.test.mjs` completo (con Postgres 16 y Deno 2.5): 266 de 266.** Desglose:
+- **`commerce.test.mjs` completo (con Postgres 16 y Deno 2.5): 284 de 284.** Desglose:
   - unitarias;
   - cliente;
   - contrato en memoria;
@@ -37,6 +37,31 @@ Resultado de esta entrega (8 de octubre de 2026):
 | Base de datos | `pg.mjs` | migración desde cero, seed al día, RLS (lectura propia, sin escritura de cliente, anónimo), UNIQUE, precios enteros, concesión revocada inmutable, trigger de entitlements, máquina de estados |
 | Router | `unit.mjs` | dev → Mock; web → Stripe; iOS → Apple salvo programa de la UE aprobado, tienda incluida, dispositivo elegible y no menor; Android → Google salvo programa inscrito; flags apagados |
 | Interfaz | `p2.test.cjs` «UI Premium» | ficha completa, casilla sin preselección, «No, gracias» igual de visible, sin urgencia falsa, petición de cuenta, checkout de prueba, «verificando», ¡DESBLOQUEADO!, Mis compras, restaurar con caché borrada, dependencias, próximamente, insignia, quitar anuncios |
+
+## Revisión de seguridad independiente (8 de octubre de 2026)
+
+Una revisión adversarial del código de pagos no encontró ninguna forma de conseguir algo sin pagar. Sí encontró fallos
+de reintento y de orden de eventos. Todos están corregidos y tienen test:
+
+1. **Reembolso que falla a mitad y se reintenta:** ahora todo va en una transacción idempotente.
+2. **Reembolso tardío sobre una orden ya entregada:** ahora revoca.
+3. **Importe que no cuadra:** la orden queda PAID con error, visible en el panel, en vez de perderse en silencio.
+4. **Revocación de admin sin usuario:** se rechaza, y el repositorio nunca revoca con un filtro vacío.
+5. **`APPLE_ENV`:** si falta o no es válido, falla cerrado; en producción solo acepta Production.
+6. **Disputas:** una disputa ganada sobre una orden sin entregar ahora se entrega; un cierre que llega antes que el
+   «created» se respeta.
+7. **Apple y Google:** exigen `appAccountToken` / `obfuscatedAccountId`; una compra de Google sin `orderId` usa el
+   token.
+8. **SKU sin producto en Play:** devuelve 404 en vez de 500.
+9. **Trigger de entitlements:** usa un bloqueo por usuario y entitlement.
+10. **Borrar la cuenta:** también anonimiza la auditoría y los recibos; si falla el borrado en Auth, se devuelve error
+    para reintentar.
+11. **Repositorio en memoria:** transacciones en serie y filtros de fechas.
+
+Además:
+
+- El router ya no manda la web a Mock en desarrollo: Mock solo para la plataforma `mock`, y nunca en producción.
+- También se rechazan las claves `rk_live_`.
 
 ## Pruebas manuales antes de producción
 
@@ -65,5 +90,9 @@ Sigue la sección «Pruebas antes de producción» de [CHECKLIST.md](CHECKLIST.m
   la misma forma de la API. Falta la prueba con tu cuenta en modo test (CHECKLIST).
 - **Packs Street, Pro, Luxury, Magnate y Founder, ranuras de carrera, deportes, expansiones y la interfaz de las
   Prestige:** arquitectura y fichas `coming_soon`, sin contenido o motor jugable todavía.
+- **Compras simultáneas solapadas:** dos checkouts a la vez de un bundle y de una de sus partes pueden cobrarse los
+  dos. No hay reembolso automático del segundo: se ve en el panel y se reembolsa a mano.
+- **`remote_config`:** el cliente anónimo puede leer la fila entera, incluidos campos internos no secretos (políticas
+  de reembolso). La función `remote-config` los filtra.
 - **Vida extra por anuncio en minijuegos:** encendida en el prototipo y apagada por defecto en producción (ver la nota
   en ENTITLEMENTS.md).

@@ -80,8 +80,11 @@ export function createPgRepo({ pool }) {
         values ($1,$2,$3,$4,$5,$6,$7,$8,$9) on conflict do nothing`, [g.id, g.userId, g.entitlementId, g.source, g.sourcePurchaseId, g.orderId, g.productId, g.status || 'active', g.grantedAt]);
       return { created: r.rowCount === 1 };
     },
+    async listGrantsForOrder(orderId) { return rows((await this.q('select * from entitlement_grants where order_id = $1', [orderId])).rows); },
+    async getDispute(provider, id) { return row((await this.q('select * from disputes where provider = $1 and provider_dispute_id = $2', [provider, id])).rows[0]); },
     async listGrants(userId) { return rows((await this.q('select * from entitlement_grants where user_id = $1 order by granted_at', [userId])).rows); },
     async setGrantStatus(filter, status, { reason = null, ref = null, at = null } = {}) {
+      if (!filter.orderId && !filter.userId && !filter.source) throw new Error('setGrantStatus: filtro vacío (afectaría a todos)');
       const where = ["status <> 'revoked'"], params = [status];
       const add = (sql, v) => { params.push(v); where.push(sql.replace('?', `$${params.length}`)); };
       if (filter.orderId) add('order_id = ?', filter.orderId);

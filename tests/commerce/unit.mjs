@@ -41,7 +41,7 @@ export async function runUnit(check) {
   // ---------- Router ----------
   const p = getProduct('pack_debut');
   const prod = resolveConfig(DEFAULT_CONFIG, { environment: 'production', appleBillingEnabled: true, googleBillingEnabled: true });
-  check('Router: desarrollo → Mock', choosePaymentProvider(p, { platform: 'web' }, resolveConfig()).provider === 'mock');
+  check('Router: prototipo (plataforma mock) → Mock; en producción nunca Mock; la web en desarrollo usa Stripe TEST', choosePaymentProvider(p, { platform: 'mock' }, resolveConfig()).provider === 'mock' && choosePaymentProvider(p, { platform: 'mock' }, prod).provider === null && choosePaymentProvider(p, { platform: 'web' }, resolveConfig()).provider === 'stripe');
   check('Router: web/PWA → Stripe', choosePaymentProvider(p, { platform: 'web' }, prod).provider === 'stripe' && choosePaymentProvider(p, { platform: 'pwa' }, prod).provider === 'stripe');
   check('Router: iOS sin programa aprobado → Apple (StoreKit), nunca Stripe', choosePaymentProvider(p, { platform: 'ios', storefront: 'ESP', appleExternalEligible: true }, prod).provider === 'apple');
   const iosEU = resolveConfig(prod, { ios: { externalPurchase: { enabled: true, storefronts: ['ESP'] } } });

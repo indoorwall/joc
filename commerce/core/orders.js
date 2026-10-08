@@ -6,7 +6,7 @@ export const TRANSITIONS = {
   PAID: ['FULFILLED', 'REFUNDED', 'PARTIALLY_REFUNDED', 'DISPUTED'],
   FULFILLED: ['REFUNDED', 'PARTIALLY_REFUNDED', 'DISPUTED', 'REVOKED'],
   PARTIALLY_REFUNDED: ['REFUNDED', 'DISPUTED', 'REVOKED', 'PARTIALLY_REFUNDED'],
-  DISPUTED: ['FULFILLED', 'REVOKED', 'REFUNDED'],
+  DISPUTED: ['FULFILLED', 'REVOKED', 'REFUNDED', 'PAID'],   // PAID: disputa ganada de una orden que aún no se había entregado
   FAILED: ['PAID'],          // un pago asíncrono puede confirmarse tarde
   CANCELLED: ['PAID'],       // pago que llega después de expirar (raro): se registra y se entrega
   REFUNDED: [],

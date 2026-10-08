@@ -24,7 +24,7 @@ export async function service() {
   const config = await remoteConfig();
   const key = env('STRIPE_SECRET_KEY');
   // Seguridad: una clave live fuera de producción, o en producción sin «ACTIVAR PRODUCCIÓN», no se usa
-  if (key.startsWith('sk_live_') && !(ENVIRONMENT === 'production' && config.liveModeAllowed)) throw new Error('live_key_not_allowed_here');
+  if ((key.startsWith('sk_live_') || key.startsWith('rk_live_')) && !(ENVIRONMENT === 'production' && config.liveModeAllowed)) throw new Error('live_key_not_allowed_here');
   // STRIPE_API_BASE: solo para pruebas locales (stripe-mock / tests e2e). Ignorado en producción.
   const apiBase = ENVIRONMENT !== 'production' && env('STRIPE_API_BASE') ? env('STRIPE_API_BASE') : undefined;
   const stripe = key ? createStripeApi({ secretKey: key, apiVersion: env('STRIPE_API_VERSION', '2026-09-30.endive'), ...(apiBase ? { base: apiBase } : {}) }) : null;

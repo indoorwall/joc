@@ -12,6 +12,7 @@ import { resolveConfig } from './config.js';
 import { verifyStripeSignature } from './stripeSignature.js';
 import { sanitizeEvent, funnel } from './analytics.js';
 
+const ZERO_DECIMAL = ['JPY', 'KRW', 'CLP', 'VND', 'ISK', 'HUF', 'TWD'];
 export class CommerceError extends Error {
   constructor(code, status = 400, extra = {}) { super(code); this.code = code; this.status = status; Object.assign(this, extra); }
 }
@@ -139,8 +140,12 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     // Importe y moneda deben coincidir con la orden (antes de impuestos)
     const sub = s.amount_subtotal != null ? s.amount_subtotal : s.amount_total;
     if (sub !== order.amountMinor || String(s.currency || '').toUpperCase() !== order.currency) {
+      // El cliente ha pagado pero no cuadra: no se entrega automáticamente; queda PAID con error para el panel admin
+      const pi0 = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent && s.payment_intent.id;
+      if (s.payment_status === 'paid' && ['CREATED', 'PENDING', 'FAILED', 'CANCELLED'].includes(order.status)) await repo.transitionOrder(order.id, 'PAID', { providerPaymentId: pi0, paidAt: now().toISOString() });
+      await repo.patchOrder(order.id, { fulfillmentError: 'amount_mismatch' });
       await audit(repo, { orderId: order.id, userId: order.userId, type: 'amount_mismatch', data: { got: sub, currency: s.currency } });
-      return { ignored: 'amount_mismatch' };
+      return { needsAttention: 'amount_mismatch' };
     }
     if (eventType === 'checkout.session.completed' && s.payment_status === 'unpaid') {
       if (order.status === 'CREATED') await repo.transitionOrder(order.id, 'PENDING', {});
@@ -160,7 +165,13 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     if (orphans.length) {
       for (const r of orphans) await repo.attachRefund(r.id, order.id);
       const total = orphans.reduce((a, r) => Math.max(a, r.amountMinor), 0);
-      if (total >= s.amount_total) { await repo.transitionOrder(order.id, 'REFUNDED', { refundedAt: now().toISOString() }); return { refundedBeforeFulfillment: true }; }
+      if (total >= s.amount_total) {
+        await repo.tx(async t => {
+          await t.transitionOrder(order.id, 'REFUNDED', { refundedAt: now().toISOString() });
+          await t.setGrantStatus({ orderId: order.id }, 'revoked', { reason: 'refund', ref: orphans[0].providerRefundId, at: now().toISOString() });
+        });
+        return { refundedBeforeFulfillment: true };
+      }
     }
     const cur = await repo.getOrder(order.id);
     if (cur.status !== 'PAID') return { status: cur.status };   // ya entregada, reembolsada o en disputa: no se toca
@@ -209,10 +220,12 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     const last = ch.refunds && ch.refunds.data && ch.refunds.data[0];
     const refundId = last ? last.id : `${ch.id}#${ch.amount_refunded}`;
     const order = pi ? await repo.findOrderByPaymentIntent(pi) : null;
-    const created = await repo.insertRefund({ id: ids(), orderId: order ? order.id : null, provider: 'stripe', providerRefundId: refundId, providerPaymentId: pi, amountMinor: ch.amount_refunded, currency: String(ch.currency || '').toUpperCase(), full, reason: last && last.reason || null, createdAt: now().toISOString() });
-    if (!order) return { orphanRefund: true };
-    if (!created) return { duplicateRefund: true };
+    const refundRow = { id: ids(), orderId: order ? order.id : null, provider: 'stripe', providerRefundId: refundId, providerPaymentId: pi, amountMinor: ch.amount_refunded, currency: String(ch.currency || '').toUpperCase(), full, reason: last && last.reason || null, createdAt: now().toISOString() };
+    if (!order) { await repo.insertRefund(refundRow); return { orphanRefund: true }; }
+    // Registro + transición + revocación en UNA transacción; si se repite (reintento tras un fallo), todo es idempotente
+    let created = false;
     await repo.tx(async t => {
+      created = await t.insertRefund(refundRow);
       if (full) {
         await t.transitionOrder(order.id, 'REFUNDED', { refundedAt: now().toISOString() });
         await t.setGrantStatus({ orderId: order.id }, 'revoked', { reason: 'refund', ref: refundId, at: now().toISOString() });
@@ -222,11 +235,13 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
       }
       await audit(t, { orderId: order.id, userId: order.userId, type: 'refund', data: { full, amount: ch.amount_refunded } });
     });
-    return { refunded: full ? 'full' : 'partial', orderId: order.id };
+    return { refunded: full ? 'full' : 'partial', orderId: order.id, duplicateRefund: !created };
   }
   async function onDispute(d, phase) {
     const pi = typeof d.payment_intent === 'string' ? d.payment_intent : d.payment_intent && d.payment_intent.id;
     const order = pi ? await repo.findOrderByPaymentIntent(pi) : null;
+    const prev = await repo.getDispute('stripe', d.id);
+    if (phase === 'created' && prev && ['won', 'lost', 'warning_closed'].includes(prev.status)) return { dispute: 'already_closed' };   // «created» reintentado tras el cierre
     await repo.upsertDispute({ id: ids(), orderId: order ? order.id : null, provider: 'stripe', providerDisputeId: d.id, status: d.status, reason: d.reason, amountMinor: d.amount, updatedAt: now().toISOString() });
     if (!order) return { orphanDispute: true };
     await repo.tx(async t => {
@@ -237,11 +252,14 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
         await t.transitionOrder(order.id, 'REVOKED', {});
         await t.setGrantStatus({ orderId: order.id }, 'revoked', { reason: 'dispute_lost', ref: d.id, at: now().toISOString() });
       } else {
-        await t.transitionOrder(order.id, 'FULFILLED', {});
-        await t.setGrantStatus({ orderId: order.id, status: 'suspended' }, 'active', { reason: null, ref: d.id, at: null });
+        // Ganada: si ya se había entregado, se reactiva; si no (pagado sin entregar), vuelve a PAID y se entrega abajo
+        const grants = (await t.listGrantsForOrder(order.id)).filter(g => g.status !== 'revoked');
+        if (grants.length) { await t.transitionOrder(order.id, 'FULFILLED', {}); await t.setGrantStatus({ orderId: order.id, status: 'suspended' }, 'active', { reason: null, ref: d.id, at: null }); }
+        else await t.transitionOrder(order.id, 'PAID', {});
       }
       await audit(t, { orderId: order.id, userId: order.userId, type: `dispute_${phase}`, data: { status: d.status } });
     });
+    if (phase === 'closed' && d.status !== 'lost' && (await repo.getOrder(order.id)).status === 'PAID') await safeFulfill(order.id);
     return { dispute: phase, status: d.status };
   }
 
@@ -274,11 +292,12 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     req(config.appleBillingEnabled, 'apple_billing_disabled', 403);
     req(verifiers.apple, 'apple_not_configured', 503);
     const tx = await verifiers.apple.verifyTransaction(signedTransaction);   // verifica la cadena JWS con la librería oficial
-    req(!tx.appAccountToken || tx.appAccountToken === user.id, 'purchase_belongs_to_other_user', 409);
+    req(tx.appAccountToken, 'missing_app_account_token', 409);   // la app siempre lo pone: sin él, cualquiera podría reclamar la compra
+    req(tx.appAccountToken === user.id, 'purchase_belongs_to_other_user', 409);
     const sku = skuFromPlatformId('apple', tx.productId); req(sku, 'unknown_product', 404);
     await repo.insertIapReceipt({ id: ids(), userId: user.id, provider: 'apple', transactionId: tx.transactionId, originalTransactionId: tx.originalTransactionId, productId: sku, environment: tx.environment, storefront: tx.storefront, verifiedAt: now().toISOString() });
     if (tx.revocationDate) return revokeBySource('apple', tx.originalTransactionId, 'apple_revoked');
-    return grantFromProvider({ userId: user.id, sku, source: 'apple', sourcePurchaseId: tx.originalTransactionId || tx.transactionId, amountMinor: tx.price != null ? Math.round(tx.price / 10) : null, currency: tx.currency || 'EUR', country: tx.storefront || null });
+    return grantFromProvider({ userId: user.id, sku, source: 'apple', sourcePurchaseId: tx.originalTransactionId || tx.transactionId, amountMinor: tx.price != null ? Math.round(tx.price / 1000 * 10 ** (ZERO_DECIMAL.includes(tx.currency) ? 0 : 2)) : null, currency: tx.currency || 'EUR', country: tx.storefront || null });
   }
   async function handleAppleNotification(signedPayload) {
     req(verifiers.apple, 'apple_not_configured', 503);
@@ -299,8 +318,12 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     req(config.googleBillingEnabled, 'google_billing_disabled', 403);
     req(verifiers.google, 'google_not_configured', 503);
     const product = productOrThrow(sku);
+    req(product.platformProducts && product.platformProducts.google && product.platformProducts.google.productId, 'unknown_product', 404);
+    req(typeof purchaseToken === 'string' && purchaseToken.length > 0, 'bad_token');
     const p = await verifiers.google.getPurchase(product.platformProducts.google.productId, purchaseToken);
-    req(!p.obfuscatedAccountId || p.obfuscatedAccountId === await accountHash(user.id), 'purchase_belongs_to_other_user', 409);
+    req(p.obfuscatedAccountId, 'missing_account_id', 409);
+    req(p.obfuscatedAccountId === await accountHash(user.id), 'purchase_belongs_to_other_user', 409);
+    p.orderId = p.orderId || `gtoken:${purchaseToken.slice(0, 120)}`;   // algunas compras de prueba no traen orderId
     await repo.insertIapReceipt({ id: ids(), userId: user.id, provider: 'google', transactionId: p.orderId, originalTransactionId: p.orderId, productId: sku, environment: p.testPurchase ? 'test' : 'production', storefront: p.regionCode || null, verifiedAt: now().toISOString() });
     if (p.purchaseState === 'PENDING') return { pending: true };
     req(p.purchaseState === 'PURCHASED', 'purchase_not_completed', 409);
@@ -380,7 +403,7 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     async searchUsers(a, q) { await requireAdmin(a); return repo.searchUsers(String(q || '').slice(0, 64)); },
     async userDetail(a, userId) { await requireAdmin(a); return { grants: await repo.listGrants(userId), orders: await repo.listOrders(userId), entitlements: await entitlementsOf(userId) }; },
     async grant(a, { userId, entitlementId, reason }) {
-      await requireAdmin(a); req(catalog.entitlements[entitlementId], 'unknown_entitlement', 404); req(reason && String(reason).trim().length >= 3, 'reason_required');
+      await requireAdmin(a); req(typeof userId === 'string' && userId.length >= 8, 'user_required'); req(catalog.entitlements[entitlementId], 'unknown_entitlement', 404); req(reason && String(reason).trim().length >= 3, 'reason_required');
       const actionId = ids();
       const r = await repo.insertGrant({ id: ids(), userId, entitlementId, source: 'admin', sourcePurchaseId: `admin:${actionId}`, orderId: null, productId: null, grantedAt: now().toISOString(), status: 'active' });
       await adminAction(a, 'grant', userId, { entitlementId, reason, actionId });
@@ -388,6 +411,7 @@ export function createCommerceService({ repo, catalog = CATALOG, config: cfg = {
     },
     async revoke(a, { userId, entitlementId, reason }) {
       await requireAdmin(a); req(reason && String(reason).trim().length >= 3, 'reason_required');
+      req(typeof userId === 'string' && userId.length >= 8, 'user_required'); req(catalog.entitlements[entitlementId], 'unknown_entitlement', 404);
       const n = await repo.setGrantStatus({ userId, entitlementId, status: 'active' }, 'revoked', { reason: `admin: ${reason}`, ref: a.id, at: now().toISOString() });
       await adminAction(a, 'revoke', userId, { entitlementId, reason });
       return { revoked: n };

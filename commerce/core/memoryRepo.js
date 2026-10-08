@@ -10,6 +10,8 @@ const EMPTY = () => ({ orders: {}, payments: [], events: {}, grants: [], refunds
 
 export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
   let S = state ? clone(state) : EMPTY();
+  let queue = Promise.resolve(), inTx = false;
+  const inRange = (at, { from, to } = {}) => (!from || at >= from) && (!to || at < to);
   if (!state) for (const p of catalog.products) for (const [cur, v] of Object.entries(p.prices || {})) if (v != null) S.prices[`${p.id}|${cur}`] = { amountMinor: v, currency: cur };
   const self = {
     // --- utilidades del repo en memoria ---
@@ -18,7 +20,12 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
     seedAdmin(userId) { if (!S.admins.includes(userId)) S.admins.push(userId); },
     seedProfile(p) { S.profiles[p.userId] = Object.assign({}, p); },
     seedPromo(p) { S.promos[p.code] = Object.assign({ redemptions: 0, active: true }, p); },
-    async tx(fn) { const snap = clone(S); try { return await fn(self); } catch (e) { S = snap; throw e; } },
+    // Transacciones en serie (como un bloqueo): una no puede deshacer lo que escribe otra a medias
+    async tx(fn) {
+      if (inTx) return fn(self);   // transacción anidada: forma parte de la exterior
+      const run = async () => { const snap = clone(S); inTx = true; try { return await fn(self); } catch (e) { S = snap; throw e; } finally { inTx = false; } };
+      const p = queue.then(run, run); queue = p.catch(() => {}); return p;
+    },
 
     // --- catálogo ---
     async getPrice(sku, currency) { return S.prices[`${sku}|${currency}`] || null; },
@@ -57,11 +64,12 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
 
     // --- pagos ---
     async insertPayment(p) {
+      if (!p.providerPaymentId) throw new Error('payments.provider_payment_id NOT NULL');
       if (S.payments.some(x => x.provider === p.provider && x.providerPaymentId === p.providerPaymentId)) return { created: false };
       const o = S.orders[p.orderId]; S.payments.push(Object.assign({ sku: o && o.sku }, p)); return { created: true };
     },
     async updatePaymentFees(orderId, fees) { for (const p of S.payments) if (p.orderId === orderId) Object.assign(p, fees); },
-    async listPayments() { return clone(S.payments); },
+    async listPayments(r = {}) { return clone(S.payments.filter(p => inRange(p.createdAt, r))); },
 
     // --- eventos de proveedor (idempotencia) ---
     async recordProviderEvent(e) {
@@ -79,7 +87,9 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
       S.grants.push(Object.assign({ revokedAt: null, revokeReason: null, revokeRef: null }, g)); return { created: true };
     },
     async listGrants(userId) { return clone(S.grants.filter(g => g.userId === userId)); },
+    async listGrantsForOrder(orderId) { return clone(S.grants.filter(g => g.orderId === orderId)); },
     async setGrantStatus(filter, status, { reason = null, ref = null, at = null } = {}) {
+      if (!filter.orderId && !filter.userId && !filter.source) throw new Error('setGrantStatus: filtro vacío (afectaría a todos)');
       let n = 0;
       for (const g of S.grants) {
         if (filter.orderId && g.orderId !== filter.orderId) continue;
@@ -103,7 +113,8 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
     },
     async findOrphanRefunds(pi) { return clone(S.refunds.filter(r => !r.orderId && r.providerPaymentId === pi)); },
     async attachRefund(id, orderId) { const r = S.refunds.find(x => x.id === id); if (r) r.orderId = orderId; },
-    async listRefunds() { return clone(S.refunds); },
+    async listRefunds(r = {}) { return clone(S.refunds.filter(x => inRange(x.createdAt, r))); },
+    async getDispute(provider, id) { const d = S.disputes[`${provider}|${id}`]; return d ? clone(d) : null; },
     async upsertDispute(d) { const k = `${d.provider}|${d.providerDisputeId}`; S.disputes[k] = Object.assign(S.disputes[k] || {}, d); },
 
     // --- auditoría ---
@@ -127,7 +138,7 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
 
     // --- analítica, admin, recibos, anuncios ---
     async insertAnalytics(e) { S.analytics.push(clone(e)); },
-    async listAnalytics() { return clone(S.analytics); },
+    async listAnalytics(r = {}) { return clone(S.analytics.filter(e => inRange(e.at, r))); },
     async isAdmin(userId) { return S.admins.includes(userId); },
     async insertAdminAction(a) { S.adminActions.push(clone(a)); },
     async listAdminActions() { return clone(S.adminActions); },
@@ -137,6 +148,9 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
     async countAdRewards(userId, sinceMs) { return S.adRewards.filter(r => r.userId === userId && Date.parse(r.at) >= sinceMs).length; },
     async deleteAccount(userId, refHash) {
       delete S.profiles[userId]; delete S.accounts[userId];
+      for (const e of S.purchaseEvents) if (e.userId === userId) e.userId = null;
+      for (const a of S.adminActions) if (a.targetUserId === userId) Object.assign(a, { targetUserId: null, data: Object.assign({}, a.data, { userRefHash: refHash }) });
+      S.redemptions = S.redemptions.filter(r => r.userId !== userId);
       S.analytics = S.analytics.filter(e => e.userId !== userId);
       for (const o of Object.values(S.orders)) if (o.userId === userId) Object.assign(o, { userId: null, userRefHash: refHash });
       for (const p of S.payments) if (p.userId === userId) Object.assign(p, { userId: null, userRefHash: refHash });

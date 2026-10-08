@@ -227,7 +227,7 @@ Está en [CATALOG.md](CATALOG.md), con el entitlement que concede cada uno y su 
 
 ```
 purchase(product, ctx):
-  si config.environment = development o mock   → MockPaymentProvider
+  si ctx.platform = mock (prototipo) y no es producción → MockPaymentProvider
   si ctx.platform = web o pwa                   → StripePaymentProvider          (stripeEnabled)
   si ctx.platform = ios:
      si config.ios.externalPurchase.enabled, ctx.storefront está en la lista,

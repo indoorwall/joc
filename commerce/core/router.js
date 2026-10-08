@@ -6,7 +6,7 @@ export const PROVIDERS = ['mock', 'stripe', 'apple', 'google'];
 export function choosePaymentProvider(product, ctx, config) {
   if (!config.commerceEnabled) return { provider: null, reason: 'commerce_disabled' };
   if (!product || !product.prices) return { provider: null, reason: 'unknown_product' };
-  if (config.environment === 'development' || ctx.platform === 'mock') return { provider: 'mock', reason: 'development' };
+  if (ctx.platform === 'mock') return config.environment === 'production' ? { provider: null, reason: 'mock_not_in_production' } : { provider: 'mock', reason: 'development' };
   const p = ctx.platform;
   if (p === 'web' || p === 'pwa') return config.stripeEnabled ? { provider: 'stripe', reason: 'web' } : { provider: null, reason: 'stripe_disabled' };
   if (p === 'ios') {

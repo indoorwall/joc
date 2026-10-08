@@ -258,6 +258,8 @@ create table if not exists public.game_saves (
 create or replace function public.refresh_entitlement() returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if new.user_id is null then return new; end if;
+  -- Serializa por (usuario, entitlement): dos concesiones/revocaciones simultáneas no dejan el estado desfasado
+  perform pg_advisory_xact_lock(hashtext(new.user_id::text || ':' || new.entitlement_id));
   insert into public.entitlements (user_id, entitlement_id, status, updated_at)
   values (new.user_id, new.entitlement_id,
           case when exists (select 1 from public.entitlement_grants g where g.user_id = new.user_id and g.entitlement_id = new.entitlement_id and g.status = 'active') then 'active' else 'inactive' end,
@@ -338,6 +340,10 @@ begin
   update public.orders set user_id = null, user_ref_hash = p_ref where user_id = p_user;
   update public.payments set user_id = null, user_ref_hash = p_ref where user_id = p_user;
   update public.entitlement_grants set user_id = null, user_ref_hash = p_ref where user_id = p_user;
+  update public.purchase_events set user_id = null where user_id = p_user;
+  update public.admin_actions set target_user_id = null, data = coalesce(data, '{}'::jsonb) || jsonb_build_object('user_ref_hash', p_ref) where target_user_id = p_user;
+  delete from public.promo_redemptions where user_id = p_user;
+  update public.iap_receipts set user_id = null where user_id = p_user;
   delete from public.entitlements where user_id = p_user;
   delete from public.analytics_events where user_id = p_user;
   delete from public.devices where user_id = p_user;

@@ -4,6 +4,7 @@
 import { createCommerceService } from '../../commerce/core/service.js';
 import { createFakeStripe } from '../../commerce/core/fakeStripe.js';
 import { CATALOG } from '../../commerce/catalog/catalog.js';
+import { accountHash } from '../../commerce/core/service.js';
 
 export async function runContract(name, makeRepo, check) {
   const SECRET = 'whsec_test_contract';
@@ -86,7 +87,7 @@ export async function runContract(name, makeRepo, check) {
     check(T + 'Ver una orden ajena → no existe para ti', await err(c.svc.orderStatus(U2, r.orderId)) === 'order_not_found');
     const ev2 = c.stripe.event('checkout.session.completed', Object.assign({}, c.stripe.sessions[session], { amount_subtotal: 1, amount_total: 1 }));
     const res = await deliver(c.stripe, c.svc, ev2);
-    check(T + 'Importe del pago distinto del de la orden → no se entrega', res.ignored === 'amount_mismatch' && !(await c.svc.getEntitlements(U)).entitlements.length);
+    check(T + 'Importe del pago distinto del de la orden → no se entrega', res.needsAttention === 'amount_mismatch' && !(await c.svc.getEntitlements(U)).entitlements.length);
   }
   // ---------- Pago asíncrono, fallo, expiración ----------
   {
@@ -223,7 +224,7 @@ export async function runContract(name, makeRepo, check) {
     const verifiers = {
       apple: { verifyTransaction: async jws => (jws === 'jws-valido' ? appleTx : jws === 'jws-otro' ? Object.assign({}, appleTx, { appAccountToken: U2.id, transactionId: '2000002', originalTransactionId: '2000002' }) : (() => { throw Object.assign(new Error('bad_jws'), { code: 'bad_jws' }); })()),
         verifyNotification: async p => ({ notificationUUID: 'n-1', notificationType: 'REFUND', transaction: { originalTransactionId: '2000001' } }) },
-      google: { getPurchase: async (pid, token) => ({ orderId: 'GPA.1234', purchaseState: token === 'pending' ? 'PENDING' : 'PURCHASED', acknowledged: false, obfuscatedAccountId: null, productId: pid, regionCode: 'ES', testPurchase: true }), acknowledge: async () => { verifiers.google.acked = (verifiers.google.acked || 0) + 1; } },
+      google: { getPurchase: async (pid, token) => ({ orderId: 'GPA.1234', purchaseState: token === 'pending' ? 'PENDING' : 'PURCHASED', acknowledged: false, obfuscatedAccountId: await accountHash(U2.id), productId: pid, regionCode: 'ES', testPurchase: true }), acknowledge: async () => { verifiers.google.acked = (verifiers.google.acked || 0) + 1; } },
     };
     const c = await fresh({ appleBillingEnabled: true, googleBillingEnabled: true }, { verifiers });
     await c.svc.verifyAppleTransaction(U, 'jws-valido');
@@ -241,7 +242,58 @@ export async function runContract(name, makeRepo, check) {
     await c.svc.handleGoogleVoided({ orderId: 'GPA.1234', eventId: 'v-1' });
     check(T + 'Google: compra anulada (voided) → entitlement revocado', !(await c.svc.getEntitlements(U2)).entitlements.length);
     const off = await fresh({}, { verifiers });
+    check(T + 'Google: SKU sin producto en Play → 404 (no 500)', await err(c.svc.verifyGooglePurchase(U2, { sku: 'promo_press', purchaseToken: 'tok' })) === 'unknown_product');
+    const sinToken = await fresh({ appleBillingEnabled: true }, { verifiers: { apple: { verifyTransaction: async () => Object.assign({}, appleTx, { appAccountToken: undefined, transactionId: '9', originalTransactionId: '9' }) } } });
+    check(T + 'Apple: transacción sin appAccountToken → rechazada (nadie puede reclamar compras ajenas)', await err(sinToken.svc.verifyAppleTransaction(U, 'x')) === 'missing_app_account_token');
     check(T + 'Apple/Google desactivados por flag → no se procesa nada', await err(off.svc.verifyAppleTransaction(U, 'jws-valido')) === 'apple_billing_disabled' && await err(off.svc.verifyGooglePurchase(U, { sku: 'remove_ads', purchaseToken: 't' })) === 'google_billing_disabled');
+  }
+  // ---------- Revisión de seguridad: reintentos y desorden ----------
+  {
+    const c = await fresh();
+    const a = await buy(c);
+    await deliver(c.stripe, c.svc, c.stripe.pay(a.session));
+    const ev = c.stripe.refund(a.session);
+    const realSet = c.repo.setGrantStatus;
+    c.repo.setGrantStatus = async () => { throw new Error('db_timeout'); };   // falla a mitad (tras registrar el reembolso)
+    const e1 = await err(deliver(c.stripe, c.svc, ev));
+    c.repo.setGrantStatus = realSet;
+    await deliver(c.stripe, c.svc, ev);   // Stripe reintenta el MISMO evento
+    check(T + 'Reembolso que falla a mitad y se reintenta → al final REFUNDED y revocado (nada se queda a medias)', e1 !== null && (await c.repo.getOrder(a.r.orderId)).status === 'REFUNDED' && !(await c.svc.getEntitlements(U)).entitlements.length);
+    const b = await buy(c, U2);
+    const paidEv = c.stripe.pay(b.session);
+    await deliver(c.stripe, c.svc, paidEv);
+    const pi = (await c.repo.getOrder(b.r.orderId)).providerPaymentId;
+    await c.repo.insertRefund({ id: crypto.randomUUID(), orderId: null, provider: 'stripe', providerRefundId: 're_tarde', providerPaymentId: pi, amountMinor: 99, currency: 'EUR', full: true, reason: null, createdAt: clock().toISOString() });
+    await deliver(c.stripe, c.svc, Object.assign({}, paidEv, { id: paidEv.id + 'r' }));   // repetición del «completed» con el reembolso huérfano ya guardado
+    check(T + 'Reembolso tardío ya entregado → REFUNDED y concesiones revocadas (no queda nada activo)', (await c.repo.getOrder(b.r.orderId)).status === 'REFUNDED' && !(await c.svc.getEntitlements(U2)).entitlements.length);
+    if (c.repo.seedAdmin) c.repo.seedAdmin(ADMIN); else await c.repo.addAdmin(ADMIN);
+    check(T + 'Admin revoke sin usuario o entitlement → rechazado (nunca revoca a todos)', await err(c.svc.admin.revoke({ id: ADMIN }, { reason: 'limpieza general' })) === 'user_required' && await err(c.svc.admin.revoke({ id: ADMIN }, { userId: U.id, reason: 'sin entitlement' })) === 'unknown_entitlement');
+    let empty = null; try { await c.repo.setGrantStatus({ status: 'active' }, 'revoked', {}); } catch (e) { empty = e.message; }
+    check(T + 'El repositorio rechaza revocar con un filtro vacío', !!empty);
+  }
+  {
+    const c = await fresh();
+    const a = await buy(c);
+    const ev = c.stripe.event('checkout.session.completed', Object.assign({}, (c.stripe.pay(a.session), c.stripe.sessions[a.session]), { amount_subtotal: 50, amount_total: 50 }));
+    const r = await deliver(c.stripe, c.svc, ev);
+    const o = await c.repo.getOrder(a.r.orderId);
+    check(T + 'Importe que no cuadra → la orden queda PAID con error para el admin (no se pierde en silencio, no se entrega)', r.needsAttention === 'amount_mismatch' && o.status === 'PAID' && o.fulfillmentError === 'amount_mismatch' && !(await c.svc.getEntitlements(U)).entitlements.length);
+    // disputa sobre una orden pagada que nunca se entregó → ganada → se entrega
+    const b = await buy(c, U2);
+    const realIns = c.repo.insertGrant; c.repo.insertGrant = async () => { throw new Error('db_down'); };
+    await err(deliver(c.stripe, c.svc, c.stripe.pay(b.session)));
+    c.repo.insertGrant = realIns;
+    const dp = c.stripe.dispute(b.session, 'needs_response');
+    await deliver(c.stripe, c.svc, dp);
+    await deliver(c.stripe, c.svc, c.stripe.dispute(b.session, 'won', dp.data.object.id));
+    check(T + 'Disputa ganada de una orden que no se había entregado → se entrega (no queda FULFILLED sin nada)', (await c.repo.getOrder(b.r.orderId)).status === 'FULFILLED' && (await c.svc.getEntitlements(U2)).entitlements.includes('cosmetic.debut_pack'));
+    const c3 = await fresh();
+    const d = await buy(c3);
+    await deliver(c3.stripe, c3.svc, c3.stripe.pay(d.session));
+    const created = c3.stripe.dispute(d.session, 'needs_response');
+    await deliver(c3.stripe, c3.svc, c3.stripe.dispute(d.session, 'won', created.data.object.id));   // el cierre llega antes
+    await deliver(c3.stripe, c3.svc, created);
+    check(T + 'Disputa cerrada antes que «created» → no se queda suspendida para siempre', (await c3.svc.getEntitlements(U)).entitlements.includes('cosmetic.debut_pack'));
   }
   // ---------- Producción y modo live ----------
   {
