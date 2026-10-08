@@ -6229,6 +6229,15 @@ function bonoMJInd(s, A) {
   return [A.sd * (mj.ok ? (mj.perfecto ? 1.4 : 0.9) : (mj.desastre ? -1.8 : -1.1)), mj];
 }
 // Cartel grande del desenlace: el dinero que ganas (o que te pierdes) y las consecuencias
+// ¿Lo que ves ahora es una mala noticia? Entonces nada de confeti (ni el que quedara de antes)
+function hayMalaNoticia(s) {
+  const ev = s && s.pendiente;
+  if (ev && ((ev.tipo === 'momentoRes' && !ev.ok) || (ev.tipo === 'desenlace' && !ev.bien) || (ev.tipo === 'fin' && (ev.zona === 'descenso' || ev.quedaste)))) return true;
+  if ([ev].concat((s && s.cola) || []).some(e => e && ((e.tipo === 'momentoRes' && !e.ok) || (e.tipo === 'desenlace' && !e.bien)))) return true;
+  // la semana en la que fallas un momento decisivo no se celebra nada
+  return !!(s && s.mj && !s.mj.ok && s.semana - s.mj.semana <= 1);
+}
+function quitarConfeti() { document.querySelectorAll('body > .confetti').forEach(x => x.remove()); }
 function cartelDesenlace(bien, titulo, sub, gana, pierde, efectos) {
   const tot = l => l.reduce((a, [, v]) => a + v, 0), fila = ([txt, v], signo) => `<div class="dsl"><span>${esc(txt)}</span><b>${v < 0 ? '−' : signo}${cr(Math.abs(Math.round(v)))}</b></div>`;
   return `<div class="desenlace ${bien ? 'bien' : 'mal'}"><div class="dst">${esc(titulo)}</div>${sub ? `<div class="dss">${esc(sub)}</div>` : ''}
@@ -6348,7 +6357,7 @@ function terminarMJ() {
   botones += `<button class="btn ${ok ? 'g' : 'w'} full" id="mjAcepta">${ok ? (ev.motor === 'equipo' ? '¡Al partido!' : '¡A competir!') : 'Aceptar el resultado'}</button>`;
   pintarMJ(`<div class="mjc"><div class="mji">${ok ? (score >= K.perfecto ? '🌟' : '🎉') : '😖'}</div><h2>${ok ? (score >= K.perfecto ? '¡Perfecto!' : '¡Lo consigues!') : 'Has fallado'}</h2>
     <p class="mjbig">${Math.round(score * 100)} %</p><p>${esc(efecto)}.${!ok && ev.reintentado ? ' Ya has usado tu reintento para este momento.' : ''}</p>${botones}</div>`);
-  if (ok) sonar('ovacion');
+  if (ok) sonar('ovacion'); else quitarConfeti();
   const c = V.capa;
   c.querySelector('#mjAcepta').onclick = () => { cerrarCapaMJ(); if (resolver('res:' + score)) cerrarSemana(); };
   const bv = c.querySelector('#mjVida'); if (bv) bv.onclick = () => { vidasMJ(S).n--; reintentarMJ(); };
@@ -6871,8 +6880,7 @@ function render() {
   const mh = S.pendiente ? `<div class="pop" id="evento">${popup()}</div>` : '';
   if (mh !== modalHtml) { $('modal').innerHTML = mh; modalHtml = mh; }
   // Sin confeti si lo que se ve es una mala noticia (fallo, descenso, quedarse a las puertas…)
-  const ev = S.pendiente, triste = !!ev && ((ev.tipo === 'momentoRes' && !ev.ok) || (ev.tipo === 'desenlace' && !ev.bien) || (ev.tipo === 'fin' && (ev.zona === 'descenso' || ev.quedaste)));
-  if (triste) celebrar = false;
+  if (hayMalaNoticia(S)) { celebrar = false; quitarConfeti(); }
   if (celebrar) { document.body.insertAdjacentHTML('beforeend', confeti()); setTimeout(() => document.querySelectorAll('body > .confetti').forEach(x => x.remove()), 3500); celebrar = false; }
   if (S.aviso) { $('toast').innerHTML = `<div>${esc(S.aviso)}</div>`; S.aviso = null; }
   if (bajarDiario) { window.scrollTo(0, 0); bajarDiario = false; }

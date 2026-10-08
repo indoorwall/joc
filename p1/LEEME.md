@@ -462,7 +462,7 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
 
 ## 7. Pruebas realmente ejecutadas (Chromium sin pantalla, Linux)
 
-201 de 201 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
+202 de 202 comprobaciones superadas con `node tests/p1.test.cjs` (unos 10 minutos), emulando un iPhone 13 con toques:
 1. Presentación, fichas de la semana (mañana, tarde, noche), lo próximo, indicadores, resumen de la semana, «Jugar semana»,
    tarde programada con toques que se hace al cerrar la semana, plan que se repite, las 7 hojas,
    botones de ≥ 44 px, sin desplazamiento horizontal a 320/375/390 px, euros, sin errores ni peticiones externas.
@@ -639,7 +639,8 @@ Tu dinero y las cajas de negocios y clubes están **separados**; solo se mueven 
    - Individuales, tras una competición con momento decisivo: «¡FELICIDADES! ¡Podio / Ganas / Te clasificas para los
      Juegos!» con premio, primas de marcas e impuestos, o «Te quedas sin podio / sin Juegos» con lo que te pierdes. Nueva:
      ayuda de la federación de 6.000 € por clasificarte para los Juegos.
-   - Sin confeti cuando la noticia es mala.
+   - Sin confeti cuando la noticia es mala: ni en el fallo del minijuego, ni en el resultado, ni en el desenlace, ni en el
+     resto de ventanas de la semana en la que fallas un momento decisivo (también se quita el que quedara de antes).
 
 Además, tres vidas simuladas hasta los 66 años superan las 10 pantallas sin errores.
 

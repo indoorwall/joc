@@ -1572,6 +1572,7 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
         const T = S.temporada; if (T.jornada === 17) { const yo = S.contrato.clubId, o = Object.keys(T.tabla).filter(x => x !== yo); for (const id of o) T.tabla[id].pts = 20; T.tabla[yo].pts = 30; T.tabla[o[0]].pts = 34; T.tabla[o[1]].pts = 30; T.tabla[o[1]].gf = 99; }
         G.elegir('normal'); G.avanzarSemana(); if (G.S.pendiente && G.S.pendiente.tipo === 'minijuego' && T.jornada === 17) base = JSON.stringify(G.S); }
       if (!base) return out;
+      window.__baseMJ = base;
       const jugar = sc => { G.S = JSON.parse(base); G.S.contrato.primaAscenso = 4000; G.S.contrato.subidaAscenso = 30; G.resolver('res:' + sc); G.avanzarSemana(); limpiar(); return G.S.pendiente; };
       const sube = jugar(1), queda = jugar(0);
       out.sube = !!sube && sube.tipo === 'fin' && sube.zona === 'ascenso' && sube.gana.some(([x, v]) => /Prima del club/.test(x) && v > 0) && sube.gana.some(([x]) => /Subida de sueldo/.test(x));
@@ -1581,6 +1582,23 @@ check('Escalada: oro olímpico = 90.000 € y beca de 60.000 €/año hasta los 
       return out;
     });
     check('Desenlaces: si subes, «¡FELICIDADES!» con las primas y la subida de sueldo en euros', fin.sube && fin.htmlSube, JSON.stringify(fin));
+    // Confeti: nunca cuando fallas; sí cuando aciertas y subes (se mira cada pantalla, como un jugador)
+    const conf = await page.evaluate(async () => {
+      const G = __P1, espera = ms => new Promise(f => setTimeout(f, ms)), out = {};
+      const recorrer = async sc => {
+        document.querySelectorAll('body > .confetti').forEach(x => x.remove());
+        G.S = JSON.parse(window.__baseMJ); G.S.contrato.primaAscenso = 4000; G.silencio = false;
+        let visto = 0;
+        const mira = () => { visto += document.querySelectorAll('body > .confetti').length; };
+        G.resolver('res:' + sc); G.render(); mira(); G.avanzarSemana(); G.render(); mira(); await espera(30); mira();
+        for (let g = 0; G.S.pendiente && g < 12; g++) { G.resolver('ok') || G.resolver('0') || G.resolver('quedarse') || G.resolver('si'); G.render(); mira(); await espera(30); mira(); }
+        return visto;
+      };
+      if (!window.__baseMJ) return { sin: true };
+      out.falla = await recorrer(0); out.acierta = await recorrer(1);
+      return out;
+    });
+    check('Confeti: nunca al fallar el momento decisivo (y sí al acertar y subir)', !conf.sin && conf.falla === 0 && conf.acierta > 0, JSON.stringify(conf));
     check('Desenlaces: si te quedas a las puertas, «Os quedáis…» con lo que te pierdes en euros y las consecuencias', fin.queda && fin.htmlQueda, JSON.stringify(fin));
     // Interfaz: jugar con toques, fallar, reintentar con vida y luego con anuncio de prueba
     const ui = await page.evaluate(async () => {
