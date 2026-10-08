@@ -10,6 +10,7 @@
   function nuevoR(s) { return { semana: s.semana, lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [], partido: null, dinero0: s.p.dinero, energia0: s.p.energia, decision: null }; }
 
   function jugarSemana(s, accion, opc) {
+    P2.activarDeporte(s.deporte);
     if (s.pendiente) return null;
     s.mjSemana = opc && opc.minijuego ? { tipo: String(opc.minijuego.tipo), p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
     const especial = accion === '__acto' || accion === '__evento';
@@ -90,6 +91,7 @@
 
   // Resolver la decisión pendiente. Devuelve lo que se mostrará como consecuencia inmediata
   function resolverDecision(s, opId) {
+    P2.activarDeporte(s.deporte);
     const ev = s.pendiente; if (!ev) return null;
     const D = P2.DECISIONES[ev.tipo]; if (!D) { P2.siguiente(s); return null; }
     const vista = D.vista(s, ev);

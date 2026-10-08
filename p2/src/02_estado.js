@@ -14,7 +14,15 @@
   P2.tieneEnt = P2.tieneEnt || (() => false);
   function celebrar(s, c) { const l = s.celebraciones = Array.isArray(s.celebraciones) ? s.celebraciones : []; l.push(Object.assign({ semana: s.semana }, c)); if (l.length > 6) l.shift(); }
   P2.celebrar = celebrar;
-  function nuevaPartida(opc = {}) { const s = partidaBase(opc); if (P2.asignarVariante) P2.asignarVariante(s); return s; }
+  function nuevaPartida(opc = {}) {
+    // Deporte de la partida (el fútbol si no se dice; los de pago, solo si la cuenta los tiene: lo comprueba quien la crea)
+    const dep = P2.DEPORTES && P2.DEPORTES[opc.deporte] ? opc.deporte : 'futbol';
+    if (P2.activarDeporte) P2.activarDeporte(dep);
+    const s = partidaBase(opc); s.deporte = dep;
+    const E = (P2.DEPORTES && P2.DEPORTES[dep].especialidades) || null;
+    s.especialidad = E ? (E.some(([id]) => id === opc.especialidad) ? opc.especialidad : E[0][0]) : null;
+    if (P2.asignarVariante) P2.asignarVariante(s); return s;
+  }
   function partidaBase(opc = {}) {
     const I = CFG.inicio, seed = (opc.seed >>> 0) || ((Date.now() ^ (Math.random() * 1e9)) >>> 0);
     return {
@@ -32,6 +40,8 @@
       historiaCosas: [], trofeos: [], celebraciones: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
+      deporte: 'futbol', especialidad: null,   // deporte de esta carrera (los de pago: expansiones) y tu especialidad
+      superficies: {}, estilo: 0, tiro: 0, gradoRoca: null,   // lo propio de cada deporte (solo cuenta en el suyo)
       seccionesNuevas: [],
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
@@ -97,7 +107,8 @@
   // migrateSave: cualquier cosa → partida v2 válida, o null si no se puede aprovechar
   function migrateSave(v) {
     if (!v || typeof v !== 'object') return null;
-    if (v.saveVersion === CFG.saveVersion) return validar(rellenar(nuevaPartida({ seed: v.seed }), v));
+    if (P2.activarDeporte) P2.activarDeporte(v.deporte && P2.DEPORTES && P2.DEPORTES[v.deporte] ? v.deporte : 'futbol');
+    if (v.saveVersion === CFG.saveVersion) return validar(rellenar(nuevaPartida({ seed: v.seed, deporte: v.deporte, especialidad: v.especialidad }), v));
     if (v.saveVersion == null && v.p && (v.fase || v.semana)) return validar(desdeP1(v));   // partida de P1
     if (typeof v.saveVersion === 'number' && v.saveVersion > CFG.saveVersion) return null;    // de una versión futura: no se toca
     return null;
@@ -198,10 +209,13 @@
   function resumenPartida(s) {
     if (!s) return null;
     const of = s.contrato && P2.OFERTAS ? P2.OFERTAS[s.contrato.oferta] : null;
-    return { nombre: s.nombre, semana: s.semana, fase: s.fase, edad: s.edad, dinero: s.p.dinero, club: of ? of.club : null,
+    return { deporte: s.deporte || 'futbol', nombre: s.nombre, semana: s.semana, fase: s.fase, edad: s.edad, dinero: s.p.dinero, club: of ? of.club : null,
       patrimonio: P2.patrimonio ? P2.patrimonio(s) : s.p.dinero, look: s.look, trofeos: (s.trofeos || []).length, empresas: (s.negocios || []).length };
   }
-  function listarPartidas() {
+  // Leer otras carreras activa su deporte un momento: al acabar se vuelve al que estaba
+  function sinCambiarDeporte(fn) { const prev = P2.deporteActivo; try { return fn(); } finally { if (prev && P2.activarDeporte) P2.activarDeporte(prev); } }
+  function listarPartidas() { return sinCambiarDeporte(listarPartidas_); }
+  function listarPartidas_() {
     const x = indice(), max = ranurasMax(), ls = LS(), out = [];
     for (let i = 0; i < totalRanuras(); i++) {
       let s = null, raw = null;
@@ -242,7 +256,8 @@
     return j;
   }
   // Copiar una carrera a otra ranura libre (probar otro camino sin perder el tuyo)
-  function copiarPartida(i, j) {
+  function copiarPartida(i, j) { return sinCambiarDeporte(() => copiarPartida_(i, j)); }
+  function copiarPartida_(i, j) {
     const ls = LS(); if (!ls || !okRanura(i) || !okRanura(j) || i === j || j >= ranurasMax()) return false;
     let raw = null; try { raw = ls.getItem(claveRanura(i)); if (!raw || ls.getItem(claveRanura(j))) return false; } catch (_) { return false; }
     const s = migrateSave(JSON.parse(raw)); if (!s) return false;
@@ -262,7 +277,8 @@
   function limpiarBorradas(lista) { const x = indice(); x.borradas = (x.borradas || []).filter(i => !(lista || []).includes(i)); escribirIndice(x); }
   // Traer carreras de la cuenta. Por defecto solo rellena ranuras vacías o más antiguas que la copia; nunca escribe algo
   // que no sea una partida válida. Las ranuras de pago solo se escriben si las tienes (si no, se quedan en la nube).
-  function importarPartidas(blob, { forzar = false } = {}) {
+  function importarPartidas(blob, opc) { return sinCambiarDeporte(() => importarPartidas_(blob, opc)); }
+  function importarPartidas_(blob, { forzar = false } = {}) {
     const ls = LS(), r = { escritas: [], omitidas: [], invalidas: [] };
     if (!ls || !blob || !Array.isArray(blob.ranuras)) return r;
     const x = indice(), max = ranurasMax();

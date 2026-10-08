@@ -52,7 +52,10 @@
     const ids = M.ligas[ligaId], fuerzas = {};
     for (const id of ids) fuerzas[id] = r1(M.equipos[id].fuerza + P2.entre(s, -1.5, 1.5));   // cada temporada los rivales cambian un poco
     const num = (s.temporadasJugadas || []).length + 1;
-    return { liga: ligaId, num, yo: miEquipo, fuerzas, equipos: ids.map(id => ({ id, n: M.equipos[id].n })), objetivo: objetivoClub(s, ligaId, miEquipo),
+    const D = P2.deporteDe(s);
+    // En los deportes individuales, en la tabla estás TÚ (con tu nombre), no tu club
+    const yoN = D.individual ? `${s.nombre} (tú)` : null;
+    return { liga: ligaId, num, yo: miEquipo, fuerzas, formato: D.formato, deporte: D.id, equipos: ids.map(id => ({ id, n: id === miEquipo && yoN ? yoN : M.equipos[id].n })), objetivo: objetivoClub(s, ligaId, miEquipo),
       calendario: calendario(ids), resultados: [], jornada: 0, cerrada: false };
   }
 
@@ -60,7 +63,18 @@
   const nombreEquipo = (T, id) => (equiposDe(T).find(e => e.id === id) || { n: id }).n;
   const objetivoDe = T => OBJETIVOS[T.objetivo] ? T.objetivo : 'top4';
 
+  // Circuito (escalada, skate, surf): cada prueba reparte puntos por puesto
+  const PTS_CIRCUITO = [10, 8, 6, 5, 4, 3, 2, 1];
   function clasificacion(T) {
+    if (T.formato === 'circuito') {
+      const t = {};
+      for (const e of equiposDe(T)) t[e.id] = { id: e.id, n: e.n, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0, podios: 0 };
+      for (const j of T.resultados) for (const r of j) {
+        if (!r.orden) continue;
+        r.orden.forEach((id, i) => { const x = t[id]; if (!x) return; x.pj++; x.pts += PTS_CIRCUITO[i] || 0; if (i === 0) x.g++; if (i < 3) x.podios++; x.gf += r.orden.length - i; x.gc += i; });
+      }
+      return Object.values(t).sort((a, b) => b.pts - a.pts || b.g - a.g || b.podios - a.podios || a.n.localeCompare(b.n));
+    }
     const tabla = {};
     for (const e of equiposDe(T)) tabla[e.id] = { id: e.id, n: e.n, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, pts: 0 };
     for (const j of T.resultados) for (const m of j) {
@@ -83,6 +97,20 @@
   }
 
   function golesEsperados(fA, fB) { return clamp(1.25 * Math.exp((fA - fB) / 14), 0.25, 3.6); }
+  // Normal aproximada con el azar de la partida (sin tocar el formato del fútbol)
+  const normal = s => (rnd(s) + rnd(s) + rnd(s) - 1.5) * 2;
+  // Basket: puntos (sin empates: prórroga) · Tenis: sets al mejor de 3
+  function marcadorPuntos(s, fl, fv) {
+    let a = Math.round(76 + (fl - fv) * 0.9 + normal(s) * 7), b = Math.round(76 + (fv - fl) * 0.9 + normal(s) * 7);
+    a = Math.max(48, a); b = Math.max(48, b);
+    while (a === b) { a += Math.round(rnd(s) * 8); b += Math.round(rnd(s) * 8); }   // prórroga
+    return [a, b];
+  }
+  function marcadorSets(s, fl, fv) {
+    const pA = clamp(0.5 + (fl - fv) / 30, 0.08, 0.92);
+    let a = 0, b = 0; while (a < 2 && b < 2) { if (rnd(s) < pA) a++; else b++; }
+    return [a, b];
+  }
 
   // Juega la jornada entera. extra: lo que tu actuación suma a la fuerza de tu equipo
   function jugarJornada(s, T, extra = 0) {
@@ -90,9 +118,17 @@
     if (T.cerrada || j >= T.calendario.length) return null;
     if (T.resultados[j]) return T.resultados[j];
     const out = [];
-    for (const [l, v] of T.calendario[j]) {
+    if (T.formato === 'circuito') {
+      // Todos compiten a la vez: cada uno saca una puntuación (fuerza + forma del día) y se ordenan
+      const sc = {};
+      for (const e of equiposDe(T)) sc[e.id] = r1(T.fuerzas[e.id] + (e.id === T.yo ? extra : 0) + normal(s) * 3.2);
+      if (T.yoNoCompite) sc[T.yo] = -99;
+      const orden = Object.keys(sc).sort((a, b) => sc[b] - sc[a]);
+      out.push({ orden, sc });
+    } else for (const [l, v] of T.calendario[j]) {
       const fl = T.fuerzas[l] + CFG.liga.localia + (l === T.yo ? extra : 0), fv = T.fuerzas[v] + (v === T.yo ? extra : 0);
-      out.push({ l, v, gl: poisson(s, golesEsperados(fl, fv)), gv: poisson(s, golesEsperados(fv, fl)) });
+      const [gl, gv] = T.formato === 'puntos' ? marcadorPuntos(s, fl, fv) : T.formato === 'sets' ? marcadorSets(s, fl, fv) : [poisson(s, golesEsperados(fl, fv)), poisson(s, golesEsperados(fv, fl))];
+      out.push({ l, v, gl, gv });
     }
     T.resultados[j] = out;
     T.jornada = j + 1;
@@ -103,6 +139,17 @@
   // ¿Qué te juegas esta jornada? Frases con contexto de la tabla
   function contexto(T) {
     if (T.cerrada) return [];
+    if (T.formato === 'circuito') {
+      const tb = clasificacion(T), me = tb.find(r => r.id === T.yo), ps = tb.indexOf(me) + 1, Zc = zonas(T.liga), qd = T.calendario.length - T.jornada;
+      if (T.jornada === 0) return ['Primera prueba del circuito: todo por empezar.'];
+      const l2 = [];
+      if (Zc.asc) l2.push(ps <= Zc.asc ? 'Estás en puestos de ascenso: un podio te asegura seguir arriba.' : (tb[Zc.asc - 1].pts - me.pts <= 10 ? 'Un podio te mete en puestos de ascenso.' : `Vas ${ps}º: cada podio cuenta para subir.`));
+      else if (ps === 1) l2.push('Vas líder del circuito: el título está en tu mano.');
+      if (Zc.desc && ps > tb.length - Zc.desc) l2.push('Estás en descenso: necesitas un buen resultado ya.');
+      else if (Zc.desc && ps === tb.length - Zc.desc) l2.push('Un mal resultado te mete en descenso.');
+      if (tb[0].id !== T.yo && tb[0].pts - me.pts > 10 * qd) l2.push('El título ya es imposible.');
+      return l2.length ? l2 : [`Vas ${ps}º del circuito.`];
+    }
     const tabla = clasificacion(T), yo = tabla.find(r => r.id === T.yo), pos = tabla.indexOf(yo) + 1, n = tabla.length;
     const Z = zonas(T.liga), asc = Z.asc, desc = n - Z.desc;
     const pos2 = extra => { const pts = yo.pts + extra; return 1 + tabla.filter(r => r.id !== T.yo && (r.pts > pts || (r.pts === pts && (r.gf - r.gc) >= (yo.gf - yo.gc)))).length; };
@@ -165,5 +212,5 @@
     return res;
   }
 
-  Object.assign(P2, { mundo, ligaDeClub, zonas, calendario, crearTemporada, clasificacion, posicion, partidoDeLaJornada, jugarJornada, contexto, nombreEquipo, golesEsperados, moverEquipos, objetivoClub, objetivoDe });
+  Object.assign(P2, { PTS_CIRCUITO, marcadorPuntos, marcadorSets, mundo, ligaDeClub, zonas, calendario, crearTemporada, clasificacion, posicion, partidoDeLaJornada, jugarJornada, contexto, nombreEquipo, golesEsperados, moverEquipos, objetivoClub, objetivoDe });
 })(globalThis.P2 = globalThis.P2 || {});

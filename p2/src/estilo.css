@@ -867,3 +867,12 @@ select.inp { background: #fff; }
 .celeCampeon small { color: #ffc83d; font-weight: 900; }
 @keyframes salta { from { transform: translateY(0); } to { transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .celeCampeon .iapPrev { animation: none; } }
+
+/* ---------- Elegir deporte ---------- */
+.deportes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+.dep { border: 2px solid var(--line); background: #fff; border-radius: 16px; padding: 8px 4px; font: inherit; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 76px; }
+.dep span { font-size: 26px; }
+.dep b { font-size: 14px; }
+.dep small { font-size: 11px; color: var(--dim); font-weight: 800; }
+.dep.sel { border-color: var(--dc, var(--blue)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dc, #3d7bff) 30%, transparent); }
+.dep.lock { opacity: .78; }

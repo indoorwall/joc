@@ -113,7 +113,49 @@
         L.push(['💼', 'Pasas la semana pendiente de tu empresa (−2 confianza del míster).']);
         break;
       }
+      default: accionDeporte(s, id, R, veces);
     }
+    // Skate: grabar vídeo también te da estilo
+    if (id === 'prensa' && P2.deporteDe(s).id === 'skate') { s.estilo = Math.min(20, (s.estilo || 0) + 1); L.push(['🎥', `Tu parte de vídeo mejora tu estilo (${s.estilo}/20).`]); }
+  }
+
+  // ---------- Acciones propias de cada deporte ----------
+  const GRADOS = ['6a', '6b', '6c', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a'];
+  function accionDeporte(s, id, R, veces) {
+    const P = s.p, L = R.lineas, W = R.porque, D = P2.deporteDe(s);
+    if (id === 'roca') {
+      const g = s.gradoRoca == null ? -1 : s.gradoRoca, sig = Math.min(GRADOS.length - 1, g + 1), dif = 44 + sig * 3;
+      const p = clamp(0.35 + (P.nivel - dif) / 20, 0.08, 0.9), ok = rnd(s) < p;
+      W.push(`Encadenar ${GRADOS[sig]}: probabilidad ${Math.round(p * 100)} % (tu nivel ${nf(P.nivel)} frente a ${dif}).`);
+      if (ok) {
+        s.gradoRoca = sig; const gr = r1(1 + sig * 0.35); P.rep = r1(clamp(P.rep + gr, 0, 100)); const gm = P2.sumarMarca(s, 0.5 + sig * 0.25);
+        L.push(['🪨', `¡Encadenas tu primer ${GRADOS[sig]} en roca! +${nf(gr)} de reputación y +${nf(gm)} de marca.`, 'bien']);
+        if (GRADOS[sig] === '8a' || GRADOS[sig] === '9a') P2.celebrar(s, { tipo: 'grado', grado: GRADOS[sig] });
+      } else { subirNivel(s, 0.4, techoClub(s)); L.push(['🪨', `Pruebas tu proyecto de ${GRADOS[sig]}: te quedas a un movimiento. Vuelves con la piel rota y más técnica.`]); }
+      return;
+    }
+    if (id === 'superficie') {
+      const T = s.temporada, c = T ? P2.condicion(s, T, T.jornada) : s.especialidad;
+      s.superficies = s.superficies || {}; s.superficies[c] = Math.min(3, (s.superficies[c] || 0) + 1);
+      L.push(['🎾', `Entrenas en ${(P2.NOMBRE_COND[c] || c).toLowerCase()}: dominio ${s.superficies[c]}/3 (hasta +2 en esa superficie).`]);
+      return;
+    }
+    if (id === 'tiro') { s.tiro = Math.min(10, (s.tiro || 0) + 1); s.confianza = clamp(s.confianza + 1, 0, 100); L.push(['🎯', `Sesión de tiro: acierto ${s.tiro}/10. El entrenador lo nota (+1 confianza).`]); return; }
+    if (id === 'calle') {
+      const g = r1((2 + P.nivel / 30 + rnd(s) * 2) * Math.pow(0.85, veces)); P.rep = r1(clamp(P.rep + g, 0, 100)); s.estilo = Math.min(20, (s.estilo || 0) + 1);
+      L.push(['🏙️', `Patinas la calle: +${nf(g)} de reputación callejera y estilo ${s.estilo}/20.`]);
+      const x = rnd(s);
+      if (x < 0.1) { P.lesion = Math.max(P.lesion, 1); L.push(['🤕', 'Te comes el bordillo: una semana de baja.', 'mal']); }
+      else if (x < 0.2) { P.dinero -= 60; s.acum.gastos += 60; L.push(['👮', 'Un vigilante os echa y te cae una multa de 60 €.', 'mal']); }
+      return;
+    }
+    if (id === 'viajeSurf') {
+      const swell = rnd(s) < 0.7;
+      if (swell) { const g = subirNivel(s, 1.5, techoClub(s) + 2); P.rep = r1(clamp(P.rep + 2, 0, 100)); const m = P2.sumarMarca(s, 1.5); L.push(['✈️', `Entra el swell: olas de calidad toda la semana. Nivel +${nf(g)}, +2 reputación y +${nf(m)} de marca.`, 'bien']); }
+      else { subirNivel(s, 0.4, techoClub(s)); L.push(['✈️', 'El mar no acompaña: olas pequeñas casi todo el viaje. Al menos desconectas.']); }
+      return;
+    }
+    if (D.id !== 'futbol') L.push(['📅', 'Semana hecha.']);
   }
 
   // ---------- Captación y pruebas ----------
@@ -204,7 +246,10 @@
     const m = s.semanaMods && s.semanaMods.semana === s.semana ? s.semanaMods : {};
     if (m.bonusSel) partes.push(['Hueco en el once', m.bonusSel]);
     if (s.ayudaCompanero) partes.push(['Iker te busca', 3]);
-    return { base: partes.reduce((a, [, v]) => a + v, 0), partes, umbral: r1(s.temporada.fuerzas[s.temporada.yo]) };
+    const T = s.temporada, D = P2.deporteDe(s);
+    // Individual: el corte lo marca el nivel medio de tus rivales (no la plantilla de un club)
+    const umbral = D.individual ? r1(Object.keys(T.fuerzas).filter(id => id !== T.yo).reduce((a, id, _, l) => a + T.fuerzas[id] / l.length, 0) - 3) : r1(T.fuerzas[T.yo]);
+    return { base: partes.reduce((a, [, v]) => a + v, 0), partes, umbral };
   }
   // Probabilidad de ser titular, en palabras (la fórmula queda para «¿Por qué?»)
   function probTitular(s) {
@@ -234,30 +279,61 @@
       else if (x >= umbral - 7) rol = 'suplente';
     }
     const energiaAntes = P.energia;
+    const D = P2.deporteDe(s), F = T.formato || 'goles', circ = F === 'circuito';
+    const cond = P2.condicion(s, T, T.jornada), bEsp = P2.bonusEspecialidad(s, cond) + (D.id === 'skate' ? (s.estilo || 0) * 0.15 : 0);
     const r = rnd(s), juega = rol === 'titular' || rol === 'suplente';
-    const extra = rol === 'titular' ? (P.nivel - umbral) * 0.35 + (r - 0.5) * 3 : rol === 'suplente' ? (P.nivel - umbral) * 0.12 : 0;
+    // Individual: compites tú (tu nivel, tu especialidad y la forma del día); en equipo, sumas a tu club
+    const extra = D.individual ? (juega ? P.nivel - T.fuerzas[T.yo] + bEsp + (r - 0.5) * 3 - (rol === 'suplente' ? 4 : 0) : 0)
+      : rol === 'titular' ? (P.nivel - umbral) * 0.35 + (r - 0.5) * 3 : rol === 'suplente' ? (P.nivel - umbral) * 0.12 : 0;
+    const noCompite = D.individual && !juega;
+    T.yoNoCompite = noCompite;
     const res = P2.jugarJornada(s, T, extra);
-    const m = res.find(x => x.l === T.yo || x.v === T.yo);
-    const pen = juega && P2.penalti ? P2.penalti(s) : null;   // penalti decisivo (minijuego): cambia de verdad el marcador
-    const nosotros = m.l === T.yo ? 'gl' : 'gv', ellos = m.l === T.yo ? 'gv' : 'gl';
-    if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 2 : 1;
-    if (pen === 'fallo' || pen === 'desastre') m[ellos] += pen === 'desastre' ? 2 : 1;
-    const gf = m.l === T.yo ? m.gl : m.gv, gc = m.l === T.yo ? m.gv : m.gl;
-    const resultado = gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
+    delete T.yoNoCompite;
+    const pen = juega && P2.penalti ? P2.penalti(s) : null;   // momento decisivo (minijuego): cambia de verdad el resultado
+    let gf, gc, resultado, puesto = null, m = null;
+    if (circ) {
+      const o = res[0].orden; let i = o.indexOf(T.yo);
+      if (pen) { const mov = pen === 'perfecto' ? -2 : pen === 'gol' ? -1 : pen === 'desastre' ? 2 : 1; const j = clamp(i + mov, 0, o.length - 1); o.splice(i, 1); o.splice(j, 0, T.yo); i = j; }
+      puesto = i + 1; gf = puesto; gc = o.length;
+      resultado = puesto <= 3 ? 'victoria' : puesto <= 5 ? 'empate' : 'derrota';
+    } else {
+      m = res.find(x => x.l === T.yo || x.v === T.yo);
+      const nosotros = m.l === T.yo ? 'gl' : 'gv', ellos = m.l === T.yo ? 'gv' : 'gl';
+      if (T.formato === 'sets' && noCompite) { m[nosotros] = 0; m[ellos] = 2; }
+      if (F === 'goles') {
+        if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 2 : 1;
+        if (pen === 'fallo' || pen === 'desastre') m[ellos] += pen === 'desastre' ? 2 : 1;
+      } else if (F === 'puntos' && pen) {
+        if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 3 : 2; else m[ellos] += pen === 'desastre' ? 3 : 2;
+        if (m.gl === m.gv) m[pen === 'gol' || pen === 'perfecto' ? nosotros : ellos] += 1;
+      } else if (F === 'sets' && pen) {
+        const bien = pen === 'gol' || pen === 'perfecto';
+        if (bien && m[nosotros] < m[ellos] && (m[nosotros] === 1 || pen === 'perfecto')) { m[nosotros] = 2; m[ellos] = 1; }
+        if (!bien && m[nosotros] > m[ellos] && (m[ellos] === 1 || pen === 'desastre')) { m[nosotros] = 1; m[ellos] = 2; }
+      }
+      gf = m.l === T.yo ? m.gl : m.gv; gc = m.l === T.yo ? m.gv : m.gl;
+      resultado = gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
+    }
     let nota = null, goles = 0;
     if (juega) {
       const ra = resultado === 'victoria' ? 0.4 : resultado === 'derrota' ? -0.4 : 0;
       nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) + (s.ayudaCompanero ? 0.5 : 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
       if (pen === 'gol' || pen === 'perfecto') nota += pen === 'perfecto' ? 1 : 0.5; else if (pen) nota -= pen === 'desastre' ? 1 : 0.6;
       nota = r1(clamp(nota, 3, 10));
-      const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
-      if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
-      if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
+      if (F === 'goles') {
+        const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
+        if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
+        if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
+      } else if (F === 'puntos') goles = Math.max(0, Math.round((nota - 4) * 2.6 * (rol === 'titular' ? 1 : 0.5) + (s.especialidad === 'alero' ? 4 : s.especialidad === 'pivot' ? 1 : 0) + (s.tiro || 0) * 0.6 + rnd(s) * 4));   // puntos
+      else if (F === 'sets') goles = Math.max(0, Math.round((nota - 5) * 1.8 + rnd(s) * 3 + (cond === 'hierba' ? 2 : 0)));   // aces
+      else goles = puesto <= 3 ? 1 : 0;   // circuito: podios
       s.stats.jugados++; s.stats.goles += goles; s.stats.notas.push(nota); s.stats.notasTemp.push(nota);
       if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) { s.stats.titular++; if (s.stats.titular === 1) P2.celebrar(s, { tipo: 'titular', club: O.n.replace(/ \(.*\)/, ''), ic: O.ic, c1: O.c1, c2: O.c2, dorsal: 2 + [...String(s.seed)].reduce((a, c) => a + c.charCodeAt(0), 0) % 22 }); } } else s.stats.suplente++;
       if (goles && !O.amateur && s.stats.goles === goles) P2.celebrar(s, { tipo: 'gol', club: O.n.replace(/ \(.*\)/, ''), rival: P2.nombreEquipo(T, pj.rival), goles });
       if (nota >= 9 && (s.mvpTemp || '') !== `${T.liga}-${T.num}`) { s.mvpTemp = `${T.liga}-${T.num}`; P2.celebrar(s, { tipo: 'mvp', nota, rival: P2.nombreEquipo(T, pj.rival) }); }
     }
+    // Lo que pesa para la fama: en fútbol cada gol; en los demás deportes, solo lo que equivale a un gol
+    const gEq = F === 'goles' ? goles : F === 'circuito' ? (puesto === 1 ? 1 : 0) : F === 'puntos' ? (goles >= 20 ? 1 : 0) : (goles >= 8 ? 1 : 0);
     // Consecuencias: confianza, fama, interés, energía, lesión, primas
     const expo = O.exposicion * (LIGAS[T.liga].exposicion || 1);   // en categorías más altas te ve más gente
     let dConf = 0;
@@ -266,14 +342,14 @@
     else if (rol === 'banquillo') dConf = s.confianza > CFG.club.confianzaMinBanquillo ? -2 : 0;
     dConf += R.bonusConf || 0;
     s.confianza = r1(clamp(s.confianza + dConf, rol === 'banquillo' ? Math.min(s.confianza, CFG.club.confianzaMinBanquillo) : 0, 100));
-    const dRep = juega ? r1(expo * (Math.max(0, nota - 6) * 0.6 + (resultado === 'victoria' ? 0.2 : 0) + (rol === 'titular' ? 0.1 : 0) + goles * 0.5)) : 0;
+    const dRep = juega ? r1(expo * (Math.max(0, nota - 6) * 0.6 + (resultado === 'victoria' ? 0.2 : 0) + (rol === 'titular' ? 0.1 : 0) + gEq * 0.5)) : 0;
     P.rep = r1(clamp(P.rep + dRep, 0, 100));
     const techoInteres = 40 + expo * 30;
-    const dInt = juega ? r1(expo * Math.max(0, nota - 6.2) * 5 + goles * 2 * expo) : 0;
+    const dInt = juega ? r1(expo * Math.max(0, nota - 6.2) * 5 + gEq * 2 * expo) : 0;
     s.interes = r1(clamp(s.interes + dInt * (1 + P2.efectoPatro(s, 'interes')) - 1, 0, techoInteres));
     // Marca personal: solo los partidos muy visibles (buena nota en categorías con público) venden tu imagen
     const expoLiga = LIGAS[T.liga].exposicion || 1;
-    const dMarca = juega && nota >= 7.5 ? P2.sumarMarca(s, (0.3 + goles * 0.3) * expoLiga * (1 + P2.efectoPatro(s, 'marcaVisible'))) : 0;
+    const dMarca = juega && nota >= 7.5 ? P2.sumarMarca(s, (0.3 + gEq * 0.3) * expoLiga * (1 + P2.efectoPatro(s, 'marcaVisible'))) : 0;
     if (rol === 'titular') P.energia = clamp(P.energia - 25, 0, E.max);
     else if (rol === 'suplente') P.energia = clamp(P.energia - 12, 0, E.max);
     else P.energia = clamp(P.energia - 3, 0, E.max);
@@ -304,10 +380,14 @@
         : ['😖', `Fallas en el momento decisivo${pen === 'desastre' ? ' y el rival marca dos en la contra' : ' y el rival marca en la contra'}. La prensa no lo perdona (−${grande ? 18 : 12} confianza, −${grande ? 3 : 1.5} reputación).`, 'mal']);
     } else if (P2.penalti && P2.penalti(s) && !juega) R.lineas.push(['🪑', 'No juegas: el momento decisivo lo vive otro desde el campo.']);
     const rival = P2.nombreEquipo(T, pj.rival);
-    R.partido = { jornada: pj.j + 1, local: pj.local, rival, gf, gc, resultado, rol, nota, goles, prima, lesion, contexto: ctx, pos: P2.posicion(T) };
+    const detalle = detallePrueba(s, F, cond, puesto, gc, juega, m && (m.l === T.yo ? [m.gl, m.gv] : m && [m.gv, m.gl]), nota, goles);
+    R.partido = { jornada: pj.j + 1, local: pj.local, rival, gf, gc, resultado, rol, nota, goles, prima, lesion, contexto: ctx, pos: P2.posicion(T), formato: F, puesto, cond, detalle };
     const icR = resultado === 'victoria' ? '✅' : resultado === 'derrota' ? '❌' : '🤝';
     const rolTxt = { titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas (banquillo)', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a (sin energía)' }[rol];
-    R.lineas.push([icR, `Jornada ${pj.j + 1}: ${pj.local ? 'vs' : 'en casa del'} ${rival} ${gf}-${gc}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}${goles ? ` · ${goles === 1 ? 'marcas un gol' : 'marcas 2 goles'}` : ''}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
+    const condTxt = cond ? ` (${P2.NOMBRE_COND[cond] || cond})` : '';
+    if (circ) R.lineas.push([icR, `Jornada ${pj.j + 1}${condTxt}: ${juega ? `${puesto}º de ${gc}${detalle ? ` · ${detalle}` : ''}` : 'no compites'}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
+    else R.lineas.push([icR, `Jornada ${pj.j + 1}${condTxt}: ${pj.local ? 'vs' : 'en casa del'} ${rival} ${gf}-${gc}${F === 'sets' && detalle ? ` (${detalle})` : ''}. ${rolTxt}${nota != null ? ` · nota ${nf(nota)}` : ''}${F === 'goles' ? (goles ? ` · ${goles === 1 ? 'marcas un gol' : 'marcas 2 goles'}` : '') : F === 'puntos' ? (juega ? ` · ${detalle}` : '') : (goles ? ` · ${goles} ${goles === 1 ? 'ace' : 'aces'}` : '')}.`, resultado === 'victoria' ? 'bien' : resultado === 'derrota' ? 'mal' : '']);
+    viajes(s, R, F, pj, juega);
     R.lineas.push(['📊', `Vais ${R.partido.pos}º de ${T.calendario[0].length * 2}. Confianza del míster ${Math.round(s.confianza)} (${dConf >= 0 ? '+' : ''}${nf(dConf)}).`]);
     if (prima) R.lineas.push(['💶', `Prima por victoria: +${eur(prima)}.`, 'bien']);
     if (lesion) R.lineas.push(['🤕', `Te lesionas: ${lesion} ${lesion === 1 ? 'semana' : 'semanas'} de baja.`, 'mal']);
@@ -318,6 +398,38 @@
     if (T.cerrada && !(P2.iniciarPromocion && P2.iniciarPromocion(s, R))) finTemporada(s, R);
   }
   const pm = T => T.jornada - 1;
+  // Cómo se cuenta la prueba en cada deporte (solo texto: el resultado ya está decidido)
+  function detallePrueba(s, F, cond, puesto, n, juega, sets, nota, goles) {
+    if (!juega) return '';
+    const h = ((s.seed >>> 0) + s.semana * 31) % 97 / 97;
+    if (F === 'puntos') { const reb = Math.round((s.especialidad === 'pivot' ? 6 : 2) + h * 5 + Math.max(0, nota - 6)), ast = Math.round((s.especialidad === 'base' ? 5 : 1) + h * 4); return `${goles} pts, ${reb} reb, ${ast} ast`; }
+    if (F === 'sets') {
+      if (!sets) return '';
+      const [a, b] = sets, juegos = [];
+      const MARC = ['6-1', '6-2', '6-3', '6-4', '7-5', '7-6'];
+      const set = (gano, i) => { const x = MARC[Math.floor(h * 97 + i * 37) % MARC.length]; return gano ? x : x.split('-').reverse().join('-'); };
+      const ord = a > b ? (b ? [true, false, true] : [true, true]) : (a ? [false, true, false] : [false, false]);
+      ord.forEach((g, i) => juegos.push(set(g, i)));
+      return juegos.join(' ');
+    }
+    if (F !== 'circuito') return '';
+    const k = Math.max(0, n - puesto) / Math.max(1, n - 1);   // 1 = has ganado
+    if (cond === 'bloque') return `${Math.round(1 + k * 3)}T ${Math.round(2 + k * 2)}Z`;
+    if (cond === 'dificultad') return `presa ${Math.round(24 + k * 22)}${h > 0.5 ? '+' : ''}`;
+    if (cond === 'velocidad') return `${(5.2 + (1 - k) * 2.6 + h * 0.3).toFixed(2).replace('.', ',')} s`;
+    if (cond === 'street' || cond === 'park') return `${(62 + k * 30 + h * 4).toFixed(2).replace('.', ',')} pts`;
+    if (P2.deporteDe(s).id === 'surf') return `${(8 + k * 9 + h).toFixed(2).replace('.', ',')} (dos mejores olas)`;
+    return '';
+  }
+  // Tenis y surf: viajar a las pruebas fuera cuesta dinero (los equipos de alto nivel lo pagan)
+  function viajes(s, R, F, pj, juega) {
+    const D = P2.deporteDe(s); if (!juega || !['tenis', 'surf'].includes(D.id)) return;
+    const O = oferta(s); if (O && (O.sube || O.patroTier === 'deportiva' && O.exposicion >= 1.5)) { R.porque.push('Los viajes los paga tu equipo.'); return; }
+    if (D.id === 'tenis' && pj.local) return;
+    if (D.id === 'surf' && (pj.j % 2) === 0) return;
+    const c = { regional: 0, tercera: 30, segunda: 60, primera: 110 }[s.temporada.liga] || 0; if (!c) return;
+    s.p.dinero -= c; s.acum.gastos += c; R.ingresos.push(['Viaje a la prueba', -c]);
+  }
 
   // ---------- Fin de temporada ----------
   function finTemporada(s, R) {
@@ -399,5 +511,5 @@
   }
 
   Object.assign(P2, { oferta, enCaptacion, semanasCaptacion, tieneHito, bloqueoAccion, accionesDisponibles, aplicarAccion, invitar, revisarOjeador,
-    puntuacionPruebas, ofertasPorPuntuacion, diaDePruebas, firmar, firmarRenovacion, nuevaTemporada, probTitular, jugarPartido, finTemporada, ofertasFinTemporada, valorMercado, techoClub, topeSueldo, subirSueldo });
+    GRADOS, accionDeporte, detallePrueba, puntuacionPruebas, ofertasPorPuntuacion, diaDePruebas, firmar, firmarRenovacion, nuevaTemporada, probTitular, jugarPartido, finTemporada, ofertasFinTemporada, valorMercado, techoClub, topeSueldo, subirSueldo });
 })(globalThis.P2 = globalThis.P2 || {});
