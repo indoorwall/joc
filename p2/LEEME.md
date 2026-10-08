@@ -18,12 +18,13 @@ Fondo SVG por etapa, sin imágenes externas: **barrio** (edificios, campo y plaz
 **empresa** (skyline nocturno) y **magnate** (skyline dorado). El inicio enseña tu personaje en su escenario, el objetivo
 (siguiente hito) con barra de progreso, el dinero y el patrimonio, y accesos grandes a Relaciones, Tienda, Empresa y Liga.
 
-**Navegación:** 4 botones grandes abajo. Dentro de cada uno, pestañas:
+**Navegación:** 4 botones grandes abajo al empezar y 5 desde que firmas. Dentro de cada uno, pestañas:
 
 | Botón | Secciones | Cuándo aparecen |
 |---|---|---|
 | 🏠 Inicio | La semana | Siempre |
-| ⚽ Carrera | Relaciones · Liga · Marcas | Relaciones siempre; Liga y Marcas al firmar |
+| ⚽ Carrera | Liga · Marcas | Al firmar tu primer contrato (antes no sale el botón) |
+| ❤️ Vida | Relaciones | Siempre |
 | 💼 Imperio | Tienda · Empresa · Patrimonio | Tienda y Patrimonio siempre; Empresa al abrirse el mercado |
 | 🧍 Perfil | Personaje · Hitos · Ajustes | Siempre |
 

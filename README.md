@@ -1,6 +1,6 @@
 # Futbol + tycoon — prototips
 
-- **P2.3 — Nueva identidad visual de juego móvil (azul noche, morado y oro, fondos por etapa), navegación en 4 botones, 🛍️ Tienda (gasto opcional, posesiones con valor) y ❤️ Relaciones (decisiones con consecuencias diferidas)**: ver [`p2/LEEME.md`](p2/LEEME.md).
+- **P2.3 — Nueva identidad visual de juego móvil (azul noche, morado y oro, fondos por etapa), navegación en botones grandes (Inicio, Carrera, Vida, Imperio, Perfil), 🛍️ Tienda (gasto opcional, posesiones con valor) y ❤️ Relaciones (decisiones con consecuencias diferidas)**: ver [`p2/LEEME.md`](p2/LEEME.md).
 - **P2.2 — Del barrio al negocio, capítulo 1 (fútbol, congelado para pruebas con personas)**: nivel, reputación deportiva y marca personal separados; patrocinadores con identidad y exclusividades; telemetría local con «Informe de prueba» en Ajustes; juego de gestión por decisiones, del barrio a tu primera
   empresa: 8 semanas de captación con varios caminos a las pruebas, ofertas según la puntuación (UD Puerto o Atlético, filosofías
   distintas), liga de 8 equipos con contexto, patrocinios como contratos, peluquería con caja separada, contexto cambiante y

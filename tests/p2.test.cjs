@@ -236,7 +236,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   nv.hitos.patro = 5;
   check('Al abrirse el mercado aparece Empresa', P2.revisarSecciones(nv, null).map(x => x.id).join() === 'empresa');
   check('Empresa se anuncia como gran desbloqueo («NUEVO: EMPRESA»)', [nv.pendiente].concat(nv.cola).some(e => e && e.tipo === 'desbloqueo' && e.seccion === 'empresa'));
-  check('Cada sección vive en uno de los 4 grupos de la barra (Inicio, Carrera, Imperio, Perfil)', P2.GRUPOS.length === 4 && P2.SECCIONES.every(x => P2.GRUPOS.some(g => g.id === x.grupo)));
+  check('Cada sección vive en uno de los 5 grupos de la barra (Inicio, Carrera, Vida, Imperio, Perfil)', P2.GRUPOS.length === 5 && P2.SECCIONES.every(x => P2.GRUPOS.some(g => g.id === x.grupo)));
   // Partida antigua (P2.2) sin las secciones nuevas: se añaden sin avisos
   const vieja = JSON.parse(JSON.stringify(P2.nuevaPartida({ seed: 97 }))); vieja.secciones = ['semana', 'hitos', 'ajustes']; delete vieja.inventario; delete vieja.relaciones; delete vieja.equipado;
   const vm2 = P2.migrateSave(vieja); const av = P2.revisarSecciones(vm2, null);
@@ -414,7 +414,7 @@ let informe;
   await page.tap('[data-act="empezar"]');
   check('UI: la partida empieza con el personaje elegido', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.nombre === 'Vega'));
   check('UI: tu cara sale en la cabecera', await page.locator('#top .hava svg').isVisible());
-  check('UI: la barra tiene 4 botones grandes: Inicio, Carrera, Imperio y Perfil', (await page.locator('#nav button').allTextContents()).map(x => x.replace(/[^A-Za-zñ]/g, '')).join() === 'Inicio,Carrera,Imperio,Perfil');
+  check('UI: al empezar la barra tiene Inicio, Vida, Imperio y Perfil (Carrera aún no)', (await page.locator('#nav button').allTextContents()).map(x => x.replace(/[^A-Za-zñ]/g, '')).join() === 'Inicio,Vida,Imperio,Perfil');
   check('UI: el inicio enseña tu personaje, el objetivo, el dinero y el progreso', await page.locator('.hero .stage svg').isVisible() && (await page.textContent('.hero')).includes('Consigue una prueba') && await page.locator('.hero .xp').isVisible() && await page.evaluate(() => document.body.dataset.etapa === 'barrio' && !!document.querySelector('#decor svg')));
   check('UI: el botón «Jugar semana» empieza desactivado hasta que eliges', await page.locator('#jugar').isDisabled());
   const box = await page.locator('.dec .opt').first().boundingBox(), vh = page.viewportSize().height;
@@ -445,9 +445,9 @@ let informe;
   check('UI: cambiar de ropa desde «Tu personaje» se guarda', await page.evaluate(() => __P2.S.look.ropa === 'sudadera' && JSON.parse(localStorage.getItem('del_barrio_al_negocio_p2')).look.ropa === 'sudadera'));
   // Club, empresa y recarga
   await page.evaluate(() => { const S = __P2.S; S.p.nivel = 58; __P2.P2.firmar(S, 'puerto', null); S.p.dinero = 9000; S.hitos.patro = 3; __P2.render(); });
-  check('UI: al firmar, «Carrera» avisa de lo nuevo', await page.locator('#nav [data-g="carrera"] em').isVisible());
+  check('UI: al firmar aparece «Carrera» en la barra con la etiqueta «Nuevo»', await page.locator('#nav [data-g="carrera"] em').isVisible() && (await page.locator('#nav button').allTextContents()).map(x => x.replace(/Nuevo|[^A-Za-zñ]/g, '')).join() === 'Inicio,Carrera,Vida,Imperio,Perfil');
   await page.tap('#nav [data-g="carrera"]');
-  check('UI: en Carrera están Relaciones, Liga y Marcas', (await page.locator('.subtabs button').allTextContents()).map(x => x.replace(/Nuevo|[^A-Za-zñ]/g, '')).join() === 'Relaciones,Liga,Marcas');
+  check('UI: en Carrera están Liga y Marcas (Relaciones va aparte, en Vida)', (await page.locator('.subtabs button').allTextContents()).map(x => x.replace(/Nuevo|[^A-Za-zñ]/g, '')).join() === 'Liga,Marcas');
   check('UI: se ve el fondo de la etapa «club»', await page.evaluate(() => document.body.dataset.etapa === 'club'));
   await ir(page, 'semana');
   check('UI: al abrirse el mercado sale el gran aviso «NUEVO: EMPRESA»', await page.locator('.card.mega').isVisible() && (await page.textContent('.card.mega')).includes('NUEVO: EMPRESA'));

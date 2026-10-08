@@ -310,7 +310,7 @@
   // grupo: botón de la barra inferior donde vive cada sección
   const SECCIONES = [
     { id: 'semana', ic: '🏠', n: 'Inicio', grupo: 'inicio', cond: () => true },
-    { id: 'relaciones', ic: '❤️', n: 'Relaciones', grupo: 'carrera', cond: () => true },
+    { id: 'relaciones', ic: '❤️', n: 'Relaciones', grupo: 'vida', cond: () => true },
     { id: 'liga', ic: '📊', n: 'Liga', grupo: 'carrera', cond: s => !!s.temporada, d: 'La clasificación, tu equipo y tu contrato.' },
     { id: 'marcas', ic: '🤝', n: 'Marcas', grupo: 'carrera', cond: s => !!s.hitos.contrato, d: 'Patrocinadores: contratos con prima, pago semanal y actos.' },
     { id: 'tienda', ic: '🛍️', n: 'Tienda', grupo: 'imperio', cond: () => true },
@@ -320,7 +320,7 @@
     { id: 'hitos', ic: '🏅', n: 'Hitos', grupo: 'perfil', cond: () => true },
     { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
-  const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
+  const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'vida', ic: '❤️', n: 'Vida' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
   const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {

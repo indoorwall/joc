@@ -152,12 +152,13 @@ tr.desc td:first-child { box-shadow: inset 4px 0 0 var(--bad); }
 /* Navegación inferior */
 nav#nav { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: 100%; max-width: 480px; z-index: 6;
   background: rgba(14,14,52,.94); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-top: 1px solid rgba(255,255,255,.12); border-radius: 22px 22px 0 0; padding: 6px 8px calc(var(--safe-bottom) + 6px); }
-nav#nav .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+nav#nav .tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
 nav#nav:empty { display: none; }
 nav#nav button { border: 0; background: none; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 12px; font-weight: 900; color: rgba(255,255,255,.65); cursor: pointer; border-radius: 12px; position: relative; }
 nav#nav button span { font-size: 23px; }
 nav#nav button.sel { color: #fff; background: var(--grad); box-shadow: 0 4px 14px rgba(61,123,255,.45); }
-nav#nav button.g-carrera.sel { background: linear-gradient(135deg, #3d7bff, #ff4f8b); }
+nav#nav button.g-carrera.sel { background: linear-gradient(135deg, #3d7bff, #2546b8); }
+nav#nav button.g-vida.sel { background: linear-gradient(135deg, #ff7aa8, #ff4f8b); }
 nav#nav button.g-imperio.sel { background: linear-gradient(135deg, #d94bff, #1fc7b6); }
 nav#nav button.g-perfil.sel { background: linear-gradient(135deg, #8b5cf6, #ff9f2e); }
 nav#nav button i { position: absolute; top: 4px; right: 12%; width: 9px; height: 9px; border-radius: 50%; background: var(--bad); }
@@ -2342,7 +2343,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // grupo: botón de la barra inferior donde vive cada sección
   const SECCIONES = [
     { id: 'semana', ic: '🏠', n: 'Inicio', grupo: 'inicio', cond: () => true },
-    { id: 'relaciones', ic: '❤️', n: 'Relaciones', grupo: 'carrera', cond: () => true },
+    { id: 'relaciones', ic: '❤️', n: 'Relaciones', grupo: 'vida', cond: () => true },
     { id: 'liga', ic: '📊', n: 'Liga', grupo: 'carrera', cond: s => !!s.temporada, d: 'La clasificación, tu equipo y tu contrato.' },
     { id: 'marcas', ic: '🤝', n: 'Marcas', grupo: 'carrera', cond: s => !!s.hitos.contrato, d: 'Patrocinadores: contratos con prima, pago semanal y actos.' },
     { id: 'tienda', ic: '🛍️', n: 'Tienda', grupo: 'imperio', cond: () => true },
@@ -2352,7 +2353,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     { id: 'hitos', ic: '🏅', n: 'Hitos', grupo: 'perfil', cond: () => true },
     { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
-  const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
+  const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'vida', ic: '❤️', n: 'Vida' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
   const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {
@@ -3495,7 +3496,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   }
   function htmlNav(s) {
     const vis = P2.seccionesVisibles(s), av = avisos(s), nuevas = s.seccionesNuevas || [], g0 = grupoDe(ui.vista);
-    return `<div class="tabs">${P2.GRUPOS.map(g => {
+    // Un grupo sin secciones todavía no sale (Carrera aparece al firmar tu primer contrato)
+    const grupos = P2.GRUPOS.filter(g => vis.some(x => x.grupo === g.id));
+    return `<div class="tabs" style="grid-template-columns:repeat(${grupos.length},1fr)">${grupos.map(g => {
       const secs = vis.filter(x => x.grupo === g.id), nuevo = secs.some(x => nuevas.includes(x.id)), aviso = secs.some(x => av[x.id]);
       return `<button data-act="grupo" data-g="${g.id}" class="g-${g.id} ${g0 === g.id ? 'sel' : ''}" aria-label="${g.n}"><span>${g.ic}</span>${g.n}${nuevo ? '<em>Nuevo</em>' : aviso ? '<i></i>' : ''}</button>`;
     }).join('')}</div>`;

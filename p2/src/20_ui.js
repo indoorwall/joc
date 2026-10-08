@@ -78,7 +78,9 @@
   }
   function htmlNav(s) {
     const vis = P2.seccionesVisibles(s), av = avisos(s), nuevas = s.seccionesNuevas || [], g0 = grupoDe(ui.vista);
-    return `<div class="tabs">${P2.GRUPOS.map(g => {
+    // Un grupo sin secciones todavía no sale (Carrera aparece al firmar tu primer contrato)
+    const grupos = P2.GRUPOS.filter(g => vis.some(x => x.grupo === g.id));
+    return `<div class="tabs" style="grid-template-columns:repeat(${grupos.length},1fr)">${grupos.map(g => {
       const secs = vis.filter(x => x.grupo === g.id), nuevo = secs.some(x => nuevas.includes(x.id)), aviso = secs.some(x => av[x.id]);
       return `<button data-act="grupo" data-g="${g.id}" class="g-${g.id} ${g0 === g.id ? 'sel' : ''}" aria-label="${g.n}"><span>${g.ic}</span>${g.n}${nuevo ? '<em>Nuevo</em>' : aviso ? '<i></i>' : ''}</button>`;
     }).join('')}</div>`;
