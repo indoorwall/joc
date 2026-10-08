@@ -1,0 +1,14 @@
+{
+  "name": "del-barrio-al-negocio",
+  "private": true,
+  "scripts": {
+    "build": "node p2/build.cjs",
+    "test": "node tests/p2.test.cjs && node tests/commerce/commerce.test.mjs",
+    "test:commerce": "node tests/commerce/commerce.test.mjs",
+    "sync:backend": "node commerce/tools/sync-backend.mjs",
+    "seed": "node commerce/tools/gen-seed.mjs"
+  },
+  "devDependencies": {
+    "pg": "8.13.1"
+  }
+}
