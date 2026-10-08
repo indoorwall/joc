@@ -305,6 +305,26 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Personaje: «Al azar» siempre da un look válido', Array.from({ length: 40 }, () => P2.lookAzar()).every(L => JSON.stringify(P2.validarLook(L)) === JSON.stringify(Object.assign({}, P2.LOOK_INICIAL, L))));
   check('Personaje: la apariencia no cambia el juego (complexión y edad son solo estética)', (() => { const a = P2.nuevaPartida({ seed: 231 }), b = P2.nuevaPartida({ seed: 231 }); Object.assign(b.look, { complexion: 'fuerte', edad: 'veterano', tatuaje: 'manga' }); for (let w = 0; w < 10; w++) for (const g of [a, b]) { resolverTodo(g); P2.jugarSemana(g, P2.POLITICAS.equilibrada.accion(g)) || P2.jugarSemana(g, 'descansar'); } const z = g => { const x = JSON.parse(JSON.stringify(g)); delete x.look; delete x.tele; delete x.monVariante; return JSON.stringify(x); }; return z(a) === z(b); })());
 
+  // ---------- Minijuegos y vidas ----------
+  const mj1 = P2.nuevaPartida({ seed: 250 });
+  check('Minijuegos: una semana normal no tiene minijuego; el torneo y el día de pruebas sí', P2.minijuegoSemana(mj1, 'entrenar') === null && P2.minijuegoSemana(mj1, 'torneo') === 'torneo' && (() => { const x = P2.nuevaPartida({ seed: 251 }); x.fase = 'pruebas'; x.invitacion = { via: 'ojeador', semana: 1, dia: 1 }; return P2.minijuegoSemana(x, 'descansar') === 'prueba'; })());
+  const pr = p => { const x = P2.nuevaPartida({ seed: 252 }); x.p.nivel = 55; x.p.energia = 80; x.fase = 'pruebas'; x.invitacion = { via: 'ojeador', semana: 1, dia: 1 }; P2.jugarSemana(x, 'descansar', p == null ? undefined : { minijuego: { tipo: 'prueba', p } }); return x.pruebas.slice(-1)[0]; };
+  const p0 = pr(null), pN = pr(P2.MINIJUEGOS.prueba.neutro), p1 = pr(1), pB = pr(0);
+  check('Minijuegos: simular (resultado neutro) da lo mismo que no jugarlo', p0 && pN && p0.score === pN.score);
+  check('Minijuegos: jugarlo bien suma y jugarlo mal resta, con límite (−4 … +6 en la prueba)', p1.score - p0.score === 6 && pB.score - p0.score === -4);
+  const penP = g => { const x = enClub('puerto', 253); for (let k = 0; k < 40 && x.temporada.jornada < x.temporada.calendario.length - 1; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; P2.jugarSemana(x, 'descansar', g == null ? undefined : { minijuego: { tipo: 'penalti', p: g } }); return x.ultimo.partido; };
+  const sinPen = penP(null), conGol = penP(0.9);
+  check('Minijuegos: meter el penalti decisivo suma un gol a tu equipo', sinPen && conGol && conGol.gf === sinPen.gf + (['titular', 'suplente'].includes(sinPen.rol) ? 1 : 0));
+  const vi = P2.nuevaPartida({ seed: 254 });
+  check('Vidas: empiezas con 3 y repetir un minijuego gasta una', P2.vidas(vi).n === 3 && P2.usarVida(vi) && P2.vidas(vi).n === 2);
+  P2.usarVida(vi); P2.usarVida(vi);
+  check('Vidas: sin vidas no se puede repetir', P2.vidas(vi).n === 0 && P2.usarVida(vi) === false);
+  const pv = P2.pedirRewarded(vi, 'vida', {}); P2.aceptarRewarded(vi, pv.token);
+  check('Vidas: un anuncio (simulado) da +1 vida, una vez por semana', P2.vidas(vi).n === 1 && P2.pedirRewarded(vi, 'vida', {}) === null);
+  for (let w = 0; w < P2.VIDAS.recargaSemanas; w++) { vi.pendiente = null; vi.cola = []; P2.jugarSemana(vi, 'descansar'); }
+  check('Vidas: se recargan solas con el tiempo (sin pagar ni ver anuncios)', P2.vidas(vi).n >= 2);
+  check('Vidas: se guardan con la partida', P2.migrateSave(JSON.parse(JSON.stringify(vi))).vidas.n === P2.vidas(vi).n);
+
   // ---------- Variedad semanal ----------
   const vv = P2.nuevaPartida({ seed: 240 }), nombres = [];
   for (let w = 0; w < 8; w++) { nombres.push(P2.varianteSemana(vv, 'entrenar').n); vv.semana++; }
@@ -336,7 +356,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Nunca altera las pruebas: no hay anuncio de energía antes de una prueba', P2.bloqueoRewarded(e2, 'energia') === 'No antes de las pruebas');
   const e3 = P2.nuevaPartida({ seed: 203 }); e3.p.energia = 20; e3.p.dinero = 5000; P2.encolar(e3, { tipo: 'suceso', id: 'masHoras' });
   check('Nunca durante una decisión: con una decisión pendiente no hay ningún anuncio (no se repite ni se cambia)', Object.keys(P2.REWARDED).every(k => P2.pedirRewarded(e3, k, { id: 'bici' }) === null));
-  check('Ningún anuncio repite pruebas, partidos, decisiones, descensos, quiebras ni vuelve atrás', Object.keys(P2.REWARDED).join() === 'cupon,oferta,energia,temporada,empresaBonus' && !RWC.empresaBonus.activo);
+  check('Los anuncios nunca deshacen decisiones: solo dan cupón, oferta, energía, cosmético o una vida para repetir un minijuego', Object.keys(P2.REWARDED).join() === 'cupon,oferta,energia,temporada,vida,empresaBonus' && !RWC.empresaBonus.activo);
   // Cupón de Tienda
   const c1 = P2.nuevaPartida({ seed: 204 }); c1.p.dinero = 100000; Object.assign(c1.hitos, { contrato: 2, titular: 3, empresa: 4, rentable: 5, inversion2: 6 });
   check('Descuento con máximo: 10 % de 32.000 € se queda en el máximo configurado', P2.descuentoCupon(32000) === RWC.cupon.maximo && P2.descuentoCupon(5200) === 520);
@@ -540,7 +560,10 @@ let informe;
   // Navegar como una persona: botón del grupo en la barra y, si hace falta, la pestaña de la sección
   // Navegar como una persona: «‹ Jugar» para volver; «🌍 Mi mundo» → icono de la sección
   const ir = async (pg, v) => {
+    const cerrarAnuncio = async () => { if (await pg.locator('[data-act="interOk"]').count()) await pg.click('[data-act="interOk"]', { force: true }); };
+    await cerrarAnuncio();
     if (await pg.locator('.atras').count()) await pg.tap('.atras');
+    await cerrarAnuncio();
     if (v === 'semana') return;
     if (await pg.locator('.mundoBtn').count()) { await pg.tap('.mundoBtn'); await pg.tap(`.icono[data-v="${v}"]`); }
     else await pg.evaluate(v => __P2.ir(v), v);
@@ -559,7 +582,7 @@ let informe;
   await page.tap('[data-act="empezar"]');
   check('UI: la partida empieza con el personaje elegido (también piercing y tatuaje)', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.look.piercing === 'combo' && __P2.S.look.tatuaje === 'rosa' && __P2.S.nombre === 'Vega'));
   check('UI: tu cara sale en la cabecera', await page.locator('#top .hava svg').isVisible());
-  check('UI: sin barra de botones abajo: un solo botón «Mi mundo»', await page.locator('#nav button').count() === 0 && await page.locator('.mundoBtn').isVisible());
+  check('UI: sin barra de botones abajo: solo el botón «Mi mundo» arriba', await page.locator('#nav button').count() === 0 && await page.locator('.mundoBtn').isVisible());
   check('UI: el inicio enseña tu personaje en su escenario, el objetivo y la energía (fondo claro)', await page.locator('.exterior .pj svg').isVisible() && (await page.textContent('.obj')).includes('Consigue una prueba') && await page.locator('#top .ener').isVisible() && await page.evaluate(() => getComputedStyle(document.getElementById('decor')).display === 'none'));
   check('UI: como mucho 3 opciones grandes y cada una dice lo que da', await page.locator('.pant > .ops > .op').count() === 3 && await page.evaluate(() => [...document.querySelectorAll('.pant > .ops > .op')].every(b => b.querySelector('.chip'))));
   const box = await page.locator('.op').first().boundingBox(), vh = page.viewportSize().height;
@@ -630,8 +653,16 @@ let informe;
   check('UI: recargar conserva la compra y no la duplica', await page.evaluate(dm => __P2.S.p.dinero === dm - 1900 && __P2.S.inventario.filter(x => x.id === 'moto').length === 1, dm));
   await ir(page, 'patrimonio');
   check('UI: el patrimonio incluye la moto (1.140 €)', (await page.textContent('.patri')).includes('1140'));
+  // Minijuego en la interfaz: el día de las pruebas
+  await ir(page, 'semana');
+  await page.evaluate(() => { const S = __P2.S; S.pendiente = null; S.cola = []; S.p.lesion = 0; S.p.energia = 90; for (let k = 0; k < 40 && S.temporada.jornada < S.temporada.calendario.length - 1; k++) { S.pendiente = null; S.cola = []; __P2.P2.jugarSemana(S, 'descansar'); } S.pendiente = null; S.cola = []; S.p.lesion = 0; S.p.energia = 90; __P2.render(); __P2.ui.paso = null; __P2.ui.fiestas = []; __P2.ui.mundo = false; __P2.ui.vista = 'semana'; __P2.render(); });
+  await page.click('.op', { force: true });
+  check('UI: en el partido decisivo sale el minijuego del penalti (con vidas y opción de simular)', (await page.textContent('.mj')).includes('Penalti') && await page.locator('.mj .vidas').isVisible() && await page.locator('[data-act="mjSimular"]').isVisible());
+  await page.click('[data-act="mjSimular"]', { force: true });
+  check('UI: simular el minijuego sigue con la semana normal (resultado del partido)', await page.locator('.res .marcador').isVisible());
+  for (let g = 0; g < 6 && await page.locator('[data-act="seguir"]').count(); g++) await page.click('[data-act="seguir"]', { force: true });
   // Monetization Lab en la interfaz
-  await page.evaluate(() => { __P2.S.p.dinero = 900; __P2.S.monVariante = 'C'; __P2.guardar(); });
+  await page.evaluate(() => { __P2.S.p.dinero = 900; __P2.S.monVariante = 'C'; __P2.S.pendiente = null; __P2.S.cola = []; __P2.guardar(); });
   await ir(page, 'tienda'); await page.tap('[data-act="cat"][data-v="accesorios"]');
   await page.tap('.rw[data-t="cupon"][data-id="relojDep"]');
   check('UI: «Ver anuncio» abre la simulación con la recompensa (sin vídeo ni espera)', (await page.textContent('.modal')).includes('SIMULACIÓN DE ANUNCIO') && (await page.textContent('.modal')).includes('20–30 segundos'));

@@ -190,6 +190,8 @@
       const ult = ish[ish.length - 1], tras = (t.msActivo || 0) - ult.ms;
       L.push(`  Anuncio obligatorio simulado: ${ish.length} (${ish.map(e => e.momento).join(', ')}) · continuó ${n('interstitial_continue')} · ${tras < 120000 ? 'la sesión acabó menos de 2 min después del último (posible abandono)' : 'siguió jugando después'}`);
     } else L.push('  Anuncio obligatorio simulado: no ha salido');
+    const mjs = (m.eventos || []).filter(e => e.e === 'minijuego');
+    L.push(`  Minijuegos: ${mjs.length} (${mjs.filter(e => e.simulado).length} simulados) · reintentos con vida: ${n('vida_usada')} · vidas por anuncio: ${n('rewarded_offer_accepted:vida')}`);
     const des = Object.entries(m.deseados || {}).sort((a, b) => b[1] - a[1]);
     L.push(`  Objetos deseados (lista de deseos): ${des.length ? des.map(([id], i) => `${i + 1}. ${(P2.producto(id) || { n: id }).n}`).join(' · ') : 'ninguno'}${n('wishlist_reached') ? ` · alcanzados ${n('wishlist_reached')}` : ''}`);
     const ganado = ['sueldo', 'primas', 'patrocinio', 'trabajo', 'retirado'].reduce((a, k) => a + ((s.acum || {})[k] || 0), 0) + (s.socio ? s.socio.dividendos || 0 : 0);

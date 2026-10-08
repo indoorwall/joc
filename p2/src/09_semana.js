@@ -11,6 +11,7 @@
 
   function jugarSemana(s, accion, opc) {
     if (s.pendiente) return null;
+    s.mjSemana = opc && opc.minijuego ? { tipo: opc.minijuego.tipo, p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
     const especial = accion === '__acto' || accion === '__evento';
     if (!especial && P2.bloqueoAccion(s, accion)) return null;
     const R = nuevoR(s);
@@ -74,6 +75,9 @@
     if (!s.pendiente && !s.cola.length) P2.revisarOfertasMarca(s);
     if (!s.pendiente && !s.cola.length) P2.tirarSucesos(s);
 
+    if (s.mjSemana) R.minijuego = s.mjSemana;
+    s.mjSemana = null;
+    if (P2.recargarVidas(s)) R.lineas.push(['❤️', `Recuperas una vida para los minijuegos (${P2.vidas(s).n}/${P2.VIDAS.max}).`, 'bien']);
     P2.anotarHistoria(s, 'semana');
     P2.revisarDeseo(s);
     R.dinero = s.p.dinero - R.dinero0;

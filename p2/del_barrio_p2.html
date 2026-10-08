@@ -620,6 +620,29 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 90px); }
 .op.dest { outline: 4px solid var(--oro2); outline-offset: 2px; }
 .op .fuego { position: absolute; top: -12px; right: 14px; background: var(--oro2); color: #3a2600; font-size: 12px; font-weight: 900; border-radius: 999px; padding: 2px 10px; box-shadow: 0 2px 0 var(--oro2-d); }
 
+/* Minijuegos */
+.mj .eti { font-weight: 900; letter-spacing: .1em; color: #c88c00; }
+.vidas { font-size: 24px; letter-spacing: 2px; }
+.vidasTop { font-size: 13px; letter-spacing: 0; }
+.mjBarra { position: relative; height: 54px; border-radius: 18px; background: linear-gradient(90deg, #ffd0dc, #fff2c6 35%, #fff2c6 65%, #ffd0dc); box-shadow: inset 0 3px 0 rgba(0,0,0,.08); overflow: hidden; }
+.mjBarra .zona { position: absolute; top: 0; bottom: 0; background: #2ed3a0; opacity: .85; border-radius: 10px; }
+.mjBarra .marca { position: absolute; top: -4px; bottom: -4px; width: 8px; margin-left: -4px; left: 50%; background: var(--ink); border-radius: 4px; box-shadow: 0 0 0 3px #fff; }
+.mjPuntos { display: flex; justify-content: center; gap: 10px; font-size: 28px; min-height: 36px; }
+.porteria { height: 120px; border: 6px solid #fff; border-bottom: 0; border-radius: 10px 10px 0 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.5) 0 2px, transparent 2px 14px), repeating-linear-gradient(0deg, rgba(255,255,255,.5) 0 2px, transparent 2px 14px), #7cc596; display: grid; place-items: end center; box-shadow: 0 4px 0 #e2dcf7; }
+.porteria .portero { font-size: 52px; }
+.esquinas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.esquinas .op { flex-direction: column; justify-content: center; min-height: 96px; padding: 10px 6px; text-align: center; }
+.esquinas .op .ic { width: auto; }
+.cta.reintentar { background: var(--rosa); box-shadow: 0 7px 0 var(--rosa-d); animation: none; }
+.mj .rw { min-height: 56px; font-size: 16px; text-align: center; }
+
+.pant.mj:not(:has(.grande)) { animation: none; }
+
+/* «Mi mundo» en la barra de arriba: nunca tapa nada */
+.mundoBtn { position: relative; left: auto; bottom: auto; transform: none; width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; font-size: 24px; border-radius: 50%; box-shadow: 0 3px 10px rgba(40,30,120,.15); }
+.mundoBtn i { position: absolute; top: 2px; right: 2px; }
+body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
+
 </style>
 </head>
 <body>
@@ -1015,7 +1038,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
-      deseoActual: null,               // objetivo personal de la Tienda (lista de deseos)
+      deseoActual: null,
+      vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
+      mjSemana: null,               // objetivo personal de la Tienda (lista de deseos)
       historiaCosas: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
@@ -1410,7 +1435,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         break;
       }
       case 'torneo': {
-        const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8));
+        const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8) + (P2.bonusTorneo ? P2.bonusTorneo(s) : 0));
         W.push(`Torneo: nivel + reputación × 0,2 + azar (±8) = ${nf(f)}. Ganar: 52 · semifinal: 46.`);
         if (f >= 52) { P.rep = r1(P.rep + 10); invitar(s, 'torneo', R); L.push(['🏆', '¡Ganas el torneo local! +10 de reputación y un ojeador te invita a las pruebas.', 'bien']); }
         else if (f >= 46) { P.rep = r1(P.rep + 5); L.push(['🥈', 'Llegas a semifinales: +5 de reputación.']); }
@@ -1472,6 +1497,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (s.preparador) partes.push(['Preparador', K.preparador]);
     if (K.viaBonus[via]) partes.push(['Vienes recomendado/a', K.viaBonus[via]]);
     partes.push(['Suerte del día', r1(entre(s, -K.suerte, K.suerte))]);
+    const bm = P2.bonusPrueba ? P2.bonusPrueba(s) : 0; if (bm) partes.push(['Tus tiros (minijuego)', bm]);
     const score = Math.round(partes.reduce((a, [, v]) => a + v, 0));
     return { score, partes };
   }
@@ -1566,15 +1592,19 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const extra = rol === 'titular' ? (P.nivel - umbral) * 0.35 + (r - 0.5) * 3 : rol === 'suplente' ? (P.nivel - umbral) * 0.12 : 0;
     const res = P2.jugarJornada(s, T, extra);
     const m = res.find(x => x.l === T.yo || x.v === T.yo);
+    const pen = juega && P2.penalti ? P2.penalti(s) : null;   // penalti decisivo (minijuego)
+    if (pen === 'gol') { if (m.l === T.yo) m.gl++; else m.gv++; }
     const gf = m.l === T.yo ? m.gl : m.gv, gc = m.l === T.yo ? m.gv : m.gl;
     const resultado = gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
     let nota = null, goles = 0;
     if (juega) {
       const ra = resultado === 'victoria' ? 0.4 : resultado === 'derrota' ? -0.4 : 0;
       nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) + (s.ayudaCompanero ? 0.5 : 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
+      if (pen === 'gol') nota += 0.5; else if (pen === 'fallo') nota -= 0.3;
       nota = r1(clamp(nota, 3, 10));
       const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
       if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
+      if (pen === 'gol') goles++;
       s.stats.jugados++; s.stats.goles += goles; s.stats.notas.push(nota); s.stats.notasTemp.push(nota);
       if (rol === 'titular') { s.stats.titularTemp++; if (!O.amateur) s.stats.titular++; } else s.stats.suplente++;
     }
@@ -2675,6 +2705,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
   function jugarSemana(s, accion, opc) {
     if (s.pendiente) return null;
+    s.mjSemana = opc && opc.minijuego ? { tipo: opc.minijuego.tipo, p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
     const especial = accion === '__acto' || accion === '__evento';
     if (!especial && P2.bloqueoAccion(s, accion)) return null;
     const R = nuevoR(s);
@@ -2738,6 +2769,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (!s.pendiente && !s.cola.length) P2.revisarOfertasMarca(s);
     if (!s.pendiente && !s.cola.length) P2.tirarSucesos(s);
 
+    if (s.mjSemana) R.minijuego = s.mjSemana;
+    s.mjSemana = null;
+    if (P2.recargarVidas(s)) R.lineas.push(['❤️', `Recuperas una vida para los minijuegos (${P2.vidas(s).n}/${P2.VIDAS.max}).`, 'bien']);
     P2.anotarHistoria(s, 'semana');
     P2.revisarDeseo(s);
     R.dinero = s.p.dinero - R.dinero0;
@@ -3616,6 +3650,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       const ult = ish[ish.length - 1], tras = (t.msActivo || 0) - ult.ms;
       L.push(`  Anuncio obligatorio simulado: ${ish.length} (${ish.map(e => e.momento).join(', ')}) · continuó ${n('interstitial_continue')} · ${tras < 120000 ? 'la sesión acabó menos de 2 min después del último (posible abandono)' : 'siguió jugando después'}`);
     } else L.push('  Anuncio obligatorio simulado: no ha salido');
+    const mjs = (m.eventos || []).filter(e => e.e === 'minijuego');
+    L.push(`  Minijuegos: ${mjs.length} (${mjs.filter(e => e.simulado).length} simulados) · reintentos con vida: ${n('vida_usada')} · vidas por anuncio: ${n('rewarded_offer_accepted:vida')}`);
     const des = Object.entries(m.deseados || {}).sort((a, b) => b[1] - a[1]);
     L.push(`  Objetos deseados (lista de deseos): ${des.length ? des.map(([id], i) => `${i + 1}. ${(P2.producto(id) || { n: id }).n}`).join(' · ') : 'ninguno'}${n('wishlist_reached') ? ` · alcanzados ${n('wishlist_reached')}` : ''}`);
     const ganado = ['sueldo', 'primas', 'patrocinio', 'trabajo', 'retirado'].reduce((a, k) => a + ((s.acum || {})[k] || 0), 0) + (s.socio ? s.socio.dividendos || 0 : 0);
@@ -3959,6 +3995,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       oferta: { activo: true, pctMin: 0.15, pctMax: 0.25, maximo: 250, cadaSemanas: 6, validez: 3, precioMax: { barrio: 200, club: 700, empresa: 3000, magnate: 10000 } },
       energia: { activo: true, cantidad: 10, umbral: 35, cadaSemanas: 8 },   // con +15 cada 6 semanas, verlos todos daba +3 de nivel y +7 % de patrimonio: demasiado
       temporada: { activo: true },
+      vida: { activo: true, cadaSemanas: 1 },   // +1 vida para repetir un minijuego (nunca deshace decisiones)
       empresaBonus: { activo: false, mult: 1.25 },   // futuro: cobrar ingresos offline con bonus. Aún no hay ingresos offline
     },
     iap: { maxPorSesion: 2, semanasEntre: 4, entregarCosmeticos: false, minutosFounder: 25, momentoValido: 3 },
@@ -3971,6 +4008,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     oferta: { ic: '🎁', n: 'Oferta especial', d: () => 'Descubres un objeto con descuento (lo pagas con dinero del juego)' },
     energia: { ic: '⚡', n: 'Recuperación patrocinada', d: c => `+${c.cantidad} de energía` },
     temporada: { ic: '🕶️', n: 'Cosmético de temporada', d: () => 'Gafas edición temporada (solo estética)' },
+    vida: { ic: '❤️', n: 'Vida extra', d: () => '+1 vida para repetir el minijuego' },
     empresaBonus: { ic: '💼', n: 'Bonus de empresa', d: c => `Cobrar ×${c.mult} lo generado fuera de la partida (futuro)` },
   };
 
@@ -4088,6 +4126,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       if (s.p.energia >= P2.CFG.energia.max) return 'Ya estás a tope';
     }
     if (tipo === 'temporada') { const t = M(s).temporadaPremio; if (!t || t.extra) return 'No disponible'; }
+    if (tipo === 'vida' && P2.vidas(s).n >= P2.VIDAS.max) return 'Ya tienes todas las vidas';
     return null;
   }
   // Toca «Ver anuncio»: abre la simulación con la recompensa (aún no se entrega)
@@ -4115,6 +4154,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       r = { tipo: 'oferta', id: P.id, original: P.precio, precio: m.oferta.precio };
     }
     if (p.tipo === 'energia') { const antes = s.p.energia; s.p.energia = clamp(s.p.energia + C.cantidad, 0, P2.CFG.energia.max); r = { tipo: 'energia', ganado: s.p.energia - antes }; }
+    if (p.tipo === 'vida') { const v = P2.vidas(s); v.n = Math.min(P2.VIDAS.max, v.n + 1); r = { tipo: 'vida', vidas: v.n }; }
     if (p.tipo === 'temporada') { m.temporadaPremio.extra = true; s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat('gafas:temporada'))); r = { tipo: 'temporada', look: 'gafas:temporada' }; }
     if (!r) return null;
     m.ultimo[p.tipo] = s.semana;
@@ -4451,6 +4491,60 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   Object.assign(P2, { VARIANTES, varianteSemana, destacadaSemana, aplicarAccionSemana, BONUS_DESTACADA });
 })(globalThis.P2 = globalThis.P2 || {});
 
+// ===== 18_minijuegos.js =====
+/* =====================================================================
+   18 · MINIJUEGOS EN LOS MOMENTOS DECISIVOS (y vidas para repetirlos)
+   Solo en momentos especiales: el día de las pruebas, el torneo del barrio y los partidos
+   decisivos (ascenso, descenso, última jornada). Son cortos (un toque) y AYUDAN, pero no lo
+   deciden todo: tu nivel sigue mandando. Siempre se pueden «Simular» (resultado neutro).
+   Vidas: sirven SOLO para repetir un minijuego que ha salido mal (nunca para deshacer una
+   decisión). Se recargan solas (1 cada pocas semanas) y con un anuncio simulado (+1).
+   La nota del minijuego (p, de 0 a 1) llega a la lógica en jugarSemana(s, acción, { minijuego }).
+   Sin minijuego (bots, simulación), todo funciona exactamente igual que antes.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { clamp, r1 } = P2;
+
+  const MINIJUEGOS = {
+    prueba: { ic: '📋', n: 'Día de pruebas', d: 'Tres tiros a puerta delante de los ojeadores. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
+    torneo: { ic: '🏆', n: 'Final del torneo', d: 'Tres jugadas decisivas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
+    penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Elige esquina y chuta en el momento justo.', rondas: 1, neutro: 0.4 },
+  };
+  const VIDAS = { max: 3, recargaSemanas: 4 };
+
+  // ¿Esta semana hay un momento decisivo con minijuego?
+  function minijuegoSemana(s, accion) {
+    if (s.fase === 'pruebas' && s.invitacion && s.semana >= s.invitacion.dia) return 'prueba';
+    if (accion === 'torneo') return 'torneo';
+    if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && !s.temporada.cerrada && !s.p.lesion) {
+      const T = s.temporada, ultima = T.jornada === T.calendario.length - 1;
+      if (ultima || P2.contexto(T).some(t => /ascenso|descenso|decisiv/i.test(t))) return 'penalti';
+    }
+    return null;
+  }
+  // Lo que aporta: con p = neutro (simular) no cambia nada
+  const mj = s => (s.mjSemana && s.mjSemana.semana === s.semana ? s.mjSemana : null);
+  function bonusPrueba(s) { const m = mj(s); return m && m.tipo === 'prueba' ? Math.round((m.p - MINIJUEGOS.prueba.neutro) * 10) : 0; }   // −4 … +6
+  function bonusTorneo(s) { const m = mj(s); return m && m.tipo === 'torneo' ? r1((m.p - MINIJUEGOS.torneo.neutro) * 12) : 0; }        // −5 … +7
+  // Penalti: si lo metes (p ≥ 0,6) es un gol más para tu equipo y +0,5 de nota; si lo fallas, −0,3
+  function penalti(s) { const m = mj(s); return m && m.tipo === 'penalti' ? (m.p >= 0.6 ? 'gol' : m.p <= 0.3 ? 'fallo' : null) : null; }
+
+  // ---------- Vidas ----------
+  const vidas = s => (s.vidas && typeof s.vidas === 'object' ? s.vidas : (s.vidas = { n: VIDAS.max, recarga: s.semana || 1 }));
+  function usarVida(s) { const v = vidas(s); if (v.n <= 0) return false; v.n--; if (v.n === VIDAS.max - 1) v.recarga = s.semana; P2.teleMon && P2.teleMon(s, 'vida_usada', { quedan: v.n }); return true; }
+  function recargarVidas(s) {
+    const v = vidas(s);
+    if (v.n >= VIDAS.max) { v.recarga = s.semana; return 0; }
+    let g = 0;
+    while (v.n < VIDAS.max && s.semana - v.recarga >= VIDAS.recargaSemanas) { v.n++; v.recarga += VIDAS.recargaSemanas; g++; }
+    return g;
+  }
+  const semanasParaVida = s => { const v = vidas(s); return v.n >= VIDAS.max ? 0 : Math.max(1, VIDAS.recargaSemanas - (s.semana - v.recarga)); };
+
+  Object.assign(P2, { MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
+})(globalThis.P2 = globalThis.P2 || {});
+
 // ===== 20_ui.js =====
 /* =====================================================================
    20 · INTERFAZ (móvil): SITUACIÓN → DECISIÓN → CONSECUENCIA
@@ -4548,7 +4642,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const SEC = P2.SECCIONES.find(x => x.id === ui.vista);
     if (ui.vista !== 'semana') return `<button class="atras" data-act="vista" data-v="semana">‹ Jugar</button><div class="hwho"><b>${SEC ? `${SEC.ic} ${esc(SEC.id === 'relaciones' ? 'Vida' : SEC.id === 'personaje' ? 'Perfil' : SEC.n)}` : ''}</b></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>`;
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
-      <div class="hwho"><b>Semana ${s.semana}</b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>
+      <div class="hwho"><b>Semana ${s.semana} <span class="vidasTop">${'❤️'.repeat(P2.vidas(s).n)}</span></b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>
+      <button class="mundoBtn" data-act="mundo" aria-label="Mi mundo">🌍${hayNovedad(s) ? '<i aria-label="hay novedades"></i>' : ''}</button>
       <div class="ener" aria-label="Energía ${Math.round(s.p.energia)}">⚡<div class="bar"><i style="width:${Math.round(s.p.energia)}%"></i></div>${Math.round(s.p.energia)}</div>`;
   }
   function htmlTopViejo(s) {
@@ -4878,6 +4973,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function htmlRw(s) {
     const p = ui.rw, C = P2.MONETIZATION.rewarded[p.tipo], R = P2.REWARDED[p.tipo];
     let rec = R.d(C);
+    if (p.tipo === 'vida') rec = '❤️ +1 vida para repetir el minijuego';
     if (p.tipo === 'cupon') { const P = P2.producto(p.data.id), d = P2.descuentoCupon(P.precio); rec = `🏷️ Cupón −${Math.round(C.pct * 100)} % para ${P.ic} ${P.n}: comprar por ${eur(P.precio - d)} en vez de ${eur(P.precio)} (ahorras ${eur(d)}). Válido ${C.validez} semanas.`; }
     return `<div class="overlay" role="dialog" aria-label="Simulación de anuncio"><div class="modal">
       <small class="lab">🧪 MONETIZATION LAB</small><h2>📺 SIMULACIÓN DE ANUNCIO</h2>
@@ -5114,8 +5210,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
       <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>
       ${o.resto.length || o.bloq.length ? `<button class="masOps" data-act="masOps">${ui.masOps ? 'Menos opciones' : `Más opciones (${o.resto.length + o.bloq.length})`}</button>` : ''}${mas}
-      ${htmlExtrasInicio(s)}
-      <button class="mundoBtn" data-act="mundo">🌍 Mi mundo${hayNovedad(s) ? ' <i aria-label="hay novedades"></i>' : ''}</button></div>`;
+      ${htmlExtrasInicio(s)}</div>`;
   }
   const hayNovedad = s => (s.seccionesNuevas || []).length > 0 || Object.values(avisos(s)).some(Boolean);
 
@@ -5172,7 +5267,57 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     return `<div class="pant fiesta"><div class="rayos"></div><div class="grande">${F.x.ic}</div><small class="eti">🔓 NUEVO</small><h2>${esc(F.x.n)}</h2><p>${esc(F.x.d || '')} Lo tienes en 🌍 Mi mundo.</p>
       <button class="cta oro" data-act="verNuevo" data-v="${F.x.id}">Ver ahora</button><button class="masOps" data-act="seguir">Más tarde</button></div>`;
   }
+  // ---- Minijuegos: barra de tiempo (y esquina en el penalti); vidas para repetir ----
+  const ESQ = [['izq', '⬅️', 'Izquierda'], ['centro', '⬆️', 'Centro'], ['dcha', '➡️', 'Derecha']];
+  const corazones = s => { const v = P2.vidas(s); return `<span class="vidas" aria-label="${v.n} vidas">${'❤️'.repeat(v.n)}${'🤍'.repeat(Math.max(0, P2.VIDAS.max - v.n))}</span>`; };
+  function htmlMinijuego(s) {
+    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo];
+    if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${M.ic}</div><small class="eti">MOMENTO DECISIVO</small><h2>${esc(M.n)}</h2><p>${esc(M.d)}</p>${corazones(s)}
+      <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular (sin jugar)</button></div>`;
+    if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span></div><h2>¿A qué lado chutas?</h2>
+      <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div></div>`;
+    if (J.fase === 'barra') {
+      const z = Math.max(10, 22 - J.res.length * 5);
+      return `<div class="pant res mj"><small class="eti">${J.tipo === 'penalti' ? 'POTENCIA Y PRECISIÓN' : `TIRO ${J.res.length + 1} DE ${M.rondas}`}</small><h2>¡Para en el verde!</h2>
+        <div class="mjBarra"><span class="zona" style="left:${50 - z / 2}%;width:${z}%"></span><span class="marca" id="mjMarca"></span></div>
+        <div class="mjPuntos">${J.res.map(x => `<span class="${x >= 0.7 ? 'bien' : x >= 0.4 ? 'medio' : 'mal'}">${x >= 0.7 ? '⭐' : x >= 0.4 ? '👍' : '✖️'}</span>`).join('')}</div>
+        <button class="cta" data-act="mjParar" id="mjParar">¡AHORA!</button></div>`;
+    }
+    // fin
+    const p = J.p, bien = p >= 0.6, tit = J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
+    const ef = J.tipo === 'prueba' ? `${P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }) >= 0 ? '+' : ''}${P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 })} puntos en la prueba`
+      : J.tipo === 'torneo' ? `${p >= 0.4 ? 'Ayuda' : 'Resta'} en el torneo` : bien ? 'Un gol más para tu equipo y +0,5 de nota' : 'Sin gol extra';
+    const v = P2.vidas(S);
+    return `<div class="pant res mj"><div class="grande">${bien ? '🎉' : '😬'}</div><h2>${tit}</h2><p>${esc(ef)}</p>${corazones(s)}
+      <button class="cta ${bien ? 'oro' : ''}" data-act="mjFin">${bien ? '¡Genial! Seguir ▶' : 'Seguir con este resultado ▶'}</button>
+      ${!bien ? (v.n > 0 ? `<button class="cta reintentar" data-act="mjReintentar">🔁 Reintentar (−1 ❤️)</button>` : `${rwBtn(s, 'vida', { contexto: 'minijuego' }, 'Ver anuncio: +1 vida')}<p class="small">O espera: recuperas una vida en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`) : ''}</div>`;
+  }
+  let mjAnim = null;
+  function animarMinijuego() {
+    cancelAnimationFrame(mjAnim);
+    const el = document.getElementById('mjMarca'); if (!el || !ui.mj) return;
+    const vel = 0.0024 + ui.mj.res.length * 0.0009 + (ui.mj.tipo === 'penalti' ? 0.0012 : 0), t0 = performance.now();
+    const paso = tt => { ui.mjPos = 50 + 48 * Math.sin((tt - t0) * vel); el.style.left = ui.mjPos + '%'; mjAnim = requestAnimationFrame(paso); };
+    mjAnim = requestAnimationFrame(paso);
+  }
+  function terminarMinijuego() {
+    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo];
+    if (J.tipo === 'penalti') {
+      const sc = J.res[0], portero = ESQ[Math.floor(Math.random() * 3)][0];
+      const gol = sc >= 0.85 || (sc >= 0.4 && portero !== J.esquina);
+      J.parada = !gol && sc >= 0.4; J.p = gol ? 0.6 + 0.4 * sc : 0.3 * sc;
+    } else J.p = J.res.reduce((a, b) => a + b, 0) / M.rondas;
+    J.fase = 'fin';
+  }
+  function jugarConfirmado(id, opc) {
+    const a0 = foto(S), v0 = P2.varianteSemana(S, id), R = P2.jugarSemana(S, id, opc); if (!R) return;
+    ui.res = { R, id, a: a0, b: foto(S), v: v0 }; ui.fiestas = fiestasDe(R.hitos, R.desbloqueos); ui.paso = 'resultado'; ui.masOps = false; ui.desbloqueos = [];
+    if (R.partido && R.partido.resultado === 'victoria') ui.confeti = true;
+    guardarYPintar(); window.scrollTo(0, 0);
+  }
+
   function htmlJuego(s) {
+    if (ui.mj) return htmlMinijuego(s);
     if (ui.paso === 'resultado' && ui.res) return htmlResultado(s);
     if (ui.paso === 'decidido' && ui.dec) return htmlDecidido(s);
     if (ui.paso === 'fiesta' && ui.fiestas && ui.fiestas.length) return htmlFiesta(s);
@@ -5221,7 +5366,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
       relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones }[ui.vista] || (() => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
-    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
+    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
     const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
     const mundo = ui.mundo ? htmlMundo(S) : '';
     $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + V(S) + capa + mundo;
@@ -5229,6 +5374,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     $('main').classList.remove('conBoton');
     document.body.classList.toggle('enSeccion', ui.vista !== 'semana');
     contar();
+    if (ui.mj && ui.mj.fase === 'barra' && ui.vista === 'semana') animarMinijuego(); else cancelAnimationFrame(mjAnim);
     if (ui.confeti) { ui.confeti = false; confeti(); }
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
@@ -5263,10 +5409,19 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       case 'lookAzar': if ($('nombre')) ui.nombre = $('nombre').value; if (S) { S.look = P2.validarLook(P2.lookAzar()); guardarYPintar(); } else { ui.look = P2.validarLook(P2.lookAzar()); render(); } break;
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
       // Un toque juega la semana
-      case 'jugarYa': { const a0 = foto(S), R = P2.jugarSemana(S, id); if (!R) break;
-        ui.res = { R, id, a: a0, b: foto(S) }; ui.fiestas = fiestasDe(R.hitos, R.desbloqueos); ui.paso = 'resultado'; ui.masOps = false; ui.desbloqueos = [];
-        if (R.partido && R.partido.resultado === 'victoria') ui.confeti = true;
-        guardarYPintar(); window.scrollTo(0, 0); break; }
+      case 'jugarYa': { if (P2.bloqueoAccion(S, id)) break;
+        const t = P2.minijuegoSemana(S, id);
+        if (t) { ui.mj = { tipo: t, accion: id, fase: 'intro', res: [], reintentos: 0 }; render(); window.scrollTo(0, 0); break; }
+        jugarConfirmado(id); break; }
+      case 'mjEmpezar': ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; render(); break;
+      case 'mjEsquina': ui.mj.esquina = b.dataset.v; ui.mj.fase = 'barra'; render(); break;
+      case 'mjParar': { cancelAnimationFrame(mjAnim); const J = ui.mj, pos = ui.mjPos == null ? 50 : ui.mjPos, z = Math.max(10, 22 - J.res.length * 5);
+        J.res.push(clamp(1 - Math.max(0, Math.abs(pos - 50) - z / 4) / 40, 0, 1));
+        if (J.res.length >= P2.MINIJUEGOS[J.tipo].rondas) terminarMinijuego();
+        render(); break; }
+      case 'mjSimular': ui.mj.p = P2.MINIJUEGOS[ui.mj.tipo].neutro; ui.mj.simulado = true; ui.mj.fase = 'fin'; { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: J.p, simulado: true }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); } break;
+      case 'mjReintentar': if (P2.usarVida(S)) { ui.mj.res = []; ui.mj.reintentos++; ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; guardarYPintar(); } break;
+      case 'mjFin': { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
       case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
         if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }
         render(); window.scrollTo(0, 0); break;
@@ -5293,7 +5448,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       case 'rwNo': P2.cancelarRewarded(S); ui.rw = null; guardarYPintar(); break;
       case 'rwOk': { const r = ui.rw && P2.aceptarRewarded(S, ui.rw.token); ui.rw = null;
         if (r) { ui.rwSesion = (ui.rwSesion || 0) + 1;
-          ui.flash = r.tipo === 'cupon' ? `🏷️ Cupón listo: ${P2.producto(r.id).n} por ${eur(r.precio)}` : r.tipo === 'oferta' ? `🎁 Oferta: ${P2.producto(r.id).n} por ${eur(r.precio)} (antes ${eur(r.original)})` : r.tipo === 'energia' ? `⚡ +${r.ganado} de energía` : '🕶️ Gafas edición temporada desbloqueadas'; }
+          ui.flash = r.tipo === 'cupon' ? `🏷️ Cupón listo: ${P2.producto(r.id).n} por ${eur(r.precio)}` : r.tipo === 'oferta' ? `🎁 Oferta: ${P2.producto(r.id).n} por ${eur(r.precio)} (antes ${eur(r.original)})` : r.tipo === 'energia' ? `⚡ +${r.ganado} de energía` : r.tipo === 'vida' ? `❤️ +1 vida (${r.vidas}/${P2.VIDAS.max})` : '🕶️ Gafas edición temporada desbloqueadas'; }
         guardarYPintar(); break; }
       case 'premioVisto': { const tp = P2.monEstado(S).temporadaPremio; if (tp) tp.visto = true; guardarYPintar(); break; }
       // Compras con dinero real: SOLO prueba de intención. Nunca hay checkout ni cargo

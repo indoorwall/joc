@@ -28,6 +28,7 @@
       oferta: { activo: true, pctMin: 0.15, pctMax: 0.25, maximo: 250, cadaSemanas: 6, validez: 3, precioMax: { barrio: 200, club: 700, empresa: 3000, magnate: 10000 } },
       energia: { activo: true, cantidad: 10, umbral: 35, cadaSemanas: 8 },   // con +15 cada 6 semanas, verlos todos daba +3 de nivel y +7 % de patrimonio: demasiado
       temporada: { activo: true },
+      vida: { activo: true, cadaSemanas: 1 },   // +1 vida para repetir un minijuego (nunca deshace decisiones)
       empresaBonus: { activo: false, mult: 1.25 },   // futuro: cobrar ingresos offline con bonus. Aún no hay ingresos offline
     },
     iap: { maxPorSesion: 2, semanasEntre: 4, entregarCosmeticos: false, minutosFounder: 25, momentoValido: 3 },
@@ -40,6 +41,7 @@
     oferta: { ic: '🎁', n: 'Oferta especial', d: () => 'Descubres un objeto con descuento (lo pagas con dinero del juego)' },
     energia: { ic: '⚡', n: 'Recuperación patrocinada', d: c => `+${c.cantidad} de energía` },
     temporada: { ic: '🕶️', n: 'Cosmético de temporada', d: () => 'Gafas edición temporada (solo estética)' },
+    vida: { ic: '❤️', n: 'Vida extra', d: () => '+1 vida para repetir el minijuego' },
     empresaBonus: { ic: '💼', n: 'Bonus de empresa', d: c => `Cobrar ×${c.mult} lo generado fuera de la partida (futuro)` },
   };
 
@@ -157,6 +159,7 @@
       if (s.p.energia >= P2.CFG.energia.max) return 'Ya estás a tope';
     }
     if (tipo === 'temporada') { const t = M(s).temporadaPremio; if (!t || t.extra) return 'No disponible'; }
+    if (tipo === 'vida' && P2.vidas(s).n >= P2.VIDAS.max) return 'Ya tienes todas las vidas';
     return null;
   }
   // Toca «Ver anuncio»: abre la simulación con la recompensa (aún no se entrega)
@@ -184,6 +187,7 @@
       r = { tipo: 'oferta', id: P.id, original: P.precio, precio: m.oferta.precio };
     }
     if (p.tipo === 'energia') { const antes = s.p.energia; s.p.energia = clamp(s.p.energia + C.cantidad, 0, P2.CFG.energia.max); r = { tipo: 'energia', ganado: s.p.energia - antes }; }
+    if (p.tipo === 'vida') { const v = P2.vidas(s); v.n = Math.min(P2.VIDAS.max, v.n + 1); r = { tipo: 'vida', vidas: v.n }; }
     if (p.tipo === 'temporada') { m.temporadaPremio.extra = true; s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat('gafas:temporada'))); r = { tipo: 'temporada', look: 'gafas:temporada' }; }
     if (!r) return null;
     m.ultimo[p.tipo] = s.semana;

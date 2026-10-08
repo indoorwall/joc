@@ -20,7 +20,9 @@
       secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
-      deseoActual: null,               // objetivo personal de la Tienda (lista de deseos)
+      deseoActual: null,
+      vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
+      mjSemana: null,               // objetivo personal de la Tienda (lista de deseos)
       historiaCosas: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
