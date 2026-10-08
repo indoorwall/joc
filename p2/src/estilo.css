@@ -689,3 +689,30 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
 .chTop { display: flex; gap: 8px; align-items: center; font-size: 18px; border-bottom: 2px dashed #b8e6c8; padding-bottom: 6px; }
 .chFila { margin-top: 8px; font-weight: 700; color: var(--dim); }
 .chImporte { margin-top: 6px; display: inline-block; font-size: 22px; font-weight: 900; border: 2px solid #0f9d58; color: #0f9d58; border-radius: 8px; padding: 2px 10px; }
+
+/* Minijuegos nuevos: toques, pase, jugada ensayada, parada */
+.mjJuego { display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 900; }
+.mjJuego span { background: #fff; border-radius: 999px; padding: 6px 12px; box-shadow: 0 3px 0 #e2dcf7; }
+.dif { font-style: normal; font-size: 12px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 4px 10px; color: #fff; }
+.dif.d-facil { background: #12bfae; } .dif.d-media { background: #ff9a2e; } .dif.d-dificil { background: #e0245e; }
+.mjMsg { min-height: 22px; font-weight: 900; color: #7c5cff; margin: 0; }
+.mjPuntos span { animation: salta .3s both; }
+.mjToques { position: relative; height: 230px; border-radius: 20px; background: linear-gradient(#cfeaff, #e8f8ec 70%, #7cc596 70%); overflow: hidden; box-shadow: 0 4px 0 #e2dcf7; }
+.mjToques .zonaPie { position: absolute; left: 0; right: 0; top: 47%; height: 33%; background: rgba(46,211,160,.35); border-top: 3px dashed #12bfae; border-bottom: 3px dashed #12bfae; }
+.mjToques .balon { position: absolute; left: 50%; top: 0; font-size: 46px; margin-left: -23px; line-height: 1; }
+.mjToques .pie { position: absolute; left: 50%; bottom: 4%; font-size: 40px; margin-left: -6px; transform: rotate(-20deg); }
+.mjCampo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 18px 10px; border-radius: 20px; background: repeating-linear-gradient(90deg, #7cc596 0 30px, #86cf9f 30px 60px); box-shadow: 0 4px 0 #e2dcf7; }
+.comp { position: relative; border: 0; border-radius: 18px; background: rgba(255,255,255,.75); padding: 14px 4px 8px; display: grid; justify-items: center; gap: 2px; font: inherit; font-weight: 800; color: var(--ink); min-height: 110px; }
+.comp .mono { font-size: 44px; }
+.comp .rival { position: absolute; right: 6px; top: 6px; font-style: normal; font-size: 22px; }
+.comp.libre { background: #fff3b0; box-shadow: 0 0 0 4px #ffc22e, 0 0 24px #ffc22e; animation: late .4s infinite; }
+.mjPizarra { height: 170px; border-radius: 20px; background: #2f6b4f; border: 8px solid #8b5e34; display: grid; place-items: center; }
+.flechaGrande { font-size: 90px; animation: salta .3s both; }
+.mjSec { display: flex; justify-content: center; gap: 8px; min-height: 44px; }
+.mjSec span { width: 40px; height: 40px; border-radius: 12px; background: #fff; box-shadow: 0 3px 0 #e2dcf7; display: grid; place-items: center; font-size: 24px; }
+.mjSec span.on { background: #ffc22e; } .mjSec span.ya { background: #d6f7ea; }
+.mjFlechas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.mjFlechas .op { justify-content: center; min-height: 72px; padding: 6px; } .mjFlechas .op .ic { width: auto; font-size: 34px; }
+.porteria.tiros { display: grid; grid-template-columns: repeat(3, 1fr); place-items: center; }
+.porteria.tiros .hueco { font-size: 50px; min-height: 60px; }
+.porteria.tiros .hueco:not(:empty) { animation: salta .15s both; }

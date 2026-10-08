@@ -320,6 +320,9 @@ function enClub(oferta = 'puerto', seed = 5) {
   const fa = penC(0.3), sn = penC(null);
   const juegaFa = ['titular', 'suplente'].includes(fa.P.rol);
   check('Minijuegos: fallar el penalti tiene consecuencias (gol del rival y menos confianza del míster), como en P1', !juegaFa || (fa.P.gc === sn.P.gc + 1 && fa.dc < sn.dc - 8 && fa.x.ultimo.lineas.some(l => /momento decisivo/i.test(l[1]))));
+  check('Minijuegos: hay 6 juegos distintos (4 nuevos: toques, pase, jugada ensayada y parada) con dificultad fácil, media o difícil', ['toques', 'pase', 'memoria', 'portero', 'barra', 'penalti'].every(k => P2.JUEGOS[k] && ['Fácil', 'Media', 'Difícil'].includes(P2.JUEGOS[k].dif)) && Object.values(P2.JUEGOS).some(g => g.dif === 'Fácil') && Object.values(P2.JUEGOS).some(g => g.dif === 'Difícil'));
+  check('Minijuegos: lo pequeño (pruebas) se juega con juegos fáciles o medios; lo grande (promociones, finales) puede tocar el difícil', P2.JUEGOS_DE.prueba.every(k => P2.JUEGOS[k].dif !== 'Difícil') && P2.JUEGOS_DE.final.some(k => P2.JUEGOS[k].dif === 'Difícil') && P2.JUEGOS_DE.promocion.some(k => P2.JUEGOS[k].dif === 'Difícil'));
+  check('Minijuegos: el juego cambia de una vez a otra y no toca el azar de la partida', (() => { const x = P2.nuevaPartida({ seed: 260 }), r0 = JSON.stringify(x.rng), vistos = new Set(); for (let w = 1; w < 30; w++) { x.semana = w; vistos.add(P2.juegoMinijuego(x, 'prueba')); } return vistos.size >= 2 && JSON.stringify(x.rng) === r0 && P2.juegoMinijuego(x, 'penalti') === 'penalti'; })());
   check('Vidas: solo un reintento por momento decisivo y se recargan cada 6 semanas (como en P1)', P2.VIDAS.reintentosPorMomento === 1 && P2.VIDAS.recargaSemanas === 6);
   const vi = P2.nuevaPartida({ seed: 254 });
   check('Vidas: empiezas con 3 y repetir un minijuego gasta una', P2.vidas(vi).n === 3 && P2.usarVida(vi) && P2.vidas(vi).n === 2);
@@ -728,6 +731,38 @@ let informe;
   for (let g = 0; g < 4 && await page.locator('[data-act="celeOk"]').count(); g++) await page.click('[data-act="celeOk"]', { force: true });
   check('UI: el resultado de la promoción sale en grande', await page.locator('.res').isVisible() && await page.evaluate(() => __P2.S.ultimo.lineas.some(l => /Promoción|Final por el título/.test(l[1]))));
   for (let g = 0; g < 6 && await page.locator('[data-act="seguir"]').count(); g++) await page.click('[data-act="seguir"]', { force: true });
+  // Los 4 minijuegos nuevos, jugados de verdad
+  const mjDe = async juego => { await page.evaluate(j => { const S = __P2.S, T = S.temporada; S.pendiente = null; S.cola = []; T.cerrada = true; T.promocion = { clase: 'ascenso', estado: 'pendiente', pos: 3 }; __P2.ui.celes = []; __P2.ui.paso = null; __P2.ui.fiestas = []; __P2.ui.mundo = false; __P2.ui.inter = false; __P2.ui.vista = 'semana'; __P2.ui.mj = { tipo: 'promocion', juego: j, accion: 'descansar', fase: 'intro', res: [], reintentos: 0, enJuego: __P2.P2.enJuego(S, 'promocion') }; __P2.render(); }, juego); };
+  await mjDe('toques');
+  check('UI: el minijuego enseña qué juego es y su dificultad', (await page.textContent('.mjJuego')).includes('Toques') && (await page.textContent('.mjJuego .dif')).includes('Fácil'));
+  await page.click('[data-act="mjEmpezar"]', { force: true });
+  for (let k = 0; k < 5; k++) { await page.waitForFunction(() => __P2.ui.mjPos > 88, null, { timeout: 5000 }); await page.click('#mjToque', { force: true }); }
+  check('UI: Toques (fácil): tocar cuando el balón baja al pie sale bien', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && __P2.ui.mj.p >= 0.6));
+  await mjDe('pase'); await page.click('[data-act="mjEmpezar"]', { force: true });
+  check('UI: Pase (fácil): esperas al desmarque con tres compañeros', await page.locator('.mjCampo .comp').count() === 3);
+  for (let k = 0; k < 3; k++) { await page.waitForSelector('.comp.libre', { timeout: 6000 }); await page.click('.comp.libre', { force: true }); }
+  check('UI: Pase (fácil): pasar al desmarcado a tiempo sale bien', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && __P2.ui.mj.p >= 0.6));
+  await mjDe('pase'); await page.click('[data-act="mjEmpezar"]', { force: true }); await page.click('.comp >> nth=0', { force: true });
+  check('UI: Pase: tocar antes del desmarque cuenta como fallo', await page.evaluate(() => __P2.ui.mj.res[0] === 0));
+  await mjDe('memoria'); await page.click('[data-act="mjEmpezar"]', { force: true });
+  check('UI: Jugada ensayada (media): primero enseña la jugada', await page.locator('.mjPizarra').isVisible());
+  await page.waitForFunction(() => __P2.ui.mj.fase === 'mrep', null, { timeout: 8000 });
+  const sec = await page.evaluate(() => __P2.ui.mj.sec);
+  for (const f of sec) await page.click(`[data-act="mjFlecha"][data-v="${f}"]`, { force: true });
+  check('UI: Jugada ensayada: repetirla bien es un acierto perfecto', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && __P2.ui.mj.p === 1));
+  await mjDe('memoria'); await page.click('[data-act="mjEmpezar"]', { force: true }); await page.waitForFunction(() => __P2.ui.mj.fase === 'mrep', null, { timeout: 8000 });
+  await page.evaluate(() => { const J = __P2.ui.mj; J.sec = [0, 1, 2, 3, 0]; });
+  await page.click('[data-act="mjFlecha"][data-v="0"]', { force: true }); await page.click('[data-act="mjFlecha"][data-v="3"]', { force: true });
+  check('UI: Jugada ensayada: equivocarse acaba la jugada (1 de 5 → fallo, se puede reintentar con una vida)', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && Math.abs(__P2.ui.mj.p - 0.2) < 1e-9) && (await page.locator('[data-act="mjReintentar"]').count() + await page.locator('.rw[data-t="vida"]').count()) === 1);
+  await mjDe('portero');
+  check('UI: Parada imposible es el juego difícil', (await page.textContent('.mjJuego .dif')).includes('Difícil'));
+  await page.click('[data-act="mjEmpezar"]', { force: true });
+  for (let k = 0; k < 3; k++) { await page.waitForFunction(() => __P2.ui.mj.balon != null, null, { timeout: 6000 }); const lado = await page.evaluate(() => __P2.ui.mj.balon); await page.click(`[data-act="mjParada"][data-v="${lado}"]`, { force: true }); }
+  check('UI: Parada imposible: tirarse al lado bueno a tiempo para los tres tiros', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && __P2.ui.mj.p >= 0.6));
+  await mjDe('portero'); await page.click('[data-act="mjEmpezar"]', { force: true });
+  await page.waitForFunction(() => __P2.ui.mj.res.length >= 1, null, { timeout: 6000 });
+  check('UI: Parada imposible: si no te tiras, es gol', await page.evaluate(() => __P2.ui.mj.res[0] === 0));
+  await page.evaluate(() => { __P2.ui.mj = null; const T = __P2.S.temporada; T.promocion = null; __P2.render(); });
   // Monetization Lab en la interfaz
   await page.evaluate(() => { __P2.S.p.dinero = 900; __P2.S.monVariante = 'C'; __P2.S.pendiente = null; __P2.S.cola = []; __P2.guardar(); });
   await ir(page, 'tienda'); await page.tap('[data-act="cat"][data-v="accesorios"]');

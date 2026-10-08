@@ -707,6 +707,33 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
 .chFila { margin-top: 8px; font-weight: 700; color: var(--dim); }
 .chImporte { margin-top: 6px; display: inline-block; font-size: 22px; font-weight: 900; border: 2px solid #0f9d58; color: #0f9d58; border-radius: 8px; padding: 2px 10px; }
 
+/* Minijuegos nuevos: toques, pase, jugada ensayada, parada */
+.mjJuego { display: flex; justify-content: center; align-items: center; gap: 8px; font-weight: 900; }
+.mjJuego span { background: #fff; border-radius: 999px; padding: 6px 12px; box-shadow: 0 3px 0 #e2dcf7; }
+.dif { font-style: normal; font-size: 12px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 4px 10px; color: #fff; }
+.dif.d-facil { background: #12bfae; } .dif.d-media { background: #ff9a2e; } .dif.d-dificil { background: #e0245e; }
+.mjMsg { min-height: 22px; font-weight: 900; color: #7c5cff; margin: 0; }
+.mjPuntos span { animation: salta .3s both; }
+.mjToques { position: relative; height: 230px; border-radius: 20px; background: linear-gradient(#cfeaff, #e8f8ec 70%, #7cc596 70%); overflow: hidden; box-shadow: 0 4px 0 #e2dcf7; }
+.mjToques .zonaPie { position: absolute; left: 0; right: 0; top: 47%; height: 33%; background: rgba(46,211,160,.35); border-top: 3px dashed #12bfae; border-bottom: 3px dashed #12bfae; }
+.mjToques .balon { position: absolute; left: 50%; top: 0; font-size: 46px; margin-left: -23px; line-height: 1; }
+.mjToques .pie { position: absolute; left: 50%; bottom: 4%; font-size: 40px; margin-left: -6px; transform: rotate(-20deg); }
+.mjCampo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 18px 10px; border-radius: 20px; background: repeating-linear-gradient(90deg, #7cc596 0 30px, #86cf9f 30px 60px); box-shadow: 0 4px 0 #e2dcf7; }
+.comp { position: relative; border: 0; border-radius: 18px; background: rgba(255,255,255,.75); padding: 14px 4px 8px; display: grid; justify-items: center; gap: 2px; font: inherit; font-weight: 800; color: var(--ink); min-height: 110px; }
+.comp .mono { font-size: 44px; }
+.comp .rival { position: absolute; right: 6px; top: 6px; font-style: normal; font-size: 22px; }
+.comp.libre { background: #fff3b0; box-shadow: 0 0 0 4px #ffc22e, 0 0 24px #ffc22e; animation: late .4s infinite; }
+.mjPizarra { height: 170px; border-radius: 20px; background: #2f6b4f; border: 8px solid #8b5e34; display: grid; place-items: center; }
+.flechaGrande { font-size: 90px; animation: salta .3s both; }
+.mjSec { display: flex; justify-content: center; gap: 8px; min-height: 44px; }
+.mjSec span { width: 40px; height: 40px; border-radius: 12px; background: #fff; box-shadow: 0 3px 0 #e2dcf7; display: grid; place-items: center; font-size: 24px; }
+.mjSec span.on { background: #ffc22e; } .mjSec span.ya { background: #d6f7ea; }
+.mjFlechas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.mjFlechas .op { justify-content: center; min-height: 72px; padding: 6px; } .mjFlechas .op .ic { width: auto; font-size: 34px; }
+.porteria.tiros { display: grid; grid-template-columns: repeat(3, 1fr); place-items: center; }
+.porteria.tiros .hueco { font-size: 50px; min-height: 60px; }
+.porteria.tiros .hueco:not(:empty) { animation: salta .15s both; }
+
 </style>
 </head>
 <body>
@@ -4595,12 +4622,26 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const { clamp, r1 } = P2;
 
   const MINIJUEGOS = {
-    prueba: { ic: '📋', n: 'Día de pruebas', d: 'Tres tiros a puerta delante de los ojeadores. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    torneo: { ic: '🏆', n: 'Final del torneo', d: 'Tres jugadas decisivas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    promocion: { ic: '⬆️', n: 'Promoción', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    final: { ic: '🏆', n: 'Final', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Elige esquina y chuta en el momento justo.', rondas: 1, neutro: 0.4 },
+    prueba: { ic: '📋', n: 'Día de pruebas', d: 'Los ojeadores te miran: demuestra lo que vales.', rondas: 3, neutro: 0.4 },
+    torneo: { ic: '🏆', n: 'Final del torneo', d: 'La final del torneo del barrio, con todo el barrio mirando.', rondas: 3, neutro: 0.4 },
+    promocion: { ic: '⬆️', n: 'Promoción', d: 'Te juegas la categoría en un partido.', rondas: 3, neutro: 0.4 },
+    final: { ic: '🏆', n: 'Final', d: 'Una final: no hay segunda oportunidad.', rondas: 3, neutro: 0.4 },
+    penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Todo el estadio en silencio.', rondas: 1, neutro: 0.4 },
   };
+  // Las mecánicas (qué haces con el dedo). Cada momento elige una según lo que se juega:
+  // lo pequeño (pruebas, torneo) con juegos fáciles; lo grande (promociones, finales) con los difíciles.
+  const JUEGOS = {
+    toques: { ic: '⚽', n: 'Toques', dif: 'Fácil', d: 'Toca cuando el balón baje a tu pie. Cinco toques sin que caiga.', rondas: 5 },
+    pase: { ic: '👟', n: 'Pase al desmarcado', dif: 'Fácil', d: 'Un compañero se desmarca un instante: tócalo antes de que lo cubran. Tres pases.', rondas: 3 },
+    barra: { ic: '🎯', n: 'Disparo preciso', dif: 'Media', d: 'Para la barra en la zona verde. Tres disparos, cada vez más difícil.', rondas: 3 },
+    memoria: { ic: '🧠', n: 'Jugada ensayada', dif: 'Media', d: 'Mira la jugada que dibuja el míster y repítela en el mismo orden.', rondas: 1 },
+    portero: { ic: '🧤', n: 'Parada imposible', dif: 'Difícil', d: 'Te chutan: tírate al lado del balón antes de que entre. Tres tiros, cada vez más rápidos.', rondas: 3 },
+    penalti: { ic: '🥅', n: 'Penalti', dif: 'Media', d: 'Elige esquina y chuta en el momento justo.', rondas: 1 },
+  };
+  const JUEGOS_DE = { prueba: ['toques', 'pase', 'barra'], torneo: ['pase', 'toques', 'memoria'], penalti: ['penalti'], promocion: ['memoria', 'portero', 'barra'], final: ['portero', 'memoria', 'barra'] };
+  function hashMj(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  // Qué juego toca en este momento: cambia de una vez a otra (sin tocar el azar de la partida)
+  function juegoMinijuego(s, tipo) { const l = JUEGOS_DE[tipo] || ['barra']; return l[hashMj(`${s.seed}|${tipo}|${s.semana}`) % l.length]; }
   const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1 };   // como en P1
 
   // ¿Esta semana hay un momento decisivo con minijuego?
@@ -4638,7 +4679,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   }
   const semanasParaVida = s => { const v = vidas(s); return v.n >= VIDAS.max ? 0 : Math.max(1, VIDAS.recargaSemanas - (s.semana - v.recarga)); };
 
-  Object.assign(P2, { probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
+  Object.assign(P2, { JUEGOS, JUEGOS_DE, juegoMinijuego, probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 19_copas.js =====
@@ -5577,20 +5618,72 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // ---- Minijuegos: barra de tiempo (y esquina en el penalti); vidas para repetir ----
   const ESQ = [['izq', '⬅️', 'Izquierda'], ['centro', '⬆️', 'Centro'], ['dcha', '➡️', 'Derecha']];
   const corazones = s => { const v = P2.vidas(s); return `<span class="vidas" aria-label="${v.n} vidas">${'❤️'.repeat(v.n)}${'🤍'.repeat(Math.max(0, P2.VIDAS.max - v.n))}</span>`; };
+  const juegoDe = J => P2.JUEGOS[J.juego] || P2.JUEGOS.barra;
+  const COMPIS = ['Dani', 'Marc', 'Leo'];
+  const FLECHAS = [['izquierda', '⬅️'], ['arriba', '⬆️'], ['derecha', '➡️'], ['abajo', '⬇️']];
+  const puntosMj = J => `<div class="mjPuntos">${J.res.map(x => `<span>${x >= 0.7 ? '⭐' : x >= 0.4 ? '👍' : '✖️'}</span>`).join('')}</div>`;
+  let mjTimer = null;
+  const mjVivo = J => ui.mj === J && ui.vista === 'semana';
+  // Empieza (o vuelve a empezar) el juego que toca en este momento
+  function empezarJuego(J) {
+    clearTimeout(mjTimer); J.res = []; J.msg = ''; J.libre = null; J.balon = null;
+    J.fase = { penalti: 'esquina', barra: 'barra', toques: 'toques', pase: 'pase', memoria: 'mver', portero: 'portero' }[J.juego] || 'barra';
+    if (J.fase === 'pase') programarPase(J);
+    if (J.fase === 'portero') programarTiro(J);
+    if (J.fase === 'mver') { const n = J.tipo === 'torneo' ? 4 : 5; J.sec = Array.from({ length: n }, () => Math.floor(Math.random() * 4)); J.entrada = []; J.idx = -1; programarMemoria(J); }
+  }
+  function siguienteRonda(J, prog) { if (J.res.length >= juegoDe(J).rondas) { terminarMinijuego(); render(); } else { prog(J); render(); } }
+  function programarPase(J) {
+    J.libre = null;
+    mjTimer = setTimeout(() => { if (ui.mj !== J) return; J.libre = Math.floor(Math.random() * 3); J.t0 = performance.now(); J.msg = ''; render();
+      const ventana = [1000, 850, 700][J.res.length] || 700;
+      mjTimer = setTimeout(() => { if (ui.mj !== J || J.libre == null) return; J.res.push(0); J.msg = '¡Lo han cubierto!'; siguienteRonda(J, programarPase); }, ventana);
+    }, 700 + Math.random() * 1100);
+  }
+  function programarTiro(J) {
+    J.balon = null;
+    mjTimer = setTimeout(() => { if (ui.mj !== J) return; J.balon = ['izq', 'centro', 'dcha'][Math.floor(Math.random() * 3)]; J.t0 = performance.now(); J.msg = ''; render();
+      const ventana = [700, 560, 440][J.res.length] || 440;
+      mjTimer = setTimeout(() => { if (ui.mj !== J || J.balon == null) return; J.res.push(0); J.balon = null; J.msg = '¡Gol! No llegas.'; siguienteRonda(J, programarTiro); }, ventana);
+    }, 800 + Math.random() * 1400);
+  }
+  function programarMemoria(J) {
+    mjTimer = setTimeout(() => { if (ui.mj !== J) return; J.idx++; if (J.idx >= J.sec.length) { J.fase = 'mrep'; render(); return; } render(); programarMemoria(J); }, J.idx < 0 ? 600 : 750);
+  }
   function htmlMinijuego(s) {
-    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo], X = J.enJuego;
+    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo], X = J.enJuego, Gj = juegoDe(J);
+    const chip = `<div class="mjJuego"><span>${Gj.ic} ${esc(Gj.n)}</span><em class="dif d-${Gj.dif === 'Fácil' ? 'facil' : Gj.dif === 'Difícil' ? 'dificil' : 'media'}">${Gj.dif}</em></div>`;
     if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${X ? X.ic : M.ic}</div><small class="eti">${X ? 'TE LO JUEGAS TODO' : 'MOMENTO DECISIVO'}</small><h2>${esc(X ? X.n : M.n)}</h2><p>${esc(X ? X.d : M.d)}</p>
-      ${X ? `<div class="enjuego bien"><b>✓ Si ganas</b><span>${esc(X.gana)}</span></div><div class="enjuego mal"><b>✗ Si pierdes</b><span>${esc(X.pierde)}</span></div><p class="small">${esc(M.d)}</p>` : ''}${corazones(s)}
+      ${X ? `<div class="enjuego bien"><b>✓ Si ganas</b><span>${esc(X.gana)}</span></div><div class="enjuego mal"><b>✗ Si pierdes</b><span>${esc(X.pierde)}</span></div>` : ''}${chip}<p class="small">${esc(Gj.d)}</p>${corazones(s)}
       <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular: lo decide tu nivel (${Math.round(P2.probSimular(s) * 100)} % de acierto)</button></div>`;
     if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span></div><h2>¿A qué lado chutas?</h2>
       <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div></div>`;
     if (J.fase === 'barra') {
       const z = Math.max(10, 22 - J.res.length * 5);
-      return `<div class="pant res mj"><small class="eti">${J.tipo === 'penalti' ? 'POTENCIA Y PRECISIÓN' : `TIRO ${J.res.length + 1} DE ${M.rondas}`}</small><h2>¡Para en el verde!</h2>
+      return `<div class="pant res mj"><small class="eti">${J.tipo === 'penalti' ? 'POTENCIA Y PRECISIÓN' : `TIRO ${J.res.length + 1} DE ${Gj.rondas}`}</small><h2>¡Para en el verde!</h2>
         <div class="mjBarra"><span class="zona" style="left:${50 - z / 2}%;width:${z}%"></span><span class="marca" id="mjMarca"></span></div>
         <div class="mjPuntos">${J.res.map(x => `<span class="${x >= 0.7 ? 'bien' : x >= 0.4 ? 'medio' : 'mal'}">${x >= 0.7 ? '⭐' : x >= 0.4 ? '👍' : '✖️'}</span>`).join('')}</div>
         <button class="cta" data-act="mjParar" id="mjParar">¡AHORA!</button></div>`;
     }
+    const msg = J.msg ? `<p class="mjMsg">${esc(J.msg)}</p>` : '<p class="mjMsg">&nbsp;</p>';
+    // Toques (fácil): toca cuando el balón baja a tu pie
+    if (J.fase === 'toques') return `<div class="pant res mj"><small class="eti">TOQUE ${J.res.length + 1} DE ${Gj.rondas}</small><h2>¡Toca cuando baje!</h2>
+      <div class="mjToques"><span class="zonaPie"></span><span class="balon" id="mjBalon">⚽</span><span class="pie">👟</span></div>${puntosMj(J)}${msg}
+      <button class="cta" data-act="mjToque" id="mjToque">¡TOQUE!</button></div>`;
+    // Pase al desmarcado (fácil): un compañero se queda solo un instante
+    if (J.fase === 'pase') return `<div class="pant res mj"><small class="eti">PASE ${Math.min(J.res.length + 1, Gj.rondas)} DE ${Gj.rondas}</small><h2>${J.libre != null ? '¡Ahora! ¡Está solo!' : 'Espera al desmarque…'}</h2>
+      <div class="mjCampo">${COMPIS.map((n, i) => `<button class="comp ${J.libre === i ? 'libre' : ''}" data-act="mjPase" data-v="${i}"><span class="mono">${J.libre === i ? '🙋' : '🧍'}</span><small>${n}</small>${J.libre === i ? '' : '<i class="rival">🛡️</i>'}</button>`).join('')}</div>${puntosMj(J)}${msg}</div>`;
+    // Jugada ensayada (media): memoriza y repite
+    if (J.fase === 'mver') return `<div class="pant res mj"><small class="eti">MIRA LA JUGADA</small><h2>Memoriza el orden</h2>
+      <div class="mjPizarra"><span class="flechaGrande">${J.idx >= 0 && J.idx < J.sec.length ? FLECHAS[J.sec[J.idx]][1] : '📋'}</span></div>
+      <div class="mjSec">${J.sec.map((_, i) => `<span class="${i === J.idx ? 'on' : i < J.idx ? 'ya' : ''}"></span>`).join('')}</div><p class="mjMsg">Paso ${Math.max(1, Math.min(J.sec.length, J.idx + 1))} de ${J.sec.length}</p></div>`;
+    if (J.fase === 'mrep') return `<div class="pant res mj"><small class="eti">TU TURNO</small><h2>Repite la jugada</h2>
+      <div class="mjSec">${J.sec.map((_, i) => `<span class="${i < J.entrada.length ? 'ya' : ''}">${i < J.entrada.length ? FLECHAS[J.entrada[i]][1] : ''}</span>`).join('')}</div>
+      <div class="mjFlechas">${FLECHAS.map(([k, ic], i) => `<button class="op azul" data-act="mjFlecha" data-v="${i}" aria-label="${k}"><span class="ic">${ic}</span></button>`).join('')}</div></div>`;
+    // Parada imposible (difícil): reflejos
+    if (J.fase === 'portero') return `<div class="pant res mj"><small class="eti">TIRO ${Math.min(J.res.length + 1, Gj.rondas)} DE ${Gj.rondas}</small><h2>${J.balon != null ? '¡¡YA!!' : 'Atento…'}</h2>
+      <div class="porteria tiros">${['izq', 'centro', 'dcha'].map(k => `<span class="hueco">${J.balon === k ? '⚽' : ''}</span>`).join('')}</div>
+      <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjParada" data-v="${k}"><span class="ic">${k === 'centro' ? '🧤' : ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div>${puntosMj(J)}${msg}</div>`;
     // fin
     const p = J.p, bien = p >= 0.6, tit = X ? (bien ? '¡LO HABÉIS CONSEGUIDO!' : '¡Se escapa!') : J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
     const bp = P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }), bt = P2.bonusTorneo({ mjSemana: { tipo: 'torneo', p, semana: 0 }, semana: 0 });
@@ -5607,6 +5700,12 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   let mjAnim = null;
   function animarMinijuego() {
     cancelAnimationFrame(mjAnim);
+    if (ui.mj && ui.mj.fase === 'toques') {   // el balón sube y baja; abajo (≈100) está tu pie
+      const b = document.getElementById('mjBalon'); if (!b) return;
+      const vel = 0.0021 + ui.mj.res.length * 0.00025, t0 = performance.now();
+      const paso = tt => { ui.mjPos = 100 * Math.abs(Math.sin((tt - t0) * vel)); b.style.top = (ui.mjPos * 0.78) + '%'; mjAnim = requestAnimationFrame(paso); };
+      mjAnim = requestAnimationFrame(paso); return;
+    }
     const el = document.getElementById('mjMarca'); if (!el || !ui.mj) return;
     const vel = 0.0024 + ui.mj.res.length * 0.0009 + (ui.mj.tipo === 'penalti' ? 0.0012 : 0), t0 = performance.now();
     const paso = tt => { ui.mjPos = 50 + 48 * Math.sin((tt - t0) * vel); el.style.left = ui.mjPos + '%'; mjAnim = requestAnimationFrame(paso); };
@@ -5618,7 +5717,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       const sc = J.res[0], portero = ESQ[Math.floor(Math.random() * 3)][0];
       const gol = sc >= 0.85 || (sc >= 0.4 && portero !== J.esquina);
       J.parada = !gol && sc >= 0.4; J.p = gol ? 0.6 + 0.4 * sc : 0.3 * sc;
-    } else J.p = J.res.reduce((a, b) => a + b, 0) / M.rondas;
+    } else if (J.juego !== 'memoria') J.p = J.res.reduce((a, b) => a + b, 0) / juegoDe(J).rondas;
+    clearTimeout(mjTimer);
     J.fase = 'fin';
   }
   function jugarConfirmado(id, opc) {
@@ -5691,7 +5791,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     $('main').classList.remove('conBoton');
     document.body.classList.toggle('enSeccion', ui.vista !== 'semana');
     contar();
-    if (ui.mj && ui.mj.fase === 'barra' && ui.vista === 'semana') animarMinijuego(); else cancelAnimationFrame(mjAnim);
+    if (ui.mj && (ui.mj.fase === 'barra' || ui.mj.fase === 'toques') && ui.vista === 'semana') animarMinijuego(); else cancelAnimationFrame(mjAnim);
+    if (!ui.mj || !['pase', 'mver', 'portero'].includes(ui.mj.fase)) clearTimeout(mjTimer);
     if (ui.confeti) { ui.confeti = false; confeti(); }
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
@@ -5728,17 +5829,33 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       // Un toque juega la semana
       case 'jugarYa': { if (P2.bloqueoAccion(S, id)) break;
         const t = P2.minijuegoSemana(S, id);
-        if (t) { ui.mj = { tipo: t, accion: id, fase: 'intro', res: [], reintentos: 0, enJuego: P2.enJuego(S, t) }; render(); window.scrollTo(0, 0); break; }
+        if (t) { ui.mj = { tipo: t, juego: P2.juegoMinijuego(S, t), accion: id, fase: 'intro', res: [], reintentos: 0, enJuego: P2.enJuego(S, t) }; render(); window.scrollTo(0, 0); break; }
         jugarConfirmado(id); break; }
-      case 'mjEmpezar': ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; render(); break;
+      case 'mjEmpezar': empezarJuego(ui.mj); render(); break;
+      case 'mjToque': { cancelAnimationFrame(mjAnim); const J = ui.mj, pos = ui.mjPos == null ? 0 : ui.mjPos, x = clamp((pos - 60) / 24, 0, 1);
+        J.res.push(x); J.msg = x >= 0.7 ? '¡Toque perfecto!' : x > 0 ? 'Justo…' : '¡Se te cae!';
+        if (J.res.length >= juegoDe(J).rondas) terminarMinijuego(); render(); break; }
+      case 'mjPase': { const J = ui.mj; if (J.fase !== 'pase') break; clearTimeout(mjTimer); const v = +b.dataset.v;
+        if (J.libre == null) { J.res.push(0); J.msg = '¡Demasiado pronto! Lo cortan.'; }
+        else if (v !== J.libre) { J.res.push(0); J.msg = 'Ese estaba marcado…'; }
+        else { const ventana = [1000, 850, 700][J.res.length] || 700, x = clamp(1 - 0.4 * (performance.now() - J.t0) / ventana, 0.6, 1); J.res.push(x); J.msg = x >= 0.8 ? '¡Pase perfecto!' : '¡Buen pase!'; }
+        J.libre = null; siguienteRonda(J, programarPase); break; }
+      case 'mjFlecha': { const J = ui.mj; if (J.fase !== 'mrep') break; const v = +b.dataset.v;
+        if (v !== J.sec[J.entrada.length]) { J.p = J.entrada.length / J.sec.length; J.fallo = true; terminarMinijuego(); render(); break; }
+        J.entrada.push(v); if (J.entrada.length >= J.sec.length) { J.p = 1; terminarMinijuego(); } render(); break; }
+      case 'mjParada': { const J = ui.mj; if (J.fase !== 'portero') break; clearTimeout(mjTimer); const v = b.dataset.v;
+        if (J.balon == null) { J.res.push(0); J.msg = '¡Te tiras antes de tiempo!'; }
+        else if (v !== J.balon) { J.res.push(0); J.msg = 'Al otro lado… ¡gol!'; }
+        else { const ventana = [700, 560, 440][J.res.length] || 440, x = clamp(1 - 0.5 * (performance.now() - J.t0) / ventana, 0.5, 1); J.res.push(x); J.msg = x >= 0.8 ? '¡PARADÓN!' : '¡La sacas!'; }
+        J.balon = null; siguienteRonda(J, programarTiro); break; }
       case 'mjEsquina': ui.mj.esquina = b.dataset.v; ui.mj.fase = 'barra'; render(); break;
       case 'mjParar': { cancelAnimationFrame(mjAnim); const J = ui.mj, pos = ui.mjPos == null ? 50 : ui.mjPos, z = Math.max(10, 22 - J.res.length * 5);
         J.res.push(clamp(1 - Math.max(0, Math.abs(pos - 50) - z / 4) / 40, 0, 1));
-        if (J.res.length >= P2.MINIJUEGOS[J.tipo].rondas) terminarMinijuego();
+        if (J.res.length >= juegoDe(J).rondas) terminarMinijuego();
         render(); break; }
-      case 'mjSimular': { const J = ui.mj, ok = Math.random() < P2.probSimular(S); J.p = ok ? P2.P_SIM.acierto : P2.P_SIM.fallo; J.parada = !ok; J.simulado = true; J.fase = 'fin'; render(); break; }
-      case 'mjReintentar': if (P2.usarVida(S)) { ui.mj.res = []; ui.mj.reintentos++; ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; guardarYPintar(); } break;
-      case 'mjFin': { const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos, simulado: !!J.simulado }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
+      case 'mjSimular': { clearTimeout(mjTimer); const J = ui.mj, ok = Math.random() < P2.probSimular(S); J.p = ok ? P2.P_SIM.acierto : P2.P_SIM.fallo; J.parada = !ok; J.simulado = true; J.fase = 'fin'; render(); break; }
+      case 'mjReintentar': if (P2.usarVida(S)) { ui.mj.reintentos++; ui.mj.fallo = false; empezarJuego(ui.mj); guardarYPintar(); } break;
+      case 'mjFin': { clearTimeout(mjTimer); const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos, simulado: !!J.simulado }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
       case 'celeOk': ui.celes.shift(); if (ui.celes.length) ui.confeti = true; render(); window.scrollTo(0, 0); break;
       case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
         if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }

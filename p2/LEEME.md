@@ -30,6 +30,16 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
     marcador y la clasificación. Si fallas, no hay confeti.
   - **Pruebas**: −5 … +7 puntos. **Torneo**: −5 … +7 en la final.
   - **Simular**: lo decide tu nivel, como mucho un 80 % de acierto (nunca perfecto). Lo simulado no se puede reintentar.
+- **6 minijuegos con dificultad** (`P2.JUEGOS` en `p2/src/18_minijuegos.js`; se dibujan en `20_ui.js`):
+  - ⚽ **Toques** (fácil): toca cuando el balón baja a tu pie, 5 toques.
+  - 👟 **Pase al desmarcado** (fácil): un compañero queda libre un instante (cada vez menos tiempo); tócalo. Si tocas antes, lo cortan.
+  - 🎯 **Disparo preciso** (media): la barra de siempre, 3 disparos cada vez más difíciles.
+  - 🧠 **Jugada ensayada** (media): memoriza 4 o 5 flechas y repítelas en orden; un fallo acaba la jugada.
+  - 🧤 **Parada imposible** (difícil): el balón sale a un lado; tírate antes de que entre (0,7 → 0,44 s). Si te tiras antes, gol.
+  - 🥅 **Penalti** (media): esquina + potencia, en el partido decisivo.
+  - Qué juego toca depende de lo que se juega: pruebas → toques, pase o disparo; torneo → pase, toques o jugada;
+    promoción y finales → jugada, parada o disparo. Cambia de una vez a otra (sin tocar el azar de la partida) y la
+    pantalla de inicio dice el juego y su dificultad. Vidas, anuncio simulado y «Simular» funcionan igual en todos.
 - **Lo que te juegas en un minijuego** (`p2/src/19_copas.js`): ahora un minijuego puede decidir la categoría o un título.
   - **Promoción de ascenso**: si acabas justo fuera de los puestos de ascenso, la temporada espera una semana y te juegas
     subir. Ganas → subes; pierdes → te quedas (−5 confianza).

@@ -13,12 +13,26 @@
   const { clamp, r1 } = P2;
 
   const MINIJUEGOS = {
-    prueba: { ic: '📋', n: 'Día de pruebas', d: 'Tres tiros a puerta delante de los ojeadores. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    torneo: { ic: '🏆', n: 'Final del torneo', d: 'Tres jugadas decisivas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    promocion: { ic: '⬆️', n: 'Promoción', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    final: { ic: '🏆', n: 'Final', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
-    penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Elige esquina y chuta en el momento justo.', rondas: 1, neutro: 0.4 },
+    prueba: { ic: '📋', n: 'Día de pruebas', d: 'Los ojeadores te miran: demuestra lo que vales.', rondas: 3, neutro: 0.4 },
+    torneo: { ic: '🏆', n: 'Final del torneo', d: 'La final del torneo del barrio, con todo el barrio mirando.', rondas: 3, neutro: 0.4 },
+    promocion: { ic: '⬆️', n: 'Promoción', d: 'Te juegas la categoría en un partido.', rondas: 3, neutro: 0.4 },
+    final: { ic: '🏆', n: 'Final', d: 'Una final: no hay segunda oportunidad.', rondas: 3, neutro: 0.4 },
+    penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Todo el estadio en silencio.', rondas: 1, neutro: 0.4 },
   };
+  // Las mecánicas (qué haces con el dedo). Cada momento elige una según lo que se juega:
+  // lo pequeño (pruebas, torneo) con juegos fáciles; lo grande (promociones, finales) con los difíciles.
+  const JUEGOS = {
+    toques: { ic: '⚽', n: 'Toques', dif: 'Fácil', d: 'Toca cuando el balón baje a tu pie. Cinco toques sin que caiga.', rondas: 5 },
+    pase: { ic: '👟', n: 'Pase al desmarcado', dif: 'Fácil', d: 'Un compañero se desmarca un instante: tócalo antes de que lo cubran. Tres pases.', rondas: 3 },
+    barra: { ic: '🎯', n: 'Disparo preciso', dif: 'Media', d: 'Para la barra en la zona verde. Tres disparos, cada vez más difícil.', rondas: 3 },
+    memoria: { ic: '🧠', n: 'Jugada ensayada', dif: 'Media', d: 'Mira la jugada que dibuja el míster y repítela en el mismo orden.', rondas: 1 },
+    portero: { ic: '🧤', n: 'Parada imposible', dif: 'Difícil', d: 'Te chutan: tírate al lado del balón antes de que entre. Tres tiros, cada vez más rápidos.', rondas: 3 },
+    penalti: { ic: '🥅', n: 'Penalti', dif: 'Media', d: 'Elige esquina y chuta en el momento justo.', rondas: 1 },
+  };
+  const JUEGOS_DE = { prueba: ['toques', 'pase', 'barra'], torneo: ['pase', 'toques', 'memoria'], penalti: ['penalti'], promocion: ['memoria', 'portero', 'barra'], final: ['portero', 'memoria', 'barra'] };
+  function hashMj(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  // Qué juego toca en este momento: cambia de una vez a otra (sin tocar el azar de la partida)
+  function juegoMinijuego(s, tipo) { const l = JUEGOS_DE[tipo] || ['barra']; return l[hashMj(`${s.seed}|${tipo}|${s.semana}`) % l.length]; }
   const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1 };   // como en P1
 
   // ¿Esta semana hay un momento decisivo con minijuego?
@@ -56,5 +70,5 @@
   }
   const semanasParaVida = s => { const v = vidas(s); return v.n >= VIDAS.max ? 0 : Math.max(1, VIDAS.recargaSemanas - (s.semana - v.recarga)); };
 
-  Object.assign(P2, { probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
+  Object.assign(P2, { JUEGOS, JUEGOS_DE, juegoMinijuego, probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
 })(globalThis.P2 = globalThis.P2 || {});
