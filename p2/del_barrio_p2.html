@@ -643,6 +643,14 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 90px); }
 .mundoBtn i { position: absolute; top: 2px; right: 2px; }
 body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
 
+/* Minijuegos con algo en juego: categoría, finales */
+.partidoProx.grandeJuego { background: linear-gradient(135deg, #fff6d6, #ffe7f0); box-shadow: 0 4px 0 #f3d38a; }
+.partidoProx.grandeJuego small { font-weight: 600; color: #5b5470; }
+.enjuego { display: flex; flex-direction: column; gap: 2px; text-align: left; border-radius: 16px; padding: 10px 14px; margin: 8px 0; background: #fff; box-shadow: 0 3px 0 #e2dcf7; }
+.enjuego.bien { border-left: 5px solid #22c55e; }
+.enjuego.mal { border-left: 5px solid #ef4444; }
+.enjuego span { font-size: .92em; color: #4a4560; }
+
 </style>
 </head>
 <body>
@@ -1041,7 +1049,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       deseoActual: null,
       vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
       mjSemana: null,               // objetivo personal de la Tienda (lista de deseos)
-      historiaCosas: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
+      historiaCosas: [], trofeos: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
       seccionesNuevas: [],
@@ -1328,6 +1336,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       }
     }
     if (Z.desc) res.baja = tabla.slice(n - Z.desc).map(r => r.id);
+    if (P2.ajustarMovimiento) P2.ajustarMovimiento(s, T, res, tabla, Z);   // promociones de ascenso y permanencia
     const intercambio = (destino, salen, elegir) => {
       // De la categoría vecina vienen tantos clubes como se van
       const cand = elegir(M.ligas[destino].slice());
@@ -1668,7 +1677,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     R.porque.push(`Convocatoria: ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} + azar (±6) frente a ${nf(umbral)} (nivel del once). Titular si llegas; suplente si te quedas a menos de 7. Con menos de ${E.minTitular} de energía no eres titular.`);
     if (juega) R.porque.push(`Nota = 6 + (nivel − ${nf(umbral)}) / ${rol === 'titular' ? 6 : 8} + forma del día + resultado. Reputación deportiva +${nf(dRep)} (× exposición ${nf(expo)} de club y categoría)${dMarca ? `, marca personal +${nf(dMarca)} por un partido muy visible` : ''}. Interés de otros clubes ${Math.round(s.interes)}/100 (techo ${Math.round(techoInteres)} en este club).`);
     R.porque.push(`Entrenamientos del club: nivel +${nf(gN)} (calidad ${nf(O.entreno)}, techo ${techoClub(s)}).`);
-    if (T.cerrada) finTemporada(s, R);
+    if (P2.semanaCopas) P2.semanaCopas(s, R);   // rondas y finales de copa, Europa y Mundial
+    if (T.cerrada && !(P2.iniciarPromocion && P2.iniciarPromocion(s, R))) finTemporada(s, R);
   }
   const pm = T => T.jornada - 1;
 
@@ -1701,6 +1711,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
       P2.anotar(s, mov.miClub.tipo === 'sube' ? '🎉' : mov.miClub.tipo === 'baja' ? '📉' : '🔒', mov.miClub.tipo === 'sube' ? `¡Subimos a ${aL.n}!` : mov.miClub.tipo === 'baja' ? `Bajamos a ${aL.n}.` : `El filial no puede subir.`);
     }
+    if (P2.trasTemporada) P2.trasTemporada(s, R);   // ¿Copa de Europa o Mundial la temporada que viene?
     P2.finTemporadaPatros(s, R, media);
     P2.momentoMon(s, 'finTemporada');
     s.contrato.temporadasRestantes -= 1;
@@ -2717,7 +2728,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
   function jugarSemana(s, accion, opc) {
     if (s.pendiente) return null;
-    s.mjSemana = opc && opc.minijuego ? { tipo: opc.minijuego.tipo, p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
+    s.mjSemana = opc && opc.minijuego ? { tipo: String(opc.minijuego.tipo), p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
     const especial = accion === '__acto' || accion === '__evento';
     if (!especial && P2.bloqueoAccion(s, accion)) return null;
     const R = nuevoR(s);
@@ -2736,8 +2747,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     // Según la fase
     if (s.fase === 'barrio') P2.revisarOjeador(s, R);
     if (s.fase === 'pruebas' && s.invitacion && s.semana >= s.invitacion.dia) P2.diaDePruebas(s, R, s.invitacion.via);
-    if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && !s.temporada.cerrada) {
-      P2.jugarPartido(s, R);
+    if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && (!s.temporada.cerrada || P2.promoPendiente(s))) {
+      if (P2.promoPendiente(s)) P2.jugarPromocion(s, R);   // la liga ya acabó: esta semana se decide la categoría
+      else { P2.prepararCopas(s); P2.jugarPartido(s, R); }
       const O = P2.oferta(s), bruto = s.contrato.sueldo;
       const neto = O.amateur ? bruto : Math.round(bruto * (1 - CFG.club.impuesto));
       s.p.dinero += neto; s.acum.sueldo += neto; s.acum.impuestos += bruto - neto;
@@ -2763,7 +2775,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (s.fase === 'amateur') {
       s.amateurSemanas = (s.amateurSemanas || 0) + 1;
       if (s.amateurSemanas % CFG.amateur.repescaCada === 0) P2.encolar(s, { tipo: 'repesca' });
-      if (s.temporada && s.temporada.cerrada) P2.nuevaTemporada(s, R);
+      if (s.temporada && s.temporada.cerrada && !P2.promoPendiente(s)) P2.nuevaTemporada(s, R);
     }
     P2.revisarHitos(s, R);
     P2.revisarSecciones(s, R);
@@ -4317,7 +4329,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       empresas: s.negocios.length + (s.socio ? 1 : 0) + (s.tele && s.tele.empresa && (s.tele.empresa.venta || s.tele.empresa.cierre) ? 1 : 0),
       patrimonioMax: Math.max(h.patrimonioMax || 0, P2.patrimonio(s)),
       vehiculos: cosas.filter(P => P.cat === 'vehiculos'), viviendas: [P2.producto('habitacion')].concat(cosas.filter(P => P.cat === 'vivienda')),
-      partidos: s.stats.jugados, goles: s.stats.goles, hitos: P2.HITOS.filter(H => s.hitos[H.id]),
+      trofeos: (s.trofeos || []).slice(), partidos: s.stats.jugados, goles: s.stats.goles, hitos: P2.HITOS.filter(H => s.hitos[H.id]),
       colecciones: (s.coleccionesHechas || []).map(id => COLECCIONES.find(c => c.id === id)).filter(Boolean),
     };
   }
@@ -4521,6 +4533,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const MINIJUEGOS = {
     prueba: { ic: '📋', n: 'Día de pruebas', d: 'Tres tiros a puerta delante de los ojeadores. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
     torneo: { ic: '🏆', n: 'Final del torneo', d: 'Tres jugadas decisivas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
+    promocion: { ic: '⬆️', n: 'Promoción', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
+    final: { ic: '🏆', n: 'Final', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
     penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Elige esquina y chuta en el momento justo.', rondas: 1, neutro: 0.4 },
   };
   const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1 };   // como en P1
@@ -4529,6 +4543,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function minijuegoSemana(s, accion) {
     if (s.fase === 'pruebas' && s.invitacion && s.semana >= s.invitacion.dia) return 'prueba';
     if (accion === 'torneo') return 'torneo';
+    // Lo que más pesa: la categoría (promoción) y las finales (copa, Europa, Mundial)
+    if (P2.promoPendiente && P2.promoPendiente(s)) return 'promocion';
+    if (P2.finalEstaSemana && P2.finalEstaSemana(s)) return 'final';
     if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && !s.temporada.cerrada && !s.p.lesion) {
       const T = s.temporada, ultima = T.jornada === T.calendario.length - 1;
       if (ultima || P2.contexto(T).some(t => /ascenso|descenso|decisiv/i.test(t))) return 'penalti';
@@ -4558,6 +4575,162 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const semanasParaVida = s => { const v = vidas(s); return v.n >= VIDAS.max ? 0 : Math.max(1, VIDAS.recargaSemanas - (s.semana - v.recarga)); };
 
   Object.assign(P2, { probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
+})(globalThis.P2 = globalThis.P2 || {});
+
+// ===== 19_copas.js =====
+/* =====================================================================
+   19 · LO QUE DE VERDAD SE JUEGA EN UN MINIJUEGO: categoría, copas, Europa y el Mundial
+   - Promoción de ascenso: acabas justo fuera de los puestos de ascenso → si ganas, SUBES.
+   - Promoción de permanencia: último puesto salvado o primero de descenso → si pierdes, BAJAS.
+   - Final por el título (categoría más alta): campeón o subcampeón.
+   - Copa (cada temporada): las rondas se resuelven solas; la FINAL la juegas tú.
+   - Copa de Europa: si acabaste 1º o 2º en la categoría más alta, la temporada siguiente.
+   - Mundial: si te convocan (nivel y reputación de élite), la FINAL la juegas tú.
+   Sin minijuego (bots, simulación) se decide igual que «Simular»: por nivel, sin tocar el azar de la partida.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { CFG, LIGAS, clamp, r1, eur } = P2;
+
+  const COMPETICIONES = {
+    copa: { ic: '🏆', n: 'Copa Federación', rondas: [[3, 'Cuartos de final'], [7, 'Semifinal']], final: 10,
+      gana: { dinero: 300, rep: 2, marca: 2, confianza: 6 }, pierde: { rep: -1, confianza: -4 } },
+    europa: { ic: '⭐', n: 'Copa de Europa', rondas: [[2, 'Fase de grupos'], [5, 'Octavos'], [8, 'Cuartos'], [11, 'Semifinal']], final: 12,
+      gana: { dinero: 3000, rep: 5, marca: 4, confianza: 8 }, pierde: { rep: -2, marca: -1, confianza: -6 } },
+    mundial: { ic: '🌍', n: 'Mundial con la selección', rondas: [[4, 'Fase de grupos'], [5, 'Octavos'], [6, 'Cuartos'], [7, 'Semifinal']], final: 8,
+      gana: { dinero: 5000, rep: 6, marca: 5 }, pierde: { rep: -3, marca: -2 } },
+  };
+  const CONVOCATORIA = { nivel: 75, rep: 55 };
+
+  function hash(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  const azar = (s, k) => (hash(`${s.seed}|${k}`) % 10000) / 10000;   // determinista: no toca s.rng
+  const prob = s => P2.probSimular(s);
+  const mj = s => (s.mjSemana && s.mjSemana.semana === s.semana ? s.mjSemana : null);
+
+  // ---------- Competiciones de la temporada ----------
+  function prepararCopas(s) {
+    const T = s.temporada; if (!T || T.copas || s.fase !== 'club') return;
+    const ids = ['copa'].concat(s.europaProxima ? ['europa'] : [], s.convocado ? ['mundial'] : []);
+    s.europaProxima = false; s.convocado = false;
+    T.copas = T.jornada > 0 ? [] : ids.map(id => ({ id, estado: 'viva' }));   // una partida guardada a media temporada empieza con la siguiente
+  }
+  const copaFinalEn = (s, j) => (s.temporada && s.temporada.copas || []).find(c => c.estado === 'viva' && COMPETICIONES[c.id].final === j);
+  // Después de cada jornada: rondas que se resuelven solas y la final (con tu minijuego)
+  function semanaCopas(s, R) {
+    const T = s.temporada; if (!T || !T.copas) return;
+    const jp = T.jornada - 1;
+    for (const c of T.copas) {
+      if (c.estado !== 'viva') continue;
+      const C = COMPETICIONES[c.id], ronda = C.rondas.find(([j]) => j === jp);
+      if (ronda) {
+        const pasa = azar(s, `${c.id}|${T.num}|${T.liga}|${jp}`) < clamp(prob(s), 0.3, 0.8);
+        if (pasa) R.lineas.push([C.ic, `${C.n}: ¡superáis ${ronda[1].toLowerCase()}!`, 'bien']);
+        else { c.estado = 'eliminado'; R.lineas.push([C.ic, `${C.n}: eliminados en ${ronda[1].toLowerCase()}.`, 'mal']); }
+      }
+      if (C.final === jp) {
+        const m = mj(s), gana = m && m.tipo === 'final' ? m.p >= 0.6 : azar(s, `${c.id}|final|${T.num}`) < prob(s);
+        c.estado = gana ? 'campeon' : 'subcampeon';
+        aplicar(s, gana ? C.gana : C.pierde);
+        if (gana) (s.trofeos = s.trofeos || []).push({ ic: C.ic, n: C.n, semana: s.semana });
+        R.grandes = (R.grandes || []).concat({ ic: gana ? C.ic : '😖', titulo: gana ? `¡CAMPEONES DE LA ${C.n.toUpperCase()}!` : `Final perdida: ${C.n}`, bien: gana,
+          texto: gana ? `${efectoTxt(C.gana)}.` : `Subcampeones. ${efectoTxt(C.pierde)}. La prensa no habla de otra cosa.` });
+        R.lineas.push([gana ? C.ic : '😖', gana ? `¡Ganáis la final de la ${C.n}!` : `Perdéis la final de la ${C.n}.`, gana ? 'bien' : 'mal']);
+      }
+    }
+  }
+  function aplicar(s, e) {
+    if (e.dinero) { s.p.dinero += e.dinero; s.acum.primas += e.dinero; }
+    if (e.rep) s.p.rep = r1(clamp(s.p.rep + e.rep, 0, 100));
+    if (e.marca) s.p.marca = r1(clamp((s.p.marca || 0) + e.marca, 0, 100));
+    if (e.confianza) s.confianza = clamp(s.confianza + e.confianza, 0, 100);
+  }
+  function efectoTxt(e) { return [e.dinero ? `+${eur(e.dinero)}` : '', e.rep ? `${e.rep > 0 ? '+' : ''}${e.rep} reputación` : '', e.marca ? `${e.marca > 0 ? '+' : ''}${e.marca} marca` : '', e.confianza ? `${e.confianza > 0 ? '+' : ''}${e.confianza} confianza del míster` : ''].filter(Boolean).join(', '); }
+
+  // ---------- Promociones al acabar la liga ----------
+  function clasePromocion(s, T) {
+    const L = LIGAS[T.liga], Z = P2.zonas(T.liga), n = P2.clasificacion(T).length, pos = P2.posicion(T);
+    const M = P2.mundo(s), tabla = P2.clasificacion(T), filial = id => { const f = M.equipos[id] && M.equipos[id].filialDe; return !!(f && L.sube && M.ligas[L.sube].includes(f)); };
+    if (Z.asc && L.sube && pos === Z.asc + 1 && !filial(T.yo) && !tabla.slice(0, Z.asc).some(r => filial(r.id))) return 'ascenso';
+    if (Z.desc && (pos === n - Z.desc || pos === n - Z.desc + 1)) return 'permanencia';
+    if (!Z.asc && !L.sube && pos <= 2) return 'titulo';
+    return null;
+  }
+  const TXT_PROMO = {
+    ascenso: { ic: '⬆️', n: 'Promoción de ascenso', d: 'Te juegas subir de categoría en un solo partido.' },
+    permanencia: { ic: '🛟', n: 'Promoción de permanencia', d: 'Si pierdes, tu club baja de categoría.' },
+    titulo: { ic: '👑', n: 'Final por el título', d: 'Campeones o subcampeones: todo en un partido.' },
+  };
+  // Al acabar la liga: si hay promoción, la temporada espera una semana más
+  function iniciarPromocion(s, R) {
+    const T = s.temporada; if (!T || T.promocion || (s.fase !== 'club' && s.fase !== 'amateur')) return false;
+    const clase = clasePromocion(s, T); if (!clase) return false;
+    T.promocion = { clase, estado: 'pendiente', pos: P2.posicion(T) };
+    const X = TXT_PROMO[clase];
+    R.lineas.push([X.ic, `Acabáis ${T.promocion.pos}º: la semana que viene, ${X.n.toLowerCase()}. ${X.d}`, clase === 'permanencia' ? 'mal' : 'bien']);
+    return true;
+  }
+  const promoPendiente = s => !!(s.temporada && s.temporada.promocion && s.temporada.promocion.estado === 'pendiente');
+  // Qué te juegas en el minijuego de esta semana (para la interfaz)
+  function enJuego(s, tipo) {
+    const T = s.temporada, L = T && LIGAS[T.liga];
+    if (tipo === 'promocion' && promoPendiente(s)) {
+      const c = T.promocion.clase, X = TXT_PROMO[c];
+      const gana = c === 'ascenso' ? `¡Subís a ${LIGAS[L.sube].n}!` : c === 'permanencia' ? 'Os salváis: seguís en la categoría.' : '¡Campeones de liga! +1.500 €, +4 reputación, +3 marca.';
+      const pierde = c === 'ascenso' ? 'Os quedáis en la misma categoría (−5 confianza).' : c === 'permanencia' ? `Bajáis a ${LIGAS[L.baja].n}.` : 'Subcampeones (−3 confianza).';
+      return { ic: X.ic, n: X.n, d: X.d, gana, pierde };
+    }
+    if (tipo === 'final') {
+      const F = finalEstaSemana(s); if (!F) return null;
+      return { ic: F.ic, n: `Final · ${F.n}`, d: 'Una final. No hay segunda oportunidad… salvo que te quede una vida.', gana: `Campeones: ${efectoTxt(F.gana)}.`, pierde: `Subcampeones: ${efectoTxt(F.pierde)}.` };
+    }
+    return null;
+  }
+  // Semana de la promoción: la liga ya acabó; se decide con tu minijuego (o por nivel si no lo juegas)
+  function jugarPromocion(s, R) {
+    const T = s.temporada, pr = T.promocion; if (!pr || pr.estado !== 'pendiente') return false;
+    const m = mj(s), gana = m && m.tipo === 'promocion' ? m.p >= 0.6 : azar(s, `promo|${T.num}|${T.liga}`) < prob(s);
+    pr.estado = gana ? 'ganada' : 'perdida';
+    const X = TXT_PROMO[pr.clase];
+    R.lineas.push([X.ic, `${X.n}: ${gana ? '¡la ganáis!' : 'la perdéis.'}`, gana ? 'bien' : 'mal']);
+    if (pr.clase === 'titulo') {
+      aplicar(s, gana ? { dinero: 1500, rep: 4, marca: 3, confianza: 6 } : { rep: 1, confianza: -3 });
+      if (gana) (s.trofeos = s.trofeos || []).push({ ic: '👑', n: `Liga · ${LIGAS[T.liga].corto}`, semana: s.semana });
+      R.grandes = (R.grandes || []).concat({ ic: gana ? '👑' : '🥈', titulo: gana ? '¡CAMPEONES DE LIGA!' : 'Subcampeones de liga', bien: gana, texto: gana ? '+1.500 €, +4 reputación, +3 marca. Y la temporada que viene, Copa de Europa.' : 'Tan cerca… Aun así, la temporada que viene jugáis la Copa de Europa.' });
+    } else if (pr.clase === 'ascenso' && !gana) { aplicar(s, { rep: -1, confianza: -5 }); R.grandes = (R.grandes || []).concat({ ic: '😖', titulo: 'Os quedáis a las puertas', bien: false, texto: 'Perdéis la promoción: seguís en la misma categoría. −5 de confianza del míster.' }); }
+    else if (pr.clase === 'ascenso' && gana) R.grandes = (R.grandes || []).concat({ ic: '🎉', titulo: '¡ASCENSO!', bien: true, texto: `Ganáis la promoción: la temporada que viene jugáis en ${LIGAS[LIGAS[T.liga].sube].n}.` });
+    else if (pr.clase === 'permanencia' && !gana) R.grandes = (R.grandes || []).concat({ ic: '📉', titulo: 'Descenso', bien: false, texto: `Perdéis la permanencia: bajáis a ${LIGAS[LIGAS[T.liga].baja].n}.` });
+    else if (pr.clase === 'permanencia' && gana) { aplicar(s, { confianza: 4 }); R.grandes = (R.grandes || []).concat({ ic: '😅', titulo: '¡SALVADOS!', bien: true, texto: 'Ganáis la permanencia en el último partido. +4 de confianza del míster.' }); }
+    P2.finTemporada(s, R);
+    return true;
+  }
+  // Ajusta quién sube y quién baja según la promoción (lo llama moverEquipos)
+  function ajustarMovimiento(s, T, res, tabla, Z) {
+    const pr = T.promocion; if (!pr || pr.estado === 'pendiente') return;
+    const n = tabla.length, ultSalvo = tabla[n - Z.desc - 1], primDesc = tabla[n - Z.desc];
+    if (pr.clase === 'ascenso' && pr.estado === 'ganada' && !res.sube.includes(T.yo)) res.sube.push(T.yo);
+    if (pr.clase === 'permanencia' && Z.desc) {
+      // la promoción la juegan el último salvado y el primero en descenso: el que gana se queda
+      const yoBaja = res.baja.includes(T.yo), otro = yoBaja ? ultSalvo : primDesc;
+      if (pr.estado === 'ganada' && yoBaja) res.baja = res.baja.filter(id => id !== T.yo).concat(otro.id);
+      if (pr.estado === 'perdida' && !yoBaja) res.baja = res.baja.filter(id => id !== otro.id).concat(T.yo);
+    }
+  }
+  // Al cerrar la temporada: ¿Europa o Mundial la próxima?
+  function trasTemporada(s, R) {
+    const T = s.temporada, L = LIGAS[T.liga], pos = P2.posicion(T);
+    if (!L.sube && pos <= 2 && !s.europaProxima) { s.europaProxima = true; R.lineas.push(['⭐', '¡Clasificados para la Copa de Europa de la temporada que viene!', 'bien']); }
+    if (s.p.nivel >= CONVOCATORIA.nivel && s.p.rep >= CONVOCATORIA.rep && !s.convocado) {
+      s.convocado = true;
+      R.grandes = (R.grandes || []).concat({ ic: '🌍', titulo: '¡CONVOCADO/A CON LA SELECCIÓN!', bien: true, texto: 'La temporada que viene juegas el Mundial. Si llegáis a la final, la juegas tú.' });
+    }
+  }
+  // Para la interfaz: ¿qué competición se decide esta semana?
+  function finalEstaSemana(s) {
+    const T = s.temporada; if (!T || T.cerrada || s.fase !== 'club') return null;
+    const c = copaFinalEn(s, T.jornada); return c ? Object.assign({ copa: c.id }, COMPETICIONES[c.id]) : null;
+  }
+
+  Object.assign(P2, { iniciarPromocion, promoPendiente, enJuego, COMPETICIONES, CONVOCATORIA, TXT_PROMO, prepararCopas, semanaCopas, clasePromocion, jugarPromocion, ajustarMovimiento, trasTemporada, finalEstaSemana });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 20_ui.js =====
@@ -5151,10 +5324,11 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function htmlHistoria(s) {
     const H = P2.miHistoria(s), cel = (ic, v, n) => `<div><span>${ic}</span><b>${v}</b><small>${n}</small></div>`;
     return `<div class="card historia"><h2>🏆 Mi historia</h2><div class="trofeos">
-        ${cel('🏆', H.ligasGanadas, 'ligas ganadas')}${cel('⬆️', H.ascensos, 'ascensos')}${cel('📅', H.temporadas, 'temporadas')}${cel('⚽', H.goles, 'goles')}
+        ${cel('🏆', H.trofeos.length, 'títulos')}${cel('⬆️', H.ascensos, 'ascensos')}${cel('📅', H.temporadas, 'temporadas')}${cel('⚽', H.goles, 'goles')}
         ${cel('🤝', H.marcas.length, 'patrocinadores')}${cel('💼', H.empresas, 'empresas')}${cel('🏦', esc(eur(H.patrimonioMax)), 'mayor patrimonio')}${cel('🏅', H.hitos.length, 'hitos')}</div></div>
       <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
         ${kv('🚗 Vehículos', H.vehiculos.length ? H.vehiculos.map(P => P.ic).join(' ') : '—')}${kv('🏠 Viviendas', H.viviendas.map(P => P.ic).join(' → '))}
+        ${kv('🏆 Títulos', H.trofeos.length ? H.trofeos.map(x => `${x.ic} ${esc(x.n)}`).join(', ') : '—')}
         ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
@@ -5217,11 +5391,17 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     else { p = 100 * hechos / HITOS.length; izq = `🏅 ${hechos} de ${HITOS.length} hitos`; const T = s.temporada; der = T && T.jornada ? `${P2.posicion(T)}º en la liga` : ''; }
     return `<div class="obj"><b>🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b><div class="prog"><i style="width:${Math.max(3, Math.min(100, Math.round(p)))}%"></i></div><div class="fila"><span>${izq}</span><span>${der}</span></div></div>`;
   }
+  // Lo que te juegas esta semana: promoción, final o el partido de liga
+  function htmlEnJuego(s, pj) {
+    const X = P2.enJuego(s, 'promocion') || P2.enJuego(s, 'final');
+    if (X) return `<div class="partidoProx grandeJuego">${X.ic} Esta semana: <b>${esc(X.n)}</b><br><small>✓ ${esc(X.gana)} · ✗ ${esc(X.pierde)}</small></div>`;
+    return pj ? `<div class="partidoProx">⚽ Esta semana: ${pj.local ? 'en casa contra' : 'visitas a'} <b>${esc(P2.nombreEquipo(s.temporada, pj.rival))}</b></div>` : '';
+  }
   function htmlSemana(s) {
     const o = opcionesSemana(s), enEquipo = s.fase === 'club' || s.fase === 'amateur', pj = enEquipo && s.temporada ? P2.partidoDeLaJornada(s.temporada) : null;
     const mas = ui.masOps ? `<div class="ops">${o.resto.map((x, i) => tarjetaOp(s, x, i + 3)).join('')}${o.bloq.map(x => `<button class="op gris" disabled><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips"><span class="chip">🔒 ${esc(x.bloqueo)}</span></span></span></button>`).join('')}</div>` : '';
     return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlDeseo(s)}
-      ${pj ? `<div class="partidoProx">⚽ Esta semana: ${pj.local ? 'en casa contra' : 'visitas a'} <b>${esc(P2.nombreEquipo(s.temporada, pj.rival))}</b></div>` : ''}
+      ${enEquipo ? htmlEnJuego(s, pj) : ''}
       <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
       <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>
       ${o.resto.length || o.bloq.length ? `<button class="masOps" data-act="masOps">${ui.masOps ? 'Menos opciones' : `Más opciones (${o.resto.length + o.bloq.length})`}</button>` : ''}${mas}
@@ -5241,12 +5421,13 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const { R, id, a, b } = ui.res, P = R.partido, A = P2.ACCIONES[id] || {};
     const ic = P ? (P.resultado === 'victoria' ? '🎉' : P.resultado === 'derrota' ? '😣' : '🤝') : (R.variante && R.variante.ic) || A.ic || '📅';
     const V = R.variante, nom = V && V.i ? V.n : TIT_ACC[id];
-    const tit = P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : V && V.i ? `¡${V.n}!` : TIT_ACC[id] || 'Semana jugada';
+    const G = (R.grandes || [])[0];
+    const tit = G ? G.titulo : P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : V && V.i ? `¡${V.n}!` : TIT_ACC[id] || 'Semana jugada';
     const filas = filaCambio('💶', 'Dinero', a.dinero, b.dinero, true) + filaCambio('⚡', 'Energía', a.energia, b.energia) + filaCambio('💪', 'Nivel', a.nivel, b.nivel) + filaCambio('⭐', 'Reputación', a.rep, b.rep)
       + (s.contrato ? filaCambio('📣', 'Marca', a.marca, b.marca) + filaCambio('👔', 'Confianza del míster', a.confianza, b.confianza) : '');
     const lineas = R.lineas.filter(l => !P || !/^Jornada \d+:/.test(l[1])).slice(0, 3);
     const sig = ui.fiestas && ui.fiestas.length ? 'Continuar ▶' : s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶';
-    return `<div class="pant res"><div class="grande">${ic}</div><h2>${esc(tit)}</h2><p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
+    return `<div class="pant res"><div class="grande">${G ? G.ic : ic}</div><h2>${esc(tit)}</h2>${(R.grandes || []).map(x => `<div class="enjuego ${x.bien ? 'bien' : 'mal'}"><b>${x.ic} ${esc(x.titulo)}</b><span>${esc(x.texto)}</span></div>`).join('')}<p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
       ${P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>
         <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.goles ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : ''}</small></div>` : ''}
       <div class="cambios">${filas || '<div class="cam"><span>Sin cambios en tus números</span></div>'}</div>
@@ -5286,8 +5467,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const ESQ = [['izq', '⬅️', 'Izquierda'], ['centro', '⬆️', 'Centro'], ['dcha', '➡️', 'Derecha']];
   const corazones = s => { const v = P2.vidas(s); return `<span class="vidas" aria-label="${v.n} vidas">${'❤️'.repeat(v.n)}${'🤍'.repeat(Math.max(0, P2.VIDAS.max - v.n))}</span>`; };
   function htmlMinijuego(s) {
-    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo];
-    if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${M.ic}</div><small class="eti">MOMENTO DECISIVO</small><h2>${esc(M.n)}</h2><p>${esc(M.d)}</p>${corazones(s)}
+    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo], X = J.enJuego;
+    if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${X ? X.ic : M.ic}</div><small class="eti">${X ? 'TE LO JUEGAS TODO' : 'MOMENTO DECISIVO'}</small><h2>${esc(X ? X.n : M.n)}</h2><p>${esc(X ? X.d : M.d)}</p>
+      ${X ? `<div class="enjuego bien"><b>✓ Si ganas</b><span>${esc(X.gana)}</span></div><div class="enjuego mal"><b>✗ Si pierdes</b><span>${esc(X.pierde)}</span></div><p class="small">${esc(M.d)}</p>` : ''}${corazones(s)}
       <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular: lo decide tu nivel (${Math.round(P2.probSimular(s) * 100)} % de acierto)</button></div>`;
     if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span></div><h2>¿A qué lado chutas?</h2>
       <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div></div>`;
@@ -5299,9 +5481,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         <button class="cta" data-act="mjParar" id="mjParar">¡AHORA!</button></div>`;
     }
     // fin
-    const p = J.p, bien = p >= 0.6, tit = J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
+    const p = J.p, bien = p >= 0.6, tit = X ? (bien ? '¡LO HABÉIS CONSEGUIDO!' : '¡Se escapa!') : J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
     const bp = P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }), bt = P2.bonusTorneo({ mjSemana: { tipo: 'torneo', p, semana: 0 }, semana: 0 });
-    const ef = J.tipo === 'prueba' ? `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`
+    const ef = X ? (bien ? X.gana : X.pierde) : J.tipo === 'prueba' ? `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`
       : J.tipo === 'torneo' ? `${bt >= 0 ? '+' : ''}${nf(bt)} en la final del torneo`
         : p >= 0.9 ? '¡Perfecto! +2 goles para tu equipo, +12 de confianza y más fama' : bien ? '+1 gol para tu equipo, +8 de confianza y más fama'
           : p <= 0.1 ? 'Desastre: el rival marca dos en la contra, −18 de confianza y la prensa te cae encima' : 'El rival marca en la contra: −12 de confianza y −1,5 de reputación';
@@ -5432,7 +5614,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       // Un toque juega la semana
       case 'jugarYa': { if (P2.bloqueoAccion(S, id)) break;
         const t = P2.minijuegoSemana(S, id);
-        if (t) { ui.mj = { tipo: t, accion: id, fase: 'intro', res: [], reintentos: 0 }; render(); window.scrollTo(0, 0); break; }
+        if (t) { ui.mj = { tipo: t, accion: id, fase: 'intro', res: [], reintentos: 0, enJuego: P2.enJuego(S, t) }; render(); window.scrollTo(0, 0); break; }
         jugarConfirmado(id); break; }
       case 'mjEmpezar': ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; render(); break;
       case 'mjEsquina': ui.mj.esquina = b.dataset.v; ui.mj.fase = 'barra'; render(); break;

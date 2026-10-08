@@ -588,10 +588,11 @@
   function htmlHistoria(s) {
     const H = P2.miHistoria(s), cel = (ic, v, n) => `<div><span>${ic}</span><b>${v}</b><small>${n}</small></div>`;
     return `<div class="card historia"><h2>🏆 Mi historia</h2><div class="trofeos">
-        ${cel('🏆', H.ligasGanadas, 'ligas ganadas')}${cel('⬆️', H.ascensos, 'ascensos')}${cel('📅', H.temporadas, 'temporadas')}${cel('⚽', H.goles, 'goles')}
+        ${cel('🏆', H.trofeos.length, 'títulos')}${cel('⬆️', H.ascensos, 'ascensos')}${cel('📅', H.temporadas, 'temporadas')}${cel('⚽', H.goles, 'goles')}
         ${cel('🤝', H.marcas.length, 'patrocinadores')}${cel('💼', H.empresas, 'empresas')}${cel('🏦', esc(eur(H.patrimonioMax)), 'mayor patrimonio')}${cel('🏅', H.hitos.length, 'hitos')}</div></div>
       <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
         ${kv('🚗 Vehículos', H.vehiculos.length ? H.vehiculos.map(P => P.ic).join(' ') : '—')}${kv('🏠 Viviendas', H.viviendas.map(P => P.ic).join(' → '))}
+        ${kv('🏆 Títulos', H.trofeos.length ? H.trofeos.map(x => `${x.ic} ${esc(x.n)}`).join(', ') : '—')}
         ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
@@ -654,11 +655,17 @@
     else { p = 100 * hechos / HITOS.length; izq = `🏅 ${hechos} de ${HITOS.length} hitos`; const T = s.temporada; der = T && T.jornada ? `${P2.posicion(T)}º en la liga` : ''; }
     return `<div class="obj"><b>🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b><div class="prog"><i style="width:${Math.max(3, Math.min(100, Math.round(p)))}%"></i></div><div class="fila"><span>${izq}</span><span>${der}</span></div></div>`;
   }
+  // Lo que te juegas esta semana: promoción, final o el partido de liga
+  function htmlEnJuego(s, pj) {
+    const X = P2.enJuego(s, 'promocion') || P2.enJuego(s, 'final');
+    if (X) return `<div class="partidoProx grandeJuego">${X.ic} Esta semana: <b>${esc(X.n)}</b><br><small>✓ ${esc(X.gana)} · ✗ ${esc(X.pierde)}</small></div>`;
+    return pj ? `<div class="partidoProx">⚽ Esta semana: ${pj.local ? 'en casa contra' : 'visitas a'} <b>${esc(P2.nombreEquipo(s.temporada, pj.rival))}</b></div>` : '';
+  }
   function htmlSemana(s) {
     const o = opcionesSemana(s), enEquipo = s.fase === 'club' || s.fase === 'amateur', pj = enEquipo && s.temporada ? P2.partidoDeLaJornada(s.temporada) : null;
     const mas = ui.masOps ? `<div class="ops">${o.resto.map((x, i) => tarjetaOp(s, x, i + 3)).join('')}${o.bloq.map(x => `<button class="op gris" disabled><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips"><span class="chip">🔒 ${esc(x.bloqueo)}</span></span></span></button>`).join('')}</div>` : '';
     return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlDeseo(s)}
-      ${pj ? `<div class="partidoProx">⚽ Esta semana: ${pj.local ? 'en casa contra' : 'visitas a'} <b>${esc(P2.nombreEquipo(s.temporada, pj.rival))}</b></div>` : ''}
+      ${enEquipo ? htmlEnJuego(s, pj) : ''}
       <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
       <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>
       ${o.resto.length || o.bloq.length ? `<button class="masOps" data-act="masOps">${ui.masOps ? 'Menos opciones' : `Más opciones (${o.resto.length + o.bloq.length})`}</button>` : ''}${mas}
@@ -678,12 +685,13 @@
     const { R, id, a, b } = ui.res, P = R.partido, A = P2.ACCIONES[id] || {};
     const ic = P ? (P.resultado === 'victoria' ? '🎉' : P.resultado === 'derrota' ? '😣' : '🤝') : (R.variante && R.variante.ic) || A.ic || '📅';
     const V = R.variante, nom = V && V.i ? V.n : TIT_ACC[id];
-    const tit = P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : V && V.i ? `¡${V.n}!` : TIT_ACC[id] || 'Semana jugada';
+    const G = (R.grandes || [])[0];
+    const tit = G ? G.titulo : P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : V && V.i ? `¡${V.n}!` : TIT_ACC[id] || 'Semana jugada';
     const filas = filaCambio('💶', 'Dinero', a.dinero, b.dinero, true) + filaCambio('⚡', 'Energía', a.energia, b.energia) + filaCambio('💪', 'Nivel', a.nivel, b.nivel) + filaCambio('⭐', 'Reputación', a.rep, b.rep)
       + (s.contrato ? filaCambio('📣', 'Marca', a.marca, b.marca) + filaCambio('👔', 'Confianza del míster', a.confianza, b.confianza) : '');
     const lineas = R.lineas.filter(l => !P || !/^Jornada \d+:/.test(l[1])).slice(0, 3);
     const sig = ui.fiestas && ui.fiestas.length ? 'Continuar ▶' : s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶';
-    return `<div class="pant res"><div class="grande">${ic}</div><h2>${esc(tit)}</h2><p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
+    return `<div class="pant res"><div class="grande">${G ? G.ic : ic}</div><h2>${esc(tit)}</h2>${(R.grandes || []).map(x => `<div class="enjuego ${x.bien ? 'bien' : 'mal'}"><b>${x.ic} ${esc(x.titulo)}</b><span>${esc(x.texto)}</span></div>`).join('')}<p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
       ${P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>
         <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.goles ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : ''}</small></div>` : ''}
       <div class="cambios">${filas || '<div class="cam"><span>Sin cambios en tus números</span></div>'}</div>
@@ -723,8 +731,9 @@
   const ESQ = [['izq', '⬅️', 'Izquierda'], ['centro', '⬆️', 'Centro'], ['dcha', '➡️', 'Derecha']];
   const corazones = s => { const v = P2.vidas(s); return `<span class="vidas" aria-label="${v.n} vidas">${'❤️'.repeat(v.n)}${'🤍'.repeat(Math.max(0, P2.VIDAS.max - v.n))}</span>`; };
   function htmlMinijuego(s) {
-    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo];
-    if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${M.ic}</div><small class="eti">MOMENTO DECISIVO</small><h2>${esc(M.n)}</h2><p>${esc(M.d)}</p>${corazones(s)}
+    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo], X = J.enJuego;
+    if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${X ? X.ic : M.ic}</div><small class="eti">${X ? 'TE LO JUEGAS TODO' : 'MOMENTO DECISIVO'}</small><h2>${esc(X ? X.n : M.n)}</h2><p>${esc(X ? X.d : M.d)}</p>
+      ${X ? `<div class="enjuego bien"><b>✓ Si ganas</b><span>${esc(X.gana)}</span></div><div class="enjuego mal"><b>✗ Si pierdes</b><span>${esc(X.pierde)}</span></div><p class="small">${esc(M.d)}</p>` : ''}${corazones(s)}
       <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular: lo decide tu nivel (${Math.round(P2.probSimular(s) * 100)} % de acierto)</button></div>`;
     if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span></div><h2>¿A qué lado chutas?</h2>
       <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div></div>`;
@@ -736,9 +745,9 @@
         <button class="cta" data-act="mjParar" id="mjParar">¡AHORA!</button></div>`;
     }
     // fin
-    const p = J.p, bien = p >= 0.6, tit = J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
+    const p = J.p, bien = p >= 0.6, tit = X ? (bien ? '¡LO HABÉIS CONSEGUIDO!' : '¡Se escapa!') : J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
     const bp = P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }), bt = P2.bonusTorneo({ mjSemana: { tipo: 'torneo', p, semana: 0 }, semana: 0 });
-    const ef = J.tipo === 'prueba' ? `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`
+    const ef = X ? (bien ? X.gana : X.pierde) : J.tipo === 'prueba' ? `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`
       : J.tipo === 'torneo' ? `${bt >= 0 ? '+' : ''}${nf(bt)} en la final del torneo`
         : p >= 0.9 ? '¡Perfecto! +2 goles para tu equipo, +12 de confianza y más fama' : bien ? '+1 gol para tu equipo, +8 de confianza y más fama'
           : p <= 0.1 ? 'Desastre: el rival marca dos en la contra, −18 de confianza y la prensa te cae encima' : 'El rival marca en la contra: −12 de confianza y −1,5 de reputación';
@@ -869,7 +878,7 @@
       // Un toque juega la semana
       case 'jugarYa': { if (P2.bloqueoAccion(S, id)) break;
         const t = P2.minijuegoSemana(S, id);
-        if (t) { ui.mj = { tipo: t, accion: id, fase: 'intro', res: [], reintentos: 0 }; render(); window.scrollTo(0, 0); break; }
+        if (t) { ui.mj = { tipo: t, accion: id, fase: 'intro', res: [], reintentos: 0, enJuego: P2.enJuego(S, t) }; render(); window.scrollTo(0, 0); break; }
         jugarConfirmado(id); break; }
       case 'mjEmpezar': ui.mj.fase = ui.mj.tipo === 'penalti' ? 'esquina' : 'barra'; render(); break;
       case 'mjEsquina': ui.mj.esquina = b.dataset.v; ui.mj.fase = 'barra'; render(); break;

@@ -15,6 +15,8 @@
   const MINIJUEGOS = {
     prueba: { ic: '📋', n: 'Día de pruebas', d: 'Tres tiros a puerta delante de los ojeadores. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
     torneo: { ic: '🏆', n: 'Final del torneo', d: 'Tres jugadas decisivas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
+    promocion: { ic: '⬆️', n: 'Promoción', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
+    final: { ic: '🏆', n: 'Final', d: 'Tres jugadas. Para la barra en la zona verde.', rondas: 3, neutro: 0.4 },
     penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Elige esquina y chuta en el momento justo.', rondas: 1, neutro: 0.4 },
   };
   const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1 };   // como en P1
@@ -23,6 +25,9 @@
   function minijuegoSemana(s, accion) {
     if (s.fase === 'pruebas' && s.invitacion && s.semana >= s.invitacion.dia) return 'prueba';
     if (accion === 'torneo') return 'torneo';
+    // Lo que más pesa: la categoría (promoción) y las finales (copa, Europa, Mundial)
+    if (P2.promoPendiente && P2.promoPendiente(s)) return 'promocion';
+    if (P2.finalEstaSemana && P2.finalEstaSemana(s)) return 'final';
     if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && !s.temporada.cerrada && !s.p.lesion) {
       const T = s.temporada, ultima = T.jornada === T.calendario.length - 1;
       if (ultima || P2.contexto(T).some(t => /ascenso|descenso|decisiv/i.test(t))) return 'penalti';

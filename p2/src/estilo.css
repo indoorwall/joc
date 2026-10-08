@@ -625,3 +625,11 @@ body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 90px); }
 .mundoBtn { position: relative; left: auto; bottom: auto; transform: none; width: 44px; height: 44px; min-height: 44px; padding: 0; justify-content: center; font-size: 24px; border-radius: 50%; box-shadow: 0 3px 10px rgba(40,30,120,.15); }
 .mundoBtn i { position: absolute; top: 2px; right: 2px; }
 body:not(.enSeccion) main { padding-bottom: calc(var(--safe-bottom) + 28px); }
+
+/* Minijuegos con algo en juego: categoría, finales */
+.partidoProx.grandeJuego { background: linear-gradient(135deg, #fff6d6, #ffe7f0); box-shadow: 0 4px 0 #f3d38a; }
+.partidoProx.grandeJuego small { font-weight: 600; color: #5b5470; }
+.enjuego { display: flex; flex-direction: column; gap: 2px; text-align: left; border-radius: 16px; padding: 10px 14px; margin: 8px 0; background: #fff; box-shadow: 0 3px 0 #e2dcf7; }
+.enjuego.bien { border-left: 5px solid #22c55e; }
+.enjuego.mal { border-left: 5px solid #ef4444; }
+.enjuego span { font-size: .92em; color: #4a4560; }

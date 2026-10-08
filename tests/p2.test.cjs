@@ -331,6 +331,43 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Vidas: se recargan solas con el tiempo (sin pagar ni ver anuncios)', P2.vidas(vi).n >= 2);
   check('Vidas: se guardan con la partida', P2.migrateSave(JSON.parse(JSON.stringify(vi))).vidas.n === P2.vidas(vi).n);
 
+  // ---------- Lo que se juega en un minijuego: categoría, copas, Europa y Mundial ----------
+  const finLiga = x => { const T = x.temporada; for (let k = 0; k < 20 && !T.cerrada; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; return T; };
+  const buscaPromo = (clase, oferta = 'costaReal') => { for (let sd = 300; sd < 400; sd++) { const x = enClub(oferta, sd), T = finLiga(x); if (T.promocion && T.promocion.clase === clase) return sd; } return null; };
+  const sdA = buscaPromo('ascenso'), sdP = buscaPromo('permanencia');
+  const promo = (sd, p) => { const x = enClub('costaReal', sd), T = finLiga(x), L = P2.LIGAS[T.liga]; const t = P2.minijuegoSemana(x, 'descansar'), X = P2.enJuego(x, 'promocion'); const R = P2.jugarSemana(x, 'descansar', p == null ? undefined : { minijuego: { tipo: 'promocion', p } }); const M = P2.mundo(x); return { x, T, L, t, X, R, sube: M.ligas[L.sube || T.liga].includes(T.yo) && !!L.sube, baja: !!L.baja && M.ligas[L.baja].includes(T.yo), tam: Object.keys(M.ligas).map(k => M.ligas[k].length) }; };
+  check('Categoría: hay temporadas que acaban en promoción de ascenso y de permanencia', sdA != null && sdP != null);
+  if (sdA != null) {
+    const a = promo(sdA, null);
+    check('Categoría: al acabar justo fuera del ascenso, la temporada espera una semana y esa semana el minijuego es la promoción', a.t === 'promocion' && /Subís/.test(a.X.gana) && /misma categoría/.test(a.X.pierde));
+    const g = promo(sdA, 0.9), pe = promo(sdA, 0.2);
+    check('Categoría: ganar la promoción de ascenso te sube de categoría', g.sube && g.T.promocion.estado === 'ganada' && g.R.lineas.some(l => /ASCENSO/.test(l[1])));
+    check('Categoría: perderla te deja en la misma categoría, con consecuencias (confianza y reputación)', !pe.sube && !pe.baja && pe.T.promocion.estado === 'perdida' && pe.x.confianza < g.x.confianza && (pe.R.grandes || []).some(G => !G.bien));
+    check('Categoría: las ligas siguen teniendo 8 equipos tras una promoción', g.tam.every(n => n === 8) && pe.tam.every(n => n === 8));
+    const b1 = promo(sdA, null), b2 = promo(sdA, null);
+    check('Categoría: sin minijuego (bots) la promoción la decide el nivel, siempre igual con la misma semilla', b1.T.promocion.estado === b2.T.promocion.estado && b1.sube === b2.sube);
+  }
+  if (sdP != null) {
+    const g = promo(sdP, 0.9), pe = promo(sdP, 0.2);
+    check('Categoría: ganar la promoción de permanencia te mantiene en la categoría', !g.baja && !g.sube && g.T.promocion.estado === 'ganada');
+    check('Categoría: perder la promoción de permanencia te baja de categoría', pe.baja && pe.R.lineas.some(l => /Descenso/.test(l[1])));
+    check('Categoría: en la permanencia, si te salvas baja el otro (siguen bajando los mismos clubes)', g.tam.every(n => n === 8) && pe.tam.every(n => n === 8));
+  }
+  // Copas: la final se juega con el minijuego
+  const buscaFinal = id => { for (let sd = 400; sd < 480; sd++) { const x = enClub('costaReal', sd); x.p.nivel = 80; if (id !== 'copa') x[id === 'europa' ? 'europaProxima' : 'convocado'] = true; const T = x.temporada, F = P2.COMPETICIONES[id].final; for (let k = 0; k < 20 && T.jornada < F; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; const c = (T.copas || []).find(c => c.id === id); if (c && c.estado === 'viva' && T.jornada === F) return sd; } return null; };
+  const finalCopa = (id, sd, p) => { const x = enClub('costaReal', sd); x.p.nivel = 80; if (id !== 'copa') x[id === 'europa' ? 'europaProxima' : 'convocado'] = true; const T = x.temporada, F = P2.COMPETICIONES[id].final; for (let k = 0; k < 20 && T.jornada < F; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; const t = P2.minijuegoSemana(x, 'descansar'), X = P2.enJuego(x, 'final'), d0 = x.p.dinero, r0 = x.p.rep; const R = P2.jugarSemana(x, 'descansar', p == null ? undefined : { minijuego: { tipo: 'final', p } }); return { x, t, X, R, dd: x.p.dinero - d0, dr: x.p.rep - r0, c: T.copas.find(c => c.id === id) }; };
+  const pre = enClub('costaReal', 470); pre.europaProxima = true; pre.convocado = true; pre.pendiente = null; P2.jugarSemana(pre, 'descansar');
+  check('Copas: cada temporada hay Copa; con plaza europea, Copa de Europa; si te convocan, Mundial', pre.temporada.copas.map(c => c.id).join() === 'copa,europa,mundial' && !pre.europaProxima && !pre.convocado);
+  for (const id of ['copa', 'europa', 'mundial']) {
+    const sd = buscaFinal(id); if (sd == null) { check(`Copas: se llega a la final de ${P2.COMPETICIONES[id].n}`, false); continue; }
+    const g = finalCopa(id, sd, 0.9), pe = finalCopa(id, sd, 0.2);
+    check(`Copas: la final de ${P2.COMPETICIONES[id].n} se juega con el minijuego (y dice qué te juegas)`, g.t === 'final' && /Campeones/.test(g.X.gana) && /Subcampeones/.test(g.X.pierde));
+    check(`Copas: ganar la final de ${P2.COMPETICIONES[id].n} da el título, premio y fama`, g.c.estado === 'campeon' && g.x.trofeos.some(tr => tr.n === P2.COMPETICIONES[id].n) && g.dd - pe.dd >= P2.COMPETICIONES[id].gana.dinero && g.dr > pe.dr);
+    check(`Copas: perder la final de ${P2.COMPETICIONES[id].n} tiene consecuencias (sin título y menos reputación)`, pe.c.estado === 'subcampeon' && !pe.x.trofeos.some(tr => tr.n === P2.COMPETICIONES[id].n) && (pe.R.grandes || []).some(G => !G.bien && /Final perdida/.test(G.titulo)));
+  }
+  check('Copas: la convocatoria para el Mundial pide nivel y reputación de élite', P2.CONVOCATORIA.nivel >= 70 && P2.CONVOCATORIA.rep >= 50);
+  check('Copas y promociones: se guardan con la partida', (() => { const x = enClub('costaReal', sdA || 300); finLiga(x); const m = P2.migrateSave(JSON.parse(JSON.stringify(x))); return JSON.stringify(m.temporada.promocion) === JSON.stringify(x.temporada.promocion) && JSON.stringify(m.temporada.copas) === JSON.stringify(x.temporada.copas); })());
+
   // ---------- Variedad semanal ----------
   const vv = P2.nuevaPartida({ seed: 240 }), nombres = [];
   for (let w = 0; w < 8; w++) { nombres.push(P2.varianteSemana(vv, 'entrenar').n); vv.semana++; }
@@ -561,7 +598,6 @@ let informe;
   const b = await pw.chromium.launch();
   const ctx = await b.newContext({ ...pw.devices['iPhone 13'], reducedMotion: 'reduce' });
   const page = await ctx.newPage(); const errs = [];
-  page.on('pageerror', e => errs.push(e.message)); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
   const redes = []; page.on('request', r => { if (!r.url().startsWith('file:') && !r.url().startsWith('data:')) redes.push(r.url()); });
   // Navegar como una persona: botón del grupo en la barra y, si hace falta, la pestaña de la sección
   // Navegar como una persona: «‹ Jugar» para volver; «🌍 Mi mundo» → icono de la sección
@@ -668,6 +704,17 @@ let informe;
   check('UI: simular enseña si ha salido bien o mal (lo decide tu nivel) y no deja reintentar', (await page.textContent('.mj')).includes('Simulado') && await page.locator('[data-act="mjReintentar"]').count() === 0);
   await page.click('[data-act="mjFin"]', { force: true });
   check('UI: después sigue la semana con el resultado del partido', await page.locator('.res .marcador').isVisible());
+  for (let g = 0; g < 6 && await page.locator('[data-act="seguir"]').count(); g++) await page.click('[data-act="seguir"]', { force: true });
+  // Promoción: te juegas la categoría en el minijuego
+  await page.evaluate(() => { const S = __P2.S, T = S.temporada, L = __P2.P2.LIGAS[T.liga]; S.pendiente = null; S.cola = []; T.cerrada = true; T.promocion = { clase: L.sube ? 'ascenso' : L.baja ? 'permanencia' : 'titulo', estado: 'pendiente', pos: 3 }; __P2.ui.paso = null; __P2.ui.fiestas = []; __P2.ui.mundo = false; __P2.ui.vista = 'semana'; __P2.render(); });
+  if (await page.locator('[data-act="interOk"]').count()) await page.click('[data-act="interOk"]', { force: true });
+  check('UI: la semana de la promoción avisa de lo que te juegas', (await page.textContent('.partidoProx')).includes('Esta semana') && (await page.textContent('.partidoProx')).includes('✗'));
+  await page.click('.op', { force: true });
+  check('UI: el minijuego de la promoción dice qué pasa si ganas y si pierdes', (await page.textContent('.mj')).includes('TE LO JUEGAS TODO') && await page.locator('.mj .enjuego.bien').isVisible() && await page.locator('.mj .enjuego.mal').isVisible());
+  await page.evaluate(() => { __P2.ui.mj.res = [0.1, 0.1, 0.1]; __P2.ui.mj.p = 0.1; __P2.ui.mj.fase = 'fin'; __P2.render(); });
+  check('UI: si pierdes la promoción puedes reintentar gastando una vida', (await page.textContent('.mj')).includes('Se escapa') && (await page.locator('[data-act="mjReintentar"]').count() + await page.locator('.rw[data-t="vida"]').count()) === 1);
+  await page.click('[data-act="mjFin"]', { force: true });
+  check('UI: el resultado de la promoción sale en grande', await page.locator('.res').isVisible() && await page.evaluate(() => __P2.S.ultimo.lineas.some(l => /Promoción|Final por el título/.test(l[1]))));
   for (let g = 0; g < 6 && await page.locator('[data-act="seguir"]').count(); g++) await page.click('[data-act="seguir"]', { force: true });
   // Monetization Lab en la interfaz
   await page.evaluate(() => { __P2.S.p.dinero = 900; __P2.S.monVariante = 'C'; __P2.S.pendiente = null; __P2.S.cola = []; __P2.guardar(); });

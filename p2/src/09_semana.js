@@ -11,7 +11,7 @@
 
   function jugarSemana(s, accion, opc) {
     if (s.pendiente) return null;
-    s.mjSemana = opc && opc.minijuego ? { tipo: opc.minijuego.tipo, p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
+    s.mjSemana = opc && opc.minijuego ? { tipo: String(opc.minijuego.tipo), p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
     const especial = accion === '__acto' || accion === '__evento';
     if (!especial && P2.bloqueoAccion(s, accion)) return null;
     const R = nuevoR(s);
@@ -30,8 +30,9 @@
     // Según la fase
     if (s.fase === 'barrio') P2.revisarOjeador(s, R);
     if (s.fase === 'pruebas' && s.invitacion && s.semana >= s.invitacion.dia) P2.diaDePruebas(s, R, s.invitacion.via);
-    if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && !s.temporada.cerrada) {
-      P2.jugarPartido(s, R);
+    if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && (!s.temporada.cerrada || P2.promoPendiente(s))) {
+      if (P2.promoPendiente(s)) P2.jugarPromocion(s, R);   // la liga ya acabó: esta semana se decide la categoría
+      else { P2.prepararCopas(s); P2.jugarPartido(s, R); }
       const O = P2.oferta(s), bruto = s.contrato.sueldo;
       const neto = O.amateur ? bruto : Math.round(bruto * (1 - CFG.club.impuesto));
       s.p.dinero += neto; s.acum.sueldo += neto; s.acum.impuestos += bruto - neto;
@@ -57,7 +58,7 @@
     if (s.fase === 'amateur') {
       s.amateurSemanas = (s.amateurSemanas || 0) + 1;
       if (s.amateurSemanas % CFG.amateur.repescaCada === 0) P2.encolar(s, { tipo: 'repesca' });
-      if (s.temporada && s.temporada.cerrada) P2.nuevaTemporada(s, R);
+      if (s.temporada && s.temporada.cerrada && !P2.promoPendiente(s)) P2.nuevaTemporada(s, R);
     }
     P2.revisarHitos(s, R);
     P2.revisarSecciones(s, R);

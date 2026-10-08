@@ -30,6 +30,18 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
     marcador y la clasificación. Si fallas, no hay confeti.
   - **Pruebas**: −5 … +7 puntos. **Torneo**: −5 … +7 en la final.
   - **Simular**: lo decide tu nivel, como mucho un 80 % de acierto (nunca perfecto). Lo simulado no se puede reintentar.
+- **Lo que te juegas en un minijuego** (`p2/src/19_copas.js`): ahora un minijuego puede decidir la categoría o un título.
+  - **Promoción de ascenso**: si acabas justo fuera de los puestos de ascenso, la temporada espera una semana y te juegas
+    subir. Ganas → subes; pierdes → te quedas (−5 confianza).
+  - **Promoción de permanencia**: si acabas último salvado o primero en descenso. Ganas → te quedas (baja el otro);
+    pierdes → bajas.
+  - **Final por el título** (en la categoría más alta, si acabas 1º o 2º): campeones o subcampeones.
+  - **Copa Federación** (cada temporada): cuartos y semifinal se resuelven solos por nivel; **la final la juegas tú**.
+  - **Copa de Europa**: si acabas 1º o 2º en la categoría más alta, la temporada siguiente. Final con minijuego.
+  - **Mundial**: si te convocan (nivel 75 y reputación 55), la temporada siguiente. **La final la juegas tú**.
+  - Antes de jugar se ve **qué pasa si ganas y si pierdes**. Perder una final: sin título, menos reputación y marca, la
+    prensa encima. Ganar: título en «Mi historia», premio, reputación y marca. Sin minijuego (bots, «Simular») lo decide el
+    nivel, sin tocar el azar de la partida. Premios moderados: el simulador da como mucho +6 % de patrimonio a 80 semanas.
 - **Vidas** (❤️, máximo 3, como en P1): **un reintento por momento decisivo**, nunca para deshacer una decisión. Se recupera
   1 cada 6 semanas y, sin vidas, con un anuncio simulado (+1, una vez por semana). *Cambio de criterio respecto a P2.4, que
   no tenía vidas: lo pidió el responsable del juego.*

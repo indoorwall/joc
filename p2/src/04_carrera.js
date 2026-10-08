@@ -311,7 +311,8 @@
     R.porque.push(`Convocatoria: ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} + azar (±6) frente a ${nf(umbral)} (nivel del once). Titular si llegas; suplente si te quedas a menos de 7. Con menos de ${E.minTitular} de energía no eres titular.`);
     if (juega) R.porque.push(`Nota = 6 + (nivel − ${nf(umbral)}) / ${rol === 'titular' ? 6 : 8} + forma del día + resultado. Reputación deportiva +${nf(dRep)} (× exposición ${nf(expo)} de club y categoría)${dMarca ? `, marca personal +${nf(dMarca)} por un partido muy visible` : ''}. Interés de otros clubes ${Math.round(s.interes)}/100 (techo ${Math.round(techoInteres)} en este club).`);
     R.porque.push(`Entrenamientos del club: nivel +${nf(gN)} (calidad ${nf(O.entreno)}, techo ${techoClub(s)}).`);
-    if (T.cerrada) finTemporada(s, R);
+    if (P2.semanaCopas) P2.semanaCopas(s, R);   // rondas y finales de copa, Europa y Mundial
+    if (T.cerrada && !(P2.iniciarPromocion && P2.iniciarPromocion(s, R))) finTemporada(s, R);
   }
   const pm = T => T.jornada - 1;
 
@@ -344,6 +345,7 @@
       P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
       P2.anotar(s, mov.miClub.tipo === 'sube' ? '🎉' : mov.miClub.tipo === 'baja' ? '📉' : '🔒', mov.miClub.tipo === 'sube' ? `¡Subimos a ${aL.n}!` : mov.miClub.tipo === 'baja' ? `Bajamos a ${aL.n}.` : `El filial no puede subir.`);
     }
+    if (P2.trasTemporada) P2.trasTemporada(s, R);   // ¿Copa de Europa o Mundial la temporada que viene?
     P2.finTemporadaPatros(s, R, media);
     P2.momentoMon(s, 'finTemporada');
     s.contrato.temporadasRestantes -= 1;

@@ -141,6 +141,7 @@
       }
     }
     if (Z.desc) res.baja = tabla.slice(n - Z.desc).map(r => r.id);
+    if (P2.ajustarMovimiento) P2.ajustarMovimiento(s, T, res, tabla, Z);   // promociones de ascenso y permanencia
     const intercambio = (destino, salen, elegir) => {
       // De la categoría vecina vienen tantos clubes como se van
       const cand = elegir(M.ligas[destino].slice());

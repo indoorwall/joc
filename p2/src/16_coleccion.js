@@ -71,7 +71,7 @@
       empresas: s.negocios.length + (s.socio ? 1 : 0) + (s.tele && s.tele.empresa && (s.tele.empresa.venta || s.tele.empresa.cierre) ? 1 : 0),
       patrimonioMax: Math.max(h.patrimonioMax || 0, P2.patrimonio(s)),
       vehiculos: cosas.filter(P => P.cat === 'vehiculos'), viviendas: [P2.producto('habitacion')].concat(cosas.filter(P => P.cat === 'vivienda')),
-      partidos: s.stats.jugados, goles: s.stats.goles, hitos: P2.HITOS.filter(H => s.hitos[H.id]),
+      trofeos: (s.trofeos || []).slice(), partidos: s.stats.jugados, goles: s.stats.goles, hitos: P2.HITOS.filter(H => s.hitos[H.id]),
       colecciones: (s.coleccionesHechas || []).map(id => COLECCIONES.find(c => c.id === id)).filter(Boolean),
     };
   }
