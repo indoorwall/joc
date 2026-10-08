@@ -53,7 +53,7 @@
       ic: '🩼', titulo: 'Se lesiona un compañero de tu puesto', texto: () => 'Hay un hueco en el once. Es tu oportunidad… o la de otro.',
       ops: [
         { id: 'pedir', n: 'Pedir el puesto', ventaja: 'Mucha más opción de ser titular', coste: 'Te expones', riesgo: 'Si no rindes (nota < 6,5), −6 confianza', tags: ['riesgo', 'deporte'], fx: s => { mods(s).bonusSel = 7; programar(s, 1, 'pedirPuesto'); return 'Le dices al míster que estás preparado/a.'; } },
-        { id: 'apoyar', n: 'Apoyar al compañero', ventaja: '+2 confianza y fama', coste: 'Menos opción que pidiéndolo', riesgo: 'Ninguno', tags: ['seguro'], fx: s => { mods(s).bonusSel = 3; s.confianza = clamp(s.confianza + 2, 0, 100); s.p.rep = r1(s.p.rep + 0.5); return 'El vestuario valora tu gesto.'; } },
+        { id: 'apoyar', n: 'Apoyar al compañero', ventaja: '+2 confianza y reputación en el vestuario', coste: 'Menos opción que pidiéndolo', riesgo: 'Ninguno', tags: ['seguro'], fx: s => { mods(s).bonusSel = 3; s.confianza = clamp(s.confianza + 2, 0, 100); s.p.rep = r1(s.p.rep + 0.5); return 'El vestuario valora tu gesto.'; } },
       ] },
     { id: 'interesClub', ambito: 'carrera', fases: ['club'], enfria: 8, cond: s => enClub(s) && s.agente && s.interes >= 30, peso: s => 2 + s.interes / 20,
       ic: '📞', titulo: 'Tu agente: otro club pregunta por ti', texto: s => `Tienes ${Math.round(s.interes)}/100 de interés de otros clubes.`,
@@ -92,8 +92,8 @@
     { id: 'entrevista', ambito: 'carrera', fases: ['club'], enfria: 6, cond: s => enClub(s) && (ultNota(s) || 0) >= 7, peso: () => 2,
       ic: '🎙️', titulo: 'El periódico local quiere entrevistarte', texto: s => `Tu último partido (un ${nf(ultNota(s))}) ha gustado.`,
       ops: [
-        { id: 'humilde', n: 'Ser humilde', ventaja: '+2 confianza, +1 fama', coste: 'Nada', riesgo: 'Ninguno', tags: ['seguro', 'deporte'], fx: s => { s.confianza = clamp(s.confianza + 2, 0, 100); s.p.rep = r1(s.p.rep + 1); return '«Todo es mérito del equipo.»'; } },
-        { id: 'ambicion', n: 'Decir que quieres llegar lejos', ventaja: '+3 fama, +8 interés de clubes', coste: '−4 confianza', riesgo: 'Al club no le gusta', tags: ['dinero', 'riesgo'], fx: s => { s.p.rep = r1(s.p.rep + 3); s.interes = clamp(s.interes + 8, 0, 100); s.confianza = clamp(s.confianza - 4, 0, 100); return '«Quiero jugar en Primera.» Titular de portada.'; } },
+        { id: 'humilde', n: 'Ser humilde', ventaja: '+2 confianza, +1 marca personal', coste: 'Nada', riesgo: 'Ninguno', tags: ['seguro', 'deporte'], fx: s => { s.confianza = clamp(s.confianza + 2, 0, 100); P2.sumarMarca(s, 1); return '«Todo es mérito del equipo.»'; } },
+        { id: 'ambicion', n: 'Decir que quieres llegar lejos', ventaja: '+4 marca personal, +8 interés de clubes', coste: '−4 confianza', riesgo: 'Al club no le gusta', tags: ['dinero', 'riesgo'], fx: s => { P2.sumarMarca(s, 4); s.interes = clamp(s.interes + 8, 0, 100); s.confianza = clamp(s.confianza - 4, 0, 100); return '«Quiero jugar en Primera.» Titular de portada.'; } },
       ] },
     { id: 'barAmigo', ambito: 'carrera', fases: ['club'], unaVez: true, cond: s => s.fase === 'club' && s.p.dinero >= 1500 && !s.negocios.length, peso: () => 2,
       ic: '🍻', titulo: 'Un amigo te pide que inviertas en su bar', texto: () => 'Quiere reformar el bar de su familia. Te devolverá «el doble» en dos meses.',
@@ -112,7 +112,7 @@
     { id: 'clinic', ambito: 'carrera', fases: ['club'], unaVez: true, cond: s => enClub(s) && s.p.rep >= 25, peso: () => 2,
       ic: '⚽', titulo: 'Te invitan a dar un clínic a niños', texto: () => 'Una escuela de fútbol de la ciudad quiere que pases una semana con sus chavales.',
       ops: [
-        { id: 'ir', n: 'Pasar la semana en el clínic', ventaja: '+400 € y +3 de fama', coste: 'La semana entera (no entrenas extra)', riesgo: 'Ninguno', tags: ['dinero', 'seguro'], ocupaSemana: true, fx: s => { s.p.dinero += 400; s.acum.trabajo += 400; s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); return 'Una semana con los chavales: +400 € y +3 de fama.'; } },
+        { id: 'ir', n: 'Pasar la semana en el clínic', ventaja: '+400 € y +3 de marca personal', coste: 'La semana entera (no entrenas extra)', riesgo: 'Ninguno', tags: ['dinero', 'seguro'], ocupaSemana: true, fx: s => { s.p.dinero += 400; s.acum.trabajo += 400; const g = P2.sumarMarca(s, 3); return `Una semana con los chavales: +400 € y +${P2.nf(g)} de marca personal.`; } },
         { id: 'no', n: 'Decir que no', ventaja: 'Tu semana es tuya', coste: 'Nada', riesgo: 'Ninguno', tags: ['deporte'], fx: () => 'Lo rechazas con educación.' },
       ] },
     // ---- Contexto de la empresa (dependen del estado del negocio) ----
@@ -144,7 +144,7 @@
         { id: 'negociar', n: 'Negociar', ventaja: 'Con fama 55+ del negocio: solo +50', coste: 'Si no, +150', riesgo: 'Medio', tags: ['riesgo'], fx: (s, n) => { const x = n.fama >= 55 ? 50 : 150; n.alquiler += x; return x === 50 ? 'El casero cede: +50 €/semana.' : 'Sale mal: +150 €/semana.'; } },
         { id: 'mudarse', n: 'Mudarse a un local más barato', ventaja: '−80 €/semana de alquiler', coste: '1.500 € de caja, −10 fama y una semana de mudanza', riesgo: 'Pierdes clientela', tags: ['dinero', 'riesgo'], ocupaSemana: true, fx: (s, n) => { n.caja -= 1500; n.fama = r1(n.fama - 10); n.alquiler = Math.max(200, n.alquiler - 80); return 'Os mudáis.'; } },
       ] },
-    { id: 'influencer', ambito: 'empresa', unaVez: true, cond: (s, n) => n.fama >= 45 || s.p.rep >= 30, peso: () => 2,
+    { id: 'influencer', ambito: 'empresa', unaVez: true, cond: (s, n) => n.fama >= 45 || (s.p.marca || 0) >= 30, peso: () => 2,
       ic: '🤳', titulo: 'Una influencer local quiere cortarse el pelo con vosotros', texto: () => 'Tiene 80.000 seguidores en la ciudad.',
       ops: [
         { id: 'gratis', n: 'Invitarla gratis', ventaja: '4 semanas con más demanda', coste: 'Nada', riesgo: 'Si no das abasto, colas y mala fama', tags: ['seguro'], fx: (s, n) => { n.ctx.influencer = 4; return 'Viene, sube fotos y empiezan a llamar.'; } },

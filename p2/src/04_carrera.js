@@ -54,8 +54,8 @@
       case 'plaza': {
         const g = r1((2.5 + P.nivel / 25 + rnd(s) * 2.5) * Math.pow(0.82, veces));
         P.rep = r1(clamp(P.rep + g, 0, 100)); subirNivel(s, 0.5, techoBarrio);
-        L.push(['⚽', `Partido en la plaza: +${nf(g)} de fama.${veces >= 3 ? ' La plaza ya te conoce: cada vez impresiona menos.' : ''}`]);
-        W.push(`Fama = (2,5 + nivel/25 + azar 0–2,5) × 0,82^${veces} (veces que ya has jugado aquí).`);
+        L.push(['⚽', `Partido en la plaza: +${nf(g)} de reputación.${veces >= 3 ? ' La plaza ya te conoce: cada vez impresiona menos.' : ''}`]);
+        W.push(`Reputación = (2,5 + nivel/25 + azar 0–2,5) × 0,82^${veces} (veces que ya has jugado aquí).`);
         break;
       }
       case 'entrenar': {
@@ -79,10 +79,10 @@
       }
       case 'torneo': {
         const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8));
-        W.push(`Torneo: nivel + fama × 0,2 + azar (±8) = ${nf(f)}. Ganar: 52 · semifinal: 46.`);
-        if (f >= 52) { P.rep = r1(P.rep + 10); invitar(s, 'torneo', R); L.push(['🏆', '¡Ganas el torneo local! +10 de fama y un ojeador te invita a las pruebas.', 'bien']); }
-        else if (f >= 46) { P.rep = r1(P.rep + 5); L.push(['🥈', 'Llegas a semifinales: +5 de fama.']); }
-        else { P.rep = r1(P.rep + 1); L.push(['😓', 'Caes en la primera ronda: +1 de fama.', 'mal']); }
+        W.push(`Torneo: nivel + reputación × 0,2 + azar (±8) = ${nf(f)}. Ganar: 52 · semifinal: 46.`);
+        if (f >= 52) { P.rep = r1(P.rep + 10); invitar(s, 'torneo', R); L.push(['🏆', '¡Ganas el torneo local! +10 de reputación y un ojeador te invita a las pruebas.', 'bien']); }
+        else if (f >= 46) { P.rep = r1(P.rep + 5); L.push(['🥈', 'Llegas a semifinales: +5 de reputación.']); }
+        else { P.rep = r1(P.rep + 1); L.push(['😓', 'Caes en la primera ronda: +1 de reputación.', 'mal']); }
         if (rnd(s) < 0.12) { P.lesion = 2; L.push(['🤕', 'Te lesionas en el torneo: 2 semanas sin poder hacer esfuerzos.', 'mal']); }
         break;
       }
@@ -94,15 +94,16 @@
       }
       case 'preparador': s.preparador = true; L.push(['🧑‍🏫', 'Sesión con preparador: ya sabes qué ejercicios te van a pedir (+3 en las pruebas).']); break;
       case 'entrenoExtra': {
-        const O = oferta(s), g = subirNivel(s, 0.6 * (O ? O.entreno : 1) * factorTecho(s), techoClub(s));
+        const O = oferta(s), g = subirNivel(s, 0.6 * (O ? O.entreno : 1) * (1 + P2.efectoPatro(s, 'entreno')) * factorTecho(s), techoClub(s));
         s.confianza = clamp(s.confianza + 2, 0, 100); R.entrenoExtra = true;
         L.push(['🏋️', `Entreno extra: nivel +${nf(g)} y el míster lo valora (+2 confianza).`]);
         break;
       }
       case 'prensa': {
-        const O = oferta(s), g = r1((1.2 + rnd(s)) * (O ? O.exposicion : 1));
-        P.rep = r1(clamp(P.rep + g, 0, 100)); s.confianza = clamp(s.confianza - 1, 0, 100);
-        L.push(['🎙️', `Atiendes a la prensa y subes contenido: +${nf(g)} de fama (−1 confianza del míster).`]);
+        const O = oferta(s), expo = (O ? O.exposicion : 1) * (s.temporada ? LIGAS[s.temporada.liga].exposicion || 1 : 1);
+        const g = P2.sumarMarca(s, (1.6 + rnd(s)) * expo); s.confianza = clamp(s.confianza - 1, 0, 100);
+        L.push(['🎙️', `Atiendes a la prensa y subes contenido: +${nf(g)} de marca personal (−1 confianza del míster).${P.marca >= P2.techoMarca(s) ? ' Sin más prestigio deportivo, tu imagen ya no da para mucho más.' : ''}`]);
+        W.push(`Marca personal = (1,6 + azar) × exposición ${nf(expo)}. Tiene un techo suave de ${P2.techoMarca(s)} (30 + tu reputación deportiva): por encima solo rinde un 15 %.`);
         break;
       }
       case 'gestionar': {
@@ -118,6 +119,7 @@
     if (s.invitacion) return;
     const dia = s.semana + CFG.captacion.semanasPreparacion;
     s.invitacion = { via, semana: s.semana, dia };
+    P2.tele(s, 'invitacion', { via });
     s.fase = 'pruebas';
     P2.conseguirHito(s, 'prueba', R);
     P2.anotar(s, '📨', `Invitación a las pruebas (${via}). Son en la semana ${dia}.`);
@@ -125,7 +127,7 @@
   function revisarOjeador(s, R) {
     if (s.fase === 'barrio' && !s.invitacion && s.p.rep >= CFG.captacion.repOjeador) {
       invitar(s, 'ojeador', R);
-      R.lineas.push(['👀', `Un ojeador te ha visto en la plaza (fama ${nf(s.p.rep)}): te invita a las pruebas.`, 'bien']);
+      R.lineas.push(['👀', `Un ojeador te ha visto en la plaza (reputación ${nf(s.p.rep)}): te invita a las pruebas.`, 'bien']);
     }
   }
 
@@ -134,7 +136,7 @@
     partes.push(['Nivel', r1(P.nivel)]);
     const eb = K.energia.find(([min]) => P.energia >= min)[1];
     partes.push([`Energía (${Math.round(P.energia)})`, eb]);
-    partes.push(['Fama', r1(Math.min(K.repMax, P.rep * K.repFactor))]);
+    partes.push(['Reputación', r1(Math.min(K.repMax, P.rep * K.repFactor))]);
     if (s.preparador) partes.push(['Preparador', K.preparador]);
     if (K.viaBonus[via]) partes.push(['Vienes recomendado/a', K.viaBonus[via]]);
     partes.push(['Suerte del día', r1(entre(s, -K.suerte, K.suerte))]);
@@ -152,6 +154,8 @@
     const { score, partes } = puntuacionPruebas(s, via);
     const ofertas = ofertasPorPuntuacion(score);
     s.pruebas.push({ semana: s.semana, score, via, partes });
+    P2.tele(s, 'prueba', { score, via, ofertas });
+    P2.tele(s, 'ofertas', { origen: via === 'repesca' ? 'repesca' : 'pruebas', ofertas });
     R.lineas.push(['📋', `Día de las pruebas: sacas un ${score}.`, score >= CFG.pruebas.rangos[2].min ? 'bien' : 'mal']);
     R.porque.push(`Pruebas = ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} = ${score}. Rangos: ${CFG.pruebas.rangos.filter(r => r.min > -99).map(r => `${r.min}+ → ${r.ofertas.map(o => OFERTAS[o].n + (o === 'atleticoFormacion' ? ' (formación)' : o === 'atleticoFilial' ? ' (filial)' : '')).join(' y ')}`).join(' · ')}.`);
     s.preparador = false;
@@ -180,11 +184,12 @@
       s.stats.titularTemp = 0; s.stats.notasTemp = [];
     }
     s.amateurSemanas = 0;
+    P2.tele(s, 'club', { id });
     if (!O.amateur) P2.conseguirHito(s, 'contrato', R);
     P2.anotar(s, O.ic, `Firmo con ${O.n}: ${eur(O.sueldo)}/semana, ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}.`);
     return true;
   }
-  const techoClub = s => (oferta(s) ? oferta(s).techoNivel : techoBarrio);
+  const techoClub = s => (oferta(s) ? oferta(s).techoNivel + P2.efectoPatro(s, 'techoNivel') : techoBarrio);
   const factorTecho = s => clamp((techoClub(s) - s.p.nivel) / 15, 0.15, 1);
 
   // ---------- Convocatoria ----------
@@ -252,14 +257,17 @@
     P.rep = r1(clamp(P.rep + dRep, 0, 100));
     const techoInteres = 40 + expo * 30;
     const dInt = juega ? r1(expo * Math.max(0, nota - 6.2) * 5 + goles * 2 * expo) : 0;
-    s.interes = r1(clamp(s.interes + dInt - 1, 0, techoInteres));
+    s.interes = r1(clamp(s.interes + dInt * (1 + P2.efectoPatro(s, 'interes')) - 1, 0, techoInteres));
+    // Marca personal: solo los partidos muy visibles (buena nota en categorías con público) venden tu imagen
+    const expoLiga = LIGAS[T.liga].exposicion || 1;
+    const dMarca = juega && nota >= 7.5 ? P2.sumarMarca(s, (0.3 + goles * 0.3) * expoLiga * (1 + P2.efectoPatro(s, 'marcaVisible'))) : 0;
     if (rol === 'titular') P.energia = clamp(P.energia - 25, 0, E.max);
     else if (rol === 'suplente') P.energia = clamp(P.energia - 12, 0, E.max);
     else P.energia = clamp(P.energia - 3, 0, E.max);
     let lesion = 0;
     if (juega) {
       const K = CFG.club.lesion;
-      const pl = (energiaAntes < K.umbralCansado ? K.cansado : K.base) * (R.entrenoExtra ? 1.5 : 1) * (R.riesgoLesion || 1);
+      const pl = (energiaAntes < K.umbralCansado ? K.cansado : K.base) * (R.entrenoExtra ? 1.5 : 1) * (R.riesgoLesion || 1) * P2.efectoPatroMult(s, 'lesion');
       if (rnd(s) < pl) { lesion = entero(s, K.semanas[0], K.semanas[1]); P.lesion = Math.max(P.lesion, lesion); }
     }
     let prima = 0;
@@ -269,7 +277,8 @@
       s.primasCobradas[clave] = prima; P.dinero += prima; s.acum.primas += prima; s.acum.impuestos += O.primaVictoria - prima;
     }
     // Mejora con los entrenamientos del club
-    const gN = subirNivel(s, 0.35 * O.entreno * factorTecho(s), techoClub(s));
+    const gN = subirNivel(s, 0.35 * O.entreno * (1 + P2.efectoPatro(s, 'entreno')) * factorTecho(s), techoClub(s));
+    P2.tele(s, 'partido', { rol, amateur: !!O.amateur });
     if (P.lesion > 0 && rol === 'lesionado') P.nivel = r1(Math.max(CFG.inicio.nivel, P.nivel - 0.2));
 
     const rival = P2.nombreEquipo(T, pj.rival);
@@ -281,7 +290,7 @@
     if (prima) R.lineas.push(['💶', `Prima por victoria: +${eur(prima)}.`, 'bien']);
     if (lesion) R.lineas.push(['🤕', `Te lesionas: ${lesion} ${lesion === 1 ? 'semana' : 'semanas'} de baja.`, 'mal']);
     R.porque.push(`Convocatoria: ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} + azar (±6) frente a ${nf(umbral)} (nivel del once). Titular si llegas; suplente si te quedas a menos de 7. Con menos de ${E.minTitular} de energía no eres titular.`);
-    if (juega) R.porque.push(`Nota = 6 + (nivel − ${nf(umbral)}) / ${rol === 'titular' ? 6 : 8} + forma del día + resultado. Fama +${nf(dRep)} (× exposición ${nf(expo)} del club). Interés de otros clubes ${Math.round(s.interes)}/100 (techo ${Math.round(techoInteres)} en este club).`);
+    if (juega) R.porque.push(`Nota = 6 + (nivel − ${nf(umbral)}) / ${rol === 'titular' ? 6 : 8} + forma del día + resultado. Reputación deportiva +${nf(dRep)} (× exposición ${nf(expo)} de club y categoría)${dMarca ? `, marca personal +${nf(dMarca)} por un partido muy visible` : ''}. Interés de otros clubes ${Math.round(s.interes)}/100 (techo ${Math.round(techoInteres)} en este club).`);
     R.porque.push(`Entrenamientos del club: nivel +${nf(gN)} (calidad ${nf(O.entreno)}, techo ${techoClub(s)}).`);
     if (T.cerrada) finTemporada(s, R);
   }
@@ -309,7 +318,8 @@
         prima = Math.round(O.primaAscenso * (1 - CFG.club.impuesto));
         s.primasCobradas[`asc-${T.liga}-${T.num}`] = prima; s.p.dinero += prima; s.acum.primas += prima;
       }
-      if (mov.miClub.tipo === 'sube') { R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
+      P2.tele(s, 'categoria', { tipo: mov.miClub.tipo, a: mov.miClub.a });
+      if (mov.miClub.tipo === 'sube') { P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
       else if (mov.miClub.tipo === 'baja') { R.lineas.push(['📉', `Descenso: ${O.n.replace(/ \(.*\)/, '')} baja a ${aL.n}.`, 'mal']); s.p.rep = r1(clamp(s.p.rep - 2, 0, 100)); }
       else R.lineas.push(['🔒', `Acabáis en puestos de ascenso, pero un filial no puede jugar en la categoría de su primer equipo: sube el siguiente.`]);
       P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
@@ -320,6 +330,7 @@
     const ofertas = ofertasFinTemporada(s, media);
     if (s.contrato.temporadasRestantes <= 0 || ofertas.some(o => o.id !== 'renovar' && OFERTAS[o.id] && OFERTAS[o.id].sube)) {
       P2.encolar(s, { tipo: 'ofertas', origen: 'fin', ofertas: ofertas.map(o => o.id), condiciones: ofertas, score: null, contratoVivo: s.contrato.temporadasRestantes > 0 });
+      P2.tele(s, 'ofertas', { origen: 'fin', ofertas: ofertas.map(o => o.id) });
     } else nuevaTemporada(s, R);
   }
   // Ofertas al acabar la temporada: dependen de confianza, interés, nivel y del club donde estás
@@ -346,6 +357,7 @@
     s.contrato.sueldo = cond.sueldo; s.contrato.temporadasRestantes = cond.temporadas; s.contrato.renovado++;
     if (cond.prima) { const neto = Math.round(cond.prima * (1 - CFG.club.impuesto)); s.p.dinero += neto; s.acum.primas += neto; R && R.lineas.push(['✍️', `Prima de renovación: +${eur(neto)}.`, 'bien']); }
     P2.anotar(s, '✍️', `Renuevo con ${O.n}: ${eur(cond.sueldo)}/semana.`);
+    P2.tele(s, 'renovacion', { sueldo: cond.sueldo });
     nuevaTemporada(s, R);
   }
 

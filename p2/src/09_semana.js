@@ -19,10 +19,11 @@
     const lesionInicio = s.p.lesion > 0;
     const repAntes = s.p.rep;
 
+    if (!especial) P2.tele(s, 'accion', { id: accion });
     if (accion === '__acto') R.lineas.push(['📣', 'Dedicas la semana al acto de tu patrocinador.']);
     else if (accion === '__evento') R.lineas.push(['⏳', `La semana se va en: ${(opc && opc.motivo) || 'lo que has decidido'}.`]);
     else P2.aplicarAccion(s, accion, R);
-    if (R.plazaX2 && accion === 'plaza') { const extra = r1(s.p.rep - repAntes); s.p.rep = r1(clamp(s.p.rep + extra, 0, 100)); R.lineas.push(['👀', `El ojeador estaba en la plaza: tu fama sube el doble (+${nf(extra)} más).`, 'bien']); }
+    if (R.plazaX2 && accion === 'plaza') { const extra = r1(s.p.rep - repAntes); s.p.rep = r1(clamp(s.p.rep + extra, 0, 100)); R.lineas.push(['👀', `El ojeador estaba en la plaza: tu reputación sube el doble (+${nf(extra)} más).`, 'bien']); }
     s.accionesHechas = (s.accionesHechas || 0) + 1;
 
     // Según la fase
@@ -44,7 +45,7 @@
 
     // Recuperación, lesiones
     const enEquipo = s.fase === 'club' || s.fase === 'amateur';
-    s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio), 0, CFG.energia.max);
+    s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio) + P2.efectoPatro(s, 'recuperacion'), 0, CFG.energia.max);
     if (lesionInicio && s.p.lesion > 0) { s.p.lesion--; if (!s.p.lesion) R.lineas.push(['✅', 'Recuperado/a de la lesión.', 'bien']); }
 
     // Fin de la captación sin prueba: ruta amateur (nunca game over)
@@ -70,6 +71,7 @@
     s.semanaMods = null;
     s.eleccion = null;   // cada semana se elige de nuevo: no se arrastra la acción anterior
     if (!s.pendiente) { const a = P2.actoPendiente(s); if (a) P2.encolar(s, a); }
+    if (!s.pendiente && !s.cola.length) P2.revisarOfertasMarca(s);
     if (!s.pendiente && !s.cola.length) P2.tirarSucesos(s);
 
     R.dinero = s.p.dinero - R.dinero0;
@@ -89,6 +91,7 @@
     const R = nuevoR(s);
     const r = D.resolver(s, ev, opId, R);
     if (!r) return null;
+    P2.tele(s, 'decision', { tipo: ev.tipo, id: ev.id || ev.origen || ev.marca || null, op: opId });
     if (r.semana) s.pendiente = null; else P2.siguiente(s);
     P2.revisarSecciones(s, R);
     s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, desbloqueos: R.desbloqueos, firma: r.firma || null };

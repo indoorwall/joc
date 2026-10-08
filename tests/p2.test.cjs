@@ -109,14 +109,14 @@ function enClub(oferta = 'puerto', seed = 5) {
 
 // ---------- 5. Patrocinios ----------
 {
-  const s = enClub('atleticoFilial', 30); s.p.rep = 60; s.stats.titular = 10;
+  const s = enClub('atleticoFilial', 30); s.p.rep = 60; s.p.marca = 60; s.stats.titular = 10;
   P2.firmarMarca(s, 'panaderia', null); P2.firmarMarca(s, 'kinetic', null);
   check('Máximo 2 patrocinadores a la vez', !P2.firmarMarca(s, 'talleres', null) && s.patros.length === 2);
   check('Firmar un patrocinador da el hito', !!s.hitos.patro);
   let actos = 0;
   for (let w = 0; w < 10; w++) { if (s.pendiente && s.pendiente.tipo === 'acto') { actos++; P2.resolverDecision(s, 'ir'); continue; } resolverTodo(s, ['fresco', 'no']); P2.jugarSemana(s, 'descansar'); }
-  check('Los actos salen del contrato con fecha (no se pueden repetir a voluntad)', actos >= 2 && actos <= 5 && !P2.ACCIONES.acto, `actos ${actos}`);
-  const s2 = enClub('atleticoFilial', 31); s2.p.rep = 60; P2.firmarMarca(s2, 'panaderia', null);
+  check('Los actos salen del contrato con fecha (no se pueden repetir a voluntad)', actos >= 1 && actos <= 4 && !P2.ACCIONES.acto, `actos ${actos}`);
+  const s2 = enClub('atleticoFilial', 31); s2.p.rep = 60; s2.p.marca = 60; P2.firmarMarca(s2, 'panaderia', null);
   let rotos = 0; for (let w = 0; w < 14; w++) { if (s2.pendiente && s2.pendiente.tipo === 'acto') { P2.resolverDecision(s2, 'no'); continue; } resolverTodo(s2, ['fresco', 'no']); P2.jugarSemana(s2, 'descansar'); }
   check('Faltar dos veces rompe el contrato', s2.patros.length === 0 && s2.patroHist.some(h => h.roto));
 }
@@ -183,7 +183,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Después de cada semana no queda ninguna acción elegida', e.eleccion === null);
 
   // Patrocinio: N semanas = N pagos; renovar sin prima completa
-  const p = enClub('atleticoFilial', 71); p.p.rep = 60; p.p.nivel = 60; P2.firmarMarca(p, 'panaderia', null);
+  const p = enClub('atleticoFilial', 71); p.p.rep = 60; p.p.marca = 60; p.p.nivel = 60; P2.firmarMarca(p, 'panaderia', null);
   const M = P2.MARCAS.find(m => m.id === 'panaderia'); let pagos = 0, sem = p.semana;
   for (let w = 0; w < 25 && !(p.pendiente && p.pendiente.tipo === 'renovarMarca'); w++) {
     if (p.pendiente) { const id = p.pendiente.tipo === 'acto' ? 'ir' : (P2.vistaPendiente(p).ops.find(o => ['fresco', 'no', 'esperar', 'seguir', 'renovar', 'parar'].includes(o.id) && !o.bloqueo) || P2.vistaPendiente(p).ops.find(o => !o.bloqueo)).id; P2.resolverDecision(p, id); }
@@ -195,7 +195,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   const d0 = p.p.dinero; P2.resolverDecision(p, 'renovar');
   const primaRen = Math.round(Math.round(M.prima * P2.CFG.patrocinio.primaRenovacion) * (1 - P2.CFG.club.impuesto));
   check('Renovar no vuelve a pagar la prima inicial completa (solo la de renovación)', p.p.dinero - d0 === primaRen && primaRen < M.prima * 0.5, `${p.p.dinero - d0} vs ${M.prima}`);
-  const p2 = enClub('atleticoFilial', 72); p2.p.rep = 60; p2.p.nivel = 60; P2.firmarMarca(p2, 'panaderia', null); p2.patros[0].faltas = 1; P2.resolverActo(p2, 'panaderia', 'no');
+  const p2 = enClub('atleticoFilial', 72); p2.p.rep = 60; p2.p.marca = 60; p2.p.nivel = 60; P2.firmarMarca(p2, 'panaderia', null); p2.patros[0].faltas = 1; P2.resolverActo(p2, 'panaderia', 'no');
   check('Romper por incumplir hace perder la marca para siempre', p2.patros.length === 0 && /no vuelve/.test(P2.bloqueoMarca(p2, M) || ''));
 
   // Segunda inversión: tres estructuras financieras
@@ -249,6 +249,72 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Leer la partida de P1 no escribe ni borra nada', escrituras === 0 && almacen['del_barrio_al_negocio_p1_v1'].includes('Nora'));
   almacen['del_barrio_al_negocio_p1_v5'] = JSON.stringify({ nombre: 'Leo', fase: 'club', p: { dinero: 100 } });
   check('Si hay varias, se usa la más nueva', P2ls.partidaP1().nombre === 'Leo');
+}
+
+// ---------- 6c. P2.2: nivel, reputación y marca; patrocinadores con identidad; telemetría ----------
+{
+  const R0 = () => ({ lineas: [], porque: [], ingresos: [], hitos: [], desbloqueos: [] });
+  // Tres variables que no suben juntas
+  const v = enClub('puerto', 100); v.p.rep = 40; v.p.marca = 10; v.p.energia = 100;
+  let a0 = { ...v.p }; P2.aplicarAccion(v, 'prensa', R0());
+  check('Prensa sube la marca personal, no el nivel ni la reputación deportiva', v.p.marca > a0.marca && v.p.nivel === a0.nivel && v.p.rep === a0.rep);
+  const b = P2.nuevaPartida({ seed: 101 }); a0 = { ...b.p }; P2.aplicarAccion(b, 'entrenar', R0());
+  check('Entrenar sube el nivel, no la reputación ni la marca', b.p.nivel > a0.nivel && b.p.rep === a0.rep && b.p.marca === a0.marca);
+  a0 = { ...b.p }; P2.aplicarAccion(b, 'plaza', R0());
+  check('Jugar en la plaza sube la reputación deportiva, no la marca', b.p.rep > a0.rep && b.p.marca === a0.marca);
+  // Techo comercial ligado al prestigio deportivo
+  const malo = enClub('puerto', 102); malo.p.rep = 10; malo.p.marca = 0; for (let i = 0; i < 60; i++) P2.sumarMarca(malo, 3);
+  const bueno = enClub('puerto', 103); bueno.p.rep = 70; bueno.p.marca = 0; for (let i = 0; i < 60; i++) P2.sumarMarca(bueno, 3);
+  check('Un jugador sin prestigio no llega a una marca enorme solo con actos (techo suave)', malo.p.marca < 70 && bueno.p.marca >= 95, `${malo.p.marca} / ${bueno.p.marca}`);
+  check('Se puede ser más comercial que buen jugador (marca por encima de la reputación)', bueno.p.marca > bueno.p.rep + 20);
+  const perfil = (dep, com) => { let rep = 0, marca = 0, nivel = 0; for (let i = 1; i <= 6; i++) { const o = P2.nuevaPartida; let S; P2.nuevaPartida = x => (S = o(x)); P2.jugarPartida(P2.crearBot(dep, 'inteligente', com), 2000 + i, 90, { seguir: true }); P2.nuevaPartida = o; rep += S.p.rep / 6; marca += S.p.marca / 6; nivel += S.p.nivel / 6; } return { rep, marca, nivel }; };
+  const A = perfil('entreno', 'sin'), B = perfil('imagen', 'maximos');
+  check('Perfil «gran jugador poco comercial» (entrenar sin marcas): nivel y reputación altos, marca baja', A.nivel > 75 && A.rep > 75 && A.marca < A.rep - 20, JSON.stringify(A));
+  check('Perfil «más comercial que futbolista» (imagen y marcas): marca por encima de su reputación', B.marca > B.rep + 15 && B.nivel < A.nivel - 15, JSON.stringify(B));
+
+  // Patrocinadores: identidad, exclusividad y oferta
+  const ps = enClub('atleticoFilial', 110); ps.p.marca = 90; ps.p.rep = 80; ps.p.nivel = 70; ps.stats.titular = 10; ps.hitos.patro = 1;
+  P2.comprarNegocio(Object.assign(ps.p, { dinero: 20000 }) && ps, 'peluqueria', 2, null); const n = ps.negocios[0]; n.semanas = 5;
+  const sinP = P2.calcularSemana(ps, n);
+  P2.firmarMarca(ps, 'panaderia', null); const conP = P2.calcularSemana(ps, n);
+  check('Patrocinador local: te manda clientes al negocio (+6 % de demanda)', Math.abs(conP.demanda / sinP.demanda - 1.06) < 0.02, `${sinP.demanda} → ${conP.demanda}`);
+  check('Dos marcas del mismo sector no conviven; una gran marca no admite locales', /mismo sector/.test(P2.conflictoMarca(ps, Object.assign({}, P2.MARCAS.find(m => m.id === 'talleres'), { cat: 'comercio' })) || '') && /locales/.test(P2.conflictoMarca(ps, P2.MARCAS.find(m => m.id === 'nova')) || ''));
+  const tl = enClub('atleticoFilial', 111); tl.p.marca = 60; tl.p.rep = 60; tl.hitos.patro = 1; tl.p.dinero = 20000; P2.comprarNegocio(tl, 'peluqueria', 2, null); tl.negocios[0].semanas = 5;
+  const f0 = P2.calcularSemana(tl, tl.negocios[0]).costes.fijos; P2.firmarMarca(tl, 'talleres', null);
+  check('Patrocinador local de empresa: rebaja los gastos fijos del negocio', P2.calcularSemana(tl, tl.negocios[0]).costes.fijos === f0 - 40);
+  const kk = enClub('atleticoFilial', 112); kk.p.marca = 60; kk.p.rep = 60; kk.p.nivel = 60; kk.stats.titular = 5; const t0 = P2.techoClub(kk); P2.firmarMarca(kk, 'kinetic', null);
+  check('Marca deportiva (Kinetic): mejor entrenamiento y techo de nivel +3, sin «+10 de nivel por unas botas»', P2.techoClub(kk) === t0 + 3 && P2.efectoPatro(kk, 'entreno') > 0 && kk.p.nivel === 60);
+  const nv = enClub('puerto', 113); nv.p.marca = 80; nv.p.rep = 70; nv.hitos.patro = 1; nv.p.dinero = 20000; P2.comprarNegocio(nv, 'peluqueria', 2, null);
+  check('Gran marca: solo en categorías altas (no en Tercera)', /Segunda|Primera|Solo patrocina/.test(P2.bloqueoMarca(nv, P2.MARCAS.find(m => m.id === 'nova')) || '') || /visibilidad/.test(P2.bloqueoMarca(nv, P2.MARCAS.find(m => m.id === 'nova')) || ''));
+  // Oferta como decisión
+  const of = enClub('atleticoFilial', 114); of.p.marca = 30; of.p.rep = 40; of.p.nivel = 56; of.stats.titular = 4;
+  P2.revisarOfertasMarca(of);
+  check('Al cumplir requisitos, la marca te llama (decisión con identidad y opción de decir que no)', of.pendiente && of.pendiente.tipo === 'patroOferta' && P2.vistaPendiente(of).ops.some(o => o.id === 'no'));
+  P2.resolverDecision(of, 'no');
+  check('Rechazar una marca queda registrado y se puede firmar después', of.tele.marcas.rechazadas.length === 1 && !P2.bloqueoMarca(of, P2.MARCAS.find(m => m.id === of.tele.marcas.rechazadas[0])));
+  const ac = enClub('atleticoFilial', 115); ac.p.marca = 30; P2.firmarMarca(ac, 'panaderia', null); const e0 = ac.p.energia, c0 = ac.confianza; P2.resolverActo(ac, 'panaderia', 'ir');
+  check('Ir a un acto cuesta energía y confianza del míster (más actos = menos carrera)', ac.p.energia < e0 && ac.confianza < c0);
+  check('Hay marcas con más dinero y más obligaciones y otras con menos dinero y más crecimiento deportivo', (() => { const K = P2.MARCAS.find(m => m.id === 'kinetic'), V = P2.MARCAS.find(m => m.id === 'vertice'); return V.semanal > K.semanal && V.actoCada < K.actoCada && K.ef.entreno && !V.ef.entreno; })());
+
+  // Telemetría local
+  const tl2 = P2.nuevaPartida({ seed: 120, nombre: 'Nombre Secreto' });
+  check('ID de test anónimo al empezar (TEST-XXXXX)', /^TEST-[0-9A-F]{5}$/.test(tl2.tele.id));
+  P2.teleTiempo(tl2, 1000); P2.teleTiempo(tl2, 61000); P2.teleTiempo(tl2, 61000 + 20 * 60000);
+  check('La duración real cuenta el tiempo jugado y no las pausas largas', tl2.tele.msActivo === 60000);
+  for (let i = 0; i < 6; i++) { resolverTodo(tl2, ['no']); P2.jugarSemana(tl2, i % 2 ? 'descansar' : 'entrenar'); }
+  check('Registra las acciones semanales', tl2.tele.acciones.entrenar === 3 && tl2.tele.acciones.descansar === 3);
+  const sx = P2.nuevaPartida({ seed: 121 }); sx.pendiente = { tipo: 'suceso', id: 'masHoras' }; P2.resolverDecision(sx, 'finde');
+  check('Registra las decisiones y la opción elegida', sx.tele.decisiones['suceso:masHoras'] && sx.tele.decisiones['suceso:masHoras'].finde === 1);
+  const full = P2.nuevaPartida({ seed: 1003, nombre: 'Nombre Secreto' }); const o = P2.nuevaPartida; P2.nuevaPartida = () => full;
+  P2.jugarPartida(P2.crearBot('equilibrada', 'inteligente', 'locales'), 1003, 90); P2.nuevaPartida = o;
+  const T = full.tele;
+  check('Momentos clave T1–T7 con semana de juego', ['T1', 'T2', 'T3', 'T5', 'T6', 'T7'].every(k => T.momentos[k] && T.momentos[k].semana > 0), JSON.stringify(Object.keys(T.momentos)));
+  check('Registra prueba, club, partidos, empresa (caja) y segunda inversión', T.prueba && T.clubes.length && T.partidos.jugados > 5 && T.empresa.caja > 0 && T.segunda);
+  P2.responderTest(full, 'p1', 8); P2.responderTest(full, 'p7', 'Más negocios'); P2.responderTest(full, 'p8', 'Quizá'); P2.responderTest(full, 'p2', 'En la liga');
+  const inf = P2.informeTest(full);
+  check('El informe de prueba tiene las secciones pedidas', ['TEST P2.2', T.id, 'Duración real', 'Semanas jugadas', 'Ruta inicial', 'Prueba', 'Primer club', 'Decisiones semanales', 'Patrocinadores', 'Empresa', 'Caja inicial', 'Segunda inversión', 'Momentos clave', 'Hitos alcanzados', 'Pantallas más visitadas', 'Momento de salida', 'PREGUNTAS'].every(x => inf.includes(x)));
+  check('Las respuestas a las preguntas salen en el informe', inf.includes('8') && inf.includes('Más negocios') && inf.includes('Quizá') && inf.includes('En la liga'));
+  check('El informe no incluye el nombre del personaje', !inf.includes('Nombre Secreto'));
 }
 
 // ---------- 7. Simulación de balance ----------
@@ -344,6 +410,16 @@ let informe;
   await p2.evaluate(() => localStorage.setItem('del_barrio_al_negocio_p2', '{roto'));
   await p2.reload();
   check('UI: un guardado corrupto no rompe el juego y se aparta una copia', await p2.locator('[data-act="empezar"]').isVisible() && await p2.evaluate(() => Object.keys(localStorage).some(k => k.startsWith('del_barrio_al_negocio_p2_copia_'))));
+  // Informe de prueba en Ajustes
+  await page.tap('[data-act="vista"][data-v="ajustes"]');
+  await page.tap('#informeTest summary');
+  await page.tap('[data-act="resp"][data-q="p1"][data-v="7"]');
+  await page.tap('[data-act="resp"][data-q="p8"][data-v="Sí"]');
+  await page.fill('#r_p2', 'Al principio'); await page.dispatchEvent('#r_p2', 'change');
+  await page.tap('[data-act="informe"]');
+  const inf = await page.inputValue('#textoInforme');
+  check('UI: «Informe de prueba» genera un texto copiable con ID, duración y respuestas', /TEST P2\.2/.test(inf) && /ID: TEST-[0-9A-F]{5}/.test(inf) && inf.includes('Duración real') && inf.includes('Al principio') && /\n   7\n/.test(inf) && inf.includes('Sí'));
+  check('UI: el informe cuenta las pantallas visitadas', /Pantallas más visitadas: .*ajustes/.test(inf));
   check('UI: sin errores de JavaScript', errs.length === 0, errs.join(' | '));
   await b.close();
   fin();

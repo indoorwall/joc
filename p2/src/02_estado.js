@@ -19,7 +19,9 @@
       seccionesNuevas: [],
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
-      p: { nivel: I.nivel, energia: I.energia, rep: I.rep, dinero: I.dinero, lesion: 0 },
+      // nivel: cómo juegas · rep: reputación deportiva (cómo te ve el fútbol) · marca: marca personal (cómo te ven marcas y medios)
+      p: { nivel: I.nivel, energia: I.energia, rep: I.rep, marca: I.marca, dinero: I.dinero, lesion: 0 },
+      tele: P2.nuevaTele ? P2.nuevaTele() : null,   // telemetría local para pruebas (no sale del navegador)
       cont: {},                        // veces que has hecho cada acción (rendimientos decrecientes)
       invitacion: null,                // { via, semana, dia }
       pruebas: [],                     // historial de pruebas { semana, score, via, detalle }
@@ -70,6 +72,7 @@
     const s = nuevaPartida({ nombre: typeof v.nombre === 'string' && v.nombre.trim() ? v.nombre.slice(0, 24) : 'Alex', origen: 'p1', look: v.look });
     s.p.dinero = Math.round(P2.clamp(num(p.dinero, CFG.inicio.dinero), 0, 2000));
     s.p.rep = Math.round(P2.clamp(num(p.rep, CFG.inicio.rep), 0, 12));
+    s.p.marca = Math.round(s.p.rep / 2);
     s.p.nivel = P2.clamp(num(p.nivel, CFG.inicio.nivel), CFG.inicio.nivel, CFG.inicio.nivel + 6);
     s.diario.push({ semana: 1, ic: '📦', t: `Vienes de P1: conservas tu nombre, parte de tus ahorros (${P2.eur(s.p.dinero)}) y algo de fama.` });
     return s;
@@ -88,6 +91,8 @@
     const E = CFG.energia;
     s.p.energia = P2.clamp(s.p.energia, 0, E.max);
     s.p.rep = P2.clamp(s.p.rep, 0, 100);
+    s.p.marca = P2.clamp(typeof s.p.marca === 'number' ? s.p.marca : Math.round(s.p.rep / 2), 0, 100);
+    if (!s.tele || typeof s.tele !== 'object' || !s.tele.id) s.tele = P2.nuevaTele ? P2.nuevaTele() : null;
     s.p.lesion = Math.max(0, s.p.lesion | 0);
     s.confianza = P2.clamp(s.confianza, 0, 100);
     s.interes = P2.clamp(s.interes, 0, 100);

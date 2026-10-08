@@ -15,7 +15,7 @@
     clavesP1: ['del_barrio_al_negocio_p1_v5', 'del_barrio_al_negocio_p1_v4', 'del_barrio_al_negocio_p1_v3', 'del_barrio_al_negocio_p1_v2', 'del_barrio_al_negocio_p1_v1'],
     deporte: 'futbol',
 
-    inicio: { edad: 17, nivel: 40, energia: 80, rep: 4, dinero: 150, ciudad: 'Villamar' },
+    inicio: { edad: 17, nivel: 40, energia: 80, rep: 4, marca: 2, dinero: 150, ciudad: 'Villamar' },
 
     energia: {
       max: 100,
@@ -30,7 +30,7 @@
       semanas: 8,
       jornadasAbiertas: [4, 7],   // semanas con jornada abierta de un club
       torneo: [5],                // semana del torneo local
-      repOjeador: 18,             // reputación con la que un ojeador te invita a las pruebas
+      repOjeador: 18,             // reputación deportiva con la que un ojeador te invita a las pruebas
       semanasPreparacion: 2,      // semanas entre la invitación y el día de las pruebas
     },
 
@@ -68,6 +68,9 @@
     primaAscensoMinPartidos: 5 },         // para cobrar la prima de ascenso hay que haber jugado
 
     patrocinio: { maxContratos: 2, faltasMax: 2,
+    actoEnergia: 10, actoConfianza: 2,   // ir a un acto cansa y el míster nota que faltas a un entrenamiento
+    techoMarca: 30,             // techo suave de la marca personal: 30 + reputación deportiva
+    sobreTecho: 0.15,           // por encima del techo, lo comercial solo rinde un 15 %
     primaRenovacion: 0.25,      // al renovar se cobra solo una parte de la prima inicial
     subidaRenovacion: 0.1,      // si cumpliste todos los actos, el pago semanal sube un 10 %
   },
@@ -191,7 +194,7 @@
   // fase: en qué momento se pueden hacer · energiaMin: sin energía no se puede
   const ACCIONES = {
     plaza: { ic: '⚽', n: 'Partido en la plaza', fases: ['barrio', 'pruebas'], energiaMin: 25, energia: -20,
-      ventaja: 'Fama en el barrio (cada vez menos)', coste: '−20 energía', riesgo: 'Repetirlo rinde menos' },
+      ventaja: 'Reputación en el barrio (cada vez menos)', coste: '−20 energía', riesgo: 'Repetirlo rinde menos' },
     entrenar: { ic: '🏃', n: 'Entrenar duro', fases: ['barrio', 'pruebas'], energiaMin: 30, energia: -25,
       ventaja: 'Sube tu nivel', coste: '−25 energía', riesgo: 'Nadie te ve entrenar' },
     trabajar: { ic: '🛵', n: 'Trabajar de repartidor', fases: ['barrio', 'pruebas'], energiaMin: 25, energia: -25, dinero: 130,
@@ -201,7 +204,7 @@
     jornada: { ic: '📋', n: 'Jornada abierta del Atlético', fases: ['barrio'], energiaMin: 40, energia: -25, soloSemanas: 'jornadasAbiertas',
       ventaja: 'Si tu nivel convence (≈50), te invitan a las pruebas', coste: '−25 energía', riesgo: 'Si no llegas, solo te llevas la experiencia' },
     torneo: { ic: '🏆', n: 'Torneo local', fases: ['barrio'], energiaMin: 50, energia: -35, gasto: 30, soloSemanas: 'torneo',
-      ventaja: 'Si ganas: mucha fama e invitación directa', coste: '30 € y −35 energía', riesgo: 'Puedes caer pronto o lesionarte' },
+      ventaja: 'Si ganas: mucha reputación e invitación directa', coste: '30 € y −35 energía', riesgo: 'Puedes caer pronto o lesionarte' },
     campus: { ic: '🎓', n: 'Campus de tecnificación', fases: ['barrio'], energiaMin: 30, energia: -20, gasto: 400, hastaSemana: 7,
       ventaja: 'Nivel +3 y el coordinador te propone para las pruebas', coste: '400 € y −20 energía', riesgo: 'Gastas tus ahorros' },
     preparador: { ic: '🧑‍🏫', n: 'Sesión con preparador', fases: ['pruebas'], energiaMin: 20, energia: -10, gasto: 150, unaVez: true, hito: 'prueba',
@@ -212,23 +215,36 @@
     mediaJornada: { ic: '🛵', n: 'Trabajo a media jornada', fases: ['amateur'], energiaMin: 30, energia: -15, dinero: 70,
       ventaja: '+70 €', coste: '−15 energía', riesgo: 'No mejoras' },
     prensa: { ic: '🎙️', n: 'Prensa y redes', fases: ['club'], energiaMin: 10, energia: -5,
-      ventaja: 'Fama e interés de marcas', coste: 'No entrenas extra', riesgo: 'Al míster no le encanta (−1 confianza)' },
+      ventaja: 'Marca personal (atractivo para patrocinadores y clientes)', coste: 'No entrenas extra', riesgo: 'Al míster no le encanta (−1 confianza); sin prestigio deportivo rinde poco' },
     gestionar: { ic: '💼', n: 'Pasar la semana en la empresa', fases: ['club', 'amateur'], energiaMin: 10, energia: -8, hito: 'empresa',
       ventaja: 'Tu negocio rinde más y resuelves problemas', coste: 'No entrenas extra (−2 confianza)', riesgo: 'Si el equipo va mal, se nota' },
   };
 
   // ---- Patrocinadores: contratos con requisitos, pago y obligaciones ----
+  // Patrocinadores con identidad. Requisitos por MARCA PERSONAL (atractivo comercial) y, en las deportivas
+  // y grandes, también por REPUTACIÓN DEPORTIVA y nivel. Cada una aporta algo distinto (efectos creíbles):
+  //   clientesNegocio: más clientes en tu negocio · fijosNegocio: menos gastos fijos del negocio
+  //   entreno: mejoras más al entrenar · lesion: menos riesgo de lesión · interes: los clubes te ven más
+  //   marcaVisible: tus buenos partidos suben más tu marca · interesFinanciacion: tus préstamos salen más baratos
+  // cat: sector (dos marcas del mismo sector no conviven) · incompatible: tiers con los que no se puede combinar
   const MARCAS = [
-    { id: 'panaderia', n: 'Panadería Ríos', ic: '🥖', tier: 'local', repMin: 10, prima: 150, semanal: 30, semanas: 14, actoCada: 4,
-      obligacion: 'Una foto en la tienda cada 4 semanas' },
-    { id: 'talleres', n: 'Talleres Costa', ic: '🔧', tier: 'local', repMin: 22, prima: 400, semanal: 60, semanas: 14, actoCada: 3,
-      obligacion: 'Un acto comercial cada 3 semanas' },
-    { id: 'kinetic', n: 'Kinetic Sport', ic: '👟', tier: 'deportiva', repMin: 28, nivelMin: 55, titularidades: 3, prima: 1200, semanal: 120, semanas: 28, actoCada: 5,
-      obligacion: 'Un evento cada 5 semanas y llevar sus botas', objetivo: { notaMedia: 6.3, bonus: 1000 } },
-    { id: 'vertice', n: 'Vértice Energy', ic: '⚡', tier: 'deportiva', repMin: 45, nivelMin: 62, titularidades: 6, prima: 2500, semanal: 200, semanas: 28, actoCada: 4,
-      obligacion: 'Un evento cada 4 semanas', objetivo: { notaMedia: 6.6, bonus: 2000 } },
+    { id: 'panaderia', n: 'Panadería Ríos', ic: '🥖', tier: 'local', cat: 'comercio', audiencia: 'el barrio', marcaMin: 6, prima: 150, semanal: 25, semanas: 14, actoCada: 6, marcaActo: 1,
+      obligacion: 'Una foto en la tienda cada 6 semanas (carga ligera)', ef: { clientesNegocio: 0.06 },
+      identidad: 'Te conoce todo el barrio. Si tienes negocio, te manda clientes (+6 %).' },
+    { id: 'talleres', n: 'Talleres Costa', ic: '🔧', tier: 'local', cat: 'motor', audiencia: 'la ciudad', marcaMin: 14, prima: 300, semanal: 55, semanas: 10, actoCada: 3, marcaActo: 1.5,
+      obligacion: 'Un acto comercial cada 3 semanas (carga alta)', ef: { fijosNegocio: 40 },
+      identidad: 'Buenos contactos con empresas: te hacen el mantenimiento del negocio (−40 €/semana de gastos fijos).' },
+    { id: 'kinetic', n: 'Kinetic Sport', ic: '👟', tier: 'deportiva', cat: 'material', audiencia: 'deportistas', marcaMin: 18, repMin: 30, nivelMin: 55, titularidades: 3, prima: 800, semanal: 90, semanas: 28, actoCada: 6, marcaActo: 1.5,
+      obligacion: 'Un evento cada 6 semanas y llevar su material', objetivo: { notaMedia: 6.3, bonus: 800 }, ef: { entreno: 0.25, lesion: 0.75, recuperacion: 4, techoNivel: 3 },
+      identidad: 'Material, preparadores y fisios de la marca: entrenas un 25 % mejor, recuperas más (+4 de energía por semana), te lesionas menos y tu techo de nivel sube 3. Paga poco.' },
+    { id: 'vertice', n: 'Vértice Energy', ic: '⚡', tier: 'deportiva', cat: 'bebida', audiencia: 'jóvenes', marcaMin: 32, repMin: 35, prima: 1500, semanal: 170, semanas: 14, actoCada: 3, marcaActo: 2,
+      obligacion: 'Un evento cada 3 semanas (carga alta)', ef: { interes: 0.3, marcaVisible: 0.5 },
+      identidad: 'Mucho escaparate: los clubes te ven más (+30 % de interés) y tus buenos partidos venden más. Te quita semanas.' },
+    { id: 'nova', n: 'Nova Telecom', ic: '📡', tier: 'grande', cat: 'telecom', incompatible: ['local'], audiencia: 'todo el país', marcaMin: 60, repMin: 50, ligaMin: 3, prima: 4000, semanal: 260, semanas: 18, actoCada: 4, marcaActo: 3,
+      obligacion: 'Una campaña cada 4 semanas; exige imagen premium (sin marcas locales)', ef: { interesFinanciacion: 0.3 },
+      identidad: 'Campañas nacionales (+3 de marca por campaña) y contactos con bancos: tus préstamos salen un 30 % más baratos.' },
   ];
-  const TIERS = { local: ['local'], deportiva: ['local', 'deportiva'] };
+  const TIERS = { local: ['local'], deportiva: ['local', 'deportiva', 'grande'] };
 
   // ---- Negocios (tipo de datos genérico; en P2 solo la peluquería) ----
   const NEGOCIOS = {

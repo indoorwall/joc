@@ -1,6 +1,6 @@
 # Futbol + tycoon — prototips
 
-- **P2 — Del barrio al negocio, capítulo 1 (dirección actual)**: juego de gestión por decisiones, del barrio a tu primera
+- **P2.2 — Del barrio al negocio, capítulo 1 (fútbol, congelado para pruebas con personas)**: nivel, reputación deportiva y marca personal separados; patrocinadores con identidad y exclusividades; telemetría local con «Informe de prueba» en Ajustes; juego de gestión por decisiones, del barrio a tu primera
   empresa: 8 semanas de captación con varios caminos a las pruebas, ofertas según la puntuación (UD Puerto o Atlético, filosofías
   distintas), liga de 8 equipos con contexto, patrocinios como contratos, peluquería con caja separada, contexto cambiante y
   crisis, hitos que abren funciones, guardado v2 con migración desde P1 y simulador de balance.

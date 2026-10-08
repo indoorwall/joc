@@ -33,7 +33,7 @@
   function htmlTop(s) {
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
       <div class="hwho"><b>${esc(s.nombre)}</b><span>${esc(nombreFase(s))}</span></div>
-      <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}</div>`;
+      <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}${(s.secciones || []).includes('marcas') ? pill('📣', Math.floor(s.p.marca || 0)) : ''}</div>`;
   }
   function htmlNav(s) {
     const b = (v, ic, t, aviso) => `<button data-act="vista" data-v="${v}" class="${ui.vista === v ? 'sel' : ''}"><span>${ic}</span>${t}${(s.seccionesNuevas || []).includes(v) ? '<em>Nuevo</em>' : aviso ? '<i></i>' : ''}</button>`;
@@ -52,17 +52,17 @@
       const quedan = P2.semanasCaptacion(s);
       escena = `🏘️ ⚽ 🛵 <b>Barrio de ${esc(s.ciudad)}</b>`;
       titulo = `Te quedan ${quedan} ${quedan === 1 ? 'semana' : 'semanas'} para conseguir una prueba`;
-      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Fama', `${Math.floor(P.rep)}/${K.repOjeador}`) + dato('Ahorros', eur(P.dinero));
+      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Reputación', `${Math.floor(P.rep)}/${K.repOjeador}`) + dato('Ahorros', eur(P.dinero));
       const jProx = K.jornadasAbiertas.find(w => w >= s.semana), tProx = K.torneo.find(w => w >= s.semana);
       extra = `<div class="barra ${quedan <= 2 ? 'urg' : ''}"><i style="width:${Math.round(100 * (s.semana - 1) / K.semanas)}%"></i></div>
-        <div class="caminos">Caminos: <b>👀 fama ${K.repOjeador}</b> · <b>📋 ${jProx ? `jornada sem. ${jProx}` : 'jornada pasada'}</b> · <b>🏆 ${tProx ? `torneo sem. ${tProx}` : 'torneo pasado'}</b> · <b class="${P.dinero >= 400 ? 'ok' : ''}">🎓 ${s.semana <= 7 ? 'campus 400 €' : 'campus cerrado'}</b>. Sin prueba: equipo amateur y repesca.</div>`;
+        <div class="caminos">Caminos: <b>👀 reputación ${K.repOjeador}</b> · <b>📋 ${jProx ? `jornada sem. ${jProx}` : 'jornada pasada'}</b> · <b>🏆 ${tProx ? `torneo sem. ${tProx}` : 'torneo pasado'}</b> · <b class="${P.dinero >= 400 ? 'ok' : ''}">🎓 ${s.semana <= 7 ? 'campus 400 €' : 'campus cerrado'}</b>. Sin prueba: equipo amateur y repesca.</div>`;
     } else if (s.fase === 'pruebas') {
       const inv = s.invitacion, k = inv.dia - s.semana + 1;
       const est = Math.round(P2.puntuacionPruebas(Object.assign(P2.copia(s), { rng: 1 }), inv.via).partes.filter(([t]) => t !== 'Suerte del día').reduce((a, [, v]) => a + v, 0));
       const ofs = P2.ofertasPorPuntuacion(est);
       escena = `📋 🏟️ <b>Pruebas: ${k <= 1 ? 'al final de esta semana' : `en ${k} semanas`}</b>`;
       titulo = `Ahora mismo sacarías un ${est} (± ${CFG.pruebas.suerte} de suerte)`;
-      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Fama', Math.floor(P.rep)) + dato('Preparador', s.preparador ? '+3' : 'No');
+      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Reputación', Math.floor(P.rep)) + dato('Preparador', s.preparador ? '+3' : 'No');
       extra = `<div class="ctx">${ofs.length ? `Con ${est}: ${ofs.map(o => OFERTAS[o].n + (o === 'atleticoFormacion' ? ' (formación)' : o === 'atleticoFilial' ? ' (filial)' : '')).join(' y ')}.` : `Con ${est} no llegas a ${CFG.pruebas.rangos[2].min}: ningún contrato profesional.`} ${CFG.pruebas.rangos.filter(r => r.min > -99).map(r => `${r.min}+`).join(' · ')}</div>`;
     } else {
       const T = s.temporada, O = P2.oferta(s), pj = P2.partidoDeLaJornada(T), pos = P2.posicion(T), pt = P2.probTitular(s);
@@ -90,7 +90,7 @@
     const l = P2.accionesDisponibles(s);
     const tit = s.fase === 'club' || s.fase === 'amateur' ? '¿Qué haces esta semana, además del partido?' : '¿Qué haces esta semana?';
     return `<div class="sec"><span>Decisión</span><span>elige y pulsa «Jugar semana»</span></div><div class="card dec"><h3>${tit}</h3>
-      ${l.filter(x => !x.bloqueo).map(({ id, A }) => opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: A.coste, riesgo: A.riesgo }, 'elegir', '', id === eleccion(s) ? 'elegida' : '')).join('')}
+      ${l.filter(x => !x.bloqueo).map(({ id, A }) => { const sel = id === eleccion(s); return opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: sel ? A.coste : '', riesgo: sel ? A.riesgo : '' }, 'elegir', '', sel ? 'elegida' : 'compacta'); }).join('')}
       ${l.filter(x => x.bloqueo).map(({ id, A, bloqueo }) => `<button class="opt mini" disabled><b>${A.ic} ${esc(A.n)}</b><span class="bl">🔒 ${esc(bloqueo)}</span></button>`).join('')}</div>`;
   }
 
@@ -122,7 +122,7 @@
       h += `<div class="sec"><span>Consecuencia</span><span>semana ${R.semana}</span></div><div class="card">
         <div class="resumen">${chips.join('')}</div>
         ${R.hitos.map(htmlHito).join('')}${(R.desbloqueos || []).map(htmlDesbloqueo).join('')}
-        ${R.lineas.map(linea).join('')}
+        ${R.lineas.slice(0, 4).map(linea).join('')}${R.lineas.length > 4 ? `<details class="por mas"><summary>Ver ${R.lineas.length - 4} más</summary>${R.lineas.slice(4).map(linea).join('')}</details>` : ''}
         ${R.ingresos.length ? `<details class="por"><summary>💶 Tus cuentas de la semana</summary>${R.ingresos.map(([t, v]) => kv(esc(t), `${v >= 0 ? '+' : '−'}${eur(Math.abs(v))}`)).join('')}</details>` : ''}
         ${R.porque.length ? `<details class="por"><summary>❓ ¿Por qué ha pasado esto?</summary>${R.porque.map(t => `<p>${esc(t)}</p>`).join('')}</details>` : ''}</div>`;
     }
@@ -145,7 +145,7 @@
       <div class="card"><h3>Tu equipo</h3>${kv('Objetivo del club', OBJETIVOS[P2.objetivoDe(T)].n)}${prox.map((p, i) => kv(i ? 'Después' : 'Próximo rival', `${p.local ? '🏠' : '✈️'} ${esc(P2.nombreEquipo(T, p.rival))}`)).join('')}
         ${ult.length ? kv('Últimos', esc(ult.join(' · '))) : ''}</div>
       <div class="card"><h3>Tú</h3>${kv('Contrato', `${eur(c.sueldo)}/semana · ${c.temporadasRestantes} ${c.temporadasRestantes === 1 ? 'temporada' : 'temporadas'}`)}
-        ${kv('Confianza del míster', `${Math.round(s.confianza)}/100`)}${kv('Interés de otros clubes', `${Math.round(s.interes)}/100`)}${kv('Valor de mercado', eur(P2.valorMercado(s)))}
+        ${htmlTresVariables(s)}${kv('Confianza del míster', `${Math.round(s.confianza)}/100`)}${kv('Interés de otros clubes', `${Math.round(s.interes)}/100`)}${kv('Valor de mercado', eur(P2.valorMercado(s)))}
         ${kv('Partidos', `${s.stats.jugados} (${s.stats.titular} de titular) · ${s.stats.goles} goles`)}${kv('Agente', s.agente ? 'Sí' : 'Al ser titular 3 veces')}
         <details class="por"><summary>❓ ¿Cómo se decide si juegas?</summary><p>Nivel + (confianza − 50) × 0,2 + ventaja del club (${O.minutos >= 0 ? '+' : ''}${O.minutos}) + energía (+2 con 60 o más, −4 con menos de 40) + azar (±6), frente al nivel del once de tu club (${nf(T.fuerzas[T.yo])}). Titular si llegas; suplente si te quedas a menos de 7.</p></details></div>
       ${s.temporadasJugadas.length ? `<div class="card"><h3>Temporadas</h3>${s.temporadasJugadas.map(t => kv(`${esc(t.club)} · ${esc((LIGAS[t.liga] || {}).corto || "")}`, `${t.pos}º · ${t.cumple ? '✅' : '❌'} · nota ${nf(t.media)}`)).join('')}</div>` : ''}`;
@@ -200,11 +200,21 @@
     </div>`;
   }
 
+  // Las tres variables: nivel (cómo juegas), reputación deportiva (cómo te ve el fútbol), marca personal (cómo te ven las marcas)
+  function htmlTresVariables(s) {
+    const barra = (v, max = 100) => `<div class="barra"><i style="width:${Math.max(2, Math.min(100, v / max * 100))}%"></i></div>`;
+    return `<div class="tres">
+      <div><b>💪 Nivel ${nf(s.p.nivel)}</b>${barra(s.p.nivel)}<span>Cómo juegas. Sube entrenando.</span></div>
+      <div><b>⭐ Reputación ${Math.floor(s.p.rep)}</b>${barra(s.p.rep)}<span>Cómo te ve el fútbol: notas, titularidad, categoría, ascensos.</span></div>
+      <div><b>📣 Marca ${Math.floor(s.p.marca || 0)}</b>${barra(s.p.marca || 0)}<span>Cómo te ven marcas, medios y clientes. Techo suave: ${P2.techoMarca(s)} (30 + reputación).</span></div></div>`;
+  }
   function htmlMarcas(s) {
-    let h = `<div class="card"><h2>🤝 Patrocinadores</h2><p class="small">Son contratos: prima al firmar, pago semanal y obligaciones con fecha. Máximo ${CFG.patrocinio.maxContratos} a la vez. Cada acto ocupa una semana entera.</p></div>`;
-    if (s.patros.length) h += `<div class="sec">Tus contratos</div>` + s.patros.map(c => { const M = MARCAS.find(m => m.id === c.id); return `<div class="card"><h3>${M.ic} ${esc(M.n)}</h3>${kv('Pago', `${eur(c.semanal || M.semanal)}/semana`)}${kv('Pagos', `${c.pagos} de ${c.semanas} (quedan ${P2.semanasRestantes(c)})`)}${kv('Próximo acto', c.proxActo - c.desde < c.semanas ? `semana ${c.proxActo}` : 'ninguno')}${kv('Faltas', `${c.faltas}/${CFG.patrocinio.faltasMax}`)}${M.objetivo ? kv('Objetivo', `nota media ${nf(M.objetivo.notaMedia)} → ${eur(M.objetivo.bonus)}`) : ''}</div>`; }).join('');
-    h += `<div class="card"><p class="small">⭐ Tu marca personal: <b>${Math.floor(P2.marcaPersonal(s))}</b> (fama ${Math.floor(s.p.rep)} × tu nivel deportivo). Con poco nivel, tu fama vale menos para las marcas.</p></div>`;
-    h += `<div class="sec">Marcas</div><div class="card">` + P2.marcasVisibles(s).map(({ M, bloqueo, renovacion }) => { const C = P2.condicionesMarca(s, M); return opcion({ id: M.id, n: `${M.ic} ${M.n} (${M.tier === 'local' ? 'local' : 'deportiva'})${renovacion ? ' · volver a firmar' : ''}`, ventaja: `Prima ${eur(C.prima)}${renovacion ? ' (renovación)' : ''} y ${eur(C.semanal)}/semana durante ${M.semanas} semanas`, coste: M.obligacion, riesgo: `${CFG.patrocinio.faltasMax} faltas rompen el contrato para siempre${M.objetivo ? ` · bonus si tu nota media llega a ${nf(M.objetivo.notaMedia)}` : ''}`, bloqueo }, 'marca'); }).join('') + `</div>`;
+    let h = `<div class="card"><h2>🤝 Patrocinadores</h2>${htmlTresVariables(s)}
+      <p class="small">Cada marca te da algo distinto, no solo dinero. Máximo ${CFG.patrocinio.maxContratos} a la vez y dos del mismo sector no conviven. Cada acto ocupa una semana entera. Si rompes un contrato por faltar, esa marca no vuelve.</p></div>`;
+    if (s.patros.length) h += `<div class="sec">Tus contratos</div>` + s.patros.map(c => { const M = MARCAS.find(m => m.id === c.id); return `<div class="card"><h3>${M.ic} ${esc(M.n)}</h3><p class="small">${esc(M.identidad)}</p>${kv('Pago', `${eur(c.semanal || M.semanal)}/semana`)}${kv('Pagos', `${c.pagos} de ${c.semanas} (quedan ${P2.semanasRestantes(c)})`)}${kv('Próximo acto', c.proxActo - c.desde < c.semanas ? `semana ${c.proxActo}` : 'ninguno')}${kv('Faltas', `${c.faltas}/${CFG.patrocinio.faltasMax}`)}${M.objetivo ? kv('Objetivo', `nota media ${nf(M.objetivo.notaMedia)} → ${eur(M.objetivo.bonus)}`) : ''}</div>`; }).join('');
+    h += `<div class="sec">Marcas</div><div class="card">` + P2.marcasVisibles(s).map(({ M, bloqueo, renovacion }) => { const C = P2.condicionesMarca(s, M); return opcion({ id: M.id, n: `${M.ic} ${M.n} · ${M.tier === 'local' ? 'local' : M.tier === 'deportiva' ? 'deportiva' : 'gran marca'}${renovacion ? ' · volver a firmar' : ''}`,
+      ventaja: `${M.identidad} Prima ${eur(C.prima)}${renovacion ? ' (renovación)' : ''}, ${eur(C.semanal)}/semana, ${M.semanas} semanas`,
+      coste: M.obligacion, riesgo: `Sector: ${M.cat}${M.incompatible ? ' · no admite marcas locales' : ''} · audiencia: ${M.audiencia}${M.objetivo ? ` · bonus si tu nota media llega a ${nf(M.objetivo.notaMedia)}` : ''}`, bloqueo }, 'marca'); }).join('') + `</div>`;
     return h;
   }
 
@@ -217,7 +227,7 @@
 
   function htmlAjustes(s) {
     const B = ui.balance;
-    return `<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
+    return `${htmlInforme(s)}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
       <div class="sec">Copia de seguridad</div><p class="small">Copia este código para guardar la partida fuera del navegador.</p>
       <textarea id="codigo" readonly>${esc(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}</textarea>
       <textarea id="importar" placeholder="Pega aquí un código para cargarlo"></textarea>
@@ -227,6 +237,22 @@
       <details class="card"><summary><b>🧪 Balance (simulador)</b></summary><p class="small">Juega cientos de partidas con políticas automáticas (todo trabajo, todo entreno…).</p>
         <button class="btn w full" data-act="balance">▶ Simular 100 partidas por política</button>${B ? `<pre>${esc(B)}</pre>` : ''}</details>
       <p class="small" style="color:rgba(255,255,255,.7);text-align:center">Clubes, marcas y lugares ficticios. Importes de juego. Sin anuncios, compras ni conexiones.</p>`;
+  }
+
+  // Informe para testers: todo local; se copia a mano. Preguntas opcionales al final
+  function htmlInforme(s) {
+    const t = s.tele || {}, Rr = t.respuestas || {};
+    const preg = P2.PREGUNTAS_TEST.map((q, i) => {
+      const r = Rr[q.id];
+      if (q.tipo === 'escala') return `<label class="preg">${i + 1}. ${esc(q.t)}<div class="seg diez">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<button data-act="resp" data-q="${q.id}" data-v="${n}" class="${r === n ? 'sel' : ''}">${n}</button>`).join('')}</div></label>`;
+      if (q.tipo === 'texto') return `<label class="preg" for="r_${q.id}">${i + 1}. ${esc(q.t)}</label><textarea class="respuesta" id="r_${q.id}" data-q="${q.id}" rows="2">${esc(r || '')}</textarea>`;
+      return `<div class="preg">${i + 1}. ${esc(q.t)}<div class="chipsel">${q.ops.map(o => `<button data-act="resp" data-q="${q.id}" data-v="${esc(o)}" class="${(Array.isArray(r) ? r.includes(o) : r === o) ? 'sel' : ''}">${esc(o)}</button>`).join('')}</div></div>`;
+    }).join('');
+    return `<details class="card" id="informeTest" ${ui.informeAbierto ? 'open' : ''}><summary><b>🧪 Informe de prueba</b> <span class="small">${esc(t.id || '')}</span></summary>
+      <p class="small">Si estás probando el juego: responde (si quieres) y pulsa «Generar informe». Copia el texto y mándalo. Todo se queda en este navegador: no se envía nada y no incluye tu nombre.</p>
+      ${preg}
+      <button class="btn g full" data-act="informe">📋 Generar informe</button>
+      ${ui.informe ? `<textarea id="textoInforme" readonly rows="12">${esc(ui.informe)}</textarea><button class="btn w full" data-act="copiarInforme">Copiar el informe</button>${ui.copiado ? `<p class="small">${esc(ui.copiado)}</p>` : ''}` : ''}</details>`;
   }
 
   function htmlIntro() {
@@ -270,6 +296,7 @@
   const guardarYPintar = () => { P2.guardar(S); render(); };
 
   function alPulsar(e) {
+    if (S) P2.teleTiempo(S);
     const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
     const a = b.dataset.act, id = b.dataset.id, neg = b.dataset.neg;
     if (a !== 'reiniciar') ui.reinicio = false;
@@ -285,7 +312,7 @@
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
       case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
-      case 'vista': ui.vista = b.dataset.v; ui.msg = ''; if ((S.seccionesNuevas || []).includes(ui.vista)) { S.seccionesNuevas = S.seccionesNuevas.filter(x => x !== ui.vista); P2.guardar(S); } render(); window.scrollTo(0, 0); break;
+      case 'vista': ui.vista = b.dataset.v; ui.msg = ''; P2.tele(S, 'vista', { id: ui.vista }); P2.guardar(S); if ((S.seccionesNuevas || []).includes(ui.vista)) { S.seccionesNuevas = S.seccionesNuevas.filter(x => x !== ui.vista); P2.guardar(S); } render(); window.scrollTo(0, 0); break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'decidir': if (P2.resolverDecision(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
@@ -298,6 +325,15 @@
       case 'oportunidad': if (P2.elegirOportunidad(S, id)) { ui.vista = 'semana'; guardarYPintar(); } break;
       case 'importar': { try { const v = P2.migrateSave(JSON.parse(decodeURIComponent(escape(atob(($('importar').value || '').trim()))))); if (!v) throw 0; S = v; ui.msg = ''; ui.vista = 'semana'; guardarYPintar(); } catch (_) { ui.msg = 'Ese código no es válido.'; render(); } break; }
       case 'reiniciar': if (!ui.reinicio) { ui.reinicio = true; render(); } else { ui.reinicio = false; try { localStorage.removeItem(CFG.claveGuardado); } catch (_) {} S = null; ui.vista = 'semana'; render(); } break;
+      case 'resp': P2.responderTest(S, b.dataset.q, /^\d+$/.test(b.dataset.v) ? Number(b.dataset.v) : b.dataset.v); ui.informeAbierto = true; guardarYPintar(); break;
+      case 'informe': ui.informeAbierto = true; ui.informe = P2.informeTest(S); ui.copiado = ''; guardarYPintar(); break;
+      case 'copiarInforme': {
+        const ta = $('textoInforme');
+        const ok = () => { ui.copiado = 'Copiado. Pégalo en un mensaje.'; render(); };
+        const manual = () => { ta.focus(); ta.select(); ui.copiado = 'Mantén pulsado el texto y elige «Copiar».'; };
+        try { navigator.clipboard.writeText(ui.informe).then(ok, manual); } catch (_) { manual(); }
+        break;
+      }
       case 'balance': { b.disabled = true; b.textContent = 'Simulando…'; setTimeout(() => { ui.balance = informeTexto(P2.runBalance(100)); render(); }, 30); break; }
     }
   }
@@ -314,6 +350,9 @@
   function arrancar() {
     try { S = P2.cargar(); } catch (_) { S = null; }
     document.addEventListener('click', alPulsar);
+    // Telemetría: cuántas veces se abre «¿Por qué ha pasado esto?» y respuestas escritas del informe
+    document.addEventListener('toggle', e => { const d = e.target; if (S && d.matches && d.matches('details.por') && d.open && /Por qué|Cómo se/.test(d.textContent)) { P2.tele(S, 'porque', {}); P2.guardar(S); } }, true);
+    document.addEventListener('change', e => { const x = e.target; if (S && x.classList && x.classList.contains('respuesta')) { P2.responderTest(S, x.dataset.q, x.value); P2.guardar(S); } });
     render();
     const a = $('arranque'); if (a) a.remove();
   }
@@ -321,11 +360,11 @@
   // Ganchos de depuración (como window.__P1)
   globalThis.__P2 = {
     P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
-    nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; },
+    nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; }, informe: () => P2.informeTest(S),
     jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
     guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },
-    migrateSave: P2.migrateSave, runBalance: (n, m) => P2.runBalance(n || 100, m), informe: (n) => informeTexto(P2.runBalance(n || 100)),
+    migrateSave: P2.migrateSave, runBalance: (n, m) => P2.runBalance(n || 100, m), informeBalance: (n) => informeTexto(P2.runBalance(n || 100)),
   };
   P2.arrancar = arrancar;
 })(globalThis.P2 = globalThis.P2 || {});

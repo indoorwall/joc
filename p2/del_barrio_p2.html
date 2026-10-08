@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f3d2c">
-<title>Del barrio al negocio · P2</title>
+<title>Del barrio al negocio · P2.2</title>
 <!--
-  PROTOTIPO P2 — Capítulo 1: del barrio a tu primera empresa.
+  PROTOTIPO P2.2 (congelado) — Capítulo 1: del barrio a tu primera empresa. Lista para pruebas con personas (telemetría local).
   Juego de gestión por decisiones: una acción por semana, sin partidos jugables.
   ARCHIVO GENERADO por p2/build.cjs a partir de p2/src (no editar a mano):
     00 configuración y datos · 01 utilidades · 02 estado y guardado (saveVersion 2)
@@ -69,7 +69,7 @@ p { margin: 6px 0; }
 .datos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
 .datos.dos { grid-template-columns: 1fr 1fr; }
 .dato { background: var(--panel); border-radius: 10px; padding: 4px 6px; min-width: 0; }
-.dato small { display: block; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+.dato small { display: block; font-size: 11px; text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
 .dato b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ctx { margin: 8px 0 0; padding: 7px 10px; border-radius: 10px; background: #fff7db; border: 2px solid var(--gold); font-weight: 800; font-size: 14px; }
 .barra { height: 8px; background: var(--line); border-radius: 5px; overflow: hidden; margin-top: 6px; }
@@ -199,6 +199,24 @@ pre { white-space: pre-wrap; font-size: 11px; background: var(--panel); padding:
 nav#nav button em { position: absolute; top: 1px; right: 4px; font-style: normal; font-size: 9px; font-weight: 900; background: var(--bad); color: #fff; border-radius: 999px; padding: 0 5px; }
 .hito.desb { background: linear-gradient(90deg, #e2f0ff, #f5faff); border-color: var(--blue); }
 
+/* P2.2: tres variables, informe de prueba, opciones compactas */
+.tres { display: grid; gap: 8px; margin: 8px 0; }
+.tres > div { background: var(--panel); border-radius: 10px; padding: 6px 10px; }
+.tres b { font-size: 14px; }
+.tres span { display: block; font-size: 12px; color: var(--dim); margin-top: 2px; }
+.tres .barra { margin-top: 4px; }
+.opt.compacta { padding: 6px 12px; min-height: 44px; }
+.opt.compacta b { font-size: 15px; }
+details.mas summary { color: var(--dim); min-height: 36px; font-size: 13px; }
+.preg { display: block; font-size: 14px; font-weight: 800; margin-top: 12px; }
+.seg.diez { grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.seg.diez button { min-height: 40px; padding: 0; font-size: 13px; }
+.chipsel { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chipsel button { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; min-height: 40px; font-weight: 800; font-size: 13px; cursor: pointer; }
+.chipsel button.sel { border-color: var(--acc); background: var(--acc-soft); }
+textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; margin-top: 4px; }
+#textoInforme { min-height: 220px; margin-top: 10px; }
+
 </style>
 </head>
 <body>
@@ -227,7 +245,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     clavesP1: ['del_barrio_al_negocio_p1_v5', 'del_barrio_al_negocio_p1_v4', 'del_barrio_al_negocio_p1_v3', 'del_barrio_al_negocio_p1_v2', 'del_barrio_al_negocio_p1_v1'],
     deporte: 'futbol',
 
-    inicio: { edad: 17, nivel: 40, energia: 80, rep: 4, dinero: 150, ciudad: 'Villamar' },
+    inicio: { edad: 17, nivel: 40, energia: 80, rep: 4, marca: 2, dinero: 150, ciudad: 'Villamar' },
 
     energia: {
       max: 100,
@@ -242,7 +260,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       semanas: 8,
       jornadasAbiertas: [4, 7],   // semanas con jornada abierta de un club
       torneo: [5],                // semana del torneo local
-      repOjeador: 18,             // reputación con la que un ojeador te invita a las pruebas
+      repOjeador: 18,             // reputación deportiva con la que un ojeador te invita a las pruebas
       semanasPreparacion: 2,      // semanas entre la invitación y el día de las pruebas
     },
 
@@ -280,6 +298,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     primaAscensoMinPartidos: 5 },         // para cobrar la prima de ascenso hay que haber jugado
 
     patrocinio: { maxContratos: 2, faltasMax: 2,
+    actoEnergia: 10, actoConfianza: 2,   // ir a un acto cansa y el míster nota que faltas a un entrenamiento
+    techoMarca: 30,             // techo suave de la marca personal: 30 + reputación deportiva
+    sobreTecho: 0.15,           // por encima del techo, lo comercial solo rinde un 15 %
     primaRenovacion: 0.25,      // al renovar se cobra solo una parte de la prima inicial
     subidaRenovacion: 0.1,      // si cumpliste todos los actos, el pago semanal sube un 10 %
   },
@@ -403,7 +424,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // fase: en qué momento se pueden hacer · energiaMin: sin energía no se puede
   const ACCIONES = {
     plaza: { ic: '⚽', n: 'Partido en la plaza', fases: ['barrio', 'pruebas'], energiaMin: 25, energia: -20,
-      ventaja: 'Fama en el barrio (cada vez menos)', coste: '−20 energía', riesgo: 'Repetirlo rinde menos' },
+      ventaja: 'Reputación en el barrio (cada vez menos)', coste: '−20 energía', riesgo: 'Repetirlo rinde menos' },
     entrenar: { ic: '🏃', n: 'Entrenar duro', fases: ['barrio', 'pruebas'], energiaMin: 30, energia: -25,
       ventaja: 'Sube tu nivel', coste: '−25 energía', riesgo: 'Nadie te ve entrenar' },
     trabajar: { ic: '🛵', n: 'Trabajar de repartidor', fases: ['barrio', 'pruebas'], energiaMin: 25, energia: -25, dinero: 130,
@@ -413,7 +434,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     jornada: { ic: '📋', n: 'Jornada abierta del Atlético', fases: ['barrio'], energiaMin: 40, energia: -25, soloSemanas: 'jornadasAbiertas',
       ventaja: 'Si tu nivel convence (≈50), te invitan a las pruebas', coste: '−25 energía', riesgo: 'Si no llegas, solo te llevas la experiencia' },
     torneo: { ic: '🏆', n: 'Torneo local', fases: ['barrio'], energiaMin: 50, energia: -35, gasto: 30, soloSemanas: 'torneo',
-      ventaja: 'Si ganas: mucha fama e invitación directa', coste: '30 € y −35 energía', riesgo: 'Puedes caer pronto o lesionarte' },
+      ventaja: 'Si ganas: mucha reputación e invitación directa', coste: '30 € y −35 energía', riesgo: 'Puedes caer pronto o lesionarte' },
     campus: { ic: '🎓', n: 'Campus de tecnificación', fases: ['barrio'], energiaMin: 30, energia: -20, gasto: 400, hastaSemana: 7,
       ventaja: 'Nivel +3 y el coordinador te propone para las pruebas', coste: '400 € y −20 energía', riesgo: 'Gastas tus ahorros' },
     preparador: { ic: '🧑‍🏫', n: 'Sesión con preparador', fases: ['pruebas'], energiaMin: 20, energia: -10, gasto: 150, unaVez: true, hito: 'prueba',
@@ -424,23 +445,36 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     mediaJornada: { ic: '🛵', n: 'Trabajo a media jornada', fases: ['amateur'], energiaMin: 30, energia: -15, dinero: 70,
       ventaja: '+70 €', coste: '−15 energía', riesgo: 'No mejoras' },
     prensa: { ic: '🎙️', n: 'Prensa y redes', fases: ['club'], energiaMin: 10, energia: -5,
-      ventaja: 'Fama e interés de marcas', coste: 'No entrenas extra', riesgo: 'Al míster no le encanta (−1 confianza)' },
+      ventaja: 'Marca personal (atractivo para patrocinadores y clientes)', coste: 'No entrenas extra', riesgo: 'Al míster no le encanta (−1 confianza); sin prestigio deportivo rinde poco' },
     gestionar: { ic: '💼', n: 'Pasar la semana en la empresa', fases: ['club', 'amateur'], energiaMin: 10, energia: -8, hito: 'empresa',
       ventaja: 'Tu negocio rinde más y resuelves problemas', coste: 'No entrenas extra (−2 confianza)', riesgo: 'Si el equipo va mal, se nota' },
   };
 
   // ---- Patrocinadores: contratos con requisitos, pago y obligaciones ----
+  // Patrocinadores con identidad. Requisitos por MARCA PERSONAL (atractivo comercial) y, en las deportivas
+  // y grandes, también por REPUTACIÓN DEPORTIVA y nivel. Cada una aporta algo distinto (efectos creíbles):
+  //   clientesNegocio: más clientes en tu negocio · fijosNegocio: menos gastos fijos del negocio
+  //   entreno: mejoras más al entrenar · lesion: menos riesgo de lesión · interes: los clubes te ven más
+  //   marcaVisible: tus buenos partidos suben más tu marca · interesFinanciacion: tus préstamos salen más baratos
+  // cat: sector (dos marcas del mismo sector no conviven) · incompatible: tiers con los que no se puede combinar
   const MARCAS = [
-    { id: 'panaderia', n: 'Panadería Ríos', ic: '🥖', tier: 'local', repMin: 10, prima: 150, semanal: 30, semanas: 14, actoCada: 4,
-      obligacion: 'Una foto en la tienda cada 4 semanas' },
-    { id: 'talleres', n: 'Talleres Costa', ic: '🔧', tier: 'local', repMin: 22, prima: 400, semanal: 60, semanas: 14, actoCada: 3,
-      obligacion: 'Un acto comercial cada 3 semanas' },
-    { id: 'kinetic', n: 'Kinetic Sport', ic: '👟', tier: 'deportiva', repMin: 28, nivelMin: 55, titularidades: 3, prima: 1200, semanal: 120, semanas: 28, actoCada: 5,
-      obligacion: 'Un evento cada 5 semanas y llevar sus botas', objetivo: { notaMedia: 6.3, bonus: 1000 } },
-    { id: 'vertice', n: 'Vértice Energy', ic: '⚡', tier: 'deportiva', repMin: 45, nivelMin: 62, titularidades: 6, prima: 2500, semanal: 200, semanas: 28, actoCada: 4,
-      obligacion: 'Un evento cada 4 semanas', objetivo: { notaMedia: 6.6, bonus: 2000 } },
+    { id: 'panaderia', n: 'Panadería Ríos', ic: '🥖', tier: 'local', cat: 'comercio', audiencia: 'el barrio', marcaMin: 6, prima: 150, semanal: 25, semanas: 14, actoCada: 6, marcaActo: 1,
+      obligacion: 'Una foto en la tienda cada 6 semanas (carga ligera)', ef: { clientesNegocio: 0.06 },
+      identidad: 'Te conoce todo el barrio. Si tienes negocio, te manda clientes (+6 %).' },
+    { id: 'talleres', n: 'Talleres Costa', ic: '🔧', tier: 'local', cat: 'motor', audiencia: 'la ciudad', marcaMin: 14, prima: 300, semanal: 55, semanas: 10, actoCada: 3, marcaActo: 1.5,
+      obligacion: 'Un acto comercial cada 3 semanas (carga alta)', ef: { fijosNegocio: 40 },
+      identidad: 'Buenos contactos con empresas: te hacen el mantenimiento del negocio (−40 €/semana de gastos fijos).' },
+    { id: 'kinetic', n: 'Kinetic Sport', ic: '👟', tier: 'deportiva', cat: 'material', audiencia: 'deportistas', marcaMin: 18, repMin: 30, nivelMin: 55, titularidades: 3, prima: 800, semanal: 90, semanas: 28, actoCada: 6, marcaActo: 1.5,
+      obligacion: 'Un evento cada 6 semanas y llevar su material', objetivo: { notaMedia: 6.3, bonus: 800 }, ef: { entreno: 0.25, lesion: 0.75, recuperacion: 4, techoNivel: 3 },
+      identidad: 'Material, preparadores y fisios de la marca: entrenas un 25 % mejor, recuperas más (+4 de energía por semana), te lesionas menos y tu techo de nivel sube 3. Paga poco.' },
+    { id: 'vertice', n: 'Vértice Energy', ic: '⚡', tier: 'deportiva', cat: 'bebida', audiencia: 'jóvenes', marcaMin: 32, repMin: 35, prima: 1500, semanal: 170, semanas: 14, actoCada: 3, marcaActo: 2,
+      obligacion: 'Un evento cada 3 semanas (carga alta)', ef: { interes: 0.3, marcaVisible: 0.5 },
+      identidad: 'Mucho escaparate: los clubes te ven más (+30 % de interés) y tus buenos partidos venden más. Te quita semanas.' },
+    { id: 'nova', n: 'Nova Telecom', ic: '📡', tier: 'grande', cat: 'telecom', incompatible: ['local'], audiencia: 'todo el país', marcaMin: 60, repMin: 50, ligaMin: 3, prima: 4000, semanal: 260, semanas: 18, actoCada: 4, marcaActo: 3,
+      obligacion: 'Una campaña cada 4 semanas; exige imagen premium (sin marcas locales)', ef: { interesFinanciacion: 0.3 },
+      identidad: 'Campañas nacionales (+3 de marca por campaña) y contactos con bancos: tus préstamos salen un 30 % más baratos.' },
   ];
-  const TIERS = { local: ['local'], deportiva: ['local', 'deportiva'] };
+  const TIERS = { local: ['local'], deportiva: ['local', 'deportiva', 'grande'] };
 
   // ---- Negocios (tipo de datos genérico; en P2 solo la peluquería) ----
   const NEGOCIOS = {
@@ -576,7 +610,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       seccionesNuevas: [],
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
-      p: { nivel: I.nivel, energia: I.energia, rep: I.rep, dinero: I.dinero, lesion: 0 },
+      // nivel: cómo juegas · rep: reputación deportiva (cómo te ve el fútbol) · marca: marca personal (cómo te ven marcas y medios)
+      p: { nivel: I.nivel, energia: I.energia, rep: I.rep, marca: I.marca, dinero: I.dinero, lesion: 0 },
+      tele: P2.nuevaTele ? P2.nuevaTele() : null,   // telemetría local para pruebas (no sale del navegador)
       cont: {},                        // veces que has hecho cada acción (rendimientos decrecientes)
       invitacion: null,                // { via, semana, dia }
       pruebas: [],                     // historial de pruebas { semana, score, via, detalle }
@@ -627,6 +663,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const s = nuevaPartida({ nombre: typeof v.nombre === 'string' && v.nombre.trim() ? v.nombre.slice(0, 24) : 'Alex', origen: 'p1', look: v.look });
     s.p.dinero = Math.round(P2.clamp(num(p.dinero, CFG.inicio.dinero), 0, 2000));
     s.p.rep = Math.round(P2.clamp(num(p.rep, CFG.inicio.rep), 0, 12));
+    s.p.marca = Math.round(s.p.rep / 2);
     s.p.nivel = P2.clamp(num(p.nivel, CFG.inicio.nivel), CFG.inicio.nivel, CFG.inicio.nivel + 6);
     s.diario.push({ semana: 1, ic: '📦', t: `Vienes de P1: conservas tu nombre, parte de tus ahorros (${P2.eur(s.p.dinero)}) y algo de fama.` });
     return s;
@@ -645,6 +682,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const E = CFG.energia;
     s.p.energia = P2.clamp(s.p.energia, 0, E.max);
     s.p.rep = P2.clamp(s.p.rep, 0, 100);
+    s.p.marca = P2.clamp(typeof s.p.marca === 'number' ? s.p.marca : Math.round(s.p.rep / 2), 0, 100);
+    if (!s.tele || typeof s.tele !== 'object' || !s.tele.id) s.tele = P2.nuevaTele ? P2.nuevaTele() : null;
     s.p.lesion = Math.max(0, s.p.lesion | 0);
     s.confianza = P2.clamp(s.confianza, 0, 100);
     s.interes = P2.clamp(s.interes, 0, 100);
@@ -922,8 +961,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       case 'plaza': {
         const g = r1((2.5 + P.nivel / 25 + rnd(s) * 2.5) * Math.pow(0.82, veces));
         P.rep = r1(clamp(P.rep + g, 0, 100)); subirNivel(s, 0.5, techoBarrio);
-        L.push(['⚽', `Partido en la plaza: +${nf(g)} de fama.${veces >= 3 ? ' La plaza ya te conoce: cada vez impresiona menos.' : ''}`]);
-        W.push(`Fama = (2,5 + nivel/25 + azar 0–2,5) × 0,82^${veces} (veces que ya has jugado aquí).`);
+        L.push(['⚽', `Partido en la plaza: +${nf(g)} de reputación.${veces >= 3 ? ' La plaza ya te conoce: cada vez impresiona menos.' : ''}`]);
+        W.push(`Reputación = (2,5 + nivel/25 + azar 0–2,5) × 0,82^${veces} (veces que ya has jugado aquí).`);
         break;
       }
       case 'entrenar': {
@@ -947,10 +986,10 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       }
       case 'torneo': {
         const f = r1(P.nivel + P.rep * 0.2 + entre(s, -8, 8));
-        W.push(`Torneo: nivel + fama × 0,2 + azar (±8) = ${nf(f)}. Ganar: 52 · semifinal: 46.`);
-        if (f >= 52) { P.rep = r1(P.rep + 10); invitar(s, 'torneo', R); L.push(['🏆', '¡Ganas el torneo local! +10 de fama y un ojeador te invita a las pruebas.', 'bien']); }
-        else if (f >= 46) { P.rep = r1(P.rep + 5); L.push(['🥈', 'Llegas a semifinales: +5 de fama.']); }
-        else { P.rep = r1(P.rep + 1); L.push(['😓', 'Caes en la primera ronda: +1 de fama.', 'mal']); }
+        W.push(`Torneo: nivel + reputación × 0,2 + azar (±8) = ${nf(f)}. Ganar: 52 · semifinal: 46.`);
+        if (f >= 52) { P.rep = r1(P.rep + 10); invitar(s, 'torneo', R); L.push(['🏆', '¡Ganas el torneo local! +10 de reputación y un ojeador te invita a las pruebas.', 'bien']); }
+        else if (f >= 46) { P.rep = r1(P.rep + 5); L.push(['🥈', 'Llegas a semifinales: +5 de reputación.']); }
+        else { P.rep = r1(P.rep + 1); L.push(['😓', 'Caes en la primera ronda: +1 de reputación.', 'mal']); }
         if (rnd(s) < 0.12) { P.lesion = 2; L.push(['🤕', 'Te lesionas en el torneo: 2 semanas sin poder hacer esfuerzos.', 'mal']); }
         break;
       }
@@ -962,15 +1001,16 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       }
       case 'preparador': s.preparador = true; L.push(['🧑‍🏫', 'Sesión con preparador: ya sabes qué ejercicios te van a pedir (+3 en las pruebas).']); break;
       case 'entrenoExtra': {
-        const O = oferta(s), g = subirNivel(s, 0.6 * (O ? O.entreno : 1) * factorTecho(s), techoClub(s));
+        const O = oferta(s), g = subirNivel(s, 0.6 * (O ? O.entreno : 1) * (1 + P2.efectoPatro(s, 'entreno')) * factorTecho(s), techoClub(s));
         s.confianza = clamp(s.confianza + 2, 0, 100); R.entrenoExtra = true;
         L.push(['🏋️', `Entreno extra: nivel +${nf(g)} y el míster lo valora (+2 confianza).`]);
         break;
       }
       case 'prensa': {
-        const O = oferta(s), g = r1((1.2 + rnd(s)) * (O ? O.exposicion : 1));
-        P.rep = r1(clamp(P.rep + g, 0, 100)); s.confianza = clamp(s.confianza - 1, 0, 100);
-        L.push(['🎙️', `Atiendes a la prensa y subes contenido: +${nf(g)} de fama (−1 confianza del míster).`]);
+        const O = oferta(s), expo = (O ? O.exposicion : 1) * (s.temporada ? LIGAS[s.temporada.liga].exposicion || 1 : 1);
+        const g = P2.sumarMarca(s, (1.6 + rnd(s)) * expo); s.confianza = clamp(s.confianza - 1, 0, 100);
+        L.push(['🎙️', `Atiendes a la prensa y subes contenido: +${nf(g)} de marca personal (−1 confianza del míster).${P.marca >= P2.techoMarca(s) ? ' Sin más prestigio deportivo, tu imagen ya no da para mucho más.' : ''}`]);
+        W.push(`Marca personal = (1,6 + azar) × exposición ${nf(expo)}. Tiene un techo suave de ${P2.techoMarca(s)} (30 + tu reputación deportiva): por encima solo rinde un 15 %.`);
         break;
       }
       case 'gestionar': {
@@ -986,6 +1026,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (s.invitacion) return;
     const dia = s.semana + CFG.captacion.semanasPreparacion;
     s.invitacion = { via, semana: s.semana, dia };
+    P2.tele(s, 'invitacion', { via });
     s.fase = 'pruebas';
     P2.conseguirHito(s, 'prueba', R);
     P2.anotar(s, '📨', `Invitación a las pruebas (${via}). Son en la semana ${dia}.`);
@@ -993,7 +1034,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function revisarOjeador(s, R) {
     if (s.fase === 'barrio' && !s.invitacion && s.p.rep >= CFG.captacion.repOjeador) {
       invitar(s, 'ojeador', R);
-      R.lineas.push(['👀', `Un ojeador te ha visto en la plaza (fama ${nf(s.p.rep)}): te invita a las pruebas.`, 'bien']);
+      R.lineas.push(['👀', `Un ojeador te ha visto en la plaza (reputación ${nf(s.p.rep)}): te invita a las pruebas.`, 'bien']);
     }
   }
 
@@ -1002,7 +1043,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     partes.push(['Nivel', r1(P.nivel)]);
     const eb = K.energia.find(([min]) => P.energia >= min)[1];
     partes.push([`Energía (${Math.round(P.energia)})`, eb]);
-    partes.push(['Fama', r1(Math.min(K.repMax, P.rep * K.repFactor))]);
+    partes.push(['Reputación', r1(Math.min(K.repMax, P.rep * K.repFactor))]);
     if (s.preparador) partes.push(['Preparador', K.preparador]);
     if (K.viaBonus[via]) partes.push(['Vienes recomendado/a', K.viaBonus[via]]);
     partes.push(['Suerte del día', r1(entre(s, -K.suerte, K.suerte))]);
@@ -1020,6 +1061,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const { score, partes } = puntuacionPruebas(s, via);
     const ofertas = ofertasPorPuntuacion(score);
     s.pruebas.push({ semana: s.semana, score, via, partes });
+    P2.tele(s, 'prueba', { score, via, ofertas });
+    P2.tele(s, 'ofertas', { origen: via === 'repesca' ? 'repesca' : 'pruebas', ofertas });
     R.lineas.push(['📋', `Día de las pruebas: sacas un ${score}.`, score >= CFG.pruebas.rangos[2].min ? 'bien' : 'mal']);
     R.porque.push(`Pruebas = ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} = ${score}. Rangos: ${CFG.pruebas.rangos.filter(r => r.min > -99).map(r => `${r.min}+ → ${r.ofertas.map(o => OFERTAS[o].n + (o === 'atleticoFormacion' ? ' (formación)' : o === 'atleticoFilial' ? ' (filial)' : '')).join(' y ')}`).join(' · ')}.`);
     s.preparador = false;
@@ -1048,11 +1091,12 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       s.stats.titularTemp = 0; s.stats.notasTemp = [];
     }
     s.amateurSemanas = 0;
+    P2.tele(s, 'club', { id });
     if (!O.amateur) P2.conseguirHito(s, 'contrato', R);
     P2.anotar(s, O.ic, `Firmo con ${O.n}: ${eur(O.sueldo)}/semana, ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}.`);
     return true;
   }
-  const techoClub = s => (oferta(s) ? oferta(s).techoNivel : techoBarrio);
+  const techoClub = s => (oferta(s) ? oferta(s).techoNivel + P2.efectoPatro(s, 'techoNivel') : techoBarrio);
   const factorTecho = s => clamp((techoClub(s) - s.p.nivel) / 15, 0.15, 1);
 
   // ---------- Convocatoria ----------
@@ -1120,14 +1164,17 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     P.rep = r1(clamp(P.rep + dRep, 0, 100));
     const techoInteres = 40 + expo * 30;
     const dInt = juega ? r1(expo * Math.max(0, nota - 6.2) * 5 + goles * 2 * expo) : 0;
-    s.interes = r1(clamp(s.interes + dInt - 1, 0, techoInteres));
+    s.interes = r1(clamp(s.interes + dInt * (1 + P2.efectoPatro(s, 'interes')) - 1, 0, techoInteres));
+    // Marca personal: solo los partidos muy visibles (buena nota en categorías con público) venden tu imagen
+    const expoLiga = LIGAS[T.liga].exposicion || 1;
+    const dMarca = juega && nota >= 7.5 ? P2.sumarMarca(s, (0.3 + goles * 0.3) * expoLiga * (1 + P2.efectoPatro(s, 'marcaVisible'))) : 0;
     if (rol === 'titular') P.energia = clamp(P.energia - 25, 0, E.max);
     else if (rol === 'suplente') P.energia = clamp(P.energia - 12, 0, E.max);
     else P.energia = clamp(P.energia - 3, 0, E.max);
     let lesion = 0;
     if (juega) {
       const K = CFG.club.lesion;
-      const pl = (energiaAntes < K.umbralCansado ? K.cansado : K.base) * (R.entrenoExtra ? 1.5 : 1) * (R.riesgoLesion || 1);
+      const pl = (energiaAntes < K.umbralCansado ? K.cansado : K.base) * (R.entrenoExtra ? 1.5 : 1) * (R.riesgoLesion || 1) * P2.efectoPatroMult(s, 'lesion');
       if (rnd(s) < pl) { lesion = entero(s, K.semanas[0], K.semanas[1]); P.lesion = Math.max(P.lesion, lesion); }
     }
     let prima = 0;
@@ -1137,7 +1184,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       s.primasCobradas[clave] = prima; P.dinero += prima; s.acum.primas += prima; s.acum.impuestos += O.primaVictoria - prima;
     }
     // Mejora con los entrenamientos del club
-    const gN = subirNivel(s, 0.35 * O.entreno * factorTecho(s), techoClub(s));
+    const gN = subirNivel(s, 0.35 * O.entreno * (1 + P2.efectoPatro(s, 'entreno')) * factorTecho(s), techoClub(s));
+    P2.tele(s, 'partido', { rol, amateur: !!O.amateur });
     if (P.lesion > 0 && rol === 'lesionado') P.nivel = r1(Math.max(CFG.inicio.nivel, P.nivel - 0.2));
 
     const rival = P2.nombreEquipo(T, pj.rival);
@@ -1149,7 +1197,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (prima) R.lineas.push(['💶', `Prima por victoria: +${eur(prima)}.`, 'bien']);
     if (lesion) R.lineas.push(['🤕', `Te lesionas: ${lesion} ${lesion === 1 ? 'semana' : 'semanas'} de baja.`, 'mal']);
     R.porque.push(`Convocatoria: ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} + azar (±6) frente a ${nf(umbral)} (nivel del once). Titular si llegas; suplente si te quedas a menos de 7. Con menos de ${E.minTitular} de energía no eres titular.`);
-    if (juega) R.porque.push(`Nota = 6 + (nivel − ${nf(umbral)}) / ${rol === 'titular' ? 6 : 8} + forma del día + resultado. Fama +${nf(dRep)} (× exposición ${nf(expo)} del club). Interés de otros clubes ${Math.round(s.interes)}/100 (techo ${Math.round(techoInteres)} en este club).`);
+    if (juega) R.porque.push(`Nota = 6 + (nivel − ${nf(umbral)}) / ${rol === 'titular' ? 6 : 8} + forma del día + resultado. Reputación deportiva +${nf(dRep)} (× exposición ${nf(expo)} de club y categoría)${dMarca ? `, marca personal +${nf(dMarca)} por un partido muy visible` : ''}. Interés de otros clubes ${Math.round(s.interes)}/100 (techo ${Math.round(techoInteres)} en este club).`);
     R.porque.push(`Entrenamientos del club: nivel +${nf(gN)} (calidad ${nf(O.entreno)}, techo ${techoClub(s)}).`);
     if (T.cerrada) finTemporada(s, R);
   }
@@ -1177,7 +1225,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         prima = Math.round(O.primaAscenso * (1 - CFG.club.impuesto));
         s.primasCobradas[`asc-${T.liga}-${T.num}`] = prima; s.p.dinero += prima; s.acum.primas += prima;
       }
-      if (mov.miClub.tipo === 'sube') { R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
+      P2.tele(s, 'categoria', { tipo: mov.miClub.tipo, a: mov.miClub.a });
+      if (mov.miClub.tipo === 'sube') { P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
       else if (mov.miClub.tipo === 'baja') { R.lineas.push(['📉', `Descenso: ${O.n.replace(/ \(.*\)/, '')} baja a ${aL.n}.`, 'mal']); s.p.rep = r1(clamp(s.p.rep - 2, 0, 100)); }
       else R.lineas.push(['🔒', `Acabáis en puestos de ascenso, pero un filial no puede jugar en la categoría de su primer equipo: sube el siguiente.`]);
       P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
@@ -1188,6 +1237,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const ofertas = ofertasFinTemporada(s, media);
     if (s.contrato.temporadasRestantes <= 0 || ofertas.some(o => o.id !== 'renovar' && OFERTAS[o.id] && OFERTAS[o.id].sube)) {
       P2.encolar(s, { tipo: 'ofertas', origen: 'fin', ofertas: ofertas.map(o => o.id), condiciones: ofertas, score: null, contratoVivo: s.contrato.temporadasRestantes > 0 });
+      P2.tele(s, 'ofertas', { origen: 'fin', ofertas: ofertas.map(o => o.id) });
     } else nuevaTemporada(s, R);
   }
   // Ofertas al acabar la temporada: dependen de confianza, interés, nivel y del club donde estás
@@ -1214,6 +1264,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     s.contrato.sueldo = cond.sueldo; s.contrato.temporadasRestantes = cond.temporadas; s.contrato.renovado++;
     if (cond.prima) { const neto = Math.round(cond.prima * (1 - CFG.club.impuesto)); s.p.dinero += neto; s.acum.primas += neto; R && R.lineas.push(['✍️', `Prima de renovación: +${eur(neto)}.`, 'bien']); }
     P2.anotar(s, '✍️', `Renuevo con ${O.n}: ${eur(cond.sueldo)}/semana.`);
+    P2.tele(s, 'renovacion', { sueldo: cond.sueldo });
     nuevaTemporada(s, R);
   }
 
@@ -1233,40 +1284,67 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
 // ===== 05_patrocinios.js =====
 /* =====================================================================
-   05 · PATROCINIOS: contratos con requisitos, prima, pago semanal y
-   obligaciones con fecha. Un contrato de N semanas paga exactamente N veces.
-   Al acabar bien se puede renovar (prima reducida). Si rompes por incumplir,
-   esa marca no vuelve. Los actos salen del contrato; no se repiten a voluntad.
+   05 · MARCA PERSONAL Y PATROCINIOS
+   Tres cosas distintas: NIVEL (cómo juegas), REPUTACIÓN DEPORTIVA (p.rep: cómo te ve
+   el fútbol) y MARCA PERSONAL (p.marca: cómo te ven marcas y medios).
+   La marca tiene un techo suave ligado a la reputación: sin prestigio deportivo, los
+   actos comerciales rinden poco; con él, puedes ser más comercial que buen jugador.
+   Patrocinios: contratos con identidad (efectos creíbles), exclusividades, carga de actos
+   y duración. Un contrato de N semanas paga exactamente N veces; renovar no repite la prima.
    ===================================================================== */
 (function (P2) {
   'use strict';
-  const { CFG, MARCAS, TIERS, clamp, r1, eur } = P2;
+  const { CFG, MARCAS, TIERS, LIGAS, clamp, r1, eur } = P2;
 
-  // Marca personal: la fama vale más si además juegas bien (sin nivel, tu imagen se desinfla)
-  function marcaPersonal(s) { return r1(s.p.rep * factorNivel(s)); }
-  const factorNivel = s => clamp(0.5 + (s.p.nivel - 45) / 30, 0.5, 1.3);
+  // ---------- Marca personal ----------
+  const marcaPersonal = s => r1(s.p.marca || 0);
+  const techoMarca = s => Math.min(100, CFG.patrocinio.techoMarca + (s.p.rep || 0));
+  // Sube la marca respetando el techo suave (por encima, solo rinde un 15 %). Devuelve lo que ha subido
+  function sumarMarca(s, x) {
+    const antes = s.p.marca || 0;
+    if (x <= 0) { s.p.marca = r1(clamp(antes + x, 0, 100)); return r1(s.p.marca - antes); }
+    const hueco = Math.max(0, techoMarca(s) - antes), dentro = Math.min(x, hueco), fuera = x - dentro;
+    s.p.marca = r1(clamp(antes + dentro + fuera * CFG.patrocinio.sobreTecho, 0, 100));
+    return r1(s.p.marca - antes);
+  }
+
+  // ---------- Efectos de los contratos activos ----------
+  const activas = s => (s.patros || []).map(c => MARCAS.find(m => m.id === c.id)).filter(Boolean);
+  function efecto(s, k) { return activas(s).reduce((a, M) => a + ((M.ef && M.ef[k]) || 0), 0); }
+  function efectoMult(s, k) { return activas(s).reduce((a, M) => a * ((M.ef && M.ef[k]) || 1), 1); }
 
   const historial = (s, id) => s.patroHist.filter(h => h.id === id);
   const rota = (s, id) => historial(s, id).some(h => h.roto);
   const yaFirmada = (s, id) => (s.marcasFirmadas || {})[id] > 0;
 
+  // Exclusividades: mismo sector, o tiers incompatibles (una marca grande no quiere marcas locales al lado)
+  function conflicto(s, M) {
+    for (const N of activas(s)) {
+      if (N.id === M.id) continue;
+      if (N.cat === M.cat) return `Ya tienes una marca del mismo sector (${N.n}).`;
+      if ((M.incompatible || []).includes(N.tier)) return `${M.n} no quiere compartir imagen con marcas ${N.tier === 'local' ? 'locales' : N.tier} (${N.n}).`;
+      if ((N.incompatible || []).includes(M.tier)) return `${N.n} exige exclusividad: no admite marcas ${M.tier === 'local' ? 'locales' : M.tier}.`;
+    }
+    return null;
+  }
   function bloqueoMarca(s, M, renovando) {
     const O = P2.oferta(s);
     if (!O || O.amateur || s.fase !== 'club') return 'Necesitas un contrato profesional.';
     if (!renovando && s.patros.some(c => c.id === M.id)) return 'Ya trabajas con esta marca.';
     if (rota(s, M.id)) return 'Rompiste con esta marca: no vuelve.';
     const tiers = TIERS[O.patroTier] || [];
-    if (!tiers.includes(M.tier)) return 'Tu club no tiene visibilidad para marcas deportivas.';
-    const mp = marcaPersonal(s);
-    if (mp < M.repMin) return `Necesitas ${M.repMin} de marca personal (tienes ${Math.floor(mp)}: fama ${Math.floor(s.p.rep)} × tu nivel).`;
+    if (!tiers.includes(M.tier)) return M.tier === 'local' ? 'Tu club no tiene visibilidad.' : 'Tu club no tiene visibilidad para marcas deportivas.';
+    if (M.ligaMin && LIGAS[s.temporada.liga].nivel < M.ligaMin) return `Solo patrocina en ${LIGAS[Object.keys(LIGAS).find(k => LIGAS[k].nivel === M.ligaMin)].corto} o más arriba.`;
+    if (marcaPersonal(s) < M.marcaMin) return `Necesitas ${M.marcaMin} de marca personal (tienes ${Math.floor(marcaPersonal(s))}).`;
+    if (M.repMin && s.p.rep < M.repMin) return `Necesitas ${M.repMin} de reputación deportiva (tienes ${Math.floor(s.p.rep)}).`;
     if (M.nivelMin && s.p.nivel < M.nivelMin) return `Necesitas nivel ${M.nivelMin} (tienes ${P2.nf(s.p.nivel)}).`;
     if (M.titularidades && s.stats.titular < M.titularidades) return `Necesitas ${M.titularidades} partidos de titular (llevas ${s.stats.titular}).`;
+    const c = conflicto(s, M); if (c) return c;
     if (!renovando && s.patros.length >= CFG.patrocinio.maxContratos) return `Máximo ${CFG.patrocinio.maxContratos} contratos a la vez.`;
     return null;
   }
   const marcasVisibles = s => MARCAS.map(M => ({ M, bloqueo: bloqueoMarca(s, M), renovacion: yaFirmada(s, M.id) && !s.patros.some(c => c.id === M.id) }));
 
-  // Primera firma: prima completa. Volver a firmar tras un contrato terminado: solo prima de renovación
   function condiciones(s, M) {
     const renov = yaFirmada(s, M.id), ult = historial(s, M.id).slice(-1)[0];
     const limpio = ult && !ult.faltas;
@@ -1280,13 +1358,30 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     s.p.dinero += neto; s.acum.patrocinio += neto; s.acum.impuestos += C.prima - neto;
     s.patros.push({ id, desde: s.semana, semanas: M.semanas, pagos: 0, semanal: C.semanal, proxActo: s.semana + M.actoCada, faltas: 0, actos: 0, aplazado: false, bonusTemp: {} });
     s.marcasFirmadas = s.marcasFirmadas || {}; s.marcasFirmadas[id] = (s.marcasFirmadas[id] || 0) + 1;
+    sumarMarca(s, M.tier === 'grande' ? 4 : M.tier === 'deportiva' ? 2 : 1);
     P2.anotar(s, M.ic, `${C.renov ? 'Renuevo' : 'Firmo'} con ${M.n}: prima de ${eur(neto)} y ${eur(C.semanal)}/semana durante ${M.semanas} semanas. ${M.obligacion}.`);
+    P2.tele(s, 'marcaFirmada', { id, renov: C.renov });
     P2.conseguirHito(s, 'patro', R);
     return true;
   }
   const semanasRestantes = c => c.semanas - c.pagos;
 
-  // Cada semana: un pago por contrato. Al llegar al último, el contrato termina y se puede renovar
+  // Ofertas: cuando cumples por primera vez los requisitos de una marca, te llama (puedes decir que no)
+  function revisarOfertasMarca(s) {
+    if (s.fase !== 'club' || s.pendiente) return;
+    s.marcasOfrecidas = s.marcasOfrecidas || {};
+    for (const M of MARCAS) {
+      if (s.marcasOfrecidas[M.id] || yaFirmada(s, M.id)) continue;
+      const b = bloqueoMarca(s, M);
+      // Se ofrece aunque estés al máximo o en conflicto: así decides si te compensa cambiar
+      if (b && !/Máximo|mismo sector|exclusividad|compartir imagen/.test(b)) continue;
+      s.marcasOfrecidas[M.id] = s.semana;
+      P2.tele(s, 'marcaVista', { id: M.id });
+      P2.encolar(s, { tipo: 'patroOferta', marca: M.id });
+      return;   // una por semana
+    }
+  }
+
   function semanaPatros(s, R) {
     for (const c of s.patros.slice()) {
       const M = MARCAS.find(m => m.id === c.id);
@@ -1302,8 +1397,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         P2.encolar(s, { tipo: 'renovarMarca', marca: c.id });
       }
     }
+    // Sin actividad comercial, la marca por encima del techo se desinfla poco a poco
+    if ((s.p.marca || 0) > techoMarca(s)) s.p.marca = r1(s.p.marca - 0.3);
   }
-  // ¿Hay acto esta semana? Nunca después del último pago del contrato
   function actoPendiente(s) {
     const c = s.patros.find(x => x.proxActo <= s.semana && x.pagos < x.semanas);
     return c ? { tipo: 'acto', marca: c.id } : null;
@@ -1313,20 +1409,32 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (!c) return '';
     if (op === 'ir') {
       c.actos++; c.proxActo = s.semana + M.actoCada;
-      s.p.rep = r1(clamp(s.p.rep + 1.5, 0, 100));
-      return `Cumples con ${M.n}: +1,5 de fama.`;
+      const g = sumarMarca(s, M.marcaActo || 1.5);
+      s.p.energia = clamp(s.p.energia - CFG.patrocinio.actoEnergia, 0, CFG.energia.max);
+      if (s.fase === 'club') s.confianza = clamp(s.confianza - CFG.patrocinio.actoConfianza, 0, 100);
+      P2.tele(s, 'acto', { id: marcaId, op });
+      return `Cumples con ${M.n}: +${P2.nf(g)} de marca personal (−${CFG.patrocinio.actoEnergia} energía, −${CFG.patrocinio.actoConfianza} confianza del míster por faltar al entreno).`;
     }
     if (op === 'aplazar' && !c.aplazado) {
       c.aplazado = true; c.proxActo = s.semana + 1;
+      P2.tele(s, 'acto', { id: marcaId, op });
       return `${M.n} acepta moverlo a la semana que viene. No volverán a aceptarlo.`;
     }
     c.faltas++; c.proxActo = s.semana + M.actoCada;
+    P2.tele(s, 'acto', { id: marcaId, op: 'no' });
     if (c.faltas >= CFG.patrocinio.faltasMax) {
       s.patros = s.patros.filter(x => x !== c); s.patroHist.push({ id: c.id, fin: s.semana, roto: true, faltas: c.faltas, actos: c.actos });
-      s.p.rep = r1(clamp(s.p.rep - 4, 0, 100));
-      return `${M.n} rompe el contrato por incumplir (−4 de fama). No volverá a contar contigo.`;
+      sumarMarca(s, -4);
+      return `${M.n} rompe el contrato por incumplir (−4 de marca personal). No volverá a contar contigo.`;
     }
     return `Faltas al acto de ${M.n} (${c.faltas}/${CFG.patrocinio.faltasMax}). A la siguiente, rompen el contrato.`;
+  }
+  // Dejar una marca por voluntad propia (para hacer sitio a otra): sin romper, pero sin renovar
+  function dejarMarca(s, id) {
+    const c = s.patros.find(x => x.id === id); if (!c) return false;
+    s.patros = s.patros.filter(x => x !== c); s.patroHist.push({ id, fin: s.semana, roto: false, faltas: c.faltas, actos: c.actos, dejada: true });
+    P2.tele(s, 'marcaDejada', { id });
+    return true;
   }
   function finTemporadaPatros(s, R, media) {
     for (const c of s.patros) {
@@ -1344,7 +1452,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       }
     }
   }
-  Object.assign(P2, { marcaPersonal, bloqueoMarca, marcasVisibles, condicionesMarca: condiciones, firmarMarca, semanaPatros, actoPendiente, resolverActo, finTemporadaPatros, semanasRestantes });
+  Object.assign(P2, { marcaPersonal, techoMarca, sumarMarca, efectoPatro: efecto, efectoPatroMult: efectoMult, conflictoMarca: conflicto, bloqueoMarca, marcasVisibles, condicionesMarca: condiciones,
+    firmarMarca, revisarOfertasMarca, dejarMarca, semanaPatros, actoPendiente, resolverActo, finTemporadaPatros, semanasRestantes });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 06_negocios.js =====
@@ -1379,7 +1488,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const mj = n.mejora || {};
     const capacidad = Math.round(n.empleados * T.capacidadEmpleado * (su.capacidad || 1) * (1 + (mj.capacidad || 0)) * (c.averia > 0 ? 0.75 : 1));   // con sueldo bajo se trabaja con menos ganas
     const comp = c.competidor ? Math.min(1, pr.competidor + (calidad >= 1.15 ? 0.06 : 0)) : 1;
-    const famaJugador = 1 + (s ? s.p.rep : 0) / 250;
+    // Tu marca personal atrae clientes (no tu nivel ni tu reputación deportiva); un patrocinador local manda clientes del barrio
+    const famaJugador = (1 + (s && s.p ? s.p.marca || 0 : 0) / 250) * (1 + (s ? P2.efectoPatro(s, 'clientesNegocio') : 0));
     const demanda = T.demandaBase * (0.4 + n.fama / 100) * pr.demanda * mk.demanda * comp * (c.temporadaAlta > 0 ? 1.4 : 1) * (c.influencer > 0 ? 1.25 : 1) * famaJugador * (opc.azar || 1) * (opc.gestion ? 1.05 : 1);
     const clientes = Math.round(Math.min(demanda, capacidad));
     const colas = Math.max(0, demanda - capacidad);
@@ -1387,7 +1497,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const ingresos = Math.round(clientes * pr.valor * (n.semanas === 0 && T.arranque && !opc.sinArranque ? T.arranque.primeraSemana : 1));
     const intereses = Math.round(n.deuda * n.interes) + (n.hipoteca ? Math.round(n.hipoteca.deuda * n.hipoteca.interes) : 0);
     const costes = {
-      alquiler: n.local ? 0 : n.alquiler, fijos: T.fijos, personal: n.empleados * su.coste, marketing: mk.coste,
+      alquiler: n.local ? 0 : n.alquiler, fijos: Math.max(0, T.fijos - (s ? P2.efectoPatro(s, 'fijosNegocio') : 0)), personal: n.empleados * su.coste, marketing: mk.coste,
       material: Math.round(clientes * T.consumoCliente), intereses,
     };
     const totalCostes = Object.values(costes).reduce((a, b) => a + b, 0);
@@ -1423,6 +1533,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (n.rachaPos >= 2) n.crisisSeguidas = 0;
     if (!n.crisis && (n.caja < 0 || (n.rachaNeg >= K.crisisSemanasNegativas && n.caja < 800))) {
       n.crisis = true; n.crisisSeguidas = (n.crisisSeguidas || 0) + 1;
+      P2.tele(s, 'crisis', {});
       P2.encolar(s, { tipo: 'crisis', neg: n.id });
     }
     if (n.rachaPos >= K.semanasRentable) P2.conseguirHito(s, 'rentable', R);
@@ -1438,6 +1549,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const T = tipoDe(n), M = (T.mejorasIniciales || []).find(m => m.id === id);
     if (!M || n.mejoraInicial || n.caja < M.coste) return false;
     n.caja -= M.coste; n.mejoraInicial = id; n.invertido += M.coste;
+    P2.tele(s, 'mejora', { id });
     if (M.ef.capacidad) n.mejora.capacidad = (n.mejora.capacidad || 0) + M.ef.capacidad;
     if (M.ef.famaObjetivo) n.mejora.famaObjetivo = (n.mejora.famaObjetivo || 0) + M.ef.famaObjetivo;
     if (M.ef.fama) n.fama = r1(clamp(n.fama + M.ef.fama, 0, 100));
@@ -1480,28 +1592,32 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (!n || !(x > 0) || s.p.dinero < x) return false;
     s.p.dinero -= x; n.caja += x; s.acum.aportado += x; n.invertido += x;
     if (n.crisis && n.caja >= 0) n.crisis = false;
+    P2.tele(s, 'aporte', {});
     return true;
   }
   function retirar(s, id, x) {
     const n = s.negocios.find(z => z.id === id); x = Math.round(x);
     if (!n || !(x > 0) || n.caja < x) return false;
     n.caja -= x; s.p.dinero += x; s.acum.retirado += x;
+    P2.tele(s, 'retirada', {});
     return true;
   }
   function configurar(s, id, campo, valor) {
     const n = s.negocios.find(z => z.id === id), T = n && tipoDe(n);
     if (!n) return false;
-    if (campo === 'empleados') { const v = clamp(Math.round(valor), 1, T.empleadosMax); if (v === n.empleados) return false; if (v > n.empleados) n.moral = r1(clamp(n.moral - 0.02, 0.7, 1.1)); n.empleados = v; return true; }
+    if (campo === 'empleados') { const v = clamp(Math.round(valor), 1, T.empleadosMax); if (v === n.empleados) return false; if (v > n.empleados) n.moral = r1(clamp(n.moral - 0.02, 0.7, 1.1)); n.empleados = v; P2.tele(s, 'config', { campo }); return true; }
     const tabla = { precio: T.precios, sueldo: T.sueldos, marketing: T.marketing }[campo];
     if (!tabla || !tabla[valor]) return false;
     if (campo === 'sueldo' && T.sueldos[valor].coste < T.sueldos[n.sueldo].coste) n.moral = r1(clamp(n.moral - 0.1, 0.7, 1.1));
+    if (n[campo] !== valor) P2.tele(s, 'config', { campo });
     n[campo] = valor;
     return true;
   }
   function pedirPrestamo(s, id, interes) {
     const n = s.negocios.find(z => z.id === id), K = CFG.empresa.prestamo;
     if (!n || n.deuda > 0) return false;
-    n.caja += K.importe; n.deuda = K.importe; n.interes = interes || K.interesSemanal; n.cuota = Math.ceil(K.importe / K.plazo);
+    n.caja += K.importe; n.deuda = K.importe; n.interes = (interes || K.interesSemanal) * (1 - P2.efectoPatro(s, 'interesFinanciacion')); n.cuota = Math.ceil(K.importe / K.plazo);
+    P2.tele(s, 'prestamo', {});
     if (n.crisis && n.caja >= 0) n.crisis = false;
     return true;
   }
@@ -1511,6 +1627,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const v = Math.round(valorNegocio(n) * factor);
     s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n);
     P2.anotar(s, '🤝', `Vendo la ${tipoDe(n).n.toLowerCase()} por ${eur(v)}.`);
+    P2.tele(s, 'venta', {});
     return v;
   }
 
@@ -1533,6 +1650,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     n.comprado = s.semana; n.invertido = T.traspaso + caja;
     ponerEnMarcha(n, R);
     s.negocios.push(n);
+    P2.tele(s, 'empresa', { caja });
     P2.anotar(s, T.ic, `Compro una ${T.n.toLowerCase()}: traspaso ${eur(T.traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
     P2.conseguirHito(s, 'empresa', R);
     return n;
@@ -1598,7 +1716,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       ic: '🩼', titulo: 'Se lesiona un compañero de tu puesto', texto: () => 'Hay un hueco en el once. Es tu oportunidad… o la de otro.',
       ops: [
         { id: 'pedir', n: 'Pedir el puesto', ventaja: 'Mucha más opción de ser titular', coste: 'Te expones', riesgo: 'Si no rindes (nota < 6,5), −6 confianza', tags: ['riesgo', 'deporte'], fx: s => { mods(s).bonusSel = 7; programar(s, 1, 'pedirPuesto'); return 'Le dices al míster que estás preparado/a.'; } },
-        { id: 'apoyar', n: 'Apoyar al compañero', ventaja: '+2 confianza y fama', coste: 'Menos opción que pidiéndolo', riesgo: 'Ninguno', tags: ['seguro'], fx: s => { mods(s).bonusSel = 3; s.confianza = clamp(s.confianza + 2, 0, 100); s.p.rep = r1(s.p.rep + 0.5); return 'El vestuario valora tu gesto.'; } },
+        { id: 'apoyar', n: 'Apoyar al compañero', ventaja: '+2 confianza y reputación en el vestuario', coste: 'Menos opción que pidiéndolo', riesgo: 'Ninguno', tags: ['seguro'], fx: s => { mods(s).bonusSel = 3; s.confianza = clamp(s.confianza + 2, 0, 100); s.p.rep = r1(s.p.rep + 0.5); return 'El vestuario valora tu gesto.'; } },
       ] },
     { id: 'interesClub', ambito: 'carrera', fases: ['club'], enfria: 8, cond: s => enClub(s) && s.agente && s.interes >= 30, peso: s => 2 + s.interes / 20,
       ic: '📞', titulo: 'Tu agente: otro club pregunta por ti', texto: s => `Tienes ${Math.round(s.interes)}/100 de interés de otros clubes.`,
@@ -1637,8 +1755,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     { id: 'entrevista', ambito: 'carrera', fases: ['club'], enfria: 6, cond: s => enClub(s) && (ultNota(s) || 0) >= 7, peso: () => 2,
       ic: '🎙️', titulo: 'El periódico local quiere entrevistarte', texto: s => `Tu último partido (un ${nf(ultNota(s))}) ha gustado.`,
       ops: [
-        { id: 'humilde', n: 'Ser humilde', ventaja: '+2 confianza, +1 fama', coste: 'Nada', riesgo: 'Ninguno', tags: ['seguro', 'deporte'], fx: s => { s.confianza = clamp(s.confianza + 2, 0, 100); s.p.rep = r1(s.p.rep + 1); return '«Todo es mérito del equipo.»'; } },
-        { id: 'ambicion', n: 'Decir que quieres llegar lejos', ventaja: '+3 fama, +8 interés de clubes', coste: '−4 confianza', riesgo: 'Al club no le gusta', tags: ['dinero', 'riesgo'], fx: s => { s.p.rep = r1(s.p.rep + 3); s.interes = clamp(s.interes + 8, 0, 100); s.confianza = clamp(s.confianza - 4, 0, 100); return '«Quiero jugar en Primera.» Titular de portada.'; } },
+        { id: 'humilde', n: 'Ser humilde', ventaja: '+2 confianza, +1 marca personal', coste: 'Nada', riesgo: 'Ninguno', tags: ['seguro', 'deporte'], fx: s => { s.confianza = clamp(s.confianza + 2, 0, 100); P2.sumarMarca(s, 1); return '«Todo es mérito del equipo.»'; } },
+        { id: 'ambicion', n: 'Decir que quieres llegar lejos', ventaja: '+4 marca personal, +8 interés de clubes', coste: '−4 confianza', riesgo: 'Al club no le gusta', tags: ['dinero', 'riesgo'], fx: s => { P2.sumarMarca(s, 4); s.interes = clamp(s.interes + 8, 0, 100); s.confianza = clamp(s.confianza - 4, 0, 100); return '«Quiero jugar en Primera.» Titular de portada.'; } },
       ] },
     { id: 'barAmigo', ambito: 'carrera', fases: ['club'], unaVez: true, cond: s => s.fase === 'club' && s.p.dinero >= 1500 && !s.negocios.length, peso: () => 2,
       ic: '🍻', titulo: 'Un amigo te pide que inviertas en su bar', texto: () => 'Quiere reformar el bar de su familia. Te devolverá «el doble» en dos meses.',
@@ -1657,7 +1775,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     { id: 'clinic', ambito: 'carrera', fases: ['club'], unaVez: true, cond: s => enClub(s) && s.p.rep >= 25, peso: () => 2,
       ic: '⚽', titulo: 'Te invitan a dar un clínic a niños', texto: () => 'Una escuela de fútbol de la ciudad quiere que pases una semana con sus chavales.',
       ops: [
-        { id: 'ir', n: 'Pasar la semana en el clínic', ventaja: '+400 € y +3 de fama', coste: 'La semana entera (no entrenas extra)', riesgo: 'Ninguno', tags: ['dinero', 'seguro'], ocupaSemana: true, fx: s => { s.p.dinero += 400; s.acum.trabajo += 400; s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); return 'Una semana con los chavales: +400 € y +3 de fama.'; } },
+        { id: 'ir', n: 'Pasar la semana en el clínic', ventaja: '+400 € y +3 de marca personal', coste: 'La semana entera (no entrenas extra)', riesgo: 'Ninguno', tags: ['dinero', 'seguro'], ocupaSemana: true, fx: s => { s.p.dinero += 400; s.acum.trabajo += 400; const g = P2.sumarMarca(s, 3); return `Una semana con los chavales: +400 € y +${P2.nf(g)} de marca personal.`; } },
         { id: 'no', n: 'Decir que no', ventaja: 'Tu semana es tuya', coste: 'Nada', riesgo: 'Ninguno', tags: ['deporte'], fx: () => 'Lo rechazas con educación.' },
       ] },
     // ---- Contexto de la empresa (dependen del estado del negocio) ----
@@ -1689,7 +1807,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         { id: 'negociar', n: 'Negociar', ventaja: 'Con fama 55+ del negocio: solo +50', coste: 'Si no, +150', riesgo: 'Medio', tags: ['riesgo'], fx: (s, n) => { const x = n.fama >= 55 ? 50 : 150; n.alquiler += x; return x === 50 ? 'El casero cede: +50 €/semana.' : 'Sale mal: +150 €/semana.'; } },
         { id: 'mudarse', n: 'Mudarse a un local más barato', ventaja: '−80 €/semana de alquiler', coste: '1.500 € de caja, −10 fama y una semana de mudanza', riesgo: 'Pierdes clientela', tags: ['dinero', 'riesgo'], ocupaSemana: true, fx: (s, n) => { n.caja -= 1500; n.fama = r1(n.fama - 10); n.alquiler = Math.max(200, n.alquiler - 80); return 'Os mudáis.'; } },
       ] },
-    { id: 'influencer', ambito: 'empresa', unaVez: true, cond: (s, n) => n.fama >= 45 || s.p.rep >= 30, peso: () => 2,
+    { id: 'influencer', ambito: 'empresa', unaVez: true, cond: (s, n) => n.fama >= 45 || (s.p.marca || 0) >= 30, peso: () => 2,
       ic: '🤳', titulo: 'Una influencer local quiere cortarse el pelo con vosotros', texto: () => 'Tiene 80.000 seguidores en la ciudad.',
       ops: [
         { id: 'gratis', n: 'Invitarla gratis', ventaja: '4 semanas con más demanda', coste: 'Nada', riesgo: 'Si no das abasto, colas y mala fama', tags: ['seguro'], fx: (s, n) => { n.ctx.influencer = 4; return 'Viene, sube fotos y empiezan a llamar.'; } },
@@ -1771,6 +1889,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const H = HITOS.find(h => h.id === id);
     if (!H) return false;
     s.hitos[id] = s.semana;
+    P2.tele(s, 'hito', { id });
     if (id === 'titular') s.agente = true;
     if (R && R.hitos) R.hitos.push(H);
     P2.anotar(s, '🏅', `Hito: ${H.n}. Se abre: ${H.abre}.`);
@@ -1835,7 +1954,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     acto: {
       vista(s, ev) {
         const M = MARCAS.find(m => m.id === ev.marca), c = s.patros.find(x => x.id === ev.marca) || {};
-        const ops = [op('ir', 'Ir al acto', '+1,5 fama; la marca sigue pagando', 'Esta semana no haces otra cosa', 'Ninguno', { tags: ['dinero'], ocupaSemana: true })];
+        const ops = [op('ir', 'Ir al acto', `+${nf(M ? M.marcaActo || 1.5 : 1.5)} de marca personal; la marca sigue contenta`, `Esta semana no haces otra cosa, −${CFG.patrocinio.actoEnergia} energía y −${CFG.patrocinio.actoConfianza} confianza del míster`, 'Ninguno', { tags: ['dinero'], ocupaSemana: true })];
         if (!c.aplazado) ops.push(op('aplazar', 'Pedir moverlo una semana', 'Esta semana haces lo que quieras', 'Solo se puede una vez por contrato', 'Ninguno', { tags: ['deporte'] }));
         ops.push(op('no', 'No ir', 'Esta semana haces lo que quieras', `Falta ${(c.faltas || 0) + 1}/${CFG.patrocinio.faltasMax}`, 'Con dos faltas rompen el contrato (−4 fama)', { tags: ['deporte', 'riesgo'] }));
         return { ic: M ? M.ic : '📣', titulo: `Compromiso con ${M ? M.n : 'tu marca'}`, texto: M ? M.obligacion + '.' : '', ops };
@@ -1875,7 +1994,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         if (id === 'recortar' && (n.crisisSeguidas || 0) >= 3) { n.crisis = true; return null; }
         if (id === 'recortar') { n.empleados = Math.max(1, n.empleados - 1); n.sueldo = 'bajo'; n.marketing = 'nada'; n.fama = P2.r1(n.fama - 10); n.moral = P2.r1(Math.max(0.7, n.moral - 0.1)); n.rachaNeg = 0; return { texto: 'Recortas. Duele, pero gastas menos.', titulo: 'Crisis', ic: '✂️', semana: ocupa }; }
         if (id === 'vender') { const v = P2.venderNegocio(s, n.id, CFG.empresa.ventaUrgente); return { texto: `Vendes por ${eur(v)}.`, titulo: 'Crisis', ic: '🤝', semana: ocupa }; }
-        if (id === 'cerrar') { const v = Math.max(0, n.caja) + 800; s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n); P2.anotar(s, '🔒', 'Cierro mi negocio.'); return { texto: `Cierras y recuperas ${eur(v)}.`, titulo: 'Crisis', ic: '🔒', semana: ocupa }; }
+        if (id === 'cerrar') { P2.tele(s, 'cierre', {}); const v = Math.max(0, n.caja) + 800; s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n); P2.anotar(s, '🔒', 'Cierro mi negocio.'); return { texto: `Cierras y recuperas ${eur(v)}.`, titulo: 'Crisis', ic: '🔒', semana: ocupa }; }
         n.crisis = true; return null;
       },
     },
@@ -1896,6 +2015,35 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
           ops: [op('seguir', sube ? '¡A por la nueva categoría!' : 'Toca levantarse', '', '', '', { prin: true })] };
       },
       resolver(s, ev) { return { texto: ev.mov.tipo === 'sube' ? `${ev.club} sube a ${P2.LIGAS[ev.mov.a].n}.` : ev.mov.tipo === 'baja' ? `${ev.club} baja a ${P2.LIGAS[ev.mov.a].n}.` : 'El filial no puede subir.', titulo: 'Fin de temporada', ic: ev.mov.tipo === 'sube' ? '🎉' : '📉' }; },
+    },
+    // Una marca te llama: firmar, cambiar una por otra (si chocan o estás al máximo) o decir que no
+    patroOferta: {
+      vista(s, ev) {
+        const M = MARCAS.find(m => m.id === ev.marca), C = P2.condicionesMarca(s, M), b = P2.bloqueoMarca(s, M);
+        const efectos = M.identidad;
+        const choque = b && /Máximo|mismo sector|exclusividad|compartir imagen/.test(b);
+        const ops = [op('firmar', `Firmar con ${M.n}`, `Prima ${eur(C.prima)} y ${eur(C.semanal)}/semana durante ${M.semanas} semanas`, M.obligacion, `Audiencia: ${M.audiencia}. Dos faltas rompen el contrato para siempre`, { tags: M.tier === 'deportiva' && M.ef.entreno ? ['deporte', 'dinero'] : ['dinero'], bloqueo: choque ? null : b, ocupaHueco: !!choque })];
+        if (choque) {
+          // Para firmarla hay que dejar la que choca (o la más antigua, si estás al máximo)
+          const sale = s.patros.map(c => MARCAS.find(m => m.id === c.id)).find(N => N.cat === M.cat || (M.incompatible || []).includes(N.tier) || (N.incompatible || []).includes(M.tier)) || MARCAS.find(m => m.id === s.patros[0].id);
+          ops[0] = op('cambiar', `Dejar ${sale.n} y firmar con ${M.n}`, `Prima ${eur(C.prima)} y ${eur(C.semanal)}/semana`, `Pierdes ${sale.n} (${sale.identidad.split('.')[0].toLowerCase()})`, M.obligacion, { tags: ['dinero', 'riesgo'], sale: sale.id });
+        }
+        ops.push(op('no', 'Decir que no', 'Sin obligaciones nuevas; podrás firmarla más adelante en «Marcas»', 'Te pierdes lo que ofrece', '', { tags: ['deporte', 'seguro'] }));
+        return { ic: M.ic, titulo: `${M.n} quiere patrocinarte`, texto: `${M.tier === 'local' ? 'Marca local' : M.tier === 'deportiva' ? 'Marca deportiva' : 'Gran marca'}. ${M.identidad}${choque ? ` Ojo: ${b}` : ''}`, ops };
+      },
+      resolver(s, ev, id) {
+        const M = MARCAS.find(m => m.id === ev.marca);
+        if (id === 'no') { P2.tele(s, 'marcaRechazada', { id: M.id }); return { texto: `Le dices que no a ${M.n}.`, titulo: 'Patrocinio', ic: M.ic }; }
+        if (id === 'cambiar') {
+          const v = DECISIONES.patroOferta.vista(s, ev), o = v.ops.find(x => x.id === 'cambiar');
+          if (!o) return null;
+          P2.dejarMarca(s, o.sale);
+          if (!P2.firmarMarca(s, M.id, null)) return null;
+          return { texto: `Cambias de marca: ahora con ${M.n}.`, titulo: 'Patrocinio', ic: M.ic };
+        }
+        if (id !== 'firmar' || !P2.firmarMarca(s, M.id, null)) return null;
+        return { texto: `Firmas con ${M.n}.`, titulo: 'Patrocinio', ic: M.ic };
+      },
     },
     // Fin normal de un patrocinio: renovar (prima reducida) o dejarlo
     renovarMarca: {
@@ -1985,7 +2133,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       vista(s) {
         const pat = patrimonio(s);
         const O = P2.OPORTUNIDADES.find(o => o.id === s.oportunidad);
-        return { ic: '🏆', titulo: 'Capítulo 1 completado: ahora empieza tu imperio', texto: `En ${s.semana - 1} semanas has pasado del barrio a tener ${s.negocios.length === 1 ? 'una empresa' : `${s.negocios.length} empresas`}${s.socio ? ' y una participación' : ''}. Patrimonio: ${eur(pat)}. Tu segunda inversión: ${O ? O.n.toLowerCase() : '—'}. Lo siguiente: más negocios, locales y decidir cuánto tiempo das al fútbol y cuánto al imperio.`,
+        return { ic: '🏆', titulo: 'Capítulo 1 completado: ahora empieza tu imperio', texto: `En ${s.semana - 1} semanas has pasado del barrio a tener ${s.negocios.length === 1 ? 'una empresa' : `${s.negocios.length} empresas`}${s.socio ? ' y una participación' : ''}. Patrimonio: ${eur(pat)}. Tu segunda inversión: ${O ? O.n.toLowerCase() : '—'}. Lo siguiente: más negocios, locales y decidir cuánto tiempo das al fútbol y cuánto al imperio. Si estás probando el juego: ⚙️ Ajustes → Informe de prueba.`,
           ops: [op('seguir', 'Seguir jugando', 'Tu carrera y tus empresas continúan', '', '', { tags: ['seguro'], prin: true })] };
       },
       resolver() { return { texto: 'Sigues construyendo.', titulo: 'Capítulo 1', ic: '🏆' }; },
@@ -1998,22 +2146,24 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     s.p.dinero -= o.coste;
     s.oportunidad = id; s.oportunidadAbierta = false;
     let t = '';
+    const rebaja = 1 - P2.efectoPatro(s, 'interesFinanciacion');   // contactos de una gran marca: préstamos más baratos
     if (id === 'local') {
       const n = s.negocios[0], H = o.hipoteca;
       n.local = true; n.valorLocal = o.precio; n.fianza = 0;
-      n.hipoteca = { deuda: H.importe, interes: H.interes, cuota: Math.ceil(H.importe / H.plazo) };
+      n.hipoteca = { deuda: H.importe, interes: H.interes * rebaja, cuota: Math.ceil(H.importe / H.plazo) };
       t = `Compras el local (${eur(o.precio)}): pones ${eur(o.coste)} y una hipoteca de ${eur(H.importe)} que paga la peluquería. Adiós al alquiler.`;
     }
     if (id === 'segunda') {
       const n = P2.nuevoNegocio('peluqueria', o.caja), P = o.prestamo;
       n.comprado = s.semana; n.invertido = o.coste + P.importe; n.hist = [0, 0, 0];
-      n.deuda = P.importe; n.interes = P.interes; n.cuota = Math.ceil(P.importe / P.plazo);
+      n.deuda = P.importe; n.interes = P.interes * rebaja; n.cuota = Math.ceil(P.importe / P.plazo);
       P2.ponerEnMarcha(n, null);
       s.negocios.push(n);
       t = `Abres tu segunda peluquería: traspaso de ${eur(o.traspaso)} (pones ${eur(o.coste - o.caja)} y un préstamo de ${eur(P.importe)}) y ${eur(o.caja)} de caja.`;
     }
     if (id === 'socio') { s.socio = P2.nuevaParticipacion(s, o.coste); t = 'Entras como socio/a en la cafetería: no decides nada; cada trimestre sabrás cómo va.'; }
     P2.anotar(s, o.ic, t);
+    P2.tele(s, 'segunda', { id });
     conseguirHito(s, 'inversion2', null);
     return t;
   }
@@ -2072,10 +2222,11 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const lesionInicio = s.p.lesion > 0;
     const repAntes = s.p.rep;
 
+    if (!especial) P2.tele(s, 'accion', { id: accion });
     if (accion === '__acto') R.lineas.push(['📣', 'Dedicas la semana al acto de tu patrocinador.']);
     else if (accion === '__evento') R.lineas.push(['⏳', `La semana se va en: ${(opc && opc.motivo) || 'lo que has decidido'}.`]);
     else P2.aplicarAccion(s, accion, R);
-    if (R.plazaX2 && accion === 'plaza') { const extra = r1(s.p.rep - repAntes); s.p.rep = r1(clamp(s.p.rep + extra, 0, 100)); R.lineas.push(['👀', `El ojeador estaba en la plaza: tu fama sube el doble (+${nf(extra)} más).`, 'bien']); }
+    if (R.plazaX2 && accion === 'plaza') { const extra = r1(s.p.rep - repAntes); s.p.rep = r1(clamp(s.p.rep + extra, 0, 100)); R.lineas.push(['👀', `El ojeador estaba en la plaza: tu reputación sube el doble (+${nf(extra)} más).`, 'bien']); }
     s.accionesHechas = (s.accionesHechas || 0) + 1;
 
     // Según la fase
@@ -2097,7 +2248,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
     // Recuperación, lesiones
     const enEquipo = s.fase === 'club' || s.fase === 'amateur';
-    s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio), 0, CFG.energia.max);
+    s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio) + P2.efectoPatro(s, 'recuperacion'), 0, CFG.energia.max);
     if (lesionInicio && s.p.lesion > 0) { s.p.lesion--; if (!s.p.lesion) R.lineas.push(['✅', 'Recuperado/a de la lesión.', 'bien']); }
 
     // Fin de la captación sin prueba: ruta amateur (nunca game over)
@@ -2123,6 +2274,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     s.semanaMods = null;
     s.eleccion = null;   // cada semana se elige de nuevo: no se arrastra la acción anterior
     if (!s.pendiente) { const a = P2.actoPendiente(s); if (a) P2.encolar(s, a); }
+    if (!s.pendiente && !s.cola.length) P2.revisarOfertasMarca(s);
     if (!s.pendiente && !s.cola.length) P2.tirarSucesos(s);
 
     R.dinero = s.p.dinero - R.dinero0;
@@ -2142,6 +2294,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const R = nuevoR(s);
     const r = D.resolver(s, ev, opId, R);
     if (!r) return null;
+    P2.tele(s, 'decision', { tipo: ev.tipo, id: ev.id || ev.origen || ev.marca || null, op: opId });
     if (r.semana) s.pendiente = null; else P2.siguiente(s);
     P2.revisarSecciones(s, R);
     s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, desbloqueos: R.desbloqueos, firma: r.firma || null };
@@ -2215,7 +2368,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const COMERCIAL = {
     sin: { n: 'Sin patrocinadores', max: 0, tiers: [], acto: 'no' },
     locales: { n: 'Patrocinadores locales', max: 1, tiers: ['local'], acto: 'ir' },
-    maximos: { n: 'Patrocinadores máximos', max: 2, tiers: ['local', 'deportiva'], acto: 'ir' },
+    maximos: { n: 'Patrocinadores máximos', max: 2, tiers: ['local', 'deportiva', 'grande'], acto: 'ir' },
   };
 
   // Gestor «listo»: prueba todas las configuraciones y se queda con la que más gana (sin bajar sueldos, que hunde el ambiente)
@@ -2254,6 +2407,11 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       id = pref.find(tiene);
     } else if (ev.tipo === 'acto') id = tiene(B.com.acto) ? B.com.acto : 'ir';
     else if (ev.tipo === 'renovarMarca') id = B.com.max && tiene('renovar') ? 'renovar' : 'no';
+    else if (ev.tipo === 'patroOferta') {
+      const M = MARCAS.find(m => m.id === ev.marca);
+      const quiere = B.com.tiers.includes(M.tier) && (s.patros.length < B.com.max || B.ids.com === 'maximos');
+      id = quiere ? (tiene('firmar') ? 'firmar' : tiene('cambiar') && B.ids.com === 'maximos' && M.semanal > Math.min(...s.patros.map(c => c.semanal || 0)) ? 'cambiar' : 'no') : 'no';
+    }
     else if (ev.tipo === 'repesca') id = 'ir';
     else if (ev.tipo === 'crisis') id = B.emp.crisis.find(tiene) || 'recortar';
     else if (ev.tipo === 'mejoraInicial') {
@@ -2616,6 +2774,168 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   Object.assign(P2, { LOOK_INICIAL, CAPAS_LOOK: CAPAS, ITEMS_LOOK: ITEMS, COLOR_PELO, COLOR_ROPA, PIEL, itemLook, bloqueoLook, ponerLook, lookAzar, validarLook, avatarSVG });
 })(globalThis.P2 = globalThis.P2 || {});
 
+// ===== 12_telemetria.js =====
+/* =====================================================================
+   12 · TELEMETRÍA LOCAL PARA PRUEBAS CON PERSONAS
+   Todo se guarda solo dentro de la partida (en este navegador). No hay servidor,
+   ni analítica, ni cuentas, ni envío de datos. Sin datos personales: no se guarda
+   el nombre del personaje; el informe se identifica con un código al azar (TEST-A4F72).
+   El tester copia el informe a mano y lo manda si quiere.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { eur } = P2;
+  const PAUSA_MAX = 5 * 60 * 1000;   // más de 5 minutos sin tocar nada no cuenta como tiempo jugado
+  const MOMENTOS = [['T0', 'Inicio', null], ['T1', 'Primera prueba', 'prueba'], ['T2', 'Primer contrato', 'contrato'], ['T3', 'Primera titularidad', null],
+    ['T4', 'Primer patrocinador', 'patro'], ['T5', 'Primera empresa', 'empresa'], ['T6', 'Empresa rentable', 'rentable'], ['T7', 'Segunda inversión', 'inversion2']];
+  const MOMENTO_DE_HITO = Object.fromEntries(MOMENTOS.filter(m => m[2]).map(m => [m[2], m[0]]));
+
+  function codigo() { let c = ''; for (let i = 0; i < 5; i++) c += '0123456789ABCDEF'[Math.floor(Math.random() * 16)]; return 'TEST-' + c; }
+  function nuevaTele() {
+    return {
+      id: codigo(), version: 'P2.2', inicio: new Date().toISOString(), msActivo: 0, ultimoMs: null, interacciones: 0,
+      momentos: { T0: { ms: 0, semana: 1 } },
+      acciones: {}, decisiones: {}, registro: [], tiempos: [],
+      rutas: [], prueba: null, pruebas: [], ofertas: [], clubes: [], contratos: [], partidos: { jugados: 0, titular: 0, suplente: 0, banquillo: 0 },
+      categorias: { sube: 0, baja: 0 },
+      marcas: { vistas: [], firmadas: [], rechazadas: [], dejadas: [] }, actos: { ir: 0, aplazar: 0, no: 0 },
+      empresa: { semana: null, caja: null, cambios: { precio: 0, empleados: 0, sueldo: 0, marketing: 0 }, aportes: 0, retiradas: 0, crisis: 0, prestamos: 0, venta: null, cierre: null, rentable: null, mejora: null },
+      segunda: null, vistas: {}, porque: 0, ultimaPantalla: 'semana', ultimaAccion: null, respuestas: {},
+    };
+  }
+  const T = s => (s.tele && typeof s.tele === 'object' ? s.tele : (s.tele = nuevaTele()));
+
+  // Tiempo real: lo llama la interfaz en cada toque. Las pausas largas no cuentan
+  function teleTiempo(s, ahora = Date.now()) {
+    const t = T(s);
+    if (t.ultimoMs != null) { const d = ahora - t.ultimoMs; if (d > 0 && d < PAUSA_MAX) t.msActivo += d; }
+    t.ultimoMs = ahora; t.interacciones++;
+  }
+  function momento(s, k) { const t = T(s); if (!t.momentos[k]) t.momentos[k] = { ms: t.msActivo, semana: s.semana }; }
+
+  // Registro de lo que pasa. tipo + datos pequeños (nunca texto libre del jugador)
+  function tele(s, tipo, d = {}) {
+    if (!s || !s.p) return;
+    const t = T(s), sem = s.semana;
+    const anota = (x) => { t.registro.push(Object.assign({ s: sem, t: tipo }, x)); if (t.registro.length > 400) t.registro.shift(); };
+    // Tiempo entre decisiones (semanas jugadas y eventos), sin contar pausas largas
+    if (tipo === 'accion' || tipo === 'decision') {
+      const ahora = Date.now(), dt = t.ultimaDecMs ? ahora - t.ultimaDecMs : null;
+      if (dt != null && dt > 0 && dt < PAUSA_MAX) t.tiempos.push(Math.round(dt / 1000));
+      if (t.tiempos.length > 400) t.tiempos.shift();
+      t.ultimaDecMs = ahora;
+    }
+    switch (tipo) {
+      case 'accion': t.acciones[d.id] = (t.acciones[d.id] || 0) + 1; t.ultimaAccion = d.id;
+        if (['jornada', 'torneo', 'campus', 'plaza', 'preparador'].includes(d.id) && s.fase !== 'club') t.rutas.push({ s: sem, id: d.id }); break;
+      case 'decision': {
+        const k = `${d.tipo}${d.id ? ':' + d.id : ''}`; t.decisiones[k] = t.decisiones[k] || {}; t.decisiones[k][d.op] = (t.decisiones[k][d.op] || 0) + 1;
+        anota({ k, op: d.op }); break;
+      }
+      case 'invitacion': if (!t.invitacion) t.invitacion = { s: sem, via: d.via }; momento(s, 'T1'); break;
+      case 'prueba': t.pruebas.push({ s: sem, score: d.score, via: d.via, ofertas: d.ofertas }); if (!t.prueba) t.prueba = t.pruebas[0]; break;
+      case 'ofertas': t.ofertas.push({ s: sem, origen: d.origen, ofertas: d.ofertas }); break;
+      case 'club': t.clubes.push({ s: sem, id: d.id }); t.contratos.push({ s: sem, tipo: 'firma', id: d.id }); break;
+      case 'renovacion': t.contratos.push({ s: sem, tipo: 'renovación', sueldo: d.sueldo }); break;
+      case 'partido': t.partidos.jugados += d.rol === 'titular' || d.rol === 'suplente' ? 1 : 0; if (t.partidos[d.rol] != null) t.partidos[d.rol]++;
+        if (d.rol === 'titular' && !d.amateur) momento(s, 'T3'); break;
+      case 'categoria': t.categorias[d.tipo] = (t.categorias[d.tipo] || 0) + 1; anota({ tipo: d.tipo, a: d.a }); break;
+      case 'marcaVista': if (!t.marcas.vistas.includes(d.id)) t.marcas.vistas.push(d.id); break;
+      case 'marcaFirmada': t.marcas.firmadas.push(d.id + (d.renov ? ' (renovación)' : '')); break;
+      case 'marcaRechazada': t.marcas.rechazadas.push(d.id); break;
+      case 'marcaDejada': t.marcas.dejadas.push(d.id); break;
+      case 'acto': t.actos[d.op] = (t.actos[d.op] || 0) + 1; break;
+      case 'empresa': if (t.empresa.semana == null) { t.empresa.semana = sem; t.empresa.caja = d.caja; } break;
+      case 'config': if (t.empresa.cambios[d.campo] != null) t.empresa.cambios[d.campo]++; break;
+      case 'aporte': t.empresa.aportes++; break;
+      case 'retirada': t.empresa.retiradas++; break;
+      case 'mejora': t.empresa.mejora = d.id; break;
+      case 'crisis': t.empresa.crisis++; break;
+      case 'prestamo': t.empresa.prestamos++; break;
+      case 'venta': t.empresa.venta = sem; break;
+      case 'cierre': t.empresa.cierre = sem; break;
+      case 'hito': if (MOMENTO_DE_HITO[d.id]) momento(s, MOMENTO_DE_HITO[d.id]); if (d.id === 'rentable') t.empresa.rentable = sem; break;
+      case 'segunda': t.segunda = { s: sem, id: d.id }; break;
+      case 'vista': t.vistas[d.id] = (t.vistas[d.id] || 0) + 1; t.ultimaPantalla = d.id; break;
+      case 'porque': t.porque++; break;
+    }
+  }
+
+  // ---------- Informe copiable ----------
+  const PREGUNTAS = [
+    { id: 'p1', t: 'Del 1 al 10, ¿cuánto te ha apetecido seguir jugando?', tipo: 'escala' },
+    { id: 'p2', t: '¿En qué momento te has aburrido más?', tipo: 'texto' },
+    { id: 'p3', t: '¿Qué decisión te ha hecho dudar más?', tipo: 'texto' },
+    { id: 'p4', t: '¿Has entendido por qué ganabas o perdías dinero?', tipo: 'texto' },
+    { id: 'p5', t: '¿Te ha importado ganar o perder partidos?', tipo: 'texto' },
+    { id: 'p6', t: '¿Te ha interesado gestionar la empresa?', tipo: 'texto' },
+    { id: 'p7', t: '¿Qué parte querrías desbloquear después?', tipo: 'multi', ops: ['Más negocios', 'Subir deportivamente', 'Comprar propiedades', 'Comprar un club', 'Otro deporte', 'Otra'] },
+    { id: 'p8', t: '¿Volverías a jugar mañana?', tipo: 'una', ops: ['Sí', 'Quizá', 'No'] },
+  ];
+  const NOMBRES_ACCION = id => (P2.ACCIONES[id] ? P2.ACCIONES[id].n : id);
+  const RUTA = { ojeador: 'Ojeador (partidos en la plaza)', jornada: 'Jornada abierta', torneo: 'Torneo local', campus: 'Campus de tecnificación', repesca: 'Repesca (desde el amateur)' };
+  function duracion(ms) { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)} min ${String(s % 60).padStart(2, '0')} s`; }
+  const nombreMarca = id => { const M = P2.MARCAS.find(m => m.id === id.split(' ')[0]); return M ? M.n + (id.includes('(') ? ' (renovación)' : '') : id; };
+
+  function informeTest(s) {
+    const t = T(s), L = [];
+    const linea = (k, v) => L.push(`${k}: ${v}`);
+    L.push('TEST P2.2', `ID: ${t.id}`, '');
+    linea('Inicio', t.inicio.replace('T', ' ').slice(0, 16));
+    linea('Duración real (sin pausas de más de 5 min)', duracion(t.msActivo));
+    linea('Semanas jugadas', s.semana - 1);
+    linea('Toques en la pantalla', t.interacciones);
+    if (t.tiempos.length) { const x = t.tiempos.slice().sort((a, b) => a - b); linea('Tiempo típico por decisión', `${x[Math.floor(x.length / 2)]} s (mediana de ${x.length})`); }
+    L.push('');
+    linea('Ruta inicial', t.invitacion ? RUTA[t.invitacion.via] || t.invitacion.via : (s.fase === 'amateur' || s.contrato ? 'Sin prueba en la captación → amateur' : 'Aún en el barrio'));
+    if (t.rutas.length) linea('Caminos probados', [...new Set(t.rutas.map(r => NOMBRES_ACCION(r.id)))].join(', '));
+    if (t.prueba) { linea('Prueba', `semana ${t.prueba.s}, puntuación ${t.prueba.score}`); if (t.pruebas.length > 1) linea('Pruebas en total', t.pruebas.map(p => `${p.score} (sem. ${p.s})`).join(', ')); }
+    if (t.ofertas.length) linea('Ofertas recibidas', t.ofertas.map(o => `sem. ${o.s}: ${(o.ofertas || []).map(id => (P2.OFERTAS[id] || { n: id }).n).join(' / ') || 'ninguna'}`).join(' · '));
+    linea('Primer club', t.clubes.length ? P2.OFERTAS[t.clubes.find(c => !P2.OFERTAS[c.id].amateur) ? t.clubes.find(c => !P2.OFERTAS[c.id].amateur).id : t.clubes[0].id].n : '—');
+    if (t.contratos.length > 1) linea('Contratos y renovaciones', t.contratos.map(c => `${c.tipo} sem. ${c.s}`).join(', '));
+    linea('Partidos', `${t.partidos.jugados} jugados · ${t.partidos.titular} de titular · ${t.partidos.banquillo} en el banquillo`);
+    linea('Ascensos / descensos del club', `${t.categorias.sube || 0} / ${t.categorias.baja || 0}`);
+    L.push('', 'Decisiones semanales:');
+    for (const [id, n] of Object.entries(t.acciones).sort((a, b) => b[1] - a[1])) L.push(`  ${NOMBRES_ACCION(id)}: ${n}`);
+    L.push('', 'Patrocinadores:');
+    L.push(`  Vistos: ${t.marcas.vistas.length}${t.marcas.vistas.length ? ` (${t.marcas.vistas.map(nombreMarca).join(', ')})` : ''}`);
+    L.push(`  Firmados: ${t.marcas.firmadas.length}${t.marcas.firmadas.length ? ` (${t.marcas.firmadas.map(nombreMarca).join(', ')})` : ''}`);
+    L.push(`  Rechazados: ${t.marcas.rechazadas.length}${t.marcas.dejadas.length ? ` · dejados: ${t.marcas.dejadas.length}` : ''}`);
+    L.push(`  Actos: ${t.actos.ir} cumplidos, ${t.actos.aplazar} aplazados, ${t.actos.no} rechazados`);
+    L.push('', 'Empresa:');
+    if (t.empresa.semana != null) {
+      L.push(`  Compra: semana ${t.empresa.semana}`, `  Caja inicial: ${eur(t.empresa.caja)}`, `  Mejora inicial: ${t.empresa.mejora || '—'}`);
+      const c = t.empresa.cambios;
+      L.push(`  Cambios de precio: ${c.precio} · plantilla: ${c.empleados} · sueldos: ${c.sueldo} · publicidad: ${c.marketing}`);
+      L.push(`  Dinero puesto en la caja: ${t.empresa.aportes} veces · sacado: ${t.empresa.retiradas} veces`);
+      L.push(`  Crisis: ${t.empresa.crisis} · préstamos: ${t.empresa.prestamos}${t.empresa.venta ? ` · vendida en la semana ${t.empresa.venta}` : ''}${t.empresa.cierre ? ` · cerrada en la semana ${t.empresa.cierre}` : ''}`);
+      L.push(`  Rentable: ${t.empresa.rentable ? `semana ${t.empresa.rentable}` : 'todavía no'}`);
+    } else L.push('  No ha comprado empresa');
+    linea('\nSegunda inversión', t.segunda ? `${(P2.OPORTUNIDADES.find(o => o.id === t.segunda.id) || {}).n} (semana ${t.segunda.s})` : '—');
+    L.push('', 'Momentos clave (tiempo real · semana de juego):');
+    for (const [k, n] of MOMENTOS) { const m = t.momentos[k]; L.push(`  ${k} ${n}: ${m ? `${duracion(m.ms)} · semana ${m.semana}` : '—'}`); }
+    L.push('', 'Hitos alcanzados:');
+    for (const H of P2.HITOS) if (s.hitos[H.id]) L.push(`  ✔ ${H.n} (semana ${s.hitos[H.id]})`);
+    const v = Object.entries(t.vistas).sort((a, b) => b[1] - a[1]);
+    L.push('', `Pantallas más visitadas: ${v.length ? v.map(([k, n]) => `${k} ${n}`).join(', ') : '—'}`);
+    linea('Consultas de «¿Por qué ha pasado esto?»', t.porque);
+    linea('Momento de salida', `semana ${s.semana}, ${s.fase === 'club' ? 'profesional' : s.fase}, pantalla «${t.ultimaPantalla}», última acción «${t.ultimaAccion ? NOMBRES_ACCION(t.ultimaAccion) : '—'}»${s.pendiente ? `, con una decisión pendiente (${s.pendiente.tipo})` : ''}`);
+    linea('Estado final', `nivel ${P2.nf(s.p.nivel)} · reputación deportiva ${Math.round(s.p.rep)} · marca personal ${Math.round(s.p.marca || 0)} · patrimonio ${eur(P2.patrimonio(s))}`);
+    L.push('', 'PREGUNTAS');
+    for (const [i, q] of PREGUNTAS.entries()) { const r = t.respuestas[q.id]; L.push(`${i + 1}. ${q.t}`, `   ${Array.isArray(r) ? (r.length ? r.join(', ') : '—') : (r != null && r !== '' ? String(r) : '—')}`); }
+    return L.join('\n');
+  }
+  function responder(s, id, valor) {
+    const q = PREGUNTAS.find(x => x.id === id); if (!q) return false;
+    const t = T(s);
+    if (q.tipo === 'multi') { const l = Array.isArray(t.respuestas[id]) ? t.respuestas[id] : []; t.respuestas[id] = l.includes(valor) ? l.filter(x => x !== valor) : l.concat(valor); }
+    else t.respuestas[id] = typeof valor === 'string' ? valor.slice(0, 400) : valor;
+    return true;
+  }
+
+  Object.assign(P2, { nuevaTele, tele, teleTiempo, momentoTele: momento, informeTest, responderTest: responder, PREGUNTAS_TEST: PREGUNTAS, MOMENTOS_TEST: MOMENTOS });
+})(globalThis.P2 = globalThis.P2 || {});
+
 // ===== 20_ui.js =====
 /* =====================================================================
    20 · INTERFAZ (móvil): SITUACIÓN → DECISIÓN → CONSECUENCIA
@@ -2652,7 +2972,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function htmlTop(s) {
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
       <div class="hwho"><b>${esc(s.nombre)}</b><span>${esc(nombreFase(s))}</span></div>
-      <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}</div>`;
+      <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}${(s.secciones || []).includes('marcas') ? pill('📣', Math.floor(s.p.marca || 0)) : ''}</div>`;
   }
   function htmlNav(s) {
     const b = (v, ic, t, aviso) => `<button data-act="vista" data-v="${v}" class="${ui.vista === v ? 'sel' : ''}"><span>${ic}</span>${t}${(s.seccionesNuevas || []).includes(v) ? '<em>Nuevo</em>' : aviso ? '<i></i>' : ''}</button>`;
@@ -2671,17 +2991,17 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       const quedan = P2.semanasCaptacion(s);
       escena = `🏘️ ⚽ 🛵 <b>Barrio de ${esc(s.ciudad)}</b>`;
       titulo = `Te quedan ${quedan} ${quedan === 1 ? 'semana' : 'semanas'} para conseguir una prueba`;
-      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Fama', `${Math.floor(P.rep)}/${K.repOjeador}`) + dato('Ahorros', eur(P.dinero));
+      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Reputación', `${Math.floor(P.rep)}/${K.repOjeador}`) + dato('Ahorros', eur(P.dinero));
       const jProx = K.jornadasAbiertas.find(w => w >= s.semana), tProx = K.torneo.find(w => w >= s.semana);
       extra = `<div class="barra ${quedan <= 2 ? 'urg' : ''}"><i style="width:${Math.round(100 * (s.semana - 1) / K.semanas)}%"></i></div>
-        <div class="caminos">Caminos: <b>👀 fama ${K.repOjeador}</b> · <b>📋 ${jProx ? `jornada sem. ${jProx}` : 'jornada pasada'}</b> · <b>🏆 ${tProx ? `torneo sem. ${tProx}` : 'torneo pasado'}</b> · <b class="${P.dinero >= 400 ? 'ok' : ''}">🎓 ${s.semana <= 7 ? 'campus 400 €' : 'campus cerrado'}</b>. Sin prueba: equipo amateur y repesca.</div>`;
+        <div class="caminos">Caminos: <b>👀 reputación ${K.repOjeador}</b> · <b>📋 ${jProx ? `jornada sem. ${jProx}` : 'jornada pasada'}</b> · <b>🏆 ${tProx ? `torneo sem. ${tProx}` : 'torneo pasado'}</b> · <b class="${P.dinero >= 400 ? 'ok' : ''}">🎓 ${s.semana <= 7 ? 'campus 400 €' : 'campus cerrado'}</b>. Sin prueba: equipo amateur y repesca.</div>`;
     } else if (s.fase === 'pruebas') {
       const inv = s.invitacion, k = inv.dia - s.semana + 1;
       const est = Math.round(P2.puntuacionPruebas(Object.assign(P2.copia(s), { rng: 1 }), inv.via).partes.filter(([t]) => t !== 'Suerte del día').reduce((a, [, v]) => a + v, 0));
       const ofs = P2.ofertasPorPuntuacion(est);
       escena = `📋 🏟️ <b>Pruebas: ${k <= 1 ? 'al final de esta semana' : `en ${k} semanas`}</b>`;
       titulo = `Ahora mismo sacarías un ${est} (± ${CFG.pruebas.suerte} de suerte)`;
-      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Fama', Math.floor(P.rep)) + dato('Preparador', s.preparador ? '+3' : 'No');
+      datos = dato('Nivel', nf(P.nivel)) + dato('Energía', Math.round(P.energia)) + dato('Reputación', Math.floor(P.rep)) + dato('Preparador', s.preparador ? '+3' : 'No');
       extra = `<div class="ctx">${ofs.length ? `Con ${est}: ${ofs.map(o => OFERTAS[o].n + (o === 'atleticoFormacion' ? ' (formación)' : o === 'atleticoFilial' ? ' (filial)' : '')).join(' y ')}.` : `Con ${est} no llegas a ${CFG.pruebas.rangos[2].min}: ningún contrato profesional.`} ${CFG.pruebas.rangos.filter(r => r.min > -99).map(r => `${r.min}+`).join(' · ')}</div>`;
     } else {
       const T = s.temporada, O = P2.oferta(s), pj = P2.partidoDeLaJornada(T), pos = P2.posicion(T), pt = P2.probTitular(s);
@@ -2709,7 +3029,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const l = P2.accionesDisponibles(s);
     const tit = s.fase === 'club' || s.fase === 'amateur' ? '¿Qué haces esta semana, además del partido?' : '¿Qué haces esta semana?';
     return `<div class="sec"><span>Decisión</span><span>elige y pulsa «Jugar semana»</span></div><div class="card dec"><h3>${tit}</h3>
-      ${l.filter(x => !x.bloqueo).map(({ id, A }) => opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: A.coste, riesgo: A.riesgo }, 'elegir', '', id === eleccion(s) ? 'elegida' : '')).join('')}
+      ${l.filter(x => !x.bloqueo).map(({ id, A }) => { const sel = id === eleccion(s); return opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: sel ? A.coste : '', riesgo: sel ? A.riesgo : '' }, 'elegir', '', sel ? 'elegida' : 'compacta'); }).join('')}
       ${l.filter(x => x.bloqueo).map(({ id, A, bloqueo }) => `<button class="opt mini" disabled><b>${A.ic} ${esc(A.n)}</b><span class="bl">🔒 ${esc(bloqueo)}</span></button>`).join('')}</div>`;
   }
 
@@ -2741,7 +3061,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       h += `<div class="sec"><span>Consecuencia</span><span>semana ${R.semana}</span></div><div class="card">
         <div class="resumen">${chips.join('')}</div>
         ${R.hitos.map(htmlHito).join('')}${(R.desbloqueos || []).map(htmlDesbloqueo).join('')}
-        ${R.lineas.map(linea).join('')}
+        ${R.lineas.slice(0, 4).map(linea).join('')}${R.lineas.length > 4 ? `<details class="por mas"><summary>Ver ${R.lineas.length - 4} más</summary>${R.lineas.slice(4).map(linea).join('')}</details>` : ''}
         ${R.ingresos.length ? `<details class="por"><summary>💶 Tus cuentas de la semana</summary>${R.ingresos.map(([t, v]) => kv(esc(t), `${v >= 0 ? '+' : '−'}${eur(Math.abs(v))}`)).join('')}</details>` : ''}
         ${R.porque.length ? `<details class="por"><summary>❓ ¿Por qué ha pasado esto?</summary>${R.porque.map(t => `<p>${esc(t)}</p>`).join('')}</details>` : ''}</div>`;
     }
@@ -2764,7 +3084,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       <div class="card"><h3>Tu equipo</h3>${kv('Objetivo del club', OBJETIVOS[P2.objetivoDe(T)].n)}${prox.map((p, i) => kv(i ? 'Después' : 'Próximo rival', `${p.local ? '🏠' : '✈️'} ${esc(P2.nombreEquipo(T, p.rival))}`)).join('')}
         ${ult.length ? kv('Últimos', esc(ult.join(' · '))) : ''}</div>
       <div class="card"><h3>Tú</h3>${kv('Contrato', `${eur(c.sueldo)}/semana · ${c.temporadasRestantes} ${c.temporadasRestantes === 1 ? 'temporada' : 'temporadas'}`)}
-        ${kv('Confianza del míster', `${Math.round(s.confianza)}/100`)}${kv('Interés de otros clubes', `${Math.round(s.interes)}/100`)}${kv('Valor de mercado', eur(P2.valorMercado(s)))}
+        ${htmlTresVariables(s)}${kv('Confianza del míster', `${Math.round(s.confianza)}/100`)}${kv('Interés de otros clubes', `${Math.round(s.interes)}/100`)}${kv('Valor de mercado', eur(P2.valorMercado(s)))}
         ${kv('Partidos', `${s.stats.jugados} (${s.stats.titular} de titular) · ${s.stats.goles} goles`)}${kv('Agente', s.agente ? 'Sí' : 'Al ser titular 3 veces')}
         <details class="por"><summary>❓ ¿Cómo se decide si juegas?</summary><p>Nivel + (confianza − 50) × 0,2 + ventaja del club (${O.minutos >= 0 ? '+' : ''}${O.minutos}) + energía (+2 con 60 o más, −4 con menos de 40) + azar (±6), frente al nivel del once de tu club (${nf(T.fuerzas[T.yo])}). Titular si llegas; suplente si te quedas a menos de 7.</p></details></div>
       ${s.temporadasJugadas.length ? `<div class="card"><h3>Temporadas</h3>${s.temporadasJugadas.map(t => kv(`${esc(t.club)} · ${esc((LIGAS[t.liga] || {}).corto || "")}`, `${t.pos}º · ${t.cumple ? '✅' : '❌'} · nota ${nf(t.media)}`)).join('')}</div>` : ''}`;
@@ -2819,11 +3139,21 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     </div>`;
   }
 
+  // Las tres variables: nivel (cómo juegas), reputación deportiva (cómo te ve el fútbol), marca personal (cómo te ven las marcas)
+  function htmlTresVariables(s) {
+    const barra = (v, max = 100) => `<div class="barra"><i style="width:${Math.max(2, Math.min(100, v / max * 100))}%"></i></div>`;
+    return `<div class="tres">
+      <div><b>💪 Nivel ${nf(s.p.nivel)}</b>${barra(s.p.nivel)}<span>Cómo juegas. Sube entrenando.</span></div>
+      <div><b>⭐ Reputación ${Math.floor(s.p.rep)}</b>${barra(s.p.rep)}<span>Cómo te ve el fútbol: notas, titularidad, categoría, ascensos.</span></div>
+      <div><b>📣 Marca ${Math.floor(s.p.marca || 0)}</b>${barra(s.p.marca || 0)}<span>Cómo te ven marcas, medios y clientes. Techo suave: ${P2.techoMarca(s)} (30 + reputación).</span></div></div>`;
+  }
   function htmlMarcas(s) {
-    let h = `<div class="card"><h2>🤝 Patrocinadores</h2><p class="small">Son contratos: prima al firmar, pago semanal y obligaciones con fecha. Máximo ${CFG.patrocinio.maxContratos} a la vez. Cada acto ocupa una semana entera.</p></div>`;
-    if (s.patros.length) h += `<div class="sec">Tus contratos</div>` + s.patros.map(c => { const M = MARCAS.find(m => m.id === c.id); return `<div class="card"><h3>${M.ic} ${esc(M.n)}</h3>${kv('Pago', `${eur(c.semanal || M.semanal)}/semana`)}${kv('Pagos', `${c.pagos} de ${c.semanas} (quedan ${P2.semanasRestantes(c)})`)}${kv('Próximo acto', c.proxActo - c.desde < c.semanas ? `semana ${c.proxActo}` : 'ninguno')}${kv('Faltas', `${c.faltas}/${CFG.patrocinio.faltasMax}`)}${M.objetivo ? kv('Objetivo', `nota media ${nf(M.objetivo.notaMedia)} → ${eur(M.objetivo.bonus)}`) : ''}</div>`; }).join('');
-    h += `<div class="card"><p class="small">⭐ Tu marca personal: <b>${Math.floor(P2.marcaPersonal(s))}</b> (fama ${Math.floor(s.p.rep)} × tu nivel deportivo). Con poco nivel, tu fama vale menos para las marcas.</p></div>`;
-    h += `<div class="sec">Marcas</div><div class="card">` + P2.marcasVisibles(s).map(({ M, bloqueo, renovacion }) => { const C = P2.condicionesMarca(s, M); return opcion({ id: M.id, n: `${M.ic} ${M.n} (${M.tier === 'local' ? 'local' : 'deportiva'})${renovacion ? ' · volver a firmar' : ''}`, ventaja: `Prima ${eur(C.prima)}${renovacion ? ' (renovación)' : ''} y ${eur(C.semanal)}/semana durante ${M.semanas} semanas`, coste: M.obligacion, riesgo: `${CFG.patrocinio.faltasMax} faltas rompen el contrato para siempre${M.objetivo ? ` · bonus si tu nota media llega a ${nf(M.objetivo.notaMedia)}` : ''}`, bloqueo }, 'marca'); }).join('') + `</div>`;
+    let h = `<div class="card"><h2>🤝 Patrocinadores</h2>${htmlTresVariables(s)}
+      <p class="small">Cada marca te da algo distinto, no solo dinero. Máximo ${CFG.patrocinio.maxContratos} a la vez y dos del mismo sector no conviven. Cada acto ocupa una semana entera. Si rompes un contrato por faltar, esa marca no vuelve.</p></div>`;
+    if (s.patros.length) h += `<div class="sec">Tus contratos</div>` + s.patros.map(c => { const M = MARCAS.find(m => m.id === c.id); return `<div class="card"><h3>${M.ic} ${esc(M.n)}</h3><p class="small">${esc(M.identidad)}</p>${kv('Pago', `${eur(c.semanal || M.semanal)}/semana`)}${kv('Pagos', `${c.pagos} de ${c.semanas} (quedan ${P2.semanasRestantes(c)})`)}${kv('Próximo acto', c.proxActo - c.desde < c.semanas ? `semana ${c.proxActo}` : 'ninguno')}${kv('Faltas', `${c.faltas}/${CFG.patrocinio.faltasMax}`)}${M.objetivo ? kv('Objetivo', `nota media ${nf(M.objetivo.notaMedia)} → ${eur(M.objetivo.bonus)}`) : ''}</div>`; }).join('');
+    h += `<div class="sec">Marcas</div><div class="card">` + P2.marcasVisibles(s).map(({ M, bloqueo, renovacion }) => { const C = P2.condicionesMarca(s, M); return opcion({ id: M.id, n: `${M.ic} ${M.n} · ${M.tier === 'local' ? 'local' : M.tier === 'deportiva' ? 'deportiva' : 'gran marca'}${renovacion ? ' · volver a firmar' : ''}`,
+      ventaja: `${M.identidad} Prima ${eur(C.prima)}${renovacion ? ' (renovación)' : ''}, ${eur(C.semanal)}/semana, ${M.semanas} semanas`,
+      coste: M.obligacion, riesgo: `Sector: ${M.cat}${M.incompatible ? ' · no admite marcas locales' : ''} · audiencia: ${M.audiencia}${M.objetivo ? ` · bonus si tu nota media llega a ${nf(M.objetivo.notaMedia)}` : ''}`, bloqueo }, 'marca'); }).join('') + `</div>`;
     return h;
   }
 
@@ -2836,7 +3166,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
   function htmlAjustes(s) {
     const B = ui.balance;
-    return `<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
+    return `${htmlInforme(s)}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
       <div class="sec">Copia de seguridad</div><p class="small">Copia este código para guardar la partida fuera del navegador.</p>
       <textarea id="codigo" readonly>${esc(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}</textarea>
       <textarea id="importar" placeholder="Pega aquí un código para cargarlo"></textarea>
@@ -2846,6 +3176,22 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       <details class="card"><summary><b>🧪 Balance (simulador)</b></summary><p class="small">Juega cientos de partidas con políticas automáticas (todo trabajo, todo entreno…).</p>
         <button class="btn w full" data-act="balance">▶ Simular 100 partidas por política</button>${B ? `<pre>${esc(B)}</pre>` : ''}</details>
       <p class="small" style="color:rgba(255,255,255,.7);text-align:center">Clubes, marcas y lugares ficticios. Importes de juego. Sin anuncios, compras ni conexiones.</p>`;
+  }
+
+  // Informe para testers: todo local; se copia a mano. Preguntas opcionales al final
+  function htmlInforme(s) {
+    const t = s.tele || {}, Rr = t.respuestas || {};
+    const preg = P2.PREGUNTAS_TEST.map((q, i) => {
+      const r = Rr[q.id];
+      if (q.tipo === 'escala') return `<label class="preg">${i + 1}. ${esc(q.t)}<div class="seg diez">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<button data-act="resp" data-q="${q.id}" data-v="${n}" class="${r === n ? 'sel' : ''}">${n}</button>`).join('')}</div></label>`;
+      if (q.tipo === 'texto') return `<label class="preg" for="r_${q.id}">${i + 1}. ${esc(q.t)}</label><textarea class="respuesta" id="r_${q.id}" data-q="${q.id}" rows="2">${esc(r || '')}</textarea>`;
+      return `<div class="preg">${i + 1}. ${esc(q.t)}<div class="chipsel">${q.ops.map(o => `<button data-act="resp" data-q="${q.id}" data-v="${esc(o)}" class="${(Array.isArray(r) ? r.includes(o) : r === o) ? 'sel' : ''}">${esc(o)}</button>`).join('')}</div></div>`;
+    }).join('');
+    return `<details class="card" id="informeTest" ${ui.informeAbierto ? 'open' : ''}><summary><b>🧪 Informe de prueba</b> <span class="small">${esc(t.id || '')}</span></summary>
+      <p class="small">Si estás probando el juego: responde (si quieres) y pulsa «Generar informe». Copia el texto y mándalo. Todo se queda en este navegador: no se envía nada y no incluye tu nombre.</p>
+      ${preg}
+      <button class="btn g full" data-act="informe">📋 Generar informe</button>
+      ${ui.informe ? `<textarea id="textoInforme" readonly rows="12">${esc(ui.informe)}</textarea><button class="btn w full" data-act="copiarInforme">Copiar el informe</button>${ui.copiado ? `<p class="small">${esc(ui.copiado)}</p>` : ''}` : ''}</details>`;
   }
 
   function htmlIntro() {
@@ -2889,6 +3235,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const guardarYPintar = () => { P2.guardar(S); render(); };
 
   function alPulsar(e) {
+    if (S) P2.teleTiempo(S);
     const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
     const a = b.dataset.act, id = b.dataset.id, neg = b.dataset.neg;
     if (a !== 'reiniciar') ui.reinicio = false;
@@ -2904,7 +3251,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
       case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { ui.desbloqueos = []; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
-      case 'vista': ui.vista = b.dataset.v; ui.msg = ''; if ((S.seccionesNuevas || []).includes(ui.vista)) { S.seccionesNuevas = S.seccionesNuevas.filter(x => x !== ui.vista); P2.guardar(S); } render(); window.scrollTo(0, 0); break;
+      case 'vista': ui.vista = b.dataset.v; ui.msg = ''; P2.tele(S, 'vista', { id: ui.vista }); P2.guardar(S); if ((S.seccionesNuevas || []).includes(ui.vista)) { S.seccionesNuevas = S.seccionesNuevas.filter(x => x !== ui.vista); P2.guardar(S); } render(); window.scrollTo(0, 0); break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'decidir': if (P2.resolverDecision(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
       case 'comprar': { const R = { lineas: [], hitos: [] }; if (P2.comprarNegocio(S, 'peluqueria', Number(id), R)) { S.ultimaDecision = { semana: S.semana, ic: '💈', titulo: 'Compras la peluquería', texto: 'Ya eres empresario/a. Ajusta precios y personal y vigila la caja.', lineas: [], hitos: R.hitos }; guardarYPintar(); } break; }
@@ -2917,6 +3264,15 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       case 'oportunidad': if (P2.elegirOportunidad(S, id)) { ui.vista = 'semana'; guardarYPintar(); } break;
       case 'importar': { try { const v = P2.migrateSave(JSON.parse(decodeURIComponent(escape(atob(($('importar').value || '').trim()))))); if (!v) throw 0; S = v; ui.msg = ''; ui.vista = 'semana'; guardarYPintar(); } catch (_) { ui.msg = 'Ese código no es válido.'; render(); } break; }
       case 'reiniciar': if (!ui.reinicio) { ui.reinicio = true; render(); } else { ui.reinicio = false; try { localStorage.removeItem(CFG.claveGuardado); } catch (_) {} S = null; ui.vista = 'semana'; render(); } break;
+      case 'resp': P2.responderTest(S, b.dataset.q, /^\d+$/.test(b.dataset.v) ? Number(b.dataset.v) : b.dataset.v); ui.informeAbierto = true; guardarYPintar(); break;
+      case 'informe': ui.informeAbierto = true; ui.informe = P2.informeTest(S); ui.copiado = ''; guardarYPintar(); break;
+      case 'copiarInforme': {
+        const ta = $('textoInforme');
+        const ok = () => { ui.copiado = 'Copiado. Pégalo en un mensaje.'; render(); };
+        const manual = () => { ta.focus(); ta.select(); ui.copiado = 'Mantén pulsado el texto y elige «Copiar».'; };
+        try { navigator.clipboard.writeText(ui.informe).then(ok, manual); } catch (_) { manual(); }
+        break;
+      }
       case 'balance': { b.disabled = true; b.textContent = 'Simulando…'; setTimeout(() => { ui.balance = informeTexto(P2.runBalance(100)); render(); }, 30); break; }
     }
   }
@@ -2933,6 +3289,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function arrancar() {
     try { S = P2.cargar(); } catch (_) { S = null; }
     document.addEventListener('click', alPulsar);
+    // Telemetría: cuántas veces se abre «¿Por qué ha pasado esto?» y respuestas escritas del informe
+    document.addEventListener('toggle', e => { const d = e.target; if (S && d.matches && d.matches('details.por') && d.open && /Por qué|Cómo se/.test(d.textContent)) { P2.tele(S, 'porque', {}); P2.guardar(S); } }, true);
+    document.addEventListener('change', e => { const x = e.target; if (S && x.classList && x.classList.contains('respuesta')) { P2.responderTest(S, x.dataset.q, x.value); P2.guardar(S); } });
     render();
     const a = $('arranque'); if (a) a.remove();
   }
@@ -2940,11 +3299,11 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // Ganchos de depuración (como window.__P1)
   globalThis.__P2 = {
     P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
-    nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; },
+    nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; }, informe: () => P2.informeTest(S),
     jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
     guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },
-    migrateSave: P2.migrateSave, runBalance: (n, m) => P2.runBalance(n || 100, m), informe: (n) => informeTexto(P2.runBalance(n || 100)),
+    migrateSave: P2.migrateSave, runBalance: (n, m) => P2.runBalance(n || 100, m), informeBalance: (n) => informeTexto(P2.runBalance(n || 100)),
   };
   P2.arrancar = arrancar;
 })(globalThis.P2 = globalThis.P2 || {});

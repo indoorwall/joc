@@ -29,7 +29,8 @@
     const mj = n.mejora || {};
     const capacidad = Math.round(n.empleados * T.capacidadEmpleado * (su.capacidad || 1) * (1 + (mj.capacidad || 0)) * (c.averia > 0 ? 0.75 : 1));   // con sueldo bajo se trabaja con menos ganas
     const comp = c.competidor ? Math.min(1, pr.competidor + (calidad >= 1.15 ? 0.06 : 0)) : 1;
-    const famaJugador = 1 + (s ? s.p.rep : 0) / 250;
+    // Tu marca personal atrae clientes (no tu nivel ni tu reputación deportiva); un patrocinador local manda clientes del barrio
+    const famaJugador = (1 + (s && s.p ? s.p.marca || 0 : 0) / 250) * (1 + (s ? P2.efectoPatro(s, 'clientesNegocio') : 0));
     const demanda = T.demandaBase * (0.4 + n.fama / 100) * pr.demanda * mk.demanda * comp * (c.temporadaAlta > 0 ? 1.4 : 1) * (c.influencer > 0 ? 1.25 : 1) * famaJugador * (opc.azar || 1) * (opc.gestion ? 1.05 : 1);
     const clientes = Math.round(Math.min(demanda, capacidad));
     const colas = Math.max(0, demanda - capacidad);
@@ -37,7 +38,7 @@
     const ingresos = Math.round(clientes * pr.valor * (n.semanas === 0 && T.arranque && !opc.sinArranque ? T.arranque.primeraSemana : 1));
     const intereses = Math.round(n.deuda * n.interes) + (n.hipoteca ? Math.round(n.hipoteca.deuda * n.hipoteca.interes) : 0);
     const costes = {
-      alquiler: n.local ? 0 : n.alquiler, fijos: T.fijos, personal: n.empleados * su.coste, marketing: mk.coste,
+      alquiler: n.local ? 0 : n.alquiler, fijos: Math.max(0, T.fijos - (s ? P2.efectoPatro(s, 'fijosNegocio') : 0)), personal: n.empleados * su.coste, marketing: mk.coste,
       material: Math.round(clientes * T.consumoCliente), intereses,
     };
     const totalCostes = Object.values(costes).reduce((a, b) => a + b, 0);
@@ -73,6 +74,7 @@
     if (n.rachaPos >= 2) n.crisisSeguidas = 0;
     if (!n.crisis && (n.caja < 0 || (n.rachaNeg >= K.crisisSemanasNegativas && n.caja < 800))) {
       n.crisis = true; n.crisisSeguidas = (n.crisisSeguidas || 0) + 1;
+      P2.tele(s, 'crisis', {});
       P2.encolar(s, { tipo: 'crisis', neg: n.id });
     }
     if (n.rachaPos >= K.semanasRentable) P2.conseguirHito(s, 'rentable', R);
@@ -88,6 +90,7 @@
     const T = tipoDe(n), M = (T.mejorasIniciales || []).find(m => m.id === id);
     if (!M || n.mejoraInicial || n.caja < M.coste) return false;
     n.caja -= M.coste; n.mejoraInicial = id; n.invertido += M.coste;
+    P2.tele(s, 'mejora', { id });
     if (M.ef.capacidad) n.mejora.capacidad = (n.mejora.capacidad || 0) + M.ef.capacidad;
     if (M.ef.famaObjetivo) n.mejora.famaObjetivo = (n.mejora.famaObjetivo || 0) + M.ef.famaObjetivo;
     if (M.ef.fama) n.fama = r1(clamp(n.fama + M.ef.fama, 0, 100));
@@ -130,28 +133,32 @@
     if (!n || !(x > 0) || s.p.dinero < x) return false;
     s.p.dinero -= x; n.caja += x; s.acum.aportado += x; n.invertido += x;
     if (n.crisis && n.caja >= 0) n.crisis = false;
+    P2.tele(s, 'aporte', {});
     return true;
   }
   function retirar(s, id, x) {
     const n = s.negocios.find(z => z.id === id); x = Math.round(x);
     if (!n || !(x > 0) || n.caja < x) return false;
     n.caja -= x; s.p.dinero += x; s.acum.retirado += x;
+    P2.tele(s, 'retirada', {});
     return true;
   }
   function configurar(s, id, campo, valor) {
     const n = s.negocios.find(z => z.id === id), T = n && tipoDe(n);
     if (!n) return false;
-    if (campo === 'empleados') { const v = clamp(Math.round(valor), 1, T.empleadosMax); if (v === n.empleados) return false; if (v > n.empleados) n.moral = r1(clamp(n.moral - 0.02, 0.7, 1.1)); n.empleados = v; return true; }
+    if (campo === 'empleados') { const v = clamp(Math.round(valor), 1, T.empleadosMax); if (v === n.empleados) return false; if (v > n.empleados) n.moral = r1(clamp(n.moral - 0.02, 0.7, 1.1)); n.empleados = v; P2.tele(s, 'config', { campo }); return true; }
     const tabla = { precio: T.precios, sueldo: T.sueldos, marketing: T.marketing }[campo];
     if (!tabla || !tabla[valor]) return false;
     if (campo === 'sueldo' && T.sueldos[valor].coste < T.sueldos[n.sueldo].coste) n.moral = r1(clamp(n.moral - 0.1, 0.7, 1.1));
+    if (n[campo] !== valor) P2.tele(s, 'config', { campo });
     n[campo] = valor;
     return true;
   }
   function pedirPrestamo(s, id, interes) {
     const n = s.negocios.find(z => z.id === id), K = CFG.empresa.prestamo;
     if (!n || n.deuda > 0) return false;
-    n.caja += K.importe; n.deuda = K.importe; n.interes = interes || K.interesSemanal; n.cuota = Math.ceil(K.importe / K.plazo);
+    n.caja += K.importe; n.deuda = K.importe; n.interes = (interes || K.interesSemanal) * (1 - P2.efectoPatro(s, 'interesFinanciacion')); n.cuota = Math.ceil(K.importe / K.plazo);
+    P2.tele(s, 'prestamo', {});
     if (n.crisis && n.caja >= 0) n.crisis = false;
     return true;
   }
@@ -161,6 +168,7 @@
     const v = Math.round(valorNegocio(n) * factor);
     s.p.dinero += v; s.negocios = s.negocios.filter(z => z !== n);
     P2.anotar(s, '🤝', `Vendo la ${tipoDe(n).n.toLowerCase()} por ${eur(v)}.`);
+    P2.tele(s, 'venta', {});
     return v;
   }
 
@@ -183,6 +191,7 @@
     n.comprado = s.semana; n.invertido = T.traspaso + caja;
     ponerEnMarcha(n, R);
     s.negocios.push(n);
+    P2.tele(s, 'empresa', { caja });
     P2.anotar(s, T.ic, `Compro una ${T.n.toLowerCase()}: traspaso ${eur(T.traspaso)} y ${eur(caja)} en caja (fianza y stock: −${eur((T.arranque || {}).fianza + (T.arranque || {}).stock || 0)}).`);
     P2.conseguirHito(s, 'empresa', R);
     return n;

@@ -52,7 +52,7 @@ p { margin: 6px 0; }
 .datos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
 .datos.dos { grid-template-columns: 1fr 1fr; }
 .dato { background: var(--panel); border-radius: 10px; padding: 4px 6px; min-width: 0; }
-.dato small { display: block; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
+.dato small { display: block; font-size: 11px; text-transform: none; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 800; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; }
 .dato b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ctx { margin: 8px 0 0; padding: 7px 10px; border-radius: 10px; background: #fff7db; border: 2px solid var(--gold); font-weight: 800; font-size: 14px; }
 .barra { height: 8px; background: var(--line); border-radius: 5px; overflow: hidden; margin-top: 6px; }
@@ -181,3 +181,21 @@ pre { white-space: pre-wrap; font-size: 11px; background: var(--panel); padding:
 .opt .ocupa { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 800; color: #6b4d00; background: #fff1c2; border-radius: 999px; padding: 1px 8px; }
 nav#nav button em { position: absolute; top: 1px; right: 4px; font-style: normal; font-size: 9px; font-weight: 900; background: var(--bad); color: #fff; border-radius: 999px; padding: 0 5px; }
 .hito.desb { background: linear-gradient(90deg, #e2f0ff, #f5faff); border-color: var(--blue); }
+
+/* P2.2: tres variables, informe de prueba, opciones compactas */
+.tres { display: grid; gap: 8px; margin: 8px 0; }
+.tres > div { background: var(--panel); border-radius: 10px; padding: 6px 10px; }
+.tres b { font-size: 14px; }
+.tres span { display: block; font-size: 12px; color: var(--dim); margin-top: 2px; }
+.tres .barra { margin-top: 4px; }
+.opt.compacta { padding: 6px 12px; min-height: 44px; }
+.opt.compacta b { font-size: 15px; }
+details.mas summary { color: var(--dim); min-height: 36px; font-size: 13px; }
+.preg { display: block; font-size: 14px; font-weight: 800; margin-top: 12px; }
+.seg.diez { grid-template-columns: repeat(10, 1fr); gap: 3px; }
+.seg.diez button { min-height: 40px; padding: 0; font-size: 13px; }
+.chipsel { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chipsel button { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; min-height: 40px; font-weight: 800; font-size: 13px; cursor: pointer; }
+.chipsel button.sel { border-color: var(--acc); background: var(--acc-soft); }
+textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; margin-top: 4px; }
+#textoInforme { min-height: 220px; margin-top: 10px; }

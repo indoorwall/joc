@@ -114,6 +114,89 @@ Un club, una marca, un suceso o un negocio nuevo es una entrada de datos más.
 Ganchos de depuración en el navegador: `window.__P2` (`S`, `jugar(id)`, `decidir(id)`, `runBalance(n)`, `informe(n)`, `migrateSave`…).
 En ⚙️ Ajustes hay un botón que lanza el simulador y muestra el informe.
 
+## P2.2: lista para pruebas con personas (versión final del fútbol)
+
+> **Estado: congelado.** P2.2 es la última iteración del prototipo de fútbol antes de empezar el de escalada.
+> No añade negocios, categorías ni funciones grandes: solo claridad, decisiones con patrocinadores, tres
+> variables separadas y telemetría local para pruebas.
+
+### Cómo hacer una prueba con una persona
+
+1. Pásale el enlace o `del_barrio_p2.html` y no le expliques casi nada.
+2. Que juegue 20–30 minutos. Si lo deja antes, también es información.
+3. Al terminar: ⚙️ **Ajustes → 🧪 Informe de prueba**. Responde las 8 preguntas (opcionales), pulsa «Generar informe»
+   y «Copiar el informe». Te lo manda por mensaje. Cada partida tiene un código anónimo (`TEST-A4F72`) para distinguir informes.
+4. Nada sale del navegador: no hay servidor, ni analítica, ni cuentas. El informe no incluye el nombre del personaje.
+
+### 1. Tres variables distintas
+
+| Variable | Qué es | Cómo sube | Para qué sirve |
+|---|---|---|---|
+| 💪 **Nivel** | Qué buen futbolista eres | Entrenar, preparador, entrenamientos del club (según el club), experiencia | Convocatoria, nota, ofertas, marcas deportivas |
+| ⭐ **Reputación deportiva** | Lo reconocido que eres en el fútbol | Plaza, torneo y jornada abierta; notas, titularidad, goles, categoría (exposición), ascensos | Ojeadores, pruebas, valor de mercado, requisito de marcas grandes y techo de tu marca |
+| 📣 **Marca personal** | Lo atractivo que eres para marcas, medios y clientes | Prensa y redes, entrevistas, actos y campañas, firmar marcas, clínic, partidos muy visibles (nota 7,5+ en categorías con público), ascensos | Requisitos de patrocinadores, clientes de tu negocio (+0,4 % por punto), influencers |
+
+- **Techo comercial suave:** 30 + reputación deportiva. Por encima, lo comercial rinde solo un 15 % y la marca se
+  desinfla poco a poco. Un jugador malo no llega a una marca enorme solo con actos, pero se puede ser bastante más
+  comercial que buen jugador.
+- **Medido con bots (90 semanas):**
+  - Entrenar sin marcas: nivel 84, reputación 96 y marca 54 (el «Jugador A»).
+  - Ruta imagen con marcas: nivel 55, reputación 43 y marca 73 (el «Jugador B»).
+- Las tres se ven en «Liga» y «Marcas». La cabecera muestra 💶 ⚡ ⭐, y 📣 cuando ya hay patrocinadores.
+
+### 2. Patrocinadores con identidad
+
+| Marca | Tipo | Paga | Carga de actos | Qué aporta (efecto creíble) | Requisitos |
+|---|---|---|---|---|---|
+| 🥖 Panadería Ríos | Local (comercio) | 150 € + 25 €/sem, 14 sem. | 1 cada 6 sem. | Te manda clientes: +6 % de demanda en tu negocio | Marca 6 |
+| 🔧 Talleres Costa | Local (motor) | 300 € + 55 €/sem, 10 sem. | 1 cada 3 sem. | Contactos de empresa: −40 €/sem de gastos fijos del negocio | Marca 14 |
+| 👟 Kinetic Sport | Deportiva (material) | 800 € + 90 €/sem, 28 sem. | 1 cada 6 sem. | Entrenas un 25 % mejor, +4 de energía por semana, −25 % de lesiones, techo de nivel +3 | Marca 18, reputación 30, nivel 55, 3 titularidades |
+| ⚡ Vértice Energy | Deportiva (bebida) | 1.500 € + 170 €/sem, 14 sem. | 1 cada 3 sem. | Escaparate: +30 % de interés de clubes y más marca por partidos visibles | Marca 32, reputación 35 |
+| 📡 Nova Telecom | Grande (telecom) | 4.000 € + 260 €/sem, 18 sem. | 1 cada 4 sem. (+3 de marca por campaña) | Contactos con bancos: préstamos e hipoteca un 30 % más baratos | Marca 60, reputación 50, jugar en Segunda o más arriba |
+
+- **Por qué elegir:**
+  - máximo 2 contratos;
+  - dos del mismo sector no conviven y Nova no admite marcas locales;
+  - cada acto ocupa la semana, cansa (−10 de energía) y al míster no le gusta que faltes al entreno (−2 de confianza);
+  - duraciones y objetivos distintos;
+  - romper por faltas hace perder la marca para siempre.
+- Ejemplo de dilema:
+  - **Vértice:** más dinero y escaparate, pero un acto cada 3 semanas.
+  - **Kinetic:** paga menos y te hace mejor jugador.
+- **Las marcas te llaman:** cuando cumples los requisitos, llega una decisión con su identidad: firmar, cambiar una marca por otra (si chocan o estás al máximo) o decir que no. Puedes firmarla después en «Marcas».
+- **Efecto en la partida** (equilibrada, gestión inteligente, 100 semanas): sin marcas 100.124 € · solo Kinetic +25 % ·
+  solo Vértice +29 %.
+  - Kinetic da más nivel a mitad de partida (76,7 frente a 74,9 en la semana 60) y mejor sueldo final (916 € frente a 865 €).
+  - Vértice da más marca (77 frente a 69) y algo más de patrimonio.
+  - Al cerrar el capítulo (semana ~42) la diferencia es todavía pequeña: los patrocinadores rinden a medio plazo.
+
+### 3. Telemetría local e informe
+
+Se guarda en la partida:
+- **Tiempo y ritmo:** fecha y hora de inicio; tiempo real jugado (sin pausas de más de 5 minutos); semanas; toques; tiempo entre decisiones.
+- **Lo que hace cada semana:** acciones semanales; decisiones y opción elegida; caminos de captación y semana de la invitación.
+- **Carrera:** pruebas y puntuación; ofertas recibidas; club elegido; contratos y renovaciones; partidos y titularidades; ascensos y descensos.
+- **Patrocinadores:** vistos, firmados, rechazados y dejados; actos cumplidos, aplazados y rechazados.
+- **Empresa:**
+  - compra, caja inicial y mejora inicial;
+  - cambios de precio, plantilla, sueldos y publicidad;
+  - aportes y retiradas; crisis; préstamos; venta o cierre;
+  - semana de rentabilidad y segunda inversión.
+- **Uso de la interfaz:** pestañas visitadas; consultas de «¿Por qué ha pasado esto?»; última pantalla y última acción (momento de salida).
+- **Momentos clave T0–T7:** inicio, primera prueba, primer contrato, primera titularidad, primer patrocinador,
+  primera empresa, empresa rentable, segunda inversión. Cada uno con tiempo real y semana de juego.
+
+El informe añade las 8 preguntas (escala 1–10, textos, opciones múltiples y sí/quizá/no) con sus respuestas.
+
+### 4. Ritmo en el móvil
+
+- **Pantalla Semana:** situación → decisión → botón «Jugar semana» (siempre visible abajo) → consecuencia.
+- **Acciones:** se ven en una línea (qué ganas); al elegir una se despliegan su coste y su riesgo.
+- **Consecuencia:** primero el resumen (dinero, energía, nota) y las 4 primeras líneas; el resto, en «Ver más».
+  Las fórmulas siguen en «¿Por qué ha pasado esto?».
+- **Navegación progresiva intacta:** cada sección nueva se anuncia al desbloquearse y lleva «Nuevo» hasta que la visitas.
+- **Sin esperas ni límites:** no hay esperas reales, energía por tiempo, anuncios ni compras.
+
 ## P2.1: balance, coherencia temporal y decisiones
 
 ### Qué cambia
@@ -265,45 +348,36 @@ todas las combinaciones firman contrato; energía nunca negativa; sin decisiones
 
 ## 5. Pruebas
 
-`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **118 de 118 comprobaciones superadas**.
+`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **145 de 145 comprobaciones superadas**.
 
-- **De P2:**
-  - energía nunca negativa; recargar no duplica dinero ni caja;
-  - una prima no se cobra dos veces; cada partido cuenta una vez; la clasificación no duplica resultados;
-  - los contratos expiran; las lesiones se curan;
-  - una empresa puede perder dinero y recuperarse;
-  - guardar y cargar conserva todo; P1 migra sin errores; un guardado corrupto se aparta sin borrarse.
-- **Nuevas de P2.1:**
-  - ascender y descender cambian de verdad la categoría, los rivales y el objetivo;
-  - un filial no sube a la categoría de su primer equipo;
-  - tras cada semana no queda ninguna acción elegida;
-  - un patrocinio de N semanas paga exactamente N veces; renovar no repite la prima completa; romper hace perder la marca;
-  - las tres segundas inversiones funcionan con estructuras financieras distintas;
-  - la participación de socio puede perder valor, quedarse sin dividendo, pedir capital y recibir ofertas;
-  - los eventos con `ocupaSemana` consumen la semana y los demás no;
-  - navegación progresiva; techo de sueldo;
-  - P1 se encuentra con la clave `v1`, se usa la más nueva y no se escribe nada.
-- **Interfaz** (Chromium emulando un iPhone 13):
-  - personaje con 12 capas y prendas de hitos bloqueadas;
-  - al empezar la barra solo tiene 3 secciones;
-  - «Jugar semana» desactivado hasta elegir, y sin botón mientras hay una decisión pendiente;
-  - Liga y Marcas aparecen con «Nuevo» al firmar;
-  - sin `undefined`/`NaN`, sin desplazamiento horizontal y sin errores de JavaScript.
+- **Las de P2 y P2.1** (ver arriba).
+- **Nuevas de P2.2:**
+  - prensa sube la marca y no el nivel ni la reputación; entrenar sube el nivel y no las otras dos; la plaza sube la reputación y no la marca;
+  - techo comercial ligado a la reputación;
+  - los perfiles «gran jugador poco comercial» y «más comercial que futbolista» salen jugando;
+  - efectos de los patrocinadores: clientes, gastos fijos, entrenamiento y techo de nivel, sin «+10 de nivel por unas botas»;
+  - exclusividades;
+  - la gran marca solo en categorías altas;
+  - las ofertas llegan como decisión y el rechazo queda registrado;
+  - los actos cuestan energía y confianza;
+  - ID anónimo `TEST-XXXXX`; la duración real no cuenta pausas largas;
+  - se registran acciones, decisiones, momentos T1–T7, prueba, club, partidos, empresa y segunda inversión;
+  - el informe tiene todas las secciones y las respuestas, y no incluye el nombre del personaje.
+- **Interfaz:** el informe se genera en Ajustes con ID, duración, pantallas visitadas y respuestas.
 
 ## 6. Problemas conocidos y límites
 
-- El balance está probado con bots, no con personas. La duración de 20–30 minutos es una estimación.
-- **Los patrocinios pesan poco** en la economía: con o sin ellos, el patrimonio al cerrar el capítulo es casi igual
-  (18.302 € / 18.429 € / 18.465 €). Sirven sobre todo para abrir el mercado de negocios. Pendiente de equilibrar.
-- **Economía de final de partida grande**: hacia la semana 80–100, con local propio, fama alta y sueldo de Segunda/Primera,
-  el patrimonio pasa de 90.000–140.000 €. Está dentro de lo esperable para «imperio», pero no está pensado para
-  ese tramo (el capítulo acaba hacia la semana 40).
-- La ruta «imagen + empresa» cierra el capítulo 4–5 semanas antes y a 100 semanas acaba con un 6–9 % menos de
-  patrimonio: el coste existe, pero en dinero es moderado (en sueldo y categoría es claro).
-- La prudente (caja máxima, sin riesgos) nunca entra en crisis y llega al capítulo más tarde (semana 52): segura pero lenta.
-- Puerto compra la empresa antes que Atlético, pero por poco: la ventaja de «dinero rápido» es moderada.
+- El balance está probado con bots, no con personas. Para eso es P2.2: la duración de 20–30 minutos está por medir.
+- **Ruta «imagen + empresa»:** a 80 semanas tiene algo más de patrimonio que la equilibrada con patrocinadores máximos
+  (98.877 € frente a 94.670 €). A 100 semanas ya queda por debajo. Su coste está sobre todo en sueldo (268 € frente a 881 €),
+  categoría y nivel. Es una elección legítima y no la mejor a largo plazo, pero la diferencia en dinero es moderada.
+- **Patrocinadores:** rinden a medio plazo. Al cerrar el capítulo (semana ~42) el patrimonio con o sin marcas
+  varía poco (15.534 € / 16.076 € / 16.666 €); a 100 semanas, un 25–40 % más.
+- **Kinetic frente a Vértice:** la diferencia deportiva existe, pero es pequeña (unos 2 puntos de nivel en la semana 60).
+- **Caja de 3.000 € y de 5.500 €:** con el gestor inteligente acaban casi igual a 80 semanas (81.513 € frente a 81.296 €). La de 1.500 € compra
+  antes, con crisis y menos patrimonio.
+- **Tiempo real en el informe:** se mide entre toques. Si alguien lee mucho rato sin tocar nada (más de 5 minutos), ese tramo no cuenta.
+- **Telemetría dentro de la partida:** si el tester borra la partida o usa «Empezar una nueva vida», empieza una telemetría nueva.
+- **Economía de final de partida grande** (90.000–145.000 € hacia la semana 80–100). El capítulo acaba hacia la semana 42.
 - La confianza del míster se satura en 100 con buenas notas.
-- Los clubes de las categorías vecinas que suben o bajan se eligen al azar entre los más fuertes / más débiles
-  (esas ligas no se juegan partido a partido).
 - Tras el capítulo 1 se puede seguir jugando, pero no hay contenido nuevo.
-- Edad: solo cambia cada 52 semanas.

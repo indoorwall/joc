@@ -57,7 +57,7 @@
   const COMERCIAL = {
     sin: { n: 'Sin patrocinadores', max: 0, tiers: [], acto: 'no' },
     locales: { n: 'Patrocinadores locales', max: 1, tiers: ['local'], acto: 'ir' },
-    maximos: { n: 'Patrocinadores máximos', max: 2, tiers: ['local', 'deportiva'], acto: 'ir' },
+    maximos: { n: 'Patrocinadores máximos', max: 2, tiers: ['local', 'deportiva', 'grande'], acto: 'ir' },
   };
 
   // Gestor «listo»: prueba todas las configuraciones y se queda con la que más gana (sin bajar sueldos, que hunde el ambiente)
@@ -96,6 +96,11 @@
       id = pref.find(tiene);
     } else if (ev.tipo === 'acto') id = tiene(B.com.acto) ? B.com.acto : 'ir';
     else if (ev.tipo === 'renovarMarca') id = B.com.max && tiene('renovar') ? 'renovar' : 'no';
+    else if (ev.tipo === 'patroOferta') {
+      const M = MARCAS.find(m => m.id === ev.marca);
+      const quiere = B.com.tiers.includes(M.tier) && (s.patros.length < B.com.max || B.ids.com === 'maximos');
+      id = quiere ? (tiene('firmar') ? 'firmar' : tiene('cambiar') && B.ids.com === 'maximos' && M.semanal > Math.min(...s.patros.map(c => c.semanal || 0)) ? 'cambiar' : 'no') : 'no';
+    }
     else if (ev.tipo === 'repesca') id = 'ir';
     else if (ev.tipo === 'crisis') id = B.emp.crisis.find(tiene) || 'recortar';
     else if (ev.tipo === 'mejoraInicial') {
