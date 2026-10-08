@@ -337,3 +337,74 @@ textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; ma
 /* Colores por categoría en las tarjetas de cada sección */
 .dec.evento { border: 3px solid var(--gold); }
 .sit { border: 0; }
+
+/* ===== P2.4: Monetization Lab (simulado), deseo, garaje, casa, historia ===== */
+.lab { display: inline-block; font-size: 10px; font-weight: 900; letter-spacing: .04em; background: #fff1c0; color: #6b4a00; border-radius: 999px; padding: 1px 8px; vertical-align: middle; }
+.blanco { color: rgba(255,255,255,.8); margin: 0 4px 6px; }
+.flash { position: sticky; top: 70px; z-index: 8; margin: 8px 0; padding: 10px 14px; border-radius: 14px; background: var(--grad); color: #fff; font-weight: 900; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+/* Escena: tu casa de fondo, tu personaje y tu vehículo */
+.escenaCasa { position: relative; width: 100%; height: 100%; min-height: 108px; border-radius: 14px; overflow: hidden; }
+.escenaCasa > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.escenaCasa .pj { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 62px; }
+.escenaCasa .pj svg { width: 100%; height: auto; display: block; }
+.escenaCasa .veh { position: absolute; right: -6px; bottom: 2px; width: 52px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+.escenaCasa .veh svg { width: 100%; height: auto; display: block; }
+.escenaCasa.grande { height: 170px; }
+.escenaCasa.grande .pj { width: 90px; left: 40%; }
+.escenaCasa.grande .veh { width: 120px; right: 6px; }
+.stage { width: 96px; padding: 0; }
+.perfilTop { padding: 0 0 6px; overflow: hidden; } .perfilTop h2 { padding: 8px 14px 0; }
+.casaCard .escenaCasa { margin-bottom: 4px; }
+/* Objetivo personal */
+.deseoBar { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; margin: 8px 0 0; padding: 8px 12px; border-radius: 18px; border: 2px solid rgba(255,79,139,.6); background: rgba(255,79,139,.14); color: #fff; cursor: pointer; }
+.deseoBar .dic { font-size: 30px; }
+.deseoBar .dtx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.deseoBar small { font-size: 11px; font-weight: 800; color: rgba(255,255,255,.8); }
+.deseoBar .xp i { background: linear-gradient(90deg, #ff9abf, #ff4f8b); box-shadow: none; }
+/* Productos: rareza, deseo, cupón */
+.prod { cursor: default; }
+.prod .rz { position: absolute; top: 8px; right: 38px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; color: #fff; background: var(--rz); border-radius: 999px; padding: 1px 6px; }
+.prod.rz-legendario { box-shadow: 0 5px 0 #8a5a00, 0 0 0 2px #ffc83d inset; }
+.prod.rz-epico { box-shadow: 0 5px 0 #4a1f8a, 0 0 0 2px #c79bff inset; }
+.prod .deseo { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: #fff; font-size: 18px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.prod .precio { border: 0; cursor: pointer; min-height: 36px; }
+.prod .precio s { opacity: .6; font-weight: 700; }
+.prod .precio:disabled { cursor: not-allowed; }
+.prod.prox { opacity: .75; }
+.rw { display: block; width: 100%; margin-top: 6px; border: 2px dashed #8b5cf6; background: #f3eeff; color: #4a1f8a; border-radius: 12px; padding: 6px 8px; font-size: 12px; font-weight: 900; cursor: pointer; text-align: left; min-height: 40px; }
+.rw small { display: block; font-weight: 800; color: var(--dim); }
+.rw:disabled { opacity: .6; cursor: not-allowed; }
+.cuponOk { font-size: 11px; font-weight: 900; color: #a531d6; }
+.prods.uno { grid-template-columns: 1fr; }
+.ofertaEsp { display: flex; flex-direction: column; gap: 4px; border: 3px solid var(--gold); background: linear-gradient(160deg, #fff4cc, #fff); }
+.colec .kv span .small { margin-left: 4px; }
+/* Ofertas simuladas */
+.iapCard { border: 3px solid #c79bff; background: linear-gradient(160deg, #f6efff, #fff 60%); }
+.iapCard.rz-legendario { border-color: var(--gold); background: linear-gradient(160deg, #fff4cc, #fff 60%); }
+.iapCard .mom { display: block; font-weight: 900; letter-spacing: .06em; color: #a531d6; margin-bottom: 4px; }
+.iapCard .fila > div:last-child { flex: 3; }
+.iapPrev { flex: none !important; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: #fff; }
+.iapPrev svg { width: 100%; height: 100%; display: block; }
+.iapPrev.grande { width: 120px; height: auto; border-radius: 18px; margin: 6px auto; background: var(--panel); }
+.iapBtn .lab { margin-left: 6px; }
+.modal { position: relative; width: min(380px, 100%); max-height: 90vh; overflow: auto; background: #fff; border-radius: 24px; padding: 18px 16px 16px; text-align: center; border: 3px solid #c79bff; box-shadow: 0 0 40px rgba(139,92,246,.45); }
+.modal h2 { font-size: 21px; margin: 6px 0; }
+.modal .recompensa { background: var(--panel); border-radius: 14px; padding: 10px; margin: 10px 0; }
+.modal .recompensa small { display: block; color: var(--dim); font-weight: 800; }
+.modal .precioGrande { font-size: 40px; font-weight: 900; color: var(--gold-d); }
+.modal ul.cont { text-align: left; margin: 6px 0; padding-left: 18px; font-size: 14px; }
+.seg.tres3 { grid-template-columns: 1fr 1fr 1.4fr; }
+/* Recompensas en el inicio */
+.premioT { border: 3px solid var(--gold); background: linear-gradient(160deg, #fff4cc, #fff 60%); }
+.rwCard { border: 2px dashed #8b5cf6; }
+/* Garaje */
+.vehC { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.vehC:last-of-type { border-bottom: 0; }
+.vehC .vsvg { width: 96px; flex: none; background: linear-gradient(#eef2ff, #dfe4ff); border-radius: 12px; padding: 4px; }
+.vehC .vsvg svg { width: 100%; height: auto; display: block; }
+.vehC > div:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vehC.act .vsvg { outline: 3px solid var(--acc); }
+/* Mi historia */
+.trofeos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+.trofeos > div { background: linear-gradient(160deg, #fff4cc, #fff); border: 2px solid #ffe08a; border-radius: 14px; padding: 6px 2px; text-align: center; min-width: 0; }
+.trofeos span { display: block; font-size: 22px; } .trofeos b { display: block; font-size: 14px; overflow-wrap: anywhere; } .trofeos small { display: block; font-size: 10px; color: var(--dim); font-weight: 800; line-height: 1.1; }

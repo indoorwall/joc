@@ -20,26 +20,43 @@
     ['cabeza', '🧢', 'Cabeza', 'busto'], ['gafas', '🕶️', 'Gafas', 'busto'], ['extra', '🎒', 'Extras', 'cuerpo'], ['fondo', '🖼️', 'Fondo', 'busto']];
   const ITEMS = {
     piel: [0, 1, 2, 3, 4, 5].map(i => ({ id: String(i), n: `Tono ${i + 1}` })),
-    pelo: [['corto', 'Corto'], ['largo', 'Largo'], ['coleta', 'Coleta'], ['rizos', 'Rizos'], ['rapado', 'Rapado'], ['calvo', 'Sin pelo'], ['mono', 'Moño'], ['tupe', 'Tupé'], ['trenzas', 'Trenzas'], ['afro', 'Afro'], ['cresta', 'Cresta']].map(([id, n]) => ({ id, n })),
+    pelo: [['corto', 'Corto'], ['largo', 'Largo'], ['coleta', 'Coleta'], ['rizos', 'Rizos'], ['rapado', 'Rapado'], ['calvo', 'Sin pelo'], ['mono', 'Moño'], ['tupe', 'Tupé'], ['trenzas', 'Trenzas'], ['afro', 'Afro'], ['cresta', 'Cresta']].map(([id, n]) => ({ id, n }))
+      .concat([{ id: 'degradado', n: 'Degradado Pro', req: { premium: 'pro' } }]),
     colorPelo: [['negro', 'Negro'], ['castano', 'Castaño'], ['rubio', 'Rubio'], ['pelirrojo', 'Pelirrojo'], ['canoso', 'Canoso'], ['azul', 'Azul eléctrico'], ['rosa', 'Rosa chicle'], ['verde', 'Verde']].map(([id, n]) => ({ id, n })),
     cara: [['nada', 'Nada'], ['pecas', 'Pecas'], ['pintura', 'Pintura de guerra'], ['bigote', 'Bigote'], ['perilla', 'Perilla'], ['barba', 'Barba']].map(([id, n]) => ({ id, n })),
     ropa: [{ id: 'camiseta', n: 'Camiseta' }, { id: 'tirantes', n: 'Tirantes' }, { id: 'hawaiana', n: 'Hawaiana' }, { id: 'sudadera', n: 'Sudadera' }, { id: 'chaqueta', n: 'Chaqueta' }, { id: 'plumas', n: 'Plumas' },
-      { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } }],
+      { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } },
+      { id: 'equipoFav', n: 'Camiseta de tu equipo', req: { tienda: 'camiseta' } }, { id: 'chandalMarca', n: 'Chándal de marca', req: { tienda: 'chandal' } }, { id: 'temporada', n: 'Camiseta de la temporada', req: { anuncio: 'temporada' } },
+      { id: 'debut', n: 'Outfit Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Sudadera Street', req: { premium: 'street' } }, { id: 'pro', n: 'Outfit Pro', req: { premium: 'pro' } },
+      { id: 'trajeLux', n: 'Traje Luxury', req: { premium: 'luxury' } }, { id: 'founder', n: 'Camiseta Founder', req: { premium: 'founder' } }],
     colorRopa: [['azul', 'Azul'], ['rojo', 'Rojo'], ['verde', 'Verde'], ['amarillo', 'Amarillo'], ['negro', 'Negro'], ['blanco', 'Blanco'], ['morado', 'Morado'], ['naranja', 'Naranja']].map(([id, n]) => ({ id, n })),
-    pantalon: [{ id: 'chandal', n: 'Chándal' }, { id: 'corto', n: 'Corto' }, { id: 'vaquero', n: 'Vaqueros' }, { id: 'falda', n: 'Falda' }, { id: 'traje', n: 'De traje', req: { hito: 'empresa' } }],
-    calzado: [{ id: 'deportivas', n: 'Deportivas' }, { id: 'chanclas', n: 'Chanclas' }, { id: 'botas', n: 'Botas de fútbol' }, { id: 'montana', n: 'De montaña' }, { id: 'zapatos', n: 'Zapatos' }, { id: 'doradas', n: 'Botas de oro', req: { hito: 'inversion2' } }],
-    cabeza: [{ id: 'nada', n: 'Nada' }, { id: 'cinta', n: 'Cinta' }, { id: 'gorra', n: 'Gorra' }, { id: 'gorro', n: 'Gorro de lana' }, { id: 'fiesta', n: 'Gorro de fiesta' }, { id: 'vaquero', n: 'Sombrero' }, { id: 'corona', n: 'Corona', req: { hito: 'inversion2' } }],
-    gafas: [['nada', 'Sin gafas'], ['corazon', 'Corazón'], ['redondas', 'Redondas'], ['sol', 'De sol'], ['deportivas', 'Deportivas']].map(([id, n]) => ({ id, n })),
+    pantalon: [{ id: 'chandal', n: 'Chándal' }, { id: 'corto', n: 'Corto' }, { id: 'vaquero', n: 'Vaqueros' }, { id: 'falda', n: 'Falda' }, { id: 'traje', n: 'De traje', req: { hito: 'empresa' } }, { id: 'street', n: 'Cargo Street', req: { premium: 'street' } }],
+    calzado: [{ id: 'deportivas', n: 'Deportivas' }, { id: 'chanclas', n: 'Chanclas' }, { id: 'botas', n: 'Botas de fútbol' }, { id: 'montana', n: 'De montaña' }, { id: 'zapatos', n: 'Zapatos' }, { id: 'doradas', n: 'Botas de oro', req: { hito: 'inversion2' } },
+      { id: 'botasPro', n: 'Botas profesionales', req: { tienda: 'botasPro' } }, { id: 'debut', n: 'Botas Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Zapatillas Street', req: { premium: 'street' } }, { id: 'pro', n: 'Botas Pro', req: { premium: 'pro' } }],
+    cabeza: [{ id: 'nada', n: 'Nada' }, { id: 'cinta', n: 'Cinta' }, { id: 'gorra', n: 'Gorra' }, { id: 'gorro', n: 'Gorro de lana' }, { id: 'fiesta', n: 'Gorro de fiesta' }, { id: 'vaquero', n: 'Sombrero' }, { id: 'corona', n: 'Corona', req: { hito: 'inversion2' } },
+      { id: 'gorraPlana', n: 'Gorra de colección', req: { tienda: 'gorra' } }, { id: 'gorraDebut', n: 'Gorra Debut', req: { premium: 'debut' } }, { id: 'gorraStreet', n: 'Gorra Street', req: { premium: 'street' } }],
+    gafas: [['nada', 'Sin gafas'], ['corazon', 'Corazón'], ['redondas', 'Redondas'], ['sol', 'De sol'], ['deportivas', 'Deportivas']].map(([id, n]) => ({ id, n }))
+      .concat([{ id: 'temporada', n: 'Gafas edición temporada', req: { anuncio: 'temporada' } }, { id: 'pro', n: 'Gafas Pro', req: { premium: 'pro' } }]),
     extra: [{ id: 'nada', n: 'Nada' }, { id: 'balon', n: 'Balón' }, { id: 'mochila', n: 'Mochila' }, { id: 'auriculares', n: 'Auriculares' }, { id: 'capa', n: 'Capa' },
-      { id: 'medalla', n: 'Medalla', req: { hito: 'titular' } }, { id: 'reloj', n: 'Reloj de lujo', req: { hito: 'rentable' } }, { id: 'cadena', n: 'Cadena de oro', req: { hito: 'inversion2' } }],
+      { id: 'medalla', n: 'Medalla', req: { hito: 'titular' } }, { id: 'reloj', n: 'Reloj de lujo', req: { hito: 'rentable' } }, { id: 'cadena', n: 'Cadena de oro', req: { hito: 'inversion2' } },
+      { id: 'relojDep', n: 'Reloj deportivo', req: { tienda: 'relojDep' } }, { id: 'relojPro', n: 'Reloj Pro', req: { premium: 'pro' } }, { id: 'relojPremium', n: 'Reloj Premium', req: { premium: 'luxury' } },
+      { id: 'cadenaExcl', n: 'Cadena exclusiva', req: { premium: 'luxury' } }, { id: 'insignia', n: 'Insignia Founder', req: { premium: 'founder' } }],
     fondo: [['azul', 'Azul'], ['verde', 'Verde'], ['naranja', 'Naranja'], ['morado', 'Morado'], ['rosa', 'Rosa']].map(([id, n]) => ({ id, n }))
-      .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } }]),
+      .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } },
+        { id: 'street', n: 'Fondo Street', req: { coleccion: 'street' } }, { id: 'vestuario', n: 'Fondo Vestuario', req: { coleccion: 'pro' } }, { id: 'lujo', n: 'Fondo Lujo', req: { coleccion: 'lujo' } },
+        { id: 'debut', n: 'Fondo Debut', req: { premium: 'debut' } }, { id: 'urbano', n: 'Fondo Urbano', req: { premium: 'street' } }, { id: 'estadio', n: 'Fondo Estadio', req: { premium: 'pro' } },
+        { id: 'premium', n: 'Fondo Premium', req: { premium: 'luxury' } }, { id: 'founder', n: 'Fondo Founder', req: { premium: 'founder' } }]),
   };
   const itemLook = (cap, id) => (ITEMS[cap] || []).find(x => x.id === id);
   function bloqueoLook(s, it, cap) {
     if (!it || !it.req) return null;
     if (s && Array.isArray(s.lookDesbloqueos) && s.lookDesbloqueos.includes(`${cap || ''}:${it.id}`)) return null;   // comprado en la Tienda
     if (it.req.hito && !(s && s.hitos && s.hitos[it.req.hito])) { const H = P2.HITOS.find(h => h.id === it.req.hito); return `Hito: ${H ? H.n : it.req.hito}`; }
+    // Cosméticos que solo se consiguen en la Tienda, con recompensas, colecciones o packs (en P2.4, packs solo de prueba)
+    if (it.req.tienda) return `Tienda: ${P2.producto ? (P2.producto(it.req.tienda) || { n: '' }).n : ''}`;
+    if (it.req.anuncio) return 'Recompensa de temporada';
+    if (it.req.coleccion) return `Completa la colección ${(P2.COLECCIONES || []).find(c => c.id === it.req.coleccion) ? P2.COLECCIONES.find(c => c.id === it.req.coleccion).n : ''}`;
+    if (it.req.premium) { const I = (P2.IAP_PRODUCTS || []).find(x => x.id === it.req.premium); return `${I ? I.nombre : 'Pack'} (premium)`; }
     return null;
   }
   function ponerLook(s, cap, id) {
@@ -75,6 +92,29 @@
     return a;
   }
 
+  // Variantes cosméticas: reutilizan una forma base con otros colores y un adorno (sin estadísticas)
+  const VAR_ROPA = {
+    equipoFav: { base: 'equipacion', c1: '#c8102e', c2: '#ffffff', num: '7' },
+    temporada: { base: 'equipacion', c1: '#3d7bff', c2: '#ffc83d', num: '24' },
+    chandalMarca: { base: 'chaqueta', tc: '#1a1640', ad: '<path d="M22 74 v32 M78 74 v32" stroke="#3d7bff" stroke-width="2.5"/><path d="M32 86 h36" stroke="#3d7bff" stroke-width="2"/>' },
+    debut: { base: 'camiseta', tc: '#1a1640', ad: '<path d="M43 68 L50 78 L57 68" fill="none" stroke="#ffc83d" stroke-width="2.5"/><text x="50" y="99" text-anchor="middle" font-size="12" font-weight="900" fill="#ffc83d" font-family="Arial,sans-serif">D</text>' },
+    street: { base: 'sudadera', tc: '#ff4f8b', ad: '<path d="M36 88 q7 -6 14 0 t14 0" fill="none" stroke="#ffc83d" stroke-width="3"/><circle cx="58" cy="80" r="2.5" fill="#7fd8ff"/>' },
+    pro: { base: 'chaqueta', tc: '#0b1033', ad: '<path d="M30 92 h40" stroke="#3d7bff" stroke-width="4"/><path d="M31 97 h38" stroke="#8b5cf6" stroke-width="2"/>' },
+    trajeLux: { base: 'traje', tc: '#4b1f7a', ad: '<path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#ffc83d"/><circle cx="62" cy="80" r="2" fill="#ffc83d"/>' },
+    founder: { base: 'camiseta', tc: '#ffc83d', ad: '<path d="M50 80 l3 6 6.5 .8 -4.8 4.4 1.3 6.4 -6 -3.2 -6 3.2 1.3 -6.4 -4.8 -4.4 6.5 -.8Z" fill="#1a1640"/>' },
+  };
+  const VAR_CABEZA = { gorraPlana: '#2a2d34', gorraDebut: '#1a1640', gorraStreet: '#ff4f8b' };
+  const FONDO_ESP = {
+    street: '<rect x="-20" y="-30" width="140" height="140" fill="#3b1c6e"/><path d="M-20 70 L120 40 M-20 90 L120 60" stroke="#ff4f8b" stroke-width="8" opacity=".6"/>',
+    vestuario: '<rect x="-20" y="-30" width="140" height="140" fill="#1d3a9e"/>' + [0, 1, 2, 3, 4].map(i => `<rect x="${-14 + i * 26}" y="-10" width="22" height="90" rx="3" fill="#2b4fc0" stroke="#173083"/>`).join(''),
+    lujo: '<rect x="-20" y="-30" width="140" height="140" fill="#1a1640"/><circle cx="50" cy="30" r="46" fill="#ffc83d" opacity=".25"/><path d="M50 -6 l10 14 -10 14 -10 -14Z" fill="#ffc83d" opacity=".7"/>',
+    debut: '<rect x="-20" y="-30" width="140" height="140" fill="#1a1640"/><path d="M50 -10 l6 14 15 1 -11 10 4 15 -14 -8 -14 8 4 -15 -11 -10 15 -1Z" fill="#ffc83d" opacity=".35"/>',
+    urbano: '<rect x="-20" y="-30" width="140" height="140" fill="#2a1a78"/>' + [[-14, 20, 30], [12, 0, 28], [40, 14, 26], [66, -6, 30], [92, 10, 26]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="110" fill="#1b1550"/><rect x="${x + 6}" y="${y + 8}" width="5" height="6" fill="#ffd66b"/>`).join(''),
+    estadio: '<rect x="-20" y="-30" width="140" height="140" fill="#1d3a9e"/><path d="M-20 80 Q50 50 120 80 L120 110 L-20 110Z" fill="#2c3fa8"/><circle cx="2" cy="-4" r="14" fill="#fff" opacity=".35"/><circle cx="98" cy="-4" r="14" fill="#fff" opacity=".35"/>',
+    premium: '<defs><linearGradient id="fpPrem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c8901a"/></linearGradient></defs><rect x="-20" y="-30" width="140" height="140" fill="url(#fpPrem)"/><path d="M50 -4 l9 12 -9 12 -9 -12Z" fill="#fff" opacity=".6"/>',
+    founder: '<rect x="-20" y="-30" width="140" height="140" fill="#0b1033"/><rect x="-16" y="-26" width="132" height="132" fill="none" stroke="#ffc83d" stroke-width="4"/><path d="M50 -12 l5 11 12 1 -9 8 3 12 -11 -6 -11 6 3 -12 -9 -8 12 -1Z" fill="#ffc83d"/>',
+  };
+
   function oscurecer(hex, f) { const n = parseInt(hex.slice(1), 16), c = k => Math.round(((n >> k) & 255) * f); return `rgb(${c(16)},${c(8)},${c(0)})`; }
   function avatarSVG(s, L, modo) {
     L = Object.assign({}, LOOK_INICIAL, L || (s && s.look) || {});
@@ -82,12 +122,17 @@
     if (['gorra', 'gorro'].includes(L.cabeza) && ['cresta', 'mono', 'tupe', 'afro'].includes(L.pelo)) L.pelo = 'corto';
     const sk = PIEL[+L.piel] || PIEL[1], hc = COLOR_PELO[L.colorPelo] || COLOR_PELO.castano, rc = COLOR_ROPA[L.colorRopa] || COLOR_ROPA.azul, rd = oscurecer(rc, 0.75);
     const fel = animo(s), ene = s && s.p ? s.p.energia : 80;
-    const O = s && s.contrato ? P2.OFERTAS[s.contrato.oferta] : null, c1 = O && O.c1 ? O.c1 : '#2e9d4f', c2 = O && O.c2 ? O.c2 : '#ffffff';
+    const O = s && s.contrato ? P2.OFERTAS[s.contrato.oferta] : null;
+    let c1 = O && O.c1 ? O.c1 : '#2e9d4f', c2 = O && O.c2 ? O.c2 : '#ffffff';
+    const RV = VAR_ROPA[L.ropa]; if (RV) { L.ropa = RV.base; if (RV.c1) { c1 = RV.c1; c2 = RV.c2; } }
+    const CV = VAR_CABEZA[L.cabeza]; if (CV) L.cabeza = 'gorra';
+    const pelo2 = L.pelo; if (pelo2 === 'degradado') L.pelo = 'rapado';
     const marca = s && s.patros && s.patros.length ? P2.MARCAS.find(m => m.id === s.patros[0].id) : null;
     let h = '';
     if (modo === 'busto') {
       if (L.fondo === 'noche') h += `<rect x="-20" y="-30" width="140" height="140" fill="#1d2552"/>${[[18, 0], [80, 6], [30, 60], [86, 52], [62, -6], [12, 34]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff"/>`).join('')}`;
       else if (L.fondo === 'dorado') h += `<rect x="-20" y="-30" width="140" height="140" fill="#f5c518"/><circle cx="50" cy="34" r="44" fill="#ffe27a"/>`;
+      else if (FONDO_ESP[L.fondo]) h += FONDO_ESP[L.fondo];
       else h += `<rect x="-20" y="-30" width="140" height="140" fill="${FONDO_LOOK[L.fondo] || FONDO_LOOK.azul}"/>`;
     } else h += `<ellipse cx="50" cy="153" rx="28" ry="4" fill="rgba(0,0,0,.25)"/>`;
     if (L.extra === 'capa') h += `<path d="M31 74 L14 146 L86 146 L69 74Z" fill="#d6283b"/>`;
@@ -97,13 +142,15 @@
     if (L.pelo === 'coleta') h += `<path d="M70 24 Q94 28 86 64 Q80 44 68 36Z" fill="${hc}"/>`;
     if (L.pelo === 'trenzas') h += `<path d="M25 46 L21 92 M75 46 L79 92" stroke="${hc}" stroke-width="9" stroke-linecap="round"/><circle cx="21" cy="92" r="3" fill="#e23b3b"/><circle cx="79" cy="92" r="3" fill="#e23b3b"/>`;
     if (L.pelo === 'mono') h += `<circle cx="50" cy="11" r="9" fill="${hc}"/>`;
-    const pc = { chandal: '#4a5260', vaquero: '#3d5f9e', traje: '#2b2f3a', corto: rc, falda: rc }[L.pantalon] || '#4a5260';
+    const pStreet = L.pantalon === 'street'; if (pStreet) L.pantalon = 'vaquero';
+    const pc = pStreet ? '#2a2d34' : { chandal: '#4a5260', vaquero: '#3d5f9e', traje: '#2b2f3a', corto: rc, falda: rc }[L.pantalon] || '#4a5260';
     if (L.pantalon === 'corto') h += `<rect x="38" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="53" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="34" y="104" width="32" height="18" rx="4" fill="${pc}"/><line x1="50" y1="110" x2="50" y2="122" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>`;
     else if (L.pantalon === 'falda') h += `<rect x="38" y="122" width="9" height="20" rx="4" fill="${sk}"/><rect x="53" y="122" width="9" height="20" rx="4" fill="${sk}"/><path d="M34 104 L66 104 L72 128 L28 128Z" fill="${pc}"/>`;
     else {
       h += `<rect x="36" y="104" width="13" height="38" rx="4" fill="${pc}"/><rect x="51" y="104" width="13" height="38" rx="4" fill="${pc}"/>`;
       if (L.pantalon === 'chandal') h += `<rect x="37" y="108" width="2" height="32" fill="#fff" opacity=".8"/><rect x="61" y="108" width="2" height="32" fill="#fff" opacity=".8"/>`;
-      if (L.pantalon === 'vaquero') h += `<path d="M42 108 v30 M58 108 v30" stroke="#f0c040" stroke-width="1" stroke-dasharray="2 2"/>`;
+      if (L.pantalon === 'vaquero' && !pStreet) h += `<path d="M42 108 v30 M58 108 v30" stroke="#f0c040" stroke-width="1" stroke-dasharray="2 2"/>`;
+      if (pStreet) h += `<rect x="37" y="118" width="11" height="8" rx="2" fill="#3b3f4a"/><rect x="52" y="118" width="11" height="8" rx="2" fill="#3b3f4a"/><path d="M36 134 h13 M51 134 h13" stroke="#ff4f8b" stroke-width="2"/>`;
     }
     const zap = (col, extra) => `<rect x="31" y="139" width="19" height="10" rx="5" fill="${col}"/><rect x="50" y="139" width="19" height="10" rx="5" fill="${col}"/>${extra || ''}`;
     if (L.calzado === 'deportivas') h += zap('#ffffff', `<path d="M35 144 h10 M54 144 h10" stroke="${rc}" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#ccc"/><rect x="50" y="146" width="19" height="3" fill="#ccc"/>`);
@@ -111,27 +158,37 @@
     else if (L.calzado === 'chanclas') h += `<rect x="38" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="53" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="31" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/><rect x="50" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/>`;
     else if (L.calzado === 'zapatos') h += zap('#5b3a1e', '<path d="M35 142 h6 M55 142 h6" stroke="#fff" stroke-width="1.5" opacity=".5"/>');
     else if (L.calzado === 'montana') h += zap('#7a5230', '<path d="M36 141 l4 3 M40 141 l4 3 M56 141 l4 3 M60 141 l4 3" stroke="#f6c623" stroke-width="1.5"/><rect x="31" y="146" width="19" height="3" fill="#2a2d34"/><rect x="50" y="146" width="19" height="3" fill="#2a2d34"/>');
+    else if (L.calzado === 'botasPro') h += zap('#3d7bff', '<path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#7fd8ff" stroke-width="2"/><path d="M35 143 h9 M55 143 h9" stroke="#ffc83d" stroke-width="2"/>');
+    else if (L.calzado === 'debut') h += zap('#ff4f8b', '<path d="M35 143 h9 M55 143 h9" stroke="#ffc83d" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#1a1640" stroke-width="2"/>');
+    else if (L.calzado === 'street') h += zap('#ffc83d', '<path d="M35 143 h10 M54 143 h10" stroke="#1a1640" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#fff"/><rect x="50" y="146" width="19" height="3" fill="#fff"/>');
+    else if (L.calzado === 'pro') h += zap('#0b1033', '<path d="M35 143 h9 M55 143 h9" stroke="#3d7bff" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#8b5cf6" stroke-width="2"/>');
     else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
     const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
-    const tc = L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
+    const tc = RV && RV.tc ? RV.tc : L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
     h += `<rect x="20" y="74" width="11" height="34" rx="5.5" fill="${sk}"/><rect x="69" y="74" width="11" height="34" rx="5.5" fill="${sk}"/>`;
     if (!sinMangas) h += `<rect x="20" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="69" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
     h += `<circle cx="25.5" cy="110" r="5.5" fill="${sk}"/><circle cx="74.5" cy="110" r="5.5" fill="${sk}"/>`;
     if (L.extra === 'reloj') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/>`;
+    if (L.extra === 'relojDep') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/>`;
+    if (L.extra === 'relojPro') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/>`;
+    if (L.extra === 'relojPremium') h += `<rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/>`;
     h += `<rect x="44" y="58" width="12" height="16" rx="4" fill="${sk}"/>`;
     if (L.ropa === 'sudadera') h += `<path d="M34 72 Q50 56 66 72Z" fill="${rd}"/>`;
     const ancho = L.ropa === 'plumas' ? 3 : 0;
     h += `<path d="M${30 - ancho} 78 Q${30 - ancho} 68 40 68 L60 68 Q${70 + ancho} 68 ${70 + ancho} 78 L${70 + ancho} 110 L${30 - ancho} 110Z" fill="${tc}"/>`;
     if (['camiseta', 'marca', 'equipacion', 'tirantes'].includes(L.ropa)) h += `<path d="M43 68 Q50 ${L.ropa === 'tirantes' ? 80 : 75} 57 68Z" fill="${sk}"/>`;
     if (L.ropa === 'tirantes') h += `<path d="M30 70 h6 M64 70 h6" stroke="${sk}" stroke-width="5"/>`;
-    if (L.ropa === 'equipacion') h += `<rect x="38" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><rect x="57" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><text x="50" y="100" text-anchor="middle" font-size="15" font-weight="900" fill="${c2}" stroke="${c1}" stroke-width=".6" font-family="Arial,sans-serif">10</text>`;
+    if (L.ropa === 'equipacion') h += `<rect x="38" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><rect x="57" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><text x="50" y="100" text-anchor="middle" font-size="15" font-weight="900" fill="${c2}" stroke="${c1}" stroke-width=".6" font-family="Arial,sans-serif">${RV && RV.num ? RV.num : '10'}</text>`;
     if (L.ropa === 'marca') { const t = marca ? marca.n.split(' ')[0].toUpperCase() : '★'; h += `<text x="50" y="94" text-anchor="middle" font-size="${t.length > 9 ? 5.5 : t.length > 6 ? 7 : 9}" font-weight="900" fill="${rc === '#f4f4f4' ? '#e23b3b' : rc}" font-family="Arial,sans-serif">${esc(t)}</text>`; }
     if (L.ropa === 'sudadera') h += `<rect x="40" y="94" width="20" height="10" rx="3" fill="${rd}"/><path d="M46 72 v10 M54 72 v10" stroke="#fff" stroke-width="1.2"/>`;
     if (L.ropa === 'chaqueta') h += `<line x1="50" y1="70" x2="50" y2="110" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M40 68 L50 78 L60 68" fill="none" stroke="${rd}" stroke-width="3"/>`;
     if (L.ropa === 'plumas') h += `<path d="M27 82 h46 M27 92 h46 M27 102 h46" stroke="rgba(0,0,0,.2)" stroke-width="2"/><path d="M42 68 Q50 74 58 68" fill="none" stroke="${rd}" stroke-width="4"/>`;
     if (L.ropa === 'hawaiana') h += `${[[38, 82], [60, 78], [46, 98], [64, 100], [34, 104]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff"/><circle cx="${x}" cy="${y}" r="1.4" fill="#f6c623"/>`).join('')}<path d="M42 68 L50 80 L58 68" fill="none" stroke="#fff" stroke-width="2"/>`;
     if (L.ropa === 'traje') h += `<path d="M43 68 L50 86 L57 68Z" fill="#fff"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#d6283b"/><path d="M43 68 L48 92 M57 68 L52 92" stroke="#444b5c" stroke-width="2"/>`;
+    if (RV && RV.ad) h += RV.ad;
     if (L.extra === 'mochila') h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="#3b4a6b" stroke-width="4"/>`;
+    if (L.extra === 'cadenaExcl') h += `<path d="M39 70 Q50 92 61 70" fill="none" stroke="#ffc83d" stroke-width="3.5"/><path d="M50 84 l5 6 -5 6 -5 -6Z" fill="#7fd8ff" stroke="#ffc83d" stroke-width="1.2"/>`;
+    if (L.extra === 'insignia') h += `<circle cx="61" cy="80" r="5" fill="#1a1640" stroke="#ffc83d" stroke-width="1.5"/><path d="M61 76.5 l1.2 2.5 2.7 .3 -2 1.8 .6 2.7 -2.5 -1.4 -2.5 1.4 .6 -2.7 -2 -1.8 2.7 -.3Z" fill="#ffc83d"/>`;
     if (L.extra === 'cadena') h += `<path d="M41 70 Q50 88 59 70" fill="none" stroke="#f5c518" stroke-width="2.5"/><circle cx="50" cy="83" r="3.2" fill="#f5c518"/>`;
     if (L.extra === 'medalla') h += `<path d="M42 68 L50 86 L58 68" fill="none" stroke="#2f6fe0" stroke-width="3.5"/><circle cx="50" cy="90" r="6.5" fill="#f5c518" stroke="#b08a00"/><text x="50" y="93" text-anchor="middle" font-size="8" font-weight="900" fill="#b08a00">1</text>`;
     if (L.extra === 'balon') h += `<circle cx="84" cy="141" r="9" fill="#fff" stroke="#333" stroke-width="1"/><path d="M84 137 l3.5 2.5 -1.3 4 h-4.4 l-1.3 -4Z" fill="#333"/>`;
@@ -156,16 +213,18 @@
     const flequillo = `<path d="M24 42 Q22 14 50 13 Q78 14 76 42 Q72 28 62 26 Q50 32 36 26 Q28 30 24 42Z" fill="${hc}"/>`;
     if (['corto', 'coleta', 'trenzas', 'mono', 'largo'].includes(L.pelo)) h += flequillo;
     else if (L.pelo === 'rizos') h += [[28, 30], [36, 20], [46, 16], [56, 16], [65, 20], [72, 30], [25, 40], [75, 40]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${hc}"/>`).join('');
-    else if (L.pelo === 'rapado') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".55"/>`;
+    else if (L.pelo === 'rapado') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".55"/>` + (pelo2 === 'degradado' ? `<path d="M32 26 Q36 8 52 8 Q68 9 70 24 Q60 16 50 18 Q40 18 32 26Z" fill="${hc}"/>` : '');
     else if (L.pelo === 'calvo') h += `<ellipse cx="40" cy="24" rx="6" ry="3" fill="#fff" opacity=".35"/>`;
     else if (L.pelo === 'tupe') h += `<path d="M24 42 Q22 18 46 15 Q40 2 62 3 Q82 6 76 24 Q78 32 76 42 Q70 26 50 26 Q32 28 24 42Z" fill="${hc}"/>`;
     else if (L.pelo === 'afro') h += `<path d="M26 34 Q50 16 74 34 Q50 26 26 34Z" fill="${hc}"/>`;
     else if (L.pelo === 'cresta') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".5"/><path d="M42 26 L38 -2 L48 10 L50 -8 L54 10 L64 -2 L58 26Z" fill="${hc}"/>`;
     if (L.gafas === 'redondas') h += `<circle cx="39" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><circle cx="61" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><path d="M46 43 h8 M32 42 l-6 -2 M68 42 l6 -2" stroke="#222" stroke-width="2"/>`;
     else if (L.gafas === 'sol') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#111"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#111"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#111" stroke-width="2"/><path d="M33 40 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
+    else if (L.gafas === 'temporada') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><path d="M47 41 h6" stroke="#d94bff" stroke-width="2"/><path d="M33 40 l5 0 M56 40 l5 0" stroke="#7fd8ff" stroke-width="1.5"/>`;
+    else if (L.gafas === 'pro') h += `<path d="M29 38 h18 l-2 9 q-7 3 -14 0Z M53 38 h18 l-2 9 q-7 3 -14 0Z" fill="#3a2d10" stroke="#ffc83d" stroke-width="1.5"/><path d="M47 40 h6" stroke="#ffc83d" stroke-width="1.5"/>`;
     else if (L.gafas === 'deportivas') h += `<path d="M26 39 Q50 32 74 39 L72 48 Q50 43 28 48Z" fill="#ff5a1f"/><path d="M30 41 Q50 36 70 41" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/>`;
     else if (L.gafas === 'corazon') { const co = x => `<path d="M${x} 49 l-7 -7 a4 4 0 0 1 7 -4 a4 4 0 0 1 7 4Z" fill="#ff2d6f"/>`; h += co(39) + co(61) + `<path d="M46 42 h8" stroke="#ff2d6f" stroke-width="1.5"/>`; }
-    if (L.cabeza === 'gorra') h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${rc}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${rd}"/><circle cx="50" cy="10" r="2.5" fill="${rd}"/>`;
+    if (L.cabeza === 'gorra') { const g1 = CV || rc, g2 = CV ? oscurecer(CV, 0.7) : rd; h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${g1}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${g2}"/><circle cx="50" cy="10" r="2.5" fill="${g2}"/>${CV === '#1a1640' ? '<path d="M44 24 h12" stroke="#ffc83d" stroke-width="2.5"/>' : ''}`; }
     else if (L.cabeza === 'gorro') h += `<path d="M23 36 Q23 5 50 5 Q77 5 77 36Z" fill="${rc}"/><rect x="22" y="29" width="56" height="9" rx="4" fill="${rd}"/><circle cx="50" cy="4" r="6" fill="#fff"/>`;
     else if (L.cabeza === 'cinta') h += `<path d="M25 30 Q50 22 75 30 L75 36 Q50 28 25 36Z" fill="${rc}"/>`;
     else if (L.cabeza === 'fiesta') h += `<path d="M38 18 L50 -14 L62 18Z" fill="#ff6fb5"/><path d="M41 10 L59 10 M44 2 L56 2" stroke="#f6c623" stroke-width="3"/><circle cx="50" cy="-14" r="4" fill="#f6c623"/>`;

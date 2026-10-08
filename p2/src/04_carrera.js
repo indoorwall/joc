@@ -321,13 +321,14 @@
         s.primasCobradas[`asc-${T.liga}-${T.num}`] = prima; s.p.dinero += prima; s.acum.primas += prima;
       }
       P2.tele(s, 'categoria', { tipo: mov.miClub.tipo, a: mov.miClub.a });
-      if (mov.miClub.tipo === 'sube') { P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
+      if (mov.miClub.tipo === 'sube') { P2.anotarHistoria(s, 'ascenso'); P2.momentoMon(s, 'ascenso'); P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
       else if (mov.miClub.tipo === 'baja') { R.lineas.push(['📉', `Descenso: ${O.n.replace(/ \(.*\)/, '')} baja a ${aL.n}.`, 'mal']); s.p.rep = r1(clamp(s.p.rep - 2, 0, 100)); }
       else R.lineas.push(['🔒', `Acabáis en puestos de ascenso, pero un filial no puede jugar en la categoría de su primer equipo: sube el siguiente.`]);
       P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
       P2.anotar(s, mov.miClub.tipo === 'sube' ? '🎉' : mov.miClub.tipo === 'baja' ? '📉' : '🔒', mov.miClub.tipo === 'sube' ? `¡Subimos a ${aL.n}!` : mov.miClub.tipo === 'baja' ? `Bajamos a ${aL.n}.` : `El filial no puede subir.`);
     }
     P2.finTemporadaPatros(s, R, media);
+    P2.momentoMon(s, 'finTemporada');
     s.contrato.temporadasRestantes -= 1;
     const ofertas = ofertasFinTemporada(s, media);
     if (s.contrato.temporadasRestantes <= 0 || ofertas.some(o => o.id !== 'renovar' && OFERTAS[o.id] && OFERTAS[o.id].sube)) {

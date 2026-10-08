@@ -16,7 +16,7 @@
   function codigo() { let c = ''; for (let i = 0; i < 5; i++) c += '0123456789ABCDEF'[Math.floor(Math.random() * 16)]; return 'TEST-' + c; }
   function nuevaTele() {
     return {
-      id: codigo(), version: 'P2.3', inicio: new Date().toISOString(), msActivo: 0, ultimoMs: null, interacciones: 0,
+      id: codigo(), version: 'P2.4', inicio: new Date().toISOString(), msActivo: 0, ultimoMs: null, interacciones: 0,
       momentos: { T0: { ms: 0, semana: 1 } },
       acciones: {}, decisiones: {}, registro: [], tiempos: [],
       rutas: [], prueba: null, pruebas: [], ofertas: [], clubes: [], contratos: [], partidos: { jugados: 0, titular: 0, suplente: 0, banquillo: 0 },
@@ -97,6 +97,14 @@
     { id: 'p6', t: '¿Te ha interesado gestionar la empresa?', tipo: 'texto' },
     { id: 'p7', t: '¿Qué parte querrías desbloquear después?', tipo: 'multi', ops: ['Más negocios', 'Subir deportivamente', 'Comprar propiedades', 'Comprar un club', 'Otro deporte', 'Otra'] },
     { id: 'p8', t: '¿Volverías a jugar mañana?', tipo: 'una', ops: ['Sí', 'Quizá', 'No'] },
+    // Monetización (P2.4): solo investigación. Ninguna respuesta cambia el juego ni activa ventajas de pago
+    { id: 'm1', t: '¿Te molestaría ver anuncios voluntarios a cambio de recompensas?', tipo: 'una', ops: ['Nada', 'Poco', 'Bastante', 'Mucho'] },
+    { id: 'm2', t: '¿Por qué recompensa mirarías un anuncio?', tipo: 'multi', ops: ['Descuento en la tienda', 'Energía', 'Bonus de empresa', 'Cosmético', 'Ninguna'] },
+    { id: 'm3', t: '¿Cuál de estas compras te plantearías?', tipo: 'multi', ops: ['0,99 €', '1,99 €', '2,99 €', '4,99 €', 'Ninguna'] },
+    { id: 'm4', t: '¿Por qué pagarías?', tipo: 'multi', ops: ['Ropa', 'Coches / aspectos', 'Personalización', 'Quitar anuncios', 'Más carreras', 'Nuevos deportes', 'Otra'] },
+    { id: 'm5', t: '¿Te parece injusto que quien pague tenga cosméticos exclusivos?', tipo: 'una', ops: ['Sí', 'No', 'Depende'] },
+    { id: 'm6', t: '¿Pagarías si diese ventajas deportivas? (solo para investigación)', tipo: 'una', ops: ['Sí', 'No'] },
+    { id: 'm7', t: 'Experimental: ¿pagarías por desbloquear un deporte nuevo? ¿Cuál?', tipo: 'multi', ops: ['No', 'Escalada', 'Tenis', 'Basket', 'Surf', 'Skate'] },
   ];
   const NOMBRES_ACCION = id => (P2.ACCIONES[id] ? P2.ACCIONES[id].n : id);
   const RUTA = { ojeador: 'Ojeador (partidos en la plaza)', jornada: 'Jornada abierta', torneo: 'Torneo local', campus: 'Campus de tecnificación', repesca: 'Repesca (desde el amateur)' };
@@ -106,7 +114,7 @@
   function informeTest(s) {
     const t = T(s), L = [];
     const linea = (k, v) => L.push(`${k}: ${v}`);
-    L.push('TEST P2.3', `ID: ${t.id}`, '');
+    L.push('TEST P2.4', `ID: ${t.id}`, '');
     linea('Inicio', t.inicio.replace('T', ' ').slice(0, 16));
     linea('Duración real (sin pausas de más de 5 min)', duracion(t.msActivo));
     linea('Semanas jugadas', s.semana - 1);
@@ -152,9 +160,43 @@
     linea('Consultas de «¿Por qué ha pasado esto?»', t.porque);
     linea('Momento de salida', `semana ${s.semana}, ${s.fase === 'club' ? 'profesional' : s.fase}, pantalla «${t.ultimaPantalla}», última acción «${t.ultimaAccion ? NOMBRES_ACCION(t.ultimaAccion) : '—'}»${s.pendiente ? `, con una decisión pendiente (${s.pendiente.tipo})` : ''}`);
     linea('Estado final', `nivel ${P2.nf(s.p.nivel)} · reputación deportiva ${Math.round(s.p.rep)} · marca personal ${Math.round(s.p.marca || 0)} · patrimonio ${eur(P2.patrimonio(s))}`);
+    L.push('', ...informeMon(s));
     L.push('', 'PREGUNTAS');
     for (const [i, q] of PREGUNTAS.entries()) { const r = t.respuestas[q.id]; L.push(`${i + 1}. ${q.t}`, `   ${Array.isArray(r) ? (r.length ? r.join(', ') : '—') : (r != null && r !== '' ? String(r) : '—')}`); }
     return L.join('\n');
+  }
+  // MONETIZACIÓN: todo simulado (ningún anuncio ni pago real). Sin datos suficientes, se dice
+  function informeMon(s) {
+    const t = T(s), m = t.mon || { eventos: [], cuentas: {}, deseados: {} }, c = m.cuentas, L = ['MONETIZACIÓN (simulada: sin anuncios ni pagos reales)'];
+    const n = k => c[k] || 0, pct = (a, b) => (b ? `${Math.round(100 * a / b)} %` : 'sin datos');
+    L.push(`  Variante del test: ${s.monVariante || '—'} (${(P2.MONETIZATION.variantes[s.monVariante] || {}).n || '—'})`);
+    L.push(`  Rewarded ofrecidos: ${n('rewarded_offer_shown')} · pulsados: ${n('rewarded_offer_clicked')} · aceptados: ${n('rewarded_offer_accepted')} · tasa de aceptación: ${pct(n('rewarded_offer_accepted'), n('rewarded_offer_shown'))}`);
+    for (const k of Object.keys(P2.REWARDED)) {
+      const sh = n(`rewarded_offer_shown:${k}`), ac = n(`rewarded_offer_accepted:${k}`);
+      if (sh || ac || n(`rewarded_offer_clicked:${k}`)) L.push(`    ${P2.REWARDED[k].n}: ofrecidos ${sh} · pulsados ${n(`rewarded_offer_clicked:${k}`)} · aceptados ${ac}${k === 'cupon' || k === 'oferta' ? ` · usados en una compra ${n(`reward_used:${k}`)}` : ''}`);
+    }
+    L.push('  Compras simuladas (prueba de intención, sin cargo):');
+    let algunaIap = false;
+    for (const I of P2.IAP_PRODUCTS) {
+      const sh = n(`iap_offer_shown:${I.id}`), cl = n(`iap_offer_clicked:${I.id}`), si = n(`iap_intent_yes:${I.id}`), q = n(`iap_intent_maybe:${I.id}`), no = n(`iap_intent_no:${I.id}`);
+      if (sh || cl) { algunaIap = true; L.push(`    ${I.nombre} ${String(I.precio).replace('.', ',')} €: mostrado ${sh} · clic ${cl} · sí ${si} / quizá ${q} / no ${no}`); }
+    }
+    if (!algunaIap) L.push('    Ninguna mostrada');
+    L.push(`  Tasa de clic en compras: ${pct(n('iap_offer_clicked'), n('iap_offer_shown'))} · «sí, lo compraría»: ${pct(n('iap_intent_yes'), n('iap_offer_clicked'))}`);
+    const pr = m.primero || {}, cuando = k => (pr[k] ? `semana ${pr[k].semana} (${duracion(pr[k].ms)})` : '—');
+    L.push(`  Primer clic en una compra: ${cuando('iap_offer_clicked')} · primer anuncio aceptado: ${cuando('rewarded_offer_accepted')}`);
+    const ish = (m.eventos || []).filter(e => e.e === 'interstitial_shown');
+    if (ish.length) {
+      const ult = ish[ish.length - 1], tras = (t.msActivo || 0) - ult.ms;
+      L.push(`  Anuncio obligatorio simulado: ${ish.length} (${ish.map(e => e.momento).join(', ')}) · continuó ${n('interstitial_continue')} · ${tras < 120000 ? 'la sesión acabó menos de 2 min después del último (posible abandono)' : 'siguió jugando después'}`);
+    } else L.push('  Anuncio obligatorio simulado: no ha salido');
+    const des = Object.entries(m.deseados || {}).sort((a, b) => b[1] - a[1]);
+    L.push(`  Objetos deseados (lista de deseos): ${des.length ? des.map(([id], i) => `${i + 1}. ${(P2.producto(id) || { n: id }).n}`).join(' · ') : 'ninguno'}${n('wishlist_reached') ? ` · alcanzados ${n('wishlist_reached')}` : ''}`);
+    const ganado = ['sueldo', 'primas', 'patrocinio', 'trabajo', 'retirado'].reduce((a, k) => a + ((s.acum || {})[k] || 0), 0) + (s.socio ? s.socio.dividendos || 0 : 0);
+    const gastado = (s.acum || {}).compras || 0, cp = t.compras || [];
+    L.push(`  Visitas a la Tienda: ${t.vistas.tienda || 0} · compras: ${cp.length}`);
+    L.push(`  Dinero gastado en Tienda: ${eur(gastado)} · dinero total ganado: ${eur(ganado)} · % de ingresos gastado: ${ganado ? `${Math.round(100 * gastado / ganado)} %` : 'sin datos'}`);
+    return L;
   }
   function responder(s, id, valor) {
     const q = PREGUNTAS.find(x => x.id === id); if (!q) return false;

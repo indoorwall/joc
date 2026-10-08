@@ -25,6 +25,7 @@
     P2.anotar(s, '🏅', `Hito: ${H.n}. Se abre: ${H.abre}.`);
     if (id === 'rentable') encolar(s, { tipo: 'oportunidad' });
     if (id === 'inversion2') { s.capitulo.completado = true; s.capitulo.semana = s.semana; encolar(s, { tipo: 'capitulo' }); }
+    P2.momentoMon(s, id === 'inversion2' ? 'finCapitulo' : id);   // momento bueno: aquí podría aparecer una oferta (simulada)
     return true;
   }
   function revisarHitos(s, R) {
@@ -317,11 +318,12 @@
     { id: 'empresa', ic: '💼', n: 'Empresa', grupo: 'imperio', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
     { id: 'patrimonio', ic: '💰', n: 'Patrimonio', grupo: 'imperio', cond: () => true },
     { id: 'personaje', ic: '🧍', n: 'Personaje', grupo: 'perfil', cond: () => true },
+    { id: 'historia', ic: '🏆', n: 'Mi historia', grupo: 'perfil', cond: () => true },
     { id: 'hitos', ic: '🏅', n: 'Hitos', grupo: 'perfil', cond: () => true },
     { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
   const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'vida', ic: '❤️', n: 'Vida' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
-  const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'];
+  const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {
     s.secciones = Array.isArray(s.secciones) ? s.secciones : BASICAS.slice();

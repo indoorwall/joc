@@ -229,7 +229,7 @@ function enClub(oferta = 'puerto', seed = 5) {
 
   // Navegación progresiva
   const nv = P2.nuevaPartida({ seed: 95 });
-  check('Al empezar se ven Inicio, Relaciones, Tienda, Patrimonio, Personaje, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,patrimonio,personaje,hitos,ajustes');
+  check('Al empezar se ven Inicio, Relaciones, Tienda, Patrimonio, Personaje, Mi historia, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,patrimonio,personaje,historia,hitos,ajustes');
   check('Relaciones y Tienda están disponibles desde el inicio (antes que Empresa)', ['relaciones', 'tienda'].every(id => nv.secciones.includes(id)) && !nv.secciones.includes('empresa'));
   nv.p.nivel = 56; P2.firmar(nv, 'puerto', null); const nuevas = P2.revisarSecciones(nv, null).map(x => x.id);
   check('Al firmar se abren Liga y Marcas (y se avisa)', nuevas.includes('liga') && nuevas.includes('marcas') && !P2.seccionesVisibles(nv).some(x => x.id === 'empresa') && nv.seccionesNuevas.includes('liga'));
@@ -296,6 +296,116 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Hay eventos de relación para familia, amigos, compañero y representante', ['madre', 'padre', 'marc', 'iker', 'sonia'].every(id => P2.EVENTOS_RELACION.some(E => E.rel === id)));
   const r3 = enClub('puerto', 104);
   check('El míster es una relación (su valor es la confianza)', P2.valorRel(r3, 'mister') === Math.round(r3.confianza) && P2.personasVisibles(r3).some(R => R.id === 'iker'));
+
+  {
+  // ---------- P2.4 · Monetization Lab (todo simulado) ----------
+  const MON = P2.MONETIZATION, RWC = MON.rewarded;
+  const foto = s => JSON.stringify({ rng: s.rng, temporada: s.temporada, stats: s.stats, pruebas: s.pruebas, invitacion: s.invitacion, contrato: s.contrato, hitos: s.hitos, cola: s.cola, pendiente: s.pendiente, p: { nivel: s.p.nivel, rep: s.p.rep, marca: s.p.marca }, confianza: s.confianza, negocios: s.negocios });
+  check('Monetización en modo prueba (testMode) y sin moneda premium', MON.testMode === true && !/gema|moneda premium|💎 x|🪙/i.test(JSON.stringify(P2.IAP_PRODUCTS.map(I => I.contenido))));
+  // Anuncio con recompensa: energía
+  const e1 = P2.nuevaPartida({ seed: 201 }); e1.p.energia = 20;
+  const pe = P2.pedirRewarded(e1, 'energia', {});
+  check('Pulsar «Ver anuncio» no entrega nada todavía (solo abre la simulación)', pe && e1.p.energia === 20);
+  const fe = foto(e1), r1e = P2.aceptarRewarded(e1, pe.token), e1v = e1.p.energia, r2e = P2.aceptarRewarded(e1, pe.token);
+  check('Aceptar el anuncio entrega exactamente una recompensa', r1e && r1e.tipo === 'energia' && e1v === 20 + RWC.energia.cantidad);
+  check('No se puede cobrar dos veces la misma recompensa', r2e === null && e1.p.energia === e1v);
+  check('La recompensa de energía no toca partidos, pruebas, decisiones ni el azar', foto(e1) === fe);
+  check('Frecuencia: no se puede repetir el anuncio de energía hasta pasar sus semanas', !!P2.bloqueoRewarded(e1, 'energia') && P2.pedirRewarded(e1, 'energia') === null);
+  e1.semana += RWC.energia.cadaSemanas; e1.p.energia = 20;
+  check('Pasadas sus semanas, vuelve a estar disponible', !P2.bloqueoRewarded(e1, 'energia'));
+  const cant0 = RWC.energia.cantidad; RWC.energia.cantidad = 500; e1.p.energia = 30; const pe2 = P2.pedirRewarded(e1, 'energia'); P2.aceptarRewarded(e1, pe2.token); RWC.energia.cantidad = cant0;
+  check('El anuncio de energía nunca supera el máximo (100)', e1.p.energia === P2.CFG.energia.max);
+  const e2 = P2.nuevaPartida({ seed: 202 }); e2.p.energia = 30; e2.fase = 'pruebas';
+  check('Nunca altera las pruebas: no hay anuncio de energía antes de una prueba', P2.bloqueoRewarded(e2, 'energia') === 'No antes de las pruebas');
+  const e3 = P2.nuevaPartida({ seed: 203 }); e3.p.energia = 20; e3.p.dinero = 5000; P2.encolar(e3, { tipo: 'suceso', id: 'masHoras' });
+  check('Nunca durante una decisión: con una decisión pendiente no hay ningún anuncio (no se repite ni se cambia)', Object.keys(P2.REWARDED).every(k => P2.pedirRewarded(e3, k, { id: 'bici' }) === null));
+  check('Ningún anuncio repite pruebas, partidos, decisiones, descensos, quiebras ni vuelve atrás', Object.keys(P2.REWARDED).join() === 'cupon,oferta,energia,temporada,empresaBonus' && !RWC.empresaBonus.activo);
+  // Cupón de Tienda
+  const c1 = P2.nuevaPartida({ seed: 204 }); c1.p.dinero = 100000; Object.assign(c1.hitos, { contrato: 2, titular: 3, empresa: 4, rentable: 5, inversion2: 6 });
+  check('Descuento con máximo: 10 % de 32.000 € se queda en el máximo configurado', P2.descuentoCupon(32000) === RWC.cupon.maximo && P2.descuentoCupon(5200) === 520);
+  check('El descuento nunca deja un precio negativo', P2.descuentoCupon(0) === 0 && P2.descuentoCupon(3) <= 3 && P2.PRODUCTOS.every(P => P2.precioConDescuento(c1, P) >= 0));
+  const pc = P2.pedirRewarded(c1, 'cupon', { id: 'cocheUsado' }); P2.aceptarRewarded(c1, pc.token);
+  check('Con el cupón: «comprar por 5.200 €» o «por 4.680 €» tras el anuncio', P2.precioPara(c1, P2.producto('cocheUsado')) === 4680 && P2.precioPara(c1, P2.producto('moto')) === 1900);
+  const dc = c1.p.dinero; P2.comprar(c1, 'cocheUsado');
+  check('El cupón se gasta una vez en la compra', c1.p.dinero === dc - 4680 && !P2.cuponVigente(c1));
+  check('Exploit cerrado: lo comprado con descuento vale según lo que pagaste (no se gana revendiendo)', c1.inventario.find(x => x.id === 'cocheUsado').valorActual === Math.round(4680 * 0.65));
+  // Oferta especial
+  const o1 = P2.nuevaPartida({ seed: 205 }); o1.p.dinero = 300;
+  const po = P2.pedirRewarded(o1, 'oferta', {}), ro = P2.aceptarRewarded(o1, po.token);
+  check('Oferta especial: un objeto de la etapa con descuento limitado, pagado con dinero del juego', ro && ro.precio < ro.original && ro.original - ro.precio <= RWC.oferta.maximo && ro.original <= RWC.oferta.precioMax.barrio && o1.p.dinero === 300);
+  check('Oferta especial: limitada en frecuencia', !!P2.bloqueoRewarded(o1, 'oferta'));
+  // Compras simuladas (prueba de intención)
+  const i1 = enClub('puerto', 206); i1.monVariante = 'B';
+  const fi = JSON.stringify({ p: i1.p, acum: i1.acum, inv: i1.inventario, rng: i1.rng, temporada: i1.temporada });
+  const ri = P2.iapIntencion(i1, 'debut', 'si');
+  check('Una compra simulada no cobra nada ni toca la economía, el inventario o el azar', ri && ri.cargo === 0 && JSON.stringify({ p: i1.p, acum: i1.acum, inv: i1.inventario, rng: i1.rng, temporada: i1.temporada }) === fi);
+  const html = fs.readFileSync(path.join(__dirname, '..', 'p2', 'del_barrio_p2.html'), 'utf8');
+  check('Ninguna compra ni anuncio real: sin conexiones, SDK, checkout ni pagos en el juego', !/fetch\(|XMLHttpRequest|sendBeacon|PaymentRequest|stripe|admob|googletag|StoreKit|billingclient|WebSocket/i.test(html));
+  check('No se vende poder ni dinero del juego: los packs son solo estética (y apoyo)', P2.IAP_PRODUCTS.every(I => I.contenido.every(c => Array.isArray(c) ? !!P2.itemLook(c[0], c[1]) : ['skin', 'sinAnuncios', 'espacios', 'texto'].includes(c.tipo))));
+  const cosmeticos = P2.IAP_PRODUCTS.flatMap(I => I.contenido.filter(Array.isArray));
+  const g1 = P2.nuevaPartida({ seed: 207 }), g2 = P2.nuevaPartida({ seed: 207 });
+  for (const [cap, id] of cosmeticos) g2.look[cap] = id;
+  for (let w = 0; w < 20; w++) { for (const g of [g1, g2]) { resolverTodo(g); P2.jugarSemana(g, P2.POLITICAS.equilibrada.accion(g)) || P2.jugarSemana(g, 'descansar'); } }
+  const sinLook = g => { const x = JSON.parse(JSON.stringify(g)); delete x.look; delete x.tele; delete x.monVariante; return JSON.stringify(x); };
+  check('Los cosméticos premium no cambian nada del juego (20 semanas idénticas con y sin ellos)', sinLook(g1) === sinLook(g2));
+  check('La entrega de cosméticos simulados está apagada por defecto (la intención no regala nada)', MON.iap.entregarCosmeticos === false && !i1.lookDesbloqueos.includes('ropa:debut'));
+  MON.iap.entregarCosmeticos = true; const i2 = enClub('puerto', 208), d2 = i2.p.dinero; P2.iapIntencion(i2, 'debut', 'si'); MON.iap.entregarCosmeticos = false;
+  check('Si se simula entregar el cosmético, solo cambia el aspecto (no el dinero)', i2.lookDesbloqueos.includes('ropa:debut') && i2.p.dinero === d2 && P2.ponerLook(i2, 'ropa', 'debut'));
+  // Momentos y variantes
+  const m1 = P2.nuevaPartida({ seed: 209 }); m1.monVariante = 'B';
+  check('El Pack Debut no sale al empezar', P2.ofertaIapAhora(m1, 0) === null);
+  m1.p.nivel = 56; P2.firmar(m1, 'puerto', null); m1.pendiente = null; m1.cola = [];
+  const of1 = P2.ofertaIapAhora(m1, 0);
+  check('Al firmar el primer contrato aparece el Pack Debut (variante B)', of1 && of1.id === 'debut' && of1.precio === 0.99);
+  check('Máximo de ofertas por sesión', P2.ofertaIapAhora(m1, MON.iap.maxPorSesion) === null);
+  m1.p.lesion = 2;
+  check('Nunca tras algo malo: lesionado/a no se ofrece nada', P2.ofertaIapAhora(m1, 0) === null);
+  m1.p.lesion = 0; P2.marcarIapMostrado(m1, 'debut');
+  check('Una oferta «una vez» no vuelve a salir', P2.ofertaIapAhora(m1, 0) === null);
+  const m2 = P2.nuevaPartida({ seed: 210 }); m2.monVariante = 'A'; m2.p.nivel = 56; P2.firmar(m2, 'puerto', null); m2.pendiente = null; m2.cola = [];
+  check('Variante A: solo anuncios con recompensa, ninguna compra', P2.ofertaIapAhora(m2, 0) === null && !P2.IAP_PRODUCTS.some(I => P2.iapEnVariante(m2, I.id)));
+  const v1 = P2.nuevaPartida({ seed: 211 }), va = v1.monVariante; P2.asignarVariante(v1);
+  const vs = new Set(Array.from({ length: 60 }, (_, k) => P2.nuevaPartida({ seed: 300 + k }).monVariante));
+  check('Variantes A/B/C: se asignan una sola vez, se guardan y salen las tres', ['A', 'B', 'C'].includes(va) && v1.monVariante === va && P2.migrateSave(JSON.parse(JSON.stringify(v1))).monVariante === va && vs.size === 3);
+  // Telemetría y desactivación
+  const t1 = P2.nuevaPartida({ seed: 212 }), t2 = P2.nuevaPartida({ seed: 212 });
+  for (let w = 0; w < 15; w++) { for (let k = 0; k < 5; k++) { P2.teleMon(t2, 'rewarded_offer_shown', { reward_type: 'cupon' }); P2.vistoMon(t2, 'iap_offer_shown', 'x' + k, {}); } for (const g of [t1, t2]) { resolverTodo(g); P2.jugarSemana(g, P2.POLITICAS.equilibrada.accion(g)) || P2.jugarSemana(g, 'descansar'); } }
+  const sinTele = g => { const x = JSON.parse(JSON.stringify(g)); delete x.tele; delete x.monVariante; return JSON.stringify(x); };
+  check('La telemetría de monetización no altera el azar ni la partida', sinTele(t1) === sinTele(t2));
+  MON.activa = false;
+  const offL = P2.jugarPartida(P2.crearBot('equilibrada', 'inteligente', 'locales'), 4242, 70, { seguir: true });
+  const off = P2.nuevaPartida({ seed: 213 }); off.p.energia = 10; off.p.nivel = 56; P2.firmar(off, 'puerto', null); off.pendiente = null; off.cola = [];
+  const offOk = Object.keys(P2.REWARDED).every(k => P2.bloqueoRewarded(off, k, { id: 'bici' }) === 'Desactivado') && P2.ofertaIapAhora(off, 0) === null && P2.intersticialAhora(off) === null;
+  MON.activa = true;
+  const onL = P2.jugarPartida(P2.crearBot('equilibrada', 'inteligente', 'locales'), 4242, 70, { seguir: true });
+  check('Monetización desactivada: no se ofrece nada y la partida es exactamente la misma', offOk && JSON.stringify(offL) === JSON.stringify(onL));
+  // Anuncio obligatorio simulado: muy limitado
+  const it1 = enClub('puerto', 214); it1.pendiente = null; it1.cola = []; it1.tele.msActivo = 30 * 60000;
+  P2.momentoMon(it1, 'finTemporada');
+  check('Anuncio obligatorio simulado: solo en momentos grandes (fin de temporada)', P2.intersticialAhora(it1) === 'finTemporada');
+  P2.intersticialMostrado(it1); it1.tele.msActivo += 5 * 60000; P2.momentoMon(it1, 'finCapitulo');
+  check('…y como mucho uno cada 12 minutos reales', P2.intersticialAhora(it1) === null);
+  P2.momentoMon(it1, 'contrato');
+  check('…nunca tras un hito normal ni durante una decisión', P2.intersticialAhora(it1) === null && (P2.momentoMon(it1, 'finTemporada'), it1.pendiente = { tipo: 'suceso', id: 'masHoras' }, P2.intersticialAhora(it1) === null));
+  // Lista de deseos
+  const w1 = P2.nuevaPartida({ seed: 215 }); w1.p.dinero = 100; P2.quiero(w1, 'bici');
+  const w1b = P2.migrateSave(JSON.parse(JSON.stringify(w1)));
+  check('La lista de deseos se guarda', w1b.deseoActual === 'bici');
+  w1.p.dinero = 200;
+  const av1 = P2.revisarDeseo(w1), av2 = P2.revisarDeseo(w1);
+  check('Al llegar al dinero del deseo se avisa una sola vez (y no se compra solo)', av1 === true && av2 === false && !P2.posee(w1, 'bici') && w1.mon.deseoAviso.id === 'bici');
+  check('Solo un objetivo destacado a la vez', P2.quiero(w1, 'moto') && w1.deseoActual === 'moto');
+  // Colecciones, eventos por posesiones, regalos
+  const k1 = P2.nuevaPartida({ seed: 216 }); k1.p.dinero = 1000; ['camiseta', 'chandal', 'gorra', 'botas'].forEach(id => P2.comprar(k1, id));
+  check('Completar una colección da un fondo de perfil (sin estadísticas)', k1.coleccionesHechas.includes('street') && k1.lookDesbloqueos.includes('fondo:street'));
+  check('Lo que compras se ve: la ropa se pone sola en el personaje', k1.look.calzado === 'botas' && ['equipoFav', 'chandalMarca'].includes(k1.look.ropa));
+  const k2 = P2.nuevaPartida({ seed: 217 }); k2.p.dinero = 20000; k2.hitos.contrato = 2; k2.hitos.titular = 3; P2.comprar(k2, 'cocheUsado');
+  check('Eventos por posesiones: el coche trae una situación semanas después (y tu padre opina del gasto)', k2.agenda.some(a => a.efecto === 'cocheFamilia') && k2.agenda.some(a => a.efecto === 'padreGasto'));
+  check('Regalos para tu gente con dinero del juego', P2.PRODUCTOS.filter(P => P.usar && P.usar.rel).length >= 4 && (() => { const x = P2.nuevaPartida({ seed: 218 }); x.p.dinero = 500; P2.comprar(x, 'regaloMadre'); return P2.valorRel(x, 'madre') === 80 && x.p.dinero === 380; })());
+  check('Escalera aspiracional: se ven objetos de magnate como «Próximamente» (no se compran)', ['superdeportivo', 'atico', 'villa', 'mansion'].every(id => P2.bloqueoProducto(c1, P2.producto(id)) === 'Próximamente'));
+  check('Rareza solo de presentación (no da estadísticas)', P2.PRODUCTOS.filter(P => P.rareza === 'legendario').every(P => !P.ef || P.ef.entreno == null || P.ef.entreno <= 0.06));
+  check('Mi historia resume tu carrera', (() => { const h = P2.miHistoria(c1); return h.vehiculos.some(P => P.id === 'cocheUsado') && h.patrimonioMax > 0; })());
+  }
 
   // Techo de sueldo por categoría
   const tp = enClub('puerto', 96); tp.contrato.sueldo = 440; P2.subirSueldo(tp, 1.4);
@@ -374,7 +484,7 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Registra prueba, club, partidos, empresa (caja) y segunda inversión', T.prueba && T.clubes.length && T.partidos.jugados > 5 && T.empresa.caja > 0 && T.segunda);
   P2.responderTest(full, 'p1', 8); P2.responderTest(full, 'p7', 'Más negocios'); P2.responderTest(full, 'p8', 'Quizá'); P2.responderTest(full, 'p2', 'En la liga');
   const inf = P2.informeTest(full);
-  check('El informe de prueba tiene las secciones pedidas', ['TEST P2.3', 'Tienda', 'Relaciones', T.id, 'Duración real', 'Semanas jugadas', 'Ruta inicial', 'Prueba', 'Primer club', 'Decisiones semanales', 'Patrocinadores', 'Empresa', 'Caja inicial', 'Segunda inversión', 'Momentos clave', 'Hitos alcanzados', 'Pantallas más visitadas', 'Momento de salida', 'PREGUNTAS'].every(x => inf.includes(x)));
+  check('El informe de prueba tiene las secciones pedidas', ['TEST P2.4', 'Tienda', 'Relaciones', 'MONETIZACIÓN', T.id, 'Duración real', 'Semanas jugadas', 'Ruta inicial', 'Prueba', 'Primer club', 'Decisiones semanales', 'Patrocinadores', 'Empresa', 'Caja inicial', 'Segunda inversión', 'Momentos clave', 'Hitos alcanzados', 'Pantallas más visitadas', 'Momento de salida', 'PREGUNTAS'].every(x => inf.includes(x)));
   check('Las respuestas a las preguntas salen en el informe', inf.includes('8') && inf.includes('Más negocios') && inf.includes('Quizá') && inf.includes('En la liga'));
   check('El informe no incluye el nombre del personaje', !inf.includes('Nombre Secreto'));
 }
@@ -400,6 +510,7 @@ let informe;
   const ctx = await b.newContext({ ...pw.devices['iPhone 13'] });
   const page = await ctx.newPage(); const errs = [];
   page.on('pageerror', e => errs.push(e.message)); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+  const redes = []; page.on('request', r => { if (!r.url().startsWith('file:') && !r.url().startsWith('data:')) redes.push(r.url()); });
   // Navegar como una persona: botón del grupo en la barra y, si hace falta, la pestaña de la sección
   const ir = async (pg, v) => { const g = await pg.evaluate(v => __P2.P2.SECCIONES.find(x => x.id === v).grupo, v); await pg.tap(`#nav [data-g="${g}"]`); const st = pg.locator(`.subtabs [data-v="${v}"]`); if (await st.count()) await st.tap(); };
   await page.goto(url);
@@ -415,7 +526,7 @@ let informe;
   check('UI: la partida empieza con el personaje elegido', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.nombre === 'Vega'));
   check('UI: tu cara sale en la cabecera', await page.locator('#top .hava svg').isVisible());
   check('UI: al empezar la barra tiene Inicio, Vida, Imperio y Perfil (Carrera aún no)', (await page.locator('#nav button').allTextContents()).map(x => x.replace(/[^A-Za-zñ]/g, '')).join() === 'Inicio,Vida,Imperio,Perfil');
-  check('UI: el inicio enseña tu personaje, el objetivo, el dinero y el progreso', await page.locator('.hero .stage svg').isVisible() && (await page.textContent('.hero')).includes('Consigue una prueba') && await page.locator('.hero .xp').isVisible() && await page.evaluate(() => document.body.dataset.etapa === 'barrio' && !!document.querySelector('#decor svg')));
+  check('UI: el inicio enseña tu personaje, el objetivo, el dinero y el progreso', await page.locator('.hero .stage .pj svg').isVisible() && (await page.textContent('.hero')).includes('Consigue una prueba') && await page.locator('.hero .xp').isVisible() && await page.evaluate(() => document.body.dataset.etapa === 'barrio' && !!document.querySelector('#decor svg')));
   check('UI: el botón «Jugar semana» empieza desactivado hasta que eliges', await page.locator('#jugar').isDisabled());
   const box = await page.locator('.dec .opt').first().boundingBox(), vh = page.viewportSize().height;
   check('UI: la primera decisión se ve sin desplazarse en un iPhone 13', box && box.y + box.height < vh - 60, JSON.stringify(box));
@@ -474,15 +585,32 @@ let informe;
   await page.tap('[data-act="cat"][data-v="vehiculos"]');
   const dm = await page.evaluate(() => __P2.S.p.dinero);
   await page.tap('[data-act="comprarP"][data-id="moto"]');
-  check('UI: lo caro pide confirmación (no se compra al primer toque)', await page.evaluate(dm => __P2.S.p.dinero === dm && !__P2.S.inventario.some(x => x.id === 'moto'), dm) && (await page.textContent('.prod.conf')).includes('Toca otra vez'));
+  check('UI: lo caro pide confirmación (no se compra al primer toque)', await page.evaluate(dm => __P2.S.p.dinero === dm && !__P2.S.inventario.some(x => x.id === 'moto'), dm) && (await page.textContent('.prod.conf')).includes('¿Seguro?'));
   await page.tap('[data-act="comprarP"][data-id="moto"]');
   check('UI: al comprar sale «🎉 NUEVA COMPRA» y el dinero baja una vez', await page.locator('.compraOk').isVisible() && (await page.textContent('.compraOk')).includes('NUEVA COMPRA') && await page.evaluate(dm => __P2.S.p.dinero === dm - 1900, dm));
   await page.tap('[data-act="cerrarCompra"]');
-  check('UI: la moto aparece en «Tus cosas» como vehículo', (await page.textContent('.cosas')).includes('Moto') && await page.locator('.prod.tuyo[data-id="moto"]').isDisabled());
+  check('UI: la moto aparece en «Tus cosas» como vehículo', (await page.textContent('.cosas')).includes('Moto') && await page.locator('.prod.tuyo[data-id="moto"] .precio').isDisabled());
   await page.reload();
   check('UI: recargar conserva la compra y no la duplica', await page.evaluate(dm => __P2.S.p.dinero === dm - 1900 && __P2.S.inventario.filter(x => x.id === 'moto').length === 1, dm));
   await ir(page, 'patrimonio');
   check('UI: el patrimonio incluye la moto (1.140 €)', (await page.textContent('.patri')).includes('1140'));
+  // Monetization Lab en la interfaz
+  await page.evaluate(() => { __P2.S.p.dinero = 900; __P2.S.monVariante = 'C'; __P2.guardar(); });
+  await ir(page, 'tienda'); await page.tap('[data-act="cat"][data-v="accesorios"]');
+  await page.tap('.rw[data-t="cupon"][data-id="relojDep"]');
+  check('UI: «Ver anuncio» abre la simulación con la recompensa (sin vídeo ni espera)', (await page.textContent('.modal')).includes('SIMULACIÓN DE ANUNCIO') && (await page.textContent('.modal')).includes('20–30 segundos'));
+  await page.tap('[data-act="rwOk"]');
+  check('UI: tras aceptar, el reloj sale con el precio rebajado', (await page.textContent('.prod[data-id="relojDep"] .precio')).includes('162'));
+  await page.tap('.iapCard [data-act="iap"]');
+  const mtx = await page.textContent('.modal');
+  check('UI: la prueba de compra dice el precio, «TEST» y que no se cobrará nada', mtx.includes('PRUEBA DE COMPRA') && mtx.includes('No se realizará ningún cargo') && /0,99 €/.test(mtx));
+  const din0 = await page.evaluate(() => __P2.S.p.dinero);
+  await page.tap('[data-act="iapResp"][data-v="si"]');
+  check('UI: responder «Sí, lo compraría» no cobra ni cambia el dinero del juego', await page.evaluate(d => __P2.S.p.dinero === d && __P2.S.tele.mon.cuentas.iap_intent_yes === 1, din0));
+  await page.tap('[data-act="iapCerrar"]');
+  await page.tap('.prod[data-id="relojDep"] .deseo').catch(() => {});
+  await ir(page, 'historia');
+  check('UI: «Mi historia» enseña tu carrera', (await page.textContent('#main')).includes('Mi historia'));
   await ir(page, 'relaciones');
   check('UI: Relaciones muestra tarjetas con nombre, valor y estado', await page.locator('.pers:not(.bloq)').count() >= 6 && (await page.textContent('#main')).includes('CARMEN') && (await page.textContent('#main')).includes('/100') && await page.locator('.pers.bloq').count() === 2);
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1);
@@ -506,9 +634,10 @@ let informe;
   await page.fill('#r_p2', 'Al principio'); await page.dispatchEvent('#r_p2', 'change');
   await page.tap('[data-act="informe"]');
   const inf = await page.inputValue('#textoInforme');
-  check('UI: «Informe de prueba» genera un texto copiable con ID, duración y respuestas', /TEST P2\.3/.test(inf) && /ID: TEST-[0-9A-F]{5}/.test(inf) && inf.includes('Duración real') && inf.includes('Al principio') && /\n   7\n/.test(inf) && inf.includes('Sí'));
+  check('UI: «Informe de prueba» genera un texto copiable con ID, duración y respuestas', /TEST P2\.4/.test(inf) && /ID: TEST-[0-9A-F]{5}/.test(inf) && inf.includes('Duración real') && inf.includes('Al principio') && /\n   7\n/.test(inf) && inf.includes('Sí'));
   check('UI: el informe cuenta las pantallas visitadas', /Pantallas más visitadas: .*ajustes/.test(inf));
   check('UI: sin errores de JavaScript', errs.length === 0, errs.join(' | '));
+  check('UI: el juego no hace ninguna petición de red (ni anuncios ni pagos reales)', redes.length === 0, redes.join(' '));
   await b.close();
   fin();
 })();

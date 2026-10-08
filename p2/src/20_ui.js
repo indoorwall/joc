@@ -63,6 +63,32 @@
     return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${defs}${x}</svg>`;
   }
 
+  // ---------- Tu casa y tu vehículo (se ven: «ahora tengo esto») ----------
+  function casaSVG(id) {
+    const v = id || 'habitacion';
+    let x = '';
+    if (v === 'habitacion') x = `<rect width="120" height="120" fill="#6d5ccf"/><rect y="88" width="120" height="32" fill="#4a3a9e"/><rect x="12" y="18" width="26" height="34" rx="2" fill="#ffc83d" opacity=".85"/><path d="M16 46 l8 -12 6 8 4 -5 4 9Z" fill="#ff4f8b"/><rect x="70" y="70" width="46" height="22" rx="4" fill="#8fb4ff"/><rect x="72" y="62" width="14" height="10" rx="3" fill="#fff"/>`;
+    else if (v === 'piso') x = `<rect width="120" height="120" fill="#2c3fa8"/><rect y="90" width="120" height="30" fill="#1b2a7a"/><rect x="62" y="14" width="46" height="44" rx="3" fill="#0b1033" stroke="#cfd8ff" stroke-width="3"/>${[[66, 30, 8, 28], [78, 22, 9, 36], [92, 34, 10, 24]].map(([a, b, w, h]) => `<rect x="${a}" y="${b}" width="${w}" height="${h}" fill="#3b2a9e"/><rect x="${a + 2}" y="${b + 4}" width="3" height="3" fill="#ffd66b"/>`).join('')}<rect x="8" y="74" width="44" height="18" rx="6" fill="#ff7aa8"/><rect x="14" y="66" width="12" height="10" rx="3" fill="#ffc0d6"/>`;
+    else if (v === 'casaPremium') x = `<rect width="120" height="120" fill="#7fd8ff"/><circle cx="96" cy="20" r="10" fill="#ffc83d"/><rect y="86" width="120" height="34" fill="#5b7dff"/><rect x="8" y="94" width="50" height="12" rx="6" fill="#bff3ff"/><rect x="62" y="44" width="52" height="44" fill="#fff"/><path d="M58 46 L88 24 L118 46Z" fill="#1a1640"/><rect x="72" y="58" width="12" height="12" fill="#7fd8ff"/><rect x="92" y="58" width="12" height="12" fill="#7fd8ff"/>`;
+    return `<svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${x}</svg>`;
+  }
+  function vehiculoSVG(id, skin) {
+    const S = (P2.SKINS_VEHICULO[id] || []).find(k => k.id === skin), c = S ? S.c : { bici: '#3d7bff', moto: '#ff4f8b', cocheUsado: '#8fa3c7', deportivo: '#e23b3b', superdeportivo: '#ffc83d' }[id] || '#8fa3c7';
+    const rueda = (x, r = 9) => `<circle cx="${x}" cy="48" r="${r}" fill="#1a1640"/><circle cx="${x}" cy="48" r="${r * 0.45}" fill="#cfd3e6"/>`;
+    let x = '';
+    if (id === 'bici') x = `${rueda(22, 11)}${rueda(78, 11)}<path d="M22 48 L42 26 L66 26 L78 48 M42 26 L50 48 L66 26 M38 20 h10 M64 20 l4 6" stroke="${c}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    else if (id === 'moto') x = `${rueda(22, 11)}${rueda(80, 11)}<path d="M22 48 L40 30 L68 30 L80 48 Z" fill="${c}"/><rect x="44" y="22" width="20" height="8" rx="4" fill="#1a1640"/><path d="M68 30 L76 18 h6" stroke="#cfd3e6" stroke-width="3" fill="none"/>`;
+    else if (id === 'deportivo' || id === 'superdeportivo') x = `<path d="M4 46 Q6 34 24 32 L40 22 Q56 18 70 24 L88 32 Q98 34 98 46Z" fill="${c}"/><path d="M42 26 Q56 21 68 26 L74 32 L38 32Z" fill="#7fd8ff" opacity=".85"/>${rueda(24)}${rueda(78)}${id === 'superdeportivo' ? '<path d="M2 30 h14" stroke="#1a1640" stroke-width="4"/>' : ''}`;
+    else x = `<path d="M6 46 L8 30 Q10 26 18 26 L30 14 L70 14 L82 26 Q94 28 94 36 L94 46Z" fill="${c}"/><path d="M34 18 L48 18 L48 26 L26 26Z M52 18 L68 18 L78 26 L52 26Z" fill="#bfe9ff"/>${rueda(26)}${rueda(74)}`;
+    return `<svg viewBox="0 0 100 60" aria-hidden="true">${x}</svg>`;
+  }
+  const vivienda = s => (P2.equipado(s, 'vivienda') || { id: 'habitacion' }).id;
+  const vehiculo = s => { const P = P2.equipado(s, 'vehiculo'); if (!P) return null; const it = (s.inventario || []).find(i => i.id === P.id); return { P, skin: it && it.skin }; };
+  function escena(s, grande) {
+    const V = vehiculo(s);
+    return `<div class="escenaCasa ${grande ? 'grande' : ''}">${casaSVG(vivienda(s))}<div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
+  }
+
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
@@ -94,11 +120,49 @@
   // ---------- INICIO: tu personaje en su escenario, objetivo, dinero y progreso ----------
   function htmlHero(s) {
     const H = P2.siguienteHito(s), hechos = HITOS.filter(h => s.hitos[h.id]).length, e = etapa(s);
-    return `<div class="hero e-${e}"><div class="stage">${P2.avatarSVG(s, null, 'cuerpo')}</div>
+    return `<div class="hero e-${e}"><div class="stage">${escena(s)}</div>
       <div class="heroInfo"><span class="etq">${ETAPAS[e]} · semana ${s.semana}</span>
         <b class="obj">🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b>
         <div class="xp" aria-label="Progreso del capítulo"><i style="width:${Math.round(100 * hechos / HITOS.length)}%"></i></div><small>${hechos} de ${HITOS.length} hitos</small>
-        <div class="saldo"><span class="oro">💶 ${esc(eur(s.p.dinero))}</span><span>🏦 ${esc(eur(P2.patrimonio(s)))}</span></div></div></div>`;
+        <div class="saldo"><span class="oro">💶 ${esc(eur(s.p.dinero))}</span><span>🏦 ${esc(eur(P2.patrimonio(s)))}</span></div></div></div>${htmlDeseo(s)}`;
+  }
+  // 🎯 Tu objetivo personal (lista de deseos): uno a la vez
+  function htmlDeseo(s) {
+    const P = s.deseoActual && P2.producto(s.deseoActual); if (!P) return '';
+    const p = Math.min(100, Math.round(100 * Math.max(0, s.p.dinero) / P.precio));
+    return `<button class="deseoBar" data-act="verDeseo"><span class="dic">${P.ic}</span><span class="dtx"><small>🎯 TU OBJETIVO PERSONAL</small><b>${esc(P.n)}</b>
+      <span class="xp"><i style="width:${p}%"></i></span><small>Tienes ${esc(eur(s.p.dinero))} · necesitas ${esc(eur(P.precio))}</small></span></button>`;
+  }
+  // Extras del inicio: recompensa de temporada, energía patrocinada y oferta (simulada) en un buen momento
+  function htmlExtrasInicio(s) {
+    let h = '';
+    const m = P2.monEstado(s), tp = m.temporadaPremio;
+    if (P2.MONETIZATION.activa && tp && !tp.visto) {
+      h += `<div class="card premioT"><h3>🎁 RECOMPENSA DE TEMPORADA</h3><p>Has desbloqueado: <b>👕 Camiseta de la temporada</b> (ya está en tu personaje).</p>
+        ${tp.extra ? '<p class="small">✅ También tienes las 🕶️ Gafas edición temporada.</p>' : `${rwBtn(s, 'temporada', {}, 'Consigue también: 🕶️ Gafas edición temporada')}<p class="small">Solo estética: no dan estadísticas.</p>`}
+        <button class="btn w full" data-act="premioVisto">Vale</button></div>`;
+    }
+    if (P2.MONETIZATION.activa && !P2.bloqueoRewarded(s, 'energia')) h += `<div class="card rwCard"><b>⚡ Vas justo de energía</b><p class="small">Descansar sigue siendo la opción de siempre. Si quieres, una vez cada ${P2.MONETIZATION.rewarded.energia.cadaSemanas} semanas:</p>${rwBtn(s, 'energia', { contexto: 'inicio' }, `Recuperación patrocinada: +${P2.MONETIZATION.rewarded.energia.cantidad} energía`)}</div>`;
+    if (!ui.iapCard) { const I = P2.ofertaIapAhora(s, ui.iapSesion || 0); if (I) { P2.marcarIapMostrado(s, I.id); ui.iapCard = I.id; ui.iapSesion = (ui.iapSesion || 0) + 1; P2.guardar(s); } }
+    if (ui.iapCard) h += htmlIapCard(s, ui.iapCard, 'momento');
+    return h;
+  }
+  const TITULO_MOMENTO = { contrato: '🎉 TU PRIMER CONTRATO', titular: '⭐ YA ERES TITULAR', patro: '🤝 TU PRIMER PATROCINADOR', empresa: '💼 TU PRIMERA EMPRESA', rentable: '📈 EMPRESA RENTABLE' };
+  const precioTxt = p => `${String(p.toFixed(2)).replace('.', ',')} €`;
+  function htmlIapCard(s, id, donde) {
+    const I = P2.IAP_PRODUCTS.find(x => x.id === id); if (!I) return '';
+    P2.iapMostrado(s, id, donde);
+    return `<div class="card iapCard rz-${I.rareza || 'raro'}">${donde === 'momento' ? `<small class="mom">${TITULO_MOMENTO[I.momentoOferta] || '🎉'}</small>` : ''}
+      <div class="fila"><div class="iapPrev">${P2.avatarSVG(s, lookPack(s, I), 'busto')}</div><div><b>${I.ic} ${esc(I.nombre.toUpperCase())}</b><p class="small">${esc(I.descripcion)}</p></div></div>
+      <button class="btn full iapBtn" data-act="iap" data-id="${I.id}">Ver · ${precioTxt(I.precio)} <span class="lab">🧪 TEST · sin cargo</span></button>
+      ${donde === 'momento' ? '<button class="btn w full" data-act="iapNo">No, gracias</button>' : ''}</div>`;
+  }
+  // Cómo te quedaría el pack (vista previa)
+  function lookPack(s, I) { const L = Object.assign({}, s.look); for (const c of I.contenido) if (Array.isArray(c)) L[c[0]] = c[1]; return L; }
+  function rwBtn(s, tipo, data, texto) {
+    const lim = (ui.rwSesion || 0) >= P2.MONETIZATION.limitesSesion.rewarded, b = P2.bloqueoRewarded(s, tipo, data);
+    if (!b) P2.ofrecidoRewarded(s, tipo, data);
+    return `<button class="rw" data-act="rw" data-t="${tipo}" data-id="${esc(data.id || '')}" ${b || lim ? 'disabled' : ''}>📺 ${esc(texto)}${b || lim ? `<small>${esc(lim ? 'Límite de esta sesión' : b)}</small>` : ''}</button>`;
   }
   // Accesos rápidos (como en un juego: tus personas, la tienda, tu imperio)
   function htmlAccesos(s) {
@@ -297,16 +361,44 @@
     const cat = ui.cat || 'ropa', prods = P2.PRODUCTOS.filter(P => P.cat === cat && !P.inicial);
     const tile = P => {
       const tuyo = !P.consumible && P2.posee(s, P.id), bl = tuyo ? null : P2.bloqueoProducto(s, P), conf = ui.confirmar === P.id;
-      const estado = tuyo ? 'tuyo' : bl ? 'bloq' : conf ? 'conf' : '';
-      return `<button class="prod ${estado}" data-act="comprarP" data-id="${P.id}" ${tuyo || bl ? 'disabled' : ''}>
+      const estado = tuyo ? 'tuyo' : P.proximamente ? 'bloq prox' : bl ? 'bloq' : conf ? 'conf' : '';
+      const pv = P2.precioPara(s, P), R = P2.RAREZAS[P.rareza || 'comun'], des = s.deseoActual === P.id;
+      const precio = pv !== P.precio ? `<s>${esc(eur(P.precio))}</s> ${esc(eur(pv))}` : esc(eur(P.precio));
+      return `<div class="prod ${estado} rz-${P.rareza || 'comun'}" data-id="${P.id}"><span class="rz" style="--rz:${R.c}">${R.n}</span>
+        ${P2.deseable(P) && !tuyo ? `<button class="deseo ${des ? 'sel' : ''}" data-act="quiero" data-id="${P.id}" aria-pressed="${des}" aria-label="Quiero esto">${des ? '❤️' : '🤍'}</button>` : ''}
         <span class="pic">${P.ic}</span><b>${esc(P.n)}</b><span class="pd">${esc(efectoTxt(P))}</span>
-        <span class="precio">${tuyo ? '✅ Es tuyo' : conf ? `¿Seguro? Toca otra vez` : `💶 ${esc(eur(P.precio))}`}</span>${bl ? `<span class="bl">🔒 ${esc(bl)}</span>` : ''}</button>`;
+        ${bl && !tuyo ? `<span class="bl">🔒 ${esc(bl)}</span>` : ''}
+        <button class="precio" data-act="comprarP" data-id="${P.id}" ${tuyo || bl ? 'disabled' : ''}>${tuyo ? '✅ Es tuyo' : conf ? `¿Seguro? ${precio}` : `💶 ${precio}`}</button>
+        ${!tuyo && P2.MONETIZATION.activa && !P.proximamente && !P.consumible && P.precio >= P2.MONETIZATION.rewarded.cupon.precioMin && pv === P.precio && !(P.req && P.req.hito && !s.hitos[P.req.hito]) ? rwBtn(s, 'cupon', { id: P.id }, `Cupón −${Math.round(P2.MONETIZATION.rewarded.cupon.pct * 100)} % · ahorras ${eur(P2.descuentoCupon(P.precio))}`) : ''}
+        ${pv !== P.precio ? `<span class="cuponOk">${P2.ofertaVigente(s) && P2.ofertaVigente(s).id === P.id ? '🎁 Oferta especial' : '🏷️ Cupón activo'}</span>` : ''}</div>`;
     };
-    return `<div class="card tiendaTop"><div class="fila"><div><h2>🛍️ Tienda</h2><p class="small">Disfruta lo que ganas. Nada es obligatorio para competir; algunos objetos ayudan un poco.</p></div>
+    return `<div class="card tiendaTop"><div class="fila"><div><h2>🛍️ Tienda</h2><p class="small">Disfruta lo que ganas. Nada es obligatorio para competir; algunos objetos ayudan un poco. Toca 🤍 para marcar tu objetivo.</p></div>
         <div class="saldoBox"><small>Disponible</small><b class="oro">${esc(eur(s.p.dinero))}</b></div></div></div>
+      ${htmlOfertaEspecial(s, tile)}
       <div class="cats" role="tablist">${P2.CATEGORIAS_TIENDA.map(c => `<button role="tab" aria-selected="${c.id === cat}" data-act="cat" data-v="${c.id}" class="${c.id === cat ? 'sel' : ''}"><span>${c.ic}</span>${c.n}</button>`).join('')}</div>
       <div class="prods">${prods.map(tile).join('')}</div>
-      ${htmlCosas(s)}`;
+      ${htmlCosas(s)}${htmlColecciones(s)}${htmlPremium(s)}`;
+  }
+  function htmlOfertaEspecial(s, tile) {
+    if (!P2.MONETIZATION.activa) return '';
+    const o = P2.ofertaVigente(s);
+    if (o) return `<div class="sec"><span>🎁 Oferta especial</span><span>hasta la semana ${o.hasta}</span></div><div class="prods uno">${tile(P2.producto(o.id))}</div>`;
+    const b = P2.bloqueoRewarded(s, 'oferta');
+    return `<div class="card ofertaEsp"><b>🎁 OFERTA ESPECIAL</b><span class="small">Un objeto de tu etapa con descuento. Lo pagas con dinero del juego.</span>${b && b !== 'Desactivado' ? `<span class="small">⏳ ${esc(b)}</span>` : rwBtn(s, 'oferta', { contexto: 'tienda' }, 'Ver anuncio para descubrir la oferta')}</div>`;
+  }
+  function htmlColecciones(s) {
+    return `<div class="sec"><span>🏆 Colecciones</span><span>premio visual</span></div><div class="card colec">${P2.COLECCIONES.map(C => {
+      if (C.futura) return `<div class="kv muted"><span>${C.ic} ${esc(C.n)}</span><span class="small">🔒 Próximamente</span></div>`;
+      const p = P2.progresoColeccion(s, C), ok = (s.coleccionesHechas || []).includes(C.id);
+      return `<div class="kv"><span>${C.ic} <b>${esc(C.n)}</b> <span class="small">${C.items.map(id => `${P2.producto(id).ic}`).join(' ')}</span></span><b>${ok ? `✅ ${esc(C.premioN)}` : `${p.tengo}/${p.total}`}</b></div>`;
+    }).join('')}</div>`;
+  }
+  // Estilo premium: solo variante C del test y solo como prueba de intención (sin cargo)
+  function htmlPremium(s) {
+    if (!P2.MONETIZATION.activa) return '';
+    const l = P2.IAP_PRODUCTS.filter(I => I.categoria === 'cosmetico' && P2.iapEnVariante(s, I.id) && s.monVariante === 'C');
+    if (!l.length) return '';
+    return `<div class="sec"><span>⭐ Estilo premium</span><span class="lab">🧪 TEST · sin cargo</span></div><p class="small blanco">Solo estética. Lo que ayuda a jugar se compra siempre con dinero del juego.</p>${l.map(I => htmlIapCard(s, I.id, 'tienda')).join('')}`;
   }
   // Tus cosas: lo que llevas puesto en cada hueco y tu colección
   function htmlCosas(s) {
@@ -320,6 +412,38 @@
       ${inv.filter(it => P2.producto(it.id).patrimonial).map(it => { const P = P2.producto(it.id); return `<div class="kv"><span>${P.ic} ${esc(P.n)} <span class="small">compra ${esc(eur(it.precioCompra))}</span></span>${vender(it)}</div>`; }).join('')}
       ${guardados.map(it => { const P = P2.producto(it.id); return `<div class="kv"><span>${P.ic} ${esc(P.n)} <span class="small">guardado</span></span><button class="btn w mini" data-act="equipar" data-id="${P.id}">Usar</button></div>`; }).join('')}
       ${inv.length ? '' : '<p class="small">Aún no te has comprado nada. Vives en casa de tus padres y vas andando a todas partes.</p>'}</div>`;
+  }
+  function htmlRw(s) {
+    const p = ui.rw, C = P2.MONETIZATION.rewarded[p.tipo], R = P2.REWARDED[p.tipo];
+    let rec = R.d(C);
+    if (p.tipo === 'cupon') { const P = P2.producto(p.data.id), d = P2.descuentoCupon(P.precio); rec = `🏷️ Cupón −${Math.round(C.pct * 100)} % para ${P.ic} ${P.n}: comprar por ${eur(P.precio - d)} en vez de ${eur(P.precio)} (ahorras ${eur(d)}). Válido ${C.validez} semanas.`; }
+    return `<div class="overlay" role="dialog" aria-label="Simulación de anuncio"><div class="modal">
+      <small class="lab">🧪 MONETIZATION LAB</small><h2>📺 SIMULACIÓN DE ANUNCIO</h2>
+      <p>En la versión final aquí aparecería un anuncio de aproximadamente 20–30 segundos.</p>
+      <div class="recompensa"><small>Tu recompensa sería:</small><b>${esc(rec)}</b></div>
+      <button class="btn full" data-act="rwOk">Simular anuncio y aceptar recompensa</button><button class="btn w full" data-act="rwNo">Cancelar</button></div></div>`;
+  }
+  function htmlIapModal(s) {
+    const I = P2.IAP_PRODUCTS.find(x => x.id === ui.iap);
+    if (ui.iapResp) return `<div class="overlay" role="dialog"><div class="modal"><h2>🧪 Gracias</h2><p>${ui.iapResp === 'si' ? '¡Anotado que lo comprarías!' : 'Anotado.'} No se ha cobrado nada${P2.MONETIZATION.iap.entregarCosmeticos ? '' : ' y en esta prueba el pack no se entrega'}.</p><button class="btn full" data-act="iapCerrar">Seguir jugando</button></div></div>`;
+    return `<div class="overlay" role="dialog" aria-label="Prueba de compra"><div class="modal">
+      <small class="lab">🧪 PRUEBA DE COMPRA</small><p>En la versión final esta compra costaría:</p><div class="precioGrande">${precioTxt(I.precio)}</div>
+      <h2>${I.ic} ${esc(I.nombre.toUpperCase())}</h2>${I.contenido.some(Array.isArray) ? `<div class="iapPrev grande">${P2.avatarSVG(s, lookPack(s, I), 'cuerpo')}</div>` : ''}
+      <ul class="cont">${I.contenido.map(c => `<li>${esc(Array.isArray(c) ? c[2] : c.t)}</li>`).join('')}</ul>
+      <p class="small">Sin estadísticas ni ventajas. <b>No se realizará ningún cargo.</b></p><p><b>¿Lo comprarías?</b></p>
+      <div class="seg tres3"><button data-act="iapResp" data-v="no">No</button><button data-act="iapResp" data-v="quiza">Quizá</button><button data-act="iapResp" data-v="si" class="sel">Sí, lo compraría</button></div></div></div>`;
+  }
+  function htmlInter(s) {
+    const sa = P2.iapEnVariante(s, 'sinAnuncios');
+    return `<div class="overlay" role="dialog" aria-label="Anuncio simulado"><div class="modal">
+      <small class="lab">🧪 MONETIZATION LAB</small><h2>📺 Anuncio</h2><p>En la versión gratuita aquí aparecería un anuncio breve.</p>
+      <button class="btn full" data-act="interOk">Continuar</button>${sa ? '<button class="btn w full" data-act="iap" data-id="sinAnuncios">🚫 Sin anuncios · 2,99 € <span class="lab">🧪 TEST</span></button>' : ''}</div></div>`;
+  }
+  function htmlDeseoAviso(s) {
+    const a = P2.monEstado(s).deseoAviso, P = P2.producto(a.id);
+    return `<div class="overlay" role="dialog"><div class="compraOk"><div class="rayos"></div><small>🎉 ¡YA PUEDES COMPRARLO!</small><div class="bigic">${P.ic}</div><h2>${esc(P.n)}</h2>
+      <p>Has llegado a ${esc(eur(s.p.dinero))}. ¿Te lo compras o inviertes ese dinero? Tú decides.</p>
+      <button class="btn full" data-act="deseoTienda">🛍️ Ir a la Tienda</button><button class="btn w full" data-act="deseoLuego">Más tarde</button></div></div>`;
   }
   function htmlNuevaCompra() {
     const P = P2.producto(ui.nuevaCompra); if (!P) return '';
@@ -353,7 +477,21 @@
         ${kv('💶 Dinero disponible', eur(s.p.dinero))}${kv('🏠 Tus cosas con valor', eur(pos))}${kv('💼 Empresas', s.negocios.length ? eur(emp) : '—')}${s.socio ? kv('🤝 Participación', s.socio.vendida ? 'vendida' : eur(soc)) : ''}
         <p class="small">La ropa, el ocio y la tecnología no suman: son para disfrutar. Vehículos, vivienda y joyas conservan parte de lo que pagaste.</p></div>
       ${pat.length ? `<div class="sec"><span>Posesiones</span></div><div class="card">${pat.map(it => { const P = P2.producto(it.id); return kv(`${P.ic} ${esc(P.n)}`, `${eur(it.precioCompra)} → <span class="oro2">${eur(it.valorActual)}</span>`); }).join('')}</div>` : ''}
-      <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>`;
+      <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>
+      ${htmlGaraje(s)}
+      <div class="sec"><span>🏠 Tu casa</span></div><div class="card casaCard">${escena(s, true)}<p class="small">${esc((P2.equipado(s, 'vivienda') || {}).n || '')}. Decoración: próximamente.</p></div>`;
+  }
+  function htmlGaraje(s) {
+    const inv = (s.inventario || []).filter(it => (P2.producto(it.id) || {}).cat === 'vehiculos'), act = (s.equipado || {}).vehiculo;
+    const vend = (s.vendidos || []).filter(v => (P2.producto(v.id) || {}).cat === 'vehiculos');
+    return `<div class="sec"><span>🚗 Garaje</span><span>${inv.length} ${inv.length === 1 ? 'vehículo' : 'vehículos'}</span></div><div class="card garaje">
+      ${inv.length ? inv.map(it => { const P = P2.producto(it.id), skins = P2.SKINS_VEHICULO[it.id] || [];
+        return `<div class="vehC ${act === it.id ? 'act' : ''}"><div class="vsvg">${vehiculoSVG(it.id, it.skin)}</div><div><b>${P.ic} ${esc(P.n)}</b> ${act === it.id ? '<span class="chip bien">En uso</span>' : `<button class="btn w mini" data-act="equipar" data-id="${P.id}">Usar</button>`}
+          <span class="small">Valor ${esc(eur(it.valorActual))} · pagaste ${esc(eur(it.precioCompra))}</span>
+          ${skins.length ? `<span class="small">Aspecto: ${skins.map(k => k.premium ? `🔒 ${esc(k.n)} (Pack ${esc((P2.IAP_PRODUCTS.find(I => I.id === k.premium) || {}).nombre || '')}, prueba)` : esc(k.n)).join(' · ')}</span>` : ''}</div></div>`; }).join('')
+        : '<p class="small">Aún no tienes vehículo: vas andando o en autobús. La bici está en la Tienda.</p>'}
+      ${vend.length ? `<p class="small">Vehículos anteriores: ${vend.map(v => `${P2.producto(v.id).ic} ${esc(P2.producto(v.id).n)} (vendido en la sem. ${v.semana})`).join(' · ')}</p>` : ''}
+      <p class="small">Próximamente: ${P2.PRODUCTOS.filter(P => P.cat === 'vehiculos' && P.proximamente).map(P => `${P.ic} ${esc(P.n)}`).join(', ')}.</p></div>`;
   }
 
   function htmlHitos(s) {
@@ -365,7 +503,8 @@
 
   function htmlAjustes(s) {
     const B = ui.balance;
-    return `${htmlInforme(s)}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
+    const lab = P2.MONETIZATION.activa ? P2.IAP_PRODUCTS.filter(I => P2.iapEnVariante(s, I.id) && (I.categoria !== 'cosmetico') && (I.id !== 'founder' || ((s.tele || {}).msActivo || 0) >= P2.MONETIZATION.iap.minutosFounder * 60000)) : [];
+    return `${htmlInforme(s)}${lab.length ? `<div class="sec"><span>🧪 Productos en prueba</span><span>variante ${esc(s.monVariante || '')}</span></div><p class="small blanco">No se cobra nada: solo queremos saber si te interesarían.</p>${lab.map(I => htmlIapCard(s, I.id, 'ajustes')).join('')}` : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
       <div class="sec">Copia de seguridad</div><p class="small">Copia este código para guardar la partida fuera del navegador.</p>
       <textarea id="codigo" readonly>${esc(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}</textarea>
       <textarea id="importar" placeholder="Pega aquí un código para cargarlo"></textarea>
@@ -416,7 +555,17 @@
         return `<button class="lk ${puesto ? 'sel' : ''}" data-act="look" data-c="${cap}" data-v="${it.id}" ${bl ? 'disabled' : ''} aria-pressed="${puesto}">${P2.avatarSVG(sv, Object.assign({}, L, { [cap]: it.id }), vista)}<b>${esc(it.n)}</b>${bl ? `<span>🔒 ${esc(bl)}</span>` : ''}</button>`; }).join('')}</div>`;
   }
   function htmlPersonaje(s) {
-    return `<div class="card"><h2>🧍 ${esc(s.nombre)}</h2>${htmlEditor(s, s.look)}</div><div class="card">${htmlTresVariables(s)}</div>${htmlCosas(s)}`;
+    return `<div class="card perfilTop">${escena(s, true)}<h2>🧍 ${esc(s.nombre)}</h2></div><div class="card">${htmlEditor(s, s.look)}</div><div class="card">${htmlTresVariables(s)}</div>${htmlCosas(s)}`;
+  }
+  function htmlHistoria(s) {
+    const H = P2.miHistoria(s), cel = (ic, v, n) => `<div><span>${ic}</span><b>${v}</b><small>${n}</small></div>`;
+    return `<div class="card historia"><h2>🏆 Mi historia</h2><div class="trofeos">
+        ${cel('🏆', H.ligasGanadas, 'ligas ganadas')}${cel('⬆️', H.ascensos, 'ascensos')}${cel('📅', H.temporadas, 'temporadas')}${cel('⚽', H.goles, 'goles')}
+        ${cel('🤝', H.marcas.length, 'patrocinadores')}${cel('💼', H.empresas, 'empresas')}${cel('🏦', esc(eur(H.patrimonioMax)), 'mayor patrimonio')}${cel('🏅', H.hitos.length, 'hitos')}</div></div>
+      <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
+        ${kv('🚗 Vehículos', H.vehiculos.length ? H.vehiculos.map(P => P.ic).join(' ') : '—')}${kv('🏠 Viviendas', H.viviendas.map(P => P.ic).join(' → '))}
+        ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
+      <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
 
   // ---------- Render ----------
@@ -429,9 +578,13 @@
     pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
-    const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
-      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio }[ui.vista] || (() => '');
-    $('main').innerHTML = htmlSubtabs(S) + V(S) + (ui.nuevaCompra ? htmlNuevaCompra() : '');
+    const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlExtrasInicio(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria }[ui.vista] || (() => '');
+    // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
+    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
+    const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
+    $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + htmlSubtabs(S) + V(S) + capa;
+    ui.flash = '';
     $('main').classList.toggle('conBoton', ui.vista === 'semana');
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
@@ -471,9 +624,27 @@
         irA(vis.includes(u) ? u : vis[0] || 'semana'); break; }
       case 'cat': ui.cat = b.dataset.v; render(); break;
       case 'comprarP': { const P = P2.producto(id); if (!P) break;
-        if (P.precio >= 500 && ui.confirmar !== id) { ui.confirmar = id; render(); break; }   // lo caro se confirma: ¿coche o empresa?
+        if (P2.precioPara(S, P) >= 500 && ui.confirmar !== id) { ui.confirmar = id; render(); break; }   // lo caro se confirma: ¿coche o empresa?
         ui.confirmar = null; if (P2.comprar(S, id)) { ui.nuevaCompra = id; guardarYPintar(); } break; }
       case 'cerrarCompra': ui.nuevaCompra = null; render(); break;
+      case 'quiero': if (P2.quiero(S, id)) guardarYPintar(); break;
+      case 'verDeseo': { const P = P2.producto(S.deseoActual); if (P) { ui.cat = P.cat; irA('tienda'); } break; }
+      case 'deseoTienda': { const a = P2.monEstado(S).deseoAviso; P2.monEstado(S).deseoAviso = null; if (a) ui.cat = P2.producto(a.id).cat; irA('tienda'); break; }
+      case 'deseoLuego': P2.monEstado(S).deseoAviso = null; guardarYPintar(); break;
+      // Anuncios con recompensa (simulados): nada se entrega hasta «Simular anuncio y aceptar»
+      case 'rw': { const p = P2.pedirRewarded(S, b.dataset.t, { id: b.dataset.id || undefined, contexto: ui.vista }); if (p) { ui.rw = p; guardarYPintar(); } break; }
+      case 'rwNo': P2.cancelarRewarded(S); ui.rw = null; guardarYPintar(); break;
+      case 'rwOk': { const r = ui.rw && P2.aceptarRewarded(S, ui.rw.token); ui.rw = null;
+        if (r) { ui.rwSesion = (ui.rwSesion || 0) + 1;
+          ui.flash = r.tipo === 'cupon' ? `🏷️ Cupón listo: ${P2.producto(r.id).n} por ${eur(r.precio)}` : r.tipo === 'oferta' ? `🎁 Oferta: ${P2.producto(r.id).n} por ${eur(r.precio)} (antes ${eur(r.original)})` : r.tipo === 'energia' ? `⚡ +${r.ganado} de energía` : '🕶️ Gafas edición temporada desbloqueadas'; }
+        guardarYPintar(); break; }
+      case 'premioVisto': { const tp = P2.monEstado(S).temporadaPremio; if (tp) tp.visto = true; guardarYPintar(); break; }
+      // Compras con dinero real: SOLO prueba de intención. Nunca hay checkout ni cargo
+      case 'iap': if (P2.iapClic(S, id)) { ui.iap = id; ui.iapResp = null; ui.inter = false; guardarYPintar(); } break;
+      case 'iapResp': if (P2.iapIntencion(S, ui.iap, b.dataset.v)) { ui.iapResp = b.dataset.v; if (ui.iapCard === ui.iap) ui.iapCard = null; guardarYPintar(); } break;
+      case 'iapCerrar': ui.iap = null; ui.iapResp = null; render(); break;
+      case 'iapNo': ui.iapCard = null; render(); break;
+      case 'interOk': P2.intersticialContinuar(S); ui.inter = false; guardarYPintar(); break;
       case 'equipar': if (P2.equipar(S, id)) guardarYPintar(); break;
       case 'venderP': if (ui.venderP !== id) { ui.venderP = id; render(); } else { ui.venderP = null; P2.venderPosesion(S, id); guardarYPintar(); } break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
@@ -524,7 +695,7 @@
   globalThis.__P2 = {
     P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
     nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; }, informe: () => P2.informeTest(S),
-    ir: v => irA(v), etapa: () => etapa(S),
+    ir: v => irA(v), etapa: () => etapa(S), ui2: ui,
     jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
     guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },

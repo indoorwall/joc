@@ -74,6 +74,8 @@
     if (!s.pendiente && !s.cola.length) P2.revisarOfertasMarca(s);
     if (!s.pendiente && !s.cola.length) P2.tirarSucesos(s);
 
+    P2.anotarHistoria(s, 'semana');
+    P2.revisarDeseo(s);
     R.dinero = s.p.dinero - R.dinero0;
     R.energia = s.p.energia - R.energia0;
     s.ultimo = R;
@@ -99,6 +101,7 @@
     // Un acto de patrocinio ocupa la semana entera
     if (r.semana) { const W = jugarSemana(s, r.semana, { motivo: o.n.toLowerCase() }); if (W) { s.ultimaDecision.semanaJugada = true; W.lineas.unshift([r.ic, `${r.titulo}: ${r.texto}`]); } if (!s.pendiente) P2.siguiente(s); }
     if (!s.pendiente) { const a = P2.actoPendiente(s); if (a) P2.encolar(s, a); }
+    P2.revisarDeseo(s);
     return s.ultimaDecision;
   }
 

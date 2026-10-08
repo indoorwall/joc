@@ -147,11 +147,28 @@
     const l = P2.PRODUCTOS.filter(P => !P2.bloqueoProducto(s, P) && P.precio > 0 && P.precio <= libre).sort((a, b) => b.precio - a.precio);
     if (l.length && P2.comprar(s, l[0].id)) { log.compras += l[0].precio; log.nCompras++; }
   }
+  // Anuncios con recompensa simulados (P2.4): «moderado» usa alguno; «maximo» todo lo que el límite permite
+  function rewardedBot(s, B, log) {
+    const R = B.rewarded; if (!R || s.pendiente) return;
+    const ver = (tipo, data) => { const p = P2.pedirRewarded(s, tipo, data); if (p && P2.aceptarRewarded(s, p.token)) log.anuncios++; };
+    if (R === 'maximo' || s.p.energia < 25) ver('energia', {});
+    if (R === 'maximo') {
+      ver('oferta', {});
+      const o = P2.ofertaVigente(s); if (o && s.p.dinero - o.precio >= 1500) { const P = P2.producto(o.id); if (P2.comprar(s, o.id)) { log.compras += o.precio; log.nCompras++; } }
+    }
+    // Cupón para lo que el bot comprará después (lo más caro que se puede permitir)
+    const C = CONSUMO[B.consumo || 'ahorra'];
+    if (C) {
+      const libre = Math.min(s.p.dinero - C.reserva, s.p.dinero * C.parte);
+      const P = P2.PRODUCTOS.filter(x => !P2.bloqueoProducto(s, x) && x.precio > 0 && x.precio <= libre && !x.consumible).sort((a, b) => b.precio - a.precio)[0];
+      if (P && (R === 'maximo' || P.precio >= 1000)) ver('cupon', { id: P.id });
+    }
+  }
   function jugarPartida(B, seed, maxSemanas = 90, opc = {}) {
     if (typeof B === 'string') B = POLITICAS[B].bot;
     const s = P2.nuevaPartida({ seed, nombre: 'Bot' });
     const log = { seed, invitacion: null, via: null, score: null, ofertas: null, primerClub: null, contrato: null, empresa: null, rentable: null, capitulo: null,
-      energiaNeg: false, trabajos: 0, crisis: 0, atascos: 0, dineroEn: {}, nivelEn: {}, ligaMax: 1, ascensos: 0, descensos: 0, segunda: null, dineroOportunidad: null, compras: 0, nCompras: 0 };
+      energiaNeg: false, trabajos: 0, crisis: 0, atascos: 0, dineroEn: {}, nivelEn: {}, ligaMax: 1, ascensos: 0, descensos: 0, segunda: null, dineroOportunidad: null, compras: 0, nCompras: 0, anuncios: 0 };
     const resolverTodo = () => {
       let g = 0;
       while (s.pendiente && g++ < 60) {
@@ -168,6 +185,7 @@
     for (let w = 0; s.semana <= maxSemanas && w < maxSemanas * 2 && (opc.seguir || !s.capitulo.completado); w++) {   // semanas reales (un evento puede ocupar varias)
       resolverTodo();
       gestionar(s, B);
+      rewardedBot(s, B, log);
       comprarBot(s, B, log);
       resolverTodo();
       if (s.capitulo.completado && !log.capitulo) log.capitulo = s.capitulo.semana;
@@ -186,6 +204,7 @@
     log.dinero = Math.round(s.p.dinero); log.patrimonio = P2.patrimonio(s); log.nivel = s.p.nivel; log.rep = s.p.rep; log.marca = P2.marcaPersonal(s);
     log.sueldo = s.contrato ? s.contrato.sueldo : 0; log.club = s.contrato ? s.contrato.oferta : null; log.negocios = s.negocios.length; log.segunda = s.oportunidad;
     log.semanas = s.semana - 1; log.hitos = Object.keys(s.hitos).length; log.patros = s.patroHist.length + s.patros.length; log.posesiones = P2.valorPosesiones(s);
+    log.efectivo = Math.round(s.p.dinero); log.energiaMedia = null;
     log.socio = s.socio ? { valor: s.socio.valor, aportado: s.socio.aportado, dividendos: s.socio.dividendos } : null;
     return log;
   }
@@ -199,7 +218,7 @@
       empresaPct: pct(l, x => x.empresa != null), semanaEmpresa: r(media(l.filter(x => x.empresa).map(x => x.empresa))), contratoPct: pct(l, x => x.contrato != null), semanaContrato: r(media(l.filter(x => x.contrato).map(x => x.contrato))),
       patrimonio60: Math.round(media(l.map(x => x.dineroEn[60] || 0))), patrimonio80: Math.round(media(l.map(x => x.dineroEn[80] || 0))), patrimonioFinal: Math.round(media(l.map(x => x.patrimonio))),
       nivel: r(media(l.map(x => x.nivel))), marca: r(media(l.map(x => x.marca))), sueldoFinal: Math.round(media(l.map(x => x.sueldo))), ligaMax: r(media(l.map(x => x.ligaMax))),
-      compras: Math.round(media(l.map(x => x.compras))), nCompras: r(media(l.map(x => x.nCompras))), posesiones: Math.round(media(l.map(x => x.posesiones || 0))),
+      compras: Math.round(media(l.map(x => x.compras))), anuncios: r(media(l.map(x => x.anuncios || 0))), efectivo: Math.round(media(l.map(x => x.efectivo || 0))), nCompras: r(media(l.map(x => x.nCompras))), posesiones: Math.round(media(l.map(x => x.posesiones || 0))),
       crisis: r(media(l.map(x => x.crisis))), atascos: l.reduce((a, x) => a + x.atascos, 0), pruebasPct: pct(l, x => x.invitacion != null), trabajosMax: Math.max(0, ...l.map(x => x.trabajos)),
       ascensos: r(media(l.map(x => x.ascensos))), descensos: r(media(l.map(x => x.descensos))),
       dineroOportunidad: mediana(l.filter(x => x.dineroOportunidad != null).map(x => x.dineroOportunidad)),
@@ -260,6 +279,16 @@
     const segundas = Object.fromEntries(['local', 'segunda', 'socio'].map(o => [o, resumen(jugar(Object.assign(crearBot('equilibrada', 'inteligente', 'locales'), { emp: Object.assign({}, EMPRESARIAL.inteligente, { segunda: [o] }) }), 110, { seguir: true }))]));
     // 7) Tienda: el mismo jugador ahorrando, comprando con cabeza o a lo loco
     const consumo = Object.fromEntries(Object.keys(CONSUMO).map(c => [c, resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: c }), 100, { seguir: true }))]));
+    // 8) P2.4 · Perfiles de gasto y anuncios con recompensa simulados (mismas semillas)
+    const perfiles = {
+      ahorrador: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
+      moderado: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta' }), 100, { seguir: true })),
+      caprichoso: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'caprichos' }), 100, { seguir: true })),
+      inversor: resumen(jugar(crearBot('equilibrada', 'agresiva', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
+      rewardedModerado: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'moderado' }), 100, { seguir: true })),
+      rewardedMaximo: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'maximo' }), 100, { seguir: true })),
+      ahorradorRewardedMax: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra', rewarded: 'maximo' }), 100, { seguir: true })),
+    };
     const pel = analisisPeluqueria();
     const R = rejilla, eq = deportivas.equilibrada;
     const comprobaciones = [
@@ -278,10 +307,13 @@
       ['Energía nunca negativa', Object.values(R).every(x => !x.energiaNegativa)],
       ['Tienda: comprar retrasa la empresa (no la adelanta) pero no impide progresar', consumo.gasta.compras > 0 && consumo.gasta.semanaEmpresa >= consumo.ahorra.semanaEmpresa && consumo.gasta.capituloPct >= consumo.ahorra.capituloPct - 10 && consumo.caprichos.capituloPct >= 60],
       ['Tienda: gastar a lo grande deja menos patrimonio (es un sumidero, no una inversión)', consumo.caprichos.patrimonio80 < consumo.ahorra.patrimonio80],
-      ['Sin decisiones atascadas', Object.values(R).every(x => x.atascos === 0) && Object.values(deportivas).every(x => x.atascos === 0)],
+      ['Anuncios: verlos todos no da una estrategia claramente superior (capítulo y patrimonio muy parecidos al mismo gasto sin anuncios)', perfiles.rewardedMaximo.capituloPct <= perfiles.moderado.capituloPct + 5 && Math.abs((perfiles.rewardedMaximo.semanaCapitulo || 0) - (perfiles.moderado.semanaCapitulo || 0)) <= 3 && perfiles.rewardedMaximo.patrimonio80 <= perfiles.moderado.patrimonio80 * 1.08],
+      ['Anuncios: un ahorrador que ve todos los anuncios no progresa más rápido que sin verlos', Math.abs((perfiles.ahorradorRewardedMax.semanaCapitulo || 0) - (perfiles.ahorrador.semanaCapitulo || 0)) <= 2 && perfiles.ahorradorRewardedMax.patrimonio80 <= perfiles.ahorrador.patrimonio80 * 1.05],
+      ['Perfiles de gasto: todos completan el capítulo; gastar en estilo de vida lo retrasa', ['ahorrador', 'moderado', 'caprichoso', 'inversor'].every(k => perfiles[k].capituloPct >= 90) && perfiles.caprichoso.semanaCapitulo > perfiles.ahorrador.semanaCapitulo],
+      ['Sin decisiones atascadas', Object.values(R).every(x => x.atascos === 0) && Object.values(deportivas).every(x => x.atascos === 0) && Object.values(perfiles).every(x => x.atascos === 0)],
     ];
     return { partidasPorCombinacion: n, marginales: { deportiva: marginal(0, ['trabajo', 'entreno', 'futbol', 'descanso', 'equilibrada']), empresarial: marginal(1, Object.keys(EMPRESARIAL)), comercial: marginal(2, Object.keys(COMERCIAL)) },
-      deportivasPuedenComprar: deportivas, consumo, cajas, rutas, mismaPartida, segundas, peluqueria: pel, rejilla, comprobaciones: comprobaciones.map(([t, ok]) => ({ t, ok })) };
+      deportivasPuedenComprar: deportivas, consumo, perfiles, cajas, rutas, mismaPartida, segundas, peluqueria: pel, rejilla, comprobaciones: comprobaciones.map(([t, ok]) => ({ t, ok })) };
   }
 
   // Políticas con nombre (las usan los tests y la interfaz): todas con gestión inteligente y patrocinios locales

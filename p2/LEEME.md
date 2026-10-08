@@ -1,4 +1,4 @@
-# Del barrio al negocio · P2.3 (capítulo 1)
+# Del barrio al negocio · P2.4 (capítulo 1 + Monetization Lab)
 
 Juego de gestión por decisiones, vertical para iPhone. **Empiezas como deportista → construyes tu carrera →
 ganas dinero → inviertes → creas tu primera empresa → se abre tu imperio.** No hay partidos jugables:
@@ -7,6 +7,77 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Abrir: [`del_barrio_p2.html`](del_barrio_p2.html) (un solo archivo, sin conexiones).
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
+
+## P2.4 · Monetization Lab (todo simulado)
+
+Versión para **validar monetización antes de integrar nada real**. No hay AdMob, App Store / Google Play Billing, Stripe,
+SDK publicitario, servidor, cuentas, consentimiento publicitario ni moneda premium. El juego no hace ninguna petición de red
+(lo comprueba un test). Toda la configuración está en `MONETIZATION` (`p2/src/15_monetizacion.js`): precios, frecuencias,
+descuentos, qué se ofrece y si está activo (`activa: false` → el juego queda exactamente igual; `testMode: true` siempre).
+
+**Principio:** juego completo gratis + anuncios voluntarios con recompensa + cosméticos + compras pequeñas y permanentes.
+No se venden victorias, nivel, reputación, marca, confianza, contratos, empresas ni dinero del juego; no hay vidas; ningún
+anuncio repite una prueba, cambia un partido, evita un descenso o una quiebra, ni borra una decisión. Los objetos que ayudan
+a jugar (botas, móvil, coche, vivienda…) se siguen comprando solo con dinero del juego.
+
+**Anuncios con recompensa simulados** («📺 Ver anuncio» → «SIMULACIÓN DE ANUNCIO» → Cancelar / Simular y aceptar):
+
+| Recompensa | Dónde | Qué da | Límite |
+|---|---|---|---|
+| 🏷️ Cupón de Tienda (prioritario) | En cada objeto de 80 € o más que aún no tienes | −10 % (máx. 600 €) en ese objeto | 1 cada 4 semanas; válido 4 semanas; 1 activo |
+| 🎁 Oferta especial | Arriba en la Tienda | Un objeto de tu etapa con −15–25 % (máx. 250 €; precio máx. 200 € en el barrio … 10.000 € de magnate) | 1 cada 6 semanas; válida 3 semanas |
+| ⚡ Recuperación patrocinada | Inicio, con menos de 35 de energía | +10 energía (nunca pasa de 100) | 1 cada 8 semanas; nunca en pruebas |
+| 🕶️ Cosmético de temporada | Al acabar una temporada (la camiseta es gratis) | Gafas edición temporada (solo estética) | Una por temporada |
+| 💼 Bonus de empresa | Preparado, desactivado | Cobrar ×1,25 lo generado fuera de la partida | Cuando existan ingresos offline |
+
+Ninguno se ofrece con una decisión pendiente. Además, máximo 6 por sesión. **Exploit encontrado y cerrado:** comprar un piso
+con cupón y venderlo por su valor daba beneficio; ahora el valor sale de lo que pagaste. **Ajuste:** con +15 de energía cada
+6 semanas, ver todos los anuncios daba +3 de nivel y +7 % de patrimonio; con +10 cada 8 semanas la diferencia es ruido.
+
+**Compras simuladas** (`IAP_PRODUCTS`): al tocar sale «🧪 PRUEBA DE COMPRA · costaría X € · No se realizará ningún cargo ·
+¿Lo comprarías? No / Quizá / Sí». No se entrega nada (`entregarCosmeticos: false`), solo se mide la intención.
+
+| Producto | Precio | Cuándo aparece | Contenido |
+|---|---|---|---|
+| 🎉 Pack Debut | 0,99 € | Tras firmar el primer contrato | Outfit, botas, gorra y fondo «Debut» |
+| 🛹 Pack Street | 1,99 € | Al ser titular | Sudadera, pantalón cargo, zapatillas, gorra, fondo urbano |
+| ⚡ Pack Pro | 2,99 € | Primer patrocinador | Outfit, reloj, peinado, gafas, fondo de estadio, botas |
+| 💎 Pack Luxury | 3,99 € | Primera empresa | Traje, reloj premium, cadena, fondo premium, aspecto negro mate del deportivo |
+| ⭐ Founder Pack | 4,99 € | Empresa rentable y 25 min jugados | Sin anuncios obligatorios, insignia, outfit, fondo, +3 carreras |
+| 🚫 Sin anuncios | 2,99 € | En el anuncio obligatorio y en Ajustes | Quita solo los obligatorios (los voluntarios siguen) |
+| 💾 +3 carreras | 1,99 € | Ajustes | Solo medir interés (no se limita nada) |
+
+Las ofertas solo salen en momentos buenos (máx. 2 por sesión, 1 cada 4 semanas, una vez cada una) y nunca tras perder,
+lesión, crisis, sin dinero o durante una decisión. **Test A/B local:** al crear la partida se asigna A (solo anuncios),
+B (anuncios + Pack Debut + Sin anuncios) o C (anuncios + todos los packs, con «⭐ Estilo premium» en la Tienda). No cambia la dificultad.
+
+**Anuncio obligatorio simulado:** solo al final de temporada o de capítulo, como mucho uno cada 12 minutos reales, nunca
+tras cada semana, partido o compra. «En la versión gratuita aquí aparecería un anuncio breve. [Continuar]». No hay banners.
+
+**Deseo y posesiones:** escalera de la Tienda visible desde el principio (superdeportivo, ático, villa y mansión como
+«Próximamente»), rareza solo visual, **❤️ Quiero esto** (un objetivo en Inicio con barra y aviso «¡YA PUEDES COMPRARLO!» una
+vez, sin comprar solo), ropa y accesorios que se ponen solos en el personaje, tu vivienda como fondo de Inicio y Perfil, tu
+vehículo en escena, **🚗 Garaje** (activo, anteriores, valor, aspectos), **🏆 Colecciones** (Street, Profesional, Lujo → fondo),
+**🏆 Mi historia** (Perfil), regalos y planes con tu gente (dinero del juego) y 4 situaciones que llegan por lo que compras.
+
+**Informe de prueba:** nueva sección MONETIZACIÓN (variante, anuncios ofrecidos/pulsados/aceptados por tipo, cada compra
+simulada con sí/quizá/no, primer clic, anuncio obligatorio y posible abandono, deseos, gasto en Tienda y % de ingresos) y
+7 preguntas nuevas (incluida la experimental sobre deportes nuevos).
+
+**Simulación** (20 partidas por perfil, 100 semanas; con la monetización apagada todo es idéntico a P2.3):
+
+| Perfil | Empresa (sem.) | Capítulo | Patrimonio sem. 80 | Gastado en Tienda | Anuncios vistos | Nivel |
+|---|---|---|---|---|---|---|
+| Ahorrador | 35,2 | 100 % (sem. 42,7) | 76.900 € | 0 € | 0 | 75,7 |
+| Inversor (empresa agresiva) | 29,9 | 100 % (sem. 37,3) | 62.000 € | 0 € | 0 | 75,6 |
+| Consumidor moderado | 47,3 | 100 % (sem. 55,2) | 44.300 € | 35.000 € | 0 | 76,7 |
+| Caprichoso | 53,1 | 100 % (sem. 62,0) | 38.900 € | 45.400 € | 0 | 76,9 |
+| Moderado + anuncios a veces | 47,5 | 100 % (sem. 55,3) | 41.700 € | 34.300 € | 5 | 75,1 |
+| Moderado + todos los anuncios | 46,4 | 100 % (sem. 55,0) | 40.300 € | 34.100 € | 22 | 77,5 |
+| Ahorrador + todos los anuncios | 35,5 | 100 % (sem. 43,0) | 74.600 € | 14.800 € | 22 | 77,0 |
+
+Ver todos los anuncios no da una ruta superior: el capítulo llega igual y el patrimonio no sube (las ofertas incluso hacen
+gastar algo más).
 
 ## P2.3 · Identidad visual, Tienda y Relaciones
 

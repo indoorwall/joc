@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b1033">
-<title>Del barrio al negocio · P2.3</title>
+<title>Del barrio al negocio · P2.4</title>
 <!--
-  PROTOTIPO P2.3 — Capítulo 1: del barrio a tu primera empresa. Nueva identidad visual, Tienda y Relaciones. Lista para pruebas con personas (telemetría local).
+  PROTOTIPO P2.4 — Capítulo 1 + MONETIZATION LAB (todo simulado: sin anuncios reales, sin pagos, sin SDK, sin servidor). Lista para pruebas con personas (telemetría local).
   Juego de gestión por decisiones: una acción por semana, sin partidos jugables.
   ARCHIVO GENERADO por p2/build.cjs a partir de p2/src (no editar a mano):
     00 configuración y datos · 01 utilidades · 02 estado y guardado (saveVersion 2)
     03 liga · 04 carrera · 05 patrocinios · 06 negocios · 07 eventos · 08 decisiones e hitos
-    09 semana · 10 simulación y balance · 11 avatar · 12 telemetría · 13 tienda · 14 relaciones · 20 interfaz
+    09 semana · 10 simulación y balance · 11 avatar · 12 telemetría · 13 tienda · 14 relaciones · 15 monetización simulada · 16 deseo y colección · 20 interfaz
   Sin anuncios, compras, cuentas ni conexiones. Clubes y marcas ficticios; importes de juego.
 -->
 <style>
@@ -354,6 +354,77 @@ textarea.respuesta { min-height: 52px; font-family: inherit; font-size: 15px; ma
 /* Colores por categoría en las tarjetas de cada sección */
 .dec.evento { border: 3px solid var(--gold); }
 .sit { border: 0; }
+
+/* ===== P2.4: Monetization Lab (simulado), deseo, garaje, casa, historia ===== */
+.lab { display: inline-block; font-size: 10px; font-weight: 900; letter-spacing: .04em; background: #fff1c0; color: #6b4a00; border-radius: 999px; padding: 1px 8px; vertical-align: middle; }
+.blanco { color: rgba(255,255,255,.8); margin: 0 4px 6px; }
+.flash { position: sticky; top: 70px; z-index: 8; margin: 8px 0; padding: 10px 14px; border-radius: 14px; background: var(--grad); color: #fff; font-weight: 900; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+/* Escena: tu casa de fondo, tu personaje y tu vehículo */
+.escenaCasa { position: relative; width: 100%; height: 100%; min-height: 108px; border-radius: 14px; overflow: hidden; }
+.escenaCasa > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.escenaCasa .pj { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 62px; }
+.escenaCasa .pj svg { width: 100%; height: auto; display: block; }
+.escenaCasa .veh { position: absolute; right: -6px; bottom: 2px; width: 52px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+.escenaCasa .veh svg { width: 100%; height: auto; display: block; }
+.escenaCasa.grande { height: 170px; }
+.escenaCasa.grande .pj { width: 90px; left: 40%; }
+.escenaCasa.grande .veh { width: 120px; right: 6px; }
+.stage { width: 96px; padding: 0; }
+.perfilTop { padding: 0 0 6px; overflow: hidden; } .perfilTop h2 { padding: 8px 14px 0; }
+.casaCard .escenaCasa { margin-bottom: 4px; }
+/* Objetivo personal */
+.deseoBar { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; margin: 8px 0 0; padding: 8px 12px; border-radius: 18px; border: 2px solid rgba(255,79,139,.6); background: rgba(255,79,139,.14); color: #fff; cursor: pointer; }
+.deseoBar .dic { font-size: 30px; }
+.deseoBar .dtx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.deseoBar small { font-size: 11px; font-weight: 800; color: rgba(255,255,255,.8); }
+.deseoBar .xp i { background: linear-gradient(90deg, #ff9abf, #ff4f8b); box-shadow: none; }
+/* Productos: rareza, deseo, cupón */
+.prod { cursor: default; }
+.prod .rz { position: absolute; top: 8px; right: 38px; font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; color: #fff; background: var(--rz); border-radius: 999px; padding: 1px 6px; }
+.prod.rz-legendario { box-shadow: 0 5px 0 #8a5a00, 0 0 0 2px #ffc83d inset; }
+.prod.rz-epico { box-shadow: 0 5px 0 #4a1f8a, 0 0 0 2px #c79bff inset; }
+.prod .deseo { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: #fff; font-size: 18px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.prod .precio { border: 0; cursor: pointer; min-height: 36px; }
+.prod .precio s { opacity: .6; font-weight: 700; }
+.prod .precio:disabled { cursor: not-allowed; }
+.prod.prox { opacity: .75; }
+.rw { display: block; width: 100%; margin-top: 6px; border: 2px dashed #8b5cf6; background: #f3eeff; color: #4a1f8a; border-radius: 12px; padding: 6px 8px; font-size: 12px; font-weight: 900; cursor: pointer; text-align: left; min-height: 40px; }
+.rw small { display: block; font-weight: 800; color: var(--dim); }
+.rw:disabled { opacity: .6; cursor: not-allowed; }
+.cuponOk { font-size: 11px; font-weight: 900; color: #a531d6; }
+.prods.uno { grid-template-columns: 1fr; }
+.ofertaEsp { display: flex; flex-direction: column; gap: 4px; border: 3px solid var(--gold); background: linear-gradient(160deg, #fff4cc, #fff); }
+.colec .kv span .small { margin-left: 4px; }
+/* Ofertas simuladas */
+.iapCard { border: 3px solid #c79bff; background: linear-gradient(160deg, #f6efff, #fff 60%); }
+.iapCard.rz-legendario { border-color: var(--gold); background: linear-gradient(160deg, #fff4cc, #fff 60%); }
+.iapCard .mom { display: block; font-weight: 900; letter-spacing: .06em; color: #a531d6; margin-bottom: 4px; }
+.iapCard .fila > div:last-child { flex: 3; }
+.iapPrev { flex: none !important; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; border: 3px solid var(--gold); background: #fff; }
+.iapPrev svg { width: 100%; height: 100%; display: block; }
+.iapPrev.grande { width: 120px; height: auto; border-radius: 18px; margin: 6px auto; background: var(--panel); }
+.iapBtn .lab { margin-left: 6px; }
+.modal { position: relative; width: min(380px, 100%); max-height: 90vh; overflow: auto; background: #fff; border-radius: 24px; padding: 18px 16px 16px; text-align: center; border: 3px solid #c79bff; box-shadow: 0 0 40px rgba(139,92,246,.45); }
+.modal h2 { font-size: 21px; margin: 6px 0; }
+.modal .recompensa { background: var(--panel); border-radius: 14px; padding: 10px; margin: 10px 0; }
+.modal .recompensa small { display: block; color: var(--dim); font-weight: 800; }
+.modal .precioGrande { font-size: 40px; font-weight: 900; color: var(--gold-d); }
+.modal ul.cont { text-align: left; margin: 6px 0; padding-left: 18px; font-size: 14px; }
+.seg.tres3 { grid-template-columns: 1fr 1fr 1.4fr; }
+/* Recompensas en el inicio */
+.premioT { border: 3px solid var(--gold); background: linear-gradient(160deg, #fff4cc, #fff 60%); }
+.rwCard { border: 2px dashed #8b5cf6; }
+/* Garaje */
+.vehC { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+.vehC:last-of-type { border-bottom: 0; }
+.vehC .vsvg { width: 96px; flex: none; background: linear-gradient(#eef2ff, #dfe4ff); border-radius: 12px; padding: 4px; }
+.vehC .vsvg svg { width: 100%; height: auto; display: block; }
+.vehC > div:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.vehC.act .vsvg { outline: 3px solid var(--acc); }
+/* Mi historia */
+.trofeos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px; }
+.trofeos > div { background: linear-gradient(160deg, #fff4cc, #fff); border: 2px solid #ffe08a; border-radius: 14px; padding: 6px 2px; text-align: center; min-width: 0; }
+.trofeos span { display: block; font-size: 22px; } .trofeos b { display: block; font-size: 14px; overflow-wrap: anywhere; } .trofeos small { display: block; font-size: 10px; color: var(--dim); font-weight: 800; line-height: 1.1; }
 
 </style>
 </head>
@@ -737,7 +808,9 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   'use strict';
   const { CFG } = P2;
 
-  function nuevaPartida(opc = {}) {
+  // Partida nueva + variante del test de monetización (se asigna una vez y se guarda)
+  function nuevaPartida(opc = {}) { const s = partidaBase(opc); if (P2.asignarVariante) P2.asignarVariante(s); return s; }
+  function partidaBase(opc = {}) {
     const I = CFG.inicio, seed = (opc.seed >>> 0) || ((Date.now() ^ (Math.random() * 1e9)) >>> 0);
     return {
       saveVersion: CFG.saveVersion,
@@ -745,9 +818,13 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
-      secciones: ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
+      secciones: ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
+      deseoActual: null,               // objetivo personal de la Tienda (lista de deseos)
+      historiaCosas: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
+      mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
+      monVariante: null,               // A / B / C del test local
       seccionesNuevas: [],
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
@@ -847,6 +924,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     }
     if (!Array.isArray(s.lookDesbloqueos)) s.lookDesbloqueos = [];
     if (!s.relaciones || typeof s.relaciones !== 'object' || Array.isArray(s.relaciones)) s.relaciones = {};
+    if (s.deseoActual && !(P2.producto && P2.producto(s.deseoActual))) s.deseoActual = null;
+    if (P2.asignarVariante) P2.asignarVariante(s);
     for (const k of Object.keys(s.relaciones)) { const x = s.relaciones[k]; if (!x || typeof x.v !== 'number' || !isFinite(x.v)) delete s.relaciones[k]; else { x.v = P2.clamp(Math.round(x.v), 0, 100); if (!Array.isArray(x.historia)) x.historia = []; } }
     s.saveVersion = CFG.saveVersion;
     return s;
@@ -1380,13 +1459,14 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         s.primasCobradas[`asc-${T.liga}-${T.num}`] = prima; s.p.dinero += prima; s.acum.primas += prima;
       }
       P2.tele(s, 'categoria', { tipo: mov.miClub.tipo, a: mov.miClub.a });
-      if (mov.miClub.tipo === 'sube') { P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
+      if (mov.miClub.tipo === 'sube') { P2.anotarHistoria(s, 'ascenso'); P2.momentoMon(s, 'ascenso'); P2.sumarMarca(s, 2); R.lineas.push(['🎉', `¡ASCENSO! ${O.n.replace(/ \(.*\)/, '')} sube a ${aL.n}.${prima ? ` Prima de ascenso: +${eur(prima)}.` : ''}`, 'bien']); s.p.rep = r1(clamp(s.p.rep + 3, 0, 100)); s.confianza = clamp(s.confianza + 5, 0, 100); }
       else if (mov.miClub.tipo === 'baja') { R.lineas.push(['📉', `Descenso: ${O.n.replace(/ \(.*\)/, '')} baja a ${aL.n}.`, 'mal']); s.p.rep = r1(clamp(s.p.rep - 2, 0, 100)); }
       else R.lineas.push(['🔒', `Acabáis en puestos de ascenso, pero un filial no puede jugar en la categoría de su primer equipo: sube el siguiente.`]);
       P2.encolar(s, { tipo: 'cambioCategoria', mov: mov.miClub, prima, pos, club: O.n, sube: mov.sube.filter(id => id !== T.yo), baja: mov.baja.filter(id => id !== T.yo) });
       P2.anotar(s, mov.miClub.tipo === 'sube' ? '🎉' : mov.miClub.tipo === 'baja' ? '📉' : '🔒', mov.miClub.tipo === 'sube' ? `¡Subimos a ${aL.n}!` : mov.miClub.tipo === 'baja' ? `Bajamos a ${aL.n}.` : `El filial no puede subir.`);
     }
     P2.finTemporadaPatros(s, R, media);
+    P2.momentoMon(s, 'finTemporada');
     s.contrato.temporadasRestantes -= 1;
     const ofertas = ofertasFinTemporada(s, media);
     if (s.contrato.temporadasRestantes <= 0 || ofertas.some(o => o.id !== 'renovar' && OFERTAS[o.id] && OFERTAS[o.id].sube)) {
@@ -2058,6 +2138,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     P2.anotar(s, '🏅', `Hito: ${H.n}. Se abre: ${H.abre}.`);
     if (id === 'rentable') encolar(s, { tipo: 'oportunidad' });
     if (id === 'inversion2') { s.capitulo.completado = true; s.capitulo.semana = s.semana; encolar(s, { tipo: 'capitulo' }); }
+    P2.momentoMon(s, id === 'inversion2' ? 'finCapitulo' : id);   // momento bueno: aquí podría aparecer una oferta (simulada)
     return true;
   }
   function revisarHitos(s, R) {
@@ -2350,11 +2431,12 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     { id: 'empresa', ic: '💼', n: 'Empresa', grupo: 'imperio', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
     { id: 'patrimonio', ic: '💰', n: 'Patrimonio', grupo: 'imperio', cond: () => true },
     { id: 'personaje', ic: '🧍', n: 'Personaje', grupo: 'perfil', cond: () => true },
+    { id: 'historia', ic: '🏆', n: 'Mi historia', grupo: 'perfil', cond: () => true },
     { id: 'hitos', ic: '🏅', n: 'Hitos', grupo: 'perfil', cond: () => true },
     { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
   const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'vida', ic: '❤️', n: 'Vida' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
-  const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'];
+  const BASICAS = ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {
     s.secciones = Array.isArray(s.secciones) ? s.secciones : BASICAS.slice();
@@ -2461,6 +2543,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (!s.pendiente && !s.cola.length) P2.revisarOfertasMarca(s);
     if (!s.pendiente && !s.cola.length) P2.tirarSucesos(s);
 
+    P2.anotarHistoria(s, 'semana');
+    P2.revisarDeseo(s);
     R.dinero = s.p.dinero - R.dinero0;
     R.energia = s.p.energia - R.energia0;
     s.ultimo = R;
@@ -2486,6 +2570,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     // Un acto de patrocinio ocupa la semana entera
     if (r.semana) { const W = jugarSemana(s, r.semana, { motivo: o.n.toLowerCase() }); if (W) { s.ultimaDecision.semanaJugada = true; W.lineas.unshift([r.ic, `${r.titulo}: ${r.texto}`]); } if (!s.pendiente) P2.siguiente(s); }
     if (!s.pendiente) { const a = P2.actoPendiente(s); if (a) P2.encolar(s, a); }
+    P2.revisarDeseo(s);
     return s.ultimaDecision;
   }
 
@@ -2642,11 +2727,28 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const l = P2.PRODUCTOS.filter(P => !P2.bloqueoProducto(s, P) && P.precio > 0 && P.precio <= libre).sort((a, b) => b.precio - a.precio);
     if (l.length && P2.comprar(s, l[0].id)) { log.compras += l[0].precio; log.nCompras++; }
   }
+  // Anuncios con recompensa simulados (P2.4): «moderado» usa alguno; «maximo» todo lo que el límite permite
+  function rewardedBot(s, B, log) {
+    const R = B.rewarded; if (!R || s.pendiente) return;
+    const ver = (tipo, data) => { const p = P2.pedirRewarded(s, tipo, data); if (p && P2.aceptarRewarded(s, p.token)) log.anuncios++; };
+    if (R === 'maximo' || s.p.energia < 25) ver('energia', {});
+    if (R === 'maximo') {
+      ver('oferta', {});
+      const o = P2.ofertaVigente(s); if (o && s.p.dinero - o.precio >= 1500) { const P = P2.producto(o.id); if (P2.comprar(s, o.id)) { log.compras += o.precio; log.nCompras++; } }
+    }
+    // Cupón para lo que el bot comprará después (lo más caro que se puede permitir)
+    const C = CONSUMO[B.consumo || 'ahorra'];
+    if (C) {
+      const libre = Math.min(s.p.dinero - C.reserva, s.p.dinero * C.parte);
+      const P = P2.PRODUCTOS.filter(x => !P2.bloqueoProducto(s, x) && x.precio > 0 && x.precio <= libre && !x.consumible).sort((a, b) => b.precio - a.precio)[0];
+      if (P && (R === 'maximo' || P.precio >= 1000)) ver('cupon', { id: P.id });
+    }
+  }
   function jugarPartida(B, seed, maxSemanas = 90, opc = {}) {
     if (typeof B === 'string') B = POLITICAS[B].bot;
     const s = P2.nuevaPartida({ seed, nombre: 'Bot' });
     const log = { seed, invitacion: null, via: null, score: null, ofertas: null, primerClub: null, contrato: null, empresa: null, rentable: null, capitulo: null,
-      energiaNeg: false, trabajos: 0, crisis: 0, atascos: 0, dineroEn: {}, nivelEn: {}, ligaMax: 1, ascensos: 0, descensos: 0, segunda: null, dineroOportunidad: null, compras: 0, nCompras: 0 };
+      energiaNeg: false, trabajos: 0, crisis: 0, atascos: 0, dineroEn: {}, nivelEn: {}, ligaMax: 1, ascensos: 0, descensos: 0, segunda: null, dineroOportunidad: null, compras: 0, nCompras: 0, anuncios: 0 };
     const resolverTodo = () => {
       let g = 0;
       while (s.pendiente && g++ < 60) {
@@ -2663,6 +2765,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     for (let w = 0; s.semana <= maxSemanas && w < maxSemanas * 2 && (opc.seguir || !s.capitulo.completado); w++) {   // semanas reales (un evento puede ocupar varias)
       resolverTodo();
       gestionar(s, B);
+      rewardedBot(s, B, log);
       comprarBot(s, B, log);
       resolverTodo();
       if (s.capitulo.completado && !log.capitulo) log.capitulo = s.capitulo.semana;
@@ -2681,6 +2784,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     log.dinero = Math.round(s.p.dinero); log.patrimonio = P2.patrimonio(s); log.nivel = s.p.nivel; log.rep = s.p.rep; log.marca = P2.marcaPersonal(s);
     log.sueldo = s.contrato ? s.contrato.sueldo : 0; log.club = s.contrato ? s.contrato.oferta : null; log.negocios = s.negocios.length; log.segunda = s.oportunidad;
     log.semanas = s.semana - 1; log.hitos = Object.keys(s.hitos).length; log.patros = s.patroHist.length + s.patros.length; log.posesiones = P2.valorPosesiones(s);
+    log.efectivo = Math.round(s.p.dinero); log.energiaMedia = null;
     log.socio = s.socio ? { valor: s.socio.valor, aportado: s.socio.aportado, dividendos: s.socio.dividendos } : null;
     return log;
   }
@@ -2694,7 +2798,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       empresaPct: pct(l, x => x.empresa != null), semanaEmpresa: r(media(l.filter(x => x.empresa).map(x => x.empresa))), contratoPct: pct(l, x => x.contrato != null), semanaContrato: r(media(l.filter(x => x.contrato).map(x => x.contrato))),
       patrimonio60: Math.round(media(l.map(x => x.dineroEn[60] || 0))), patrimonio80: Math.round(media(l.map(x => x.dineroEn[80] || 0))), patrimonioFinal: Math.round(media(l.map(x => x.patrimonio))),
       nivel: r(media(l.map(x => x.nivel))), marca: r(media(l.map(x => x.marca))), sueldoFinal: Math.round(media(l.map(x => x.sueldo))), ligaMax: r(media(l.map(x => x.ligaMax))),
-      compras: Math.round(media(l.map(x => x.compras))), nCompras: r(media(l.map(x => x.nCompras))), posesiones: Math.round(media(l.map(x => x.posesiones || 0))),
+      compras: Math.round(media(l.map(x => x.compras))), anuncios: r(media(l.map(x => x.anuncios || 0))), efectivo: Math.round(media(l.map(x => x.efectivo || 0))), nCompras: r(media(l.map(x => x.nCompras))), posesiones: Math.round(media(l.map(x => x.posesiones || 0))),
       crisis: r(media(l.map(x => x.crisis))), atascos: l.reduce((a, x) => a + x.atascos, 0), pruebasPct: pct(l, x => x.invitacion != null), trabajosMax: Math.max(0, ...l.map(x => x.trabajos)),
       ascensos: r(media(l.map(x => x.ascensos))), descensos: r(media(l.map(x => x.descensos))),
       dineroOportunidad: mediana(l.filter(x => x.dineroOportunidad != null).map(x => x.dineroOportunidad)),
@@ -2755,6 +2859,16 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const segundas = Object.fromEntries(['local', 'segunda', 'socio'].map(o => [o, resumen(jugar(Object.assign(crearBot('equilibrada', 'inteligente', 'locales'), { emp: Object.assign({}, EMPRESARIAL.inteligente, { segunda: [o] }) }), 110, { seguir: true }))]));
     // 7) Tienda: el mismo jugador ahorrando, comprando con cabeza o a lo loco
     const consumo = Object.fromEntries(Object.keys(CONSUMO).map(c => [c, resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: c }), 100, { seguir: true }))]));
+    // 8) P2.4 · Perfiles de gasto y anuncios con recompensa simulados (mismas semillas)
+    const perfiles = {
+      ahorrador: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
+      moderado: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta' }), 100, { seguir: true })),
+      caprichoso: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'caprichos' }), 100, { seguir: true })),
+      inversor: resumen(jugar(crearBot('equilibrada', 'agresiva', 'locales', { consumo: 'ahorra' }), 100, { seguir: true })),
+      rewardedModerado: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'moderado' }), 100, { seguir: true })),
+      rewardedMaximo: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'gasta', rewarded: 'maximo' }), 100, { seguir: true })),
+      ahorradorRewardedMax: resumen(jugar(crearBot('equilibrada', 'inteligente', 'locales', { consumo: 'ahorra', rewarded: 'maximo' }), 100, { seguir: true })),
+    };
     const pel = analisisPeluqueria();
     const R = rejilla, eq = deportivas.equilibrada;
     const comprobaciones = [
@@ -2773,10 +2887,13 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       ['Energía nunca negativa', Object.values(R).every(x => !x.energiaNegativa)],
       ['Tienda: comprar retrasa la empresa (no la adelanta) pero no impide progresar', consumo.gasta.compras > 0 && consumo.gasta.semanaEmpresa >= consumo.ahorra.semanaEmpresa && consumo.gasta.capituloPct >= consumo.ahorra.capituloPct - 10 && consumo.caprichos.capituloPct >= 60],
       ['Tienda: gastar a lo grande deja menos patrimonio (es un sumidero, no una inversión)', consumo.caprichos.patrimonio80 < consumo.ahorra.patrimonio80],
-      ['Sin decisiones atascadas', Object.values(R).every(x => x.atascos === 0) && Object.values(deportivas).every(x => x.atascos === 0)],
+      ['Anuncios: verlos todos no da una estrategia claramente superior (capítulo y patrimonio muy parecidos al mismo gasto sin anuncios)', perfiles.rewardedMaximo.capituloPct <= perfiles.moderado.capituloPct + 5 && Math.abs((perfiles.rewardedMaximo.semanaCapitulo || 0) - (perfiles.moderado.semanaCapitulo || 0)) <= 3 && perfiles.rewardedMaximo.patrimonio80 <= perfiles.moderado.patrimonio80 * 1.08],
+      ['Anuncios: un ahorrador que ve todos los anuncios no progresa más rápido que sin verlos', Math.abs((perfiles.ahorradorRewardedMax.semanaCapitulo || 0) - (perfiles.ahorrador.semanaCapitulo || 0)) <= 2 && perfiles.ahorradorRewardedMax.patrimonio80 <= perfiles.ahorrador.patrimonio80 * 1.05],
+      ['Perfiles de gasto: todos completan el capítulo; gastar en estilo de vida lo retrasa', ['ahorrador', 'moderado', 'caprichoso', 'inversor'].every(k => perfiles[k].capituloPct >= 90) && perfiles.caprichoso.semanaCapitulo > perfiles.ahorrador.semanaCapitulo],
+      ['Sin decisiones atascadas', Object.values(R).every(x => x.atascos === 0) && Object.values(deportivas).every(x => x.atascos === 0) && Object.values(perfiles).every(x => x.atascos === 0)],
     ];
     return { partidasPorCombinacion: n, marginales: { deportiva: marginal(0, ['trabajo', 'entreno', 'futbol', 'descanso', 'equilibrada']), empresarial: marginal(1, Object.keys(EMPRESARIAL)), comercial: marginal(2, Object.keys(COMERCIAL)) },
-      deportivasPuedenComprar: deportivas, consumo, cajas, rutas, mismaPartida, segundas, peluqueria: pel, rejilla, comprobaciones: comprobaciones.map(([t, ok]) => ({ t, ok })) };
+      deportivasPuedenComprar: deportivas, consumo, perfiles, cajas, rutas, mismaPartida, segundas, peluqueria: pel, rejilla, comprobaciones: comprobaciones.map(([t, ok]) => ({ t, ok })) };
   }
 
   // Políticas con nombre (las usan los tests y la interfaz): todas con gestión inteligente y patrocinios locales
@@ -2816,26 +2933,43 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     ['cabeza', '🧢', 'Cabeza', 'busto'], ['gafas', '🕶️', 'Gafas', 'busto'], ['extra', '🎒', 'Extras', 'cuerpo'], ['fondo', '🖼️', 'Fondo', 'busto']];
   const ITEMS = {
     piel: [0, 1, 2, 3, 4, 5].map(i => ({ id: String(i), n: `Tono ${i + 1}` })),
-    pelo: [['corto', 'Corto'], ['largo', 'Largo'], ['coleta', 'Coleta'], ['rizos', 'Rizos'], ['rapado', 'Rapado'], ['calvo', 'Sin pelo'], ['mono', 'Moño'], ['tupe', 'Tupé'], ['trenzas', 'Trenzas'], ['afro', 'Afro'], ['cresta', 'Cresta']].map(([id, n]) => ({ id, n })),
+    pelo: [['corto', 'Corto'], ['largo', 'Largo'], ['coleta', 'Coleta'], ['rizos', 'Rizos'], ['rapado', 'Rapado'], ['calvo', 'Sin pelo'], ['mono', 'Moño'], ['tupe', 'Tupé'], ['trenzas', 'Trenzas'], ['afro', 'Afro'], ['cresta', 'Cresta']].map(([id, n]) => ({ id, n }))
+      .concat([{ id: 'degradado', n: 'Degradado Pro', req: { premium: 'pro' } }]),
     colorPelo: [['negro', 'Negro'], ['castano', 'Castaño'], ['rubio', 'Rubio'], ['pelirrojo', 'Pelirrojo'], ['canoso', 'Canoso'], ['azul', 'Azul eléctrico'], ['rosa', 'Rosa chicle'], ['verde', 'Verde']].map(([id, n]) => ({ id, n })),
     cara: [['nada', 'Nada'], ['pecas', 'Pecas'], ['pintura', 'Pintura de guerra'], ['bigote', 'Bigote'], ['perilla', 'Perilla'], ['barba', 'Barba']].map(([id, n]) => ({ id, n })),
     ropa: [{ id: 'camiseta', n: 'Camiseta' }, { id: 'tirantes', n: 'Tirantes' }, { id: 'hawaiana', n: 'Hawaiana' }, { id: 'sudadera', n: 'Sudadera' }, { id: 'chaqueta', n: 'Chaqueta' }, { id: 'plumas', n: 'Plumas' },
-      { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } }],
+      { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } },
+      { id: 'equipoFav', n: 'Camiseta de tu equipo', req: { tienda: 'camiseta' } }, { id: 'chandalMarca', n: 'Chándal de marca', req: { tienda: 'chandal' } }, { id: 'temporada', n: 'Camiseta de la temporada', req: { anuncio: 'temporada' } },
+      { id: 'debut', n: 'Outfit Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Sudadera Street', req: { premium: 'street' } }, { id: 'pro', n: 'Outfit Pro', req: { premium: 'pro' } },
+      { id: 'trajeLux', n: 'Traje Luxury', req: { premium: 'luxury' } }, { id: 'founder', n: 'Camiseta Founder', req: { premium: 'founder' } }],
     colorRopa: [['azul', 'Azul'], ['rojo', 'Rojo'], ['verde', 'Verde'], ['amarillo', 'Amarillo'], ['negro', 'Negro'], ['blanco', 'Blanco'], ['morado', 'Morado'], ['naranja', 'Naranja']].map(([id, n]) => ({ id, n })),
-    pantalon: [{ id: 'chandal', n: 'Chándal' }, { id: 'corto', n: 'Corto' }, { id: 'vaquero', n: 'Vaqueros' }, { id: 'falda', n: 'Falda' }, { id: 'traje', n: 'De traje', req: { hito: 'empresa' } }],
-    calzado: [{ id: 'deportivas', n: 'Deportivas' }, { id: 'chanclas', n: 'Chanclas' }, { id: 'botas', n: 'Botas de fútbol' }, { id: 'montana', n: 'De montaña' }, { id: 'zapatos', n: 'Zapatos' }, { id: 'doradas', n: 'Botas de oro', req: { hito: 'inversion2' } }],
-    cabeza: [{ id: 'nada', n: 'Nada' }, { id: 'cinta', n: 'Cinta' }, { id: 'gorra', n: 'Gorra' }, { id: 'gorro', n: 'Gorro de lana' }, { id: 'fiesta', n: 'Gorro de fiesta' }, { id: 'vaquero', n: 'Sombrero' }, { id: 'corona', n: 'Corona', req: { hito: 'inversion2' } }],
-    gafas: [['nada', 'Sin gafas'], ['corazon', 'Corazón'], ['redondas', 'Redondas'], ['sol', 'De sol'], ['deportivas', 'Deportivas']].map(([id, n]) => ({ id, n })),
+    pantalon: [{ id: 'chandal', n: 'Chándal' }, { id: 'corto', n: 'Corto' }, { id: 'vaquero', n: 'Vaqueros' }, { id: 'falda', n: 'Falda' }, { id: 'traje', n: 'De traje', req: { hito: 'empresa' } }, { id: 'street', n: 'Cargo Street', req: { premium: 'street' } }],
+    calzado: [{ id: 'deportivas', n: 'Deportivas' }, { id: 'chanclas', n: 'Chanclas' }, { id: 'botas', n: 'Botas de fútbol' }, { id: 'montana', n: 'De montaña' }, { id: 'zapatos', n: 'Zapatos' }, { id: 'doradas', n: 'Botas de oro', req: { hito: 'inversion2' } },
+      { id: 'botasPro', n: 'Botas profesionales', req: { tienda: 'botasPro' } }, { id: 'debut', n: 'Botas Debut', req: { premium: 'debut' } }, { id: 'street', n: 'Zapatillas Street', req: { premium: 'street' } }, { id: 'pro', n: 'Botas Pro', req: { premium: 'pro' } }],
+    cabeza: [{ id: 'nada', n: 'Nada' }, { id: 'cinta', n: 'Cinta' }, { id: 'gorra', n: 'Gorra' }, { id: 'gorro', n: 'Gorro de lana' }, { id: 'fiesta', n: 'Gorro de fiesta' }, { id: 'vaquero', n: 'Sombrero' }, { id: 'corona', n: 'Corona', req: { hito: 'inversion2' } },
+      { id: 'gorraPlana', n: 'Gorra de colección', req: { tienda: 'gorra' } }, { id: 'gorraDebut', n: 'Gorra Debut', req: { premium: 'debut' } }, { id: 'gorraStreet', n: 'Gorra Street', req: { premium: 'street' } }],
+    gafas: [['nada', 'Sin gafas'], ['corazon', 'Corazón'], ['redondas', 'Redondas'], ['sol', 'De sol'], ['deportivas', 'Deportivas']].map(([id, n]) => ({ id, n }))
+      .concat([{ id: 'temporada', n: 'Gafas edición temporada', req: { anuncio: 'temporada' } }, { id: 'pro', n: 'Gafas Pro', req: { premium: 'pro' } }]),
     extra: [{ id: 'nada', n: 'Nada' }, { id: 'balon', n: 'Balón' }, { id: 'mochila', n: 'Mochila' }, { id: 'auriculares', n: 'Auriculares' }, { id: 'capa', n: 'Capa' },
-      { id: 'medalla', n: 'Medalla', req: { hito: 'titular' } }, { id: 'reloj', n: 'Reloj de lujo', req: { hito: 'rentable' } }, { id: 'cadena', n: 'Cadena de oro', req: { hito: 'inversion2' } }],
+      { id: 'medalla', n: 'Medalla', req: { hito: 'titular' } }, { id: 'reloj', n: 'Reloj de lujo', req: { hito: 'rentable' } }, { id: 'cadena', n: 'Cadena de oro', req: { hito: 'inversion2' } },
+      { id: 'relojDep', n: 'Reloj deportivo', req: { tienda: 'relojDep' } }, { id: 'relojPro', n: 'Reloj Pro', req: { premium: 'pro' } }, { id: 'relojPremium', n: 'Reloj Premium', req: { premium: 'luxury' } },
+      { id: 'cadenaExcl', n: 'Cadena exclusiva', req: { premium: 'luxury' } }, { id: 'insignia', n: 'Insignia Founder', req: { premium: 'founder' } }],
     fondo: [['azul', 'Azul'], ['verde', 'Verde'], ['naranja', 'Naranja'], ['morado', 'Morado'], ['rosa', 'Rosa']].map(([id, n]) => ({ id, n }))
-      .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } }]),
+      .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } },
+        { id: 'street', n: 'Fondo Street', req: { coleccion: 'street' } }, { id: 'vestuario', n: 'Fondo Vestuario', req: { coleccion: 'pro' } }, { id: 'lujo', n: 'Fondo Lujo', req: { coleccion: 'lujo' } },
+        { id: 'debut', n: 'Fondo Debut', req: { premium: 'debut' } }, { id: 'urbano', n: 'Fondo Urbano', req: { premium: 'street' } }, { id: 'estadio', n: 'Fondo Estadio', req: { premium: 'pro' } },
+        { id: 'premium', n: 'Fondo Premium', req: { premium: 'luxury' } }, { id: 'founder', n: 'Fondo Founder', req: { premium: 'founder' } }]),
   };
   const itemLook = (cap, id) => (ITEMS[cap] || []).find(x => x.id === id);
   function bloqueoLook(s, it, cap) {
     if (!it || !it.req) return null;
     if (s && Array.isArray(s.lookDesbloqueos) && s.lookDesbloqueos.includes(`${cap || ''}:${it.id}`)) return null;   // comprado en la Tienda
     if (it.req.hito && !(s && s.hitos && s.hitos[it.req.hito])) { const H = P2.HITOS.find(h => h.id === it.req.hito); return `Hito: ${H ? H.n : it.req.hito}`; }
+    // Cosméticos que solo se consiguen en la Tienda, con recompensas, colecciones o packs (en P2.4, packs solo de prueba)
+    if (it.req.tienda) return `Tienda: ${P2.producto ? (P2.producto(it.req.tienda) || { n: '' }).n : ''}`;
+    if (it.req.anuncio) return 'Recompensa de temporada';
+    if (it.req.coleccion) return `Completa la colección ${(P2.COLECCIONES || []).find(c => c.id === it.req.coleccion) ? P2.COLECCIONES.find(c => c.id === it.req.coleccion).n : ''}`;
+    if (it.req.premium) { const I = (P2.IAP_PRODUCTS || []).find(x => x.id === it.req.premium); return `${I ? I.nombre : 'Pack'} (premium)`; }
     return null;
   }
   function ponerLook(s, cap, id) {
@@ -2871,6 +3005,29 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     return a;
   }
 
+  // Variantes cosméticas: reutilizan una forma base con otros colores y un adorno (sin estadísticas)
+  const VAR_ROPA = {
+    equipoFav: { base: 'equipacion', c1: '#c8102e', c2: '#ffffff', num: '7' },
+    temporada: { base: 'equipacion', c1: '#3d7bff', c2: '#ffc83d', num: '24' },
+    chandalMarca: { base: 'chaqueta', tc: '#1a1640', ad: '<path d="M22 74 v32 M78 74 v32" stroke="#3d7bff" stroke-width="2.5"/><path d="M32 86 h36" stroke="#3d7bff" stroke-width="2"/>' },
+    debut: { base: 'camiseta', tc: '#1a1640', ad: '<path d="M43 68 L50 78 L57 68" fill="none" stroke="#ffc83d" stroke-width="2.5"/><text x="50" y="99" text-anchor="middle" font-size="12" font-weight="900" fill="#ffc83d" font-family="Arial,sans-serif">D</text>' },
+    street: { base: 'sudadera', tc: '#ff4f8b', ad: '<path d="M36 88 q7 -6 14 0 t14 0" fill="none" stroke="#ffc83d" stroke-width="3"/><circle cx="58" cy="80" r="2.5" fill="#7fd8ff"/>' },
+    pro: { base: 'chaqueta', tc: '#0b1033', ad: '<path d="M30 92 h40" stroke="#3d7bff" stroke-width="4"/><path d="M31 97 h38" stroke="#8b5cf6" stroke-width="2"/>' },
+    trajeLux: { base: 'traje', tc: '#4b1f7a', ad: '<path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#ffc83d"/><circle cx="62" cy="80" r="2" fill="#ffc83d"/>' },
+    founder: { base: 'camiseta', tc: '#ffc83d', ad: '<path d="M50 80 l3 6 6.5 .8 -4.8 4.4 1.3 6.4 -6 -3.2 -6 3.2 1.3 -6.4 -4.8 -4.4 6.5 -.8Z" fill="#1a1640"/>' },
+  };
+  const VAR_CABEZA = { gorraPlana: '#2a2d34', gorraDebut: '#1a1640', gorraStreet: '#ff4f8b' };
+  const FONDO_ESP = {
+    street: '<rect x="-20" y="-30" width="140" height="140" fill="#3b1c6e"/><path d="M-20 70 L120 40 M-20 90 L120 60" stroke="#ff4f8b" stroke-width="8" opacity=".6"/>',
+    vestuario: '<rect x="-20" y="-30" width="140" height="140" fill="#1d3a9e"/>' + [0, 1, 2, 3, 4].map(i => `<rect x="${-14 + i * 26}" y="-10" width="22" height="90" rx="3" fill="#2b4fc0" stroke="#173083"/>`).join(''),
+    lujo: '<rect x="-20" y="-30" width="140" height="140" fill="#1a1640"/><circle cx="50" cy="30" r="46" fill="#ffc83d" opacity=".25"/><path d="M50 -6 l10 14 -10 14 -10 -14Z" fill="#ffc83d" opacity=".7"/>',
+    debut: '<rect x="-20" y="-30" width="140" height="140" fill="#1a1640"/><path d="M50 -10 l6 14 15 1 -11 10 4 15 -14 -8 -14 8 4 -15 -11 -10 15 -1Z" fill="#ffc83d" opacity=".35"/>',
+    urbano: '<rect x="-20" y="-30" width="140" height="140" fill="#2a1a78"/>' + [[-14, 20, 30], [12, 0, 28], [40, 14, 26], [66, -6, 30], [92, 10, 26]].map(([x, y, w]) => `<rect x="${x}" y="${y}" width="${w}" height="110" fill="#1b1550"/><rect x="${x + 6}" y="${y + 8}" width="5" height="6" fill="#ffd66b"/>`).join(''),
+    estadio: '<rect x="-20" y="-30" width="140" height="140" fill="#1d3a9e"/><path d="M-20 80 Q50 50 120 80 L120 110 L-20 110Z" fill="#2c3fa8"/><circle cx="2" cy="-4" r="14" fill="#fff" opacity=".35"/><circle cx="98" cy="-4" r="14" fill="#fff" opacity=".35"/>',
+    premium: '<defs><linearGradient id="fpPrem" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c8901a"/></linearGradient></defs><rect x="-20" y="-30" width="140" height="140" fill="url(#fpPrem)"/><path d="M50 -4 l9 12 -9 12 -9 -12Z" fill="#fff" opacity=".6"/>',
+    founder: '<rect x="-20" y="-30" width="140" height="140" fill="#0b1033"/><rect x="-16" y="-26" width="132" height="132" fill="none" stroke="#ffc83d" stroke-width="4"/><path d="M50 -12 l5 11 12 1 -9 8 3 12 -11 -6 -11 6 3 -12 -9 -8 12 -1Z" fill="#ffc83d"/>',
+  };
+
   function oscurecer(hex, f) { const n = parseInt(hex.slice(1), 16), c = k => Math.round(((n >> k) & 255) * f); return `rgb(${c(16)},${c(8)},${c(0)})`; }
   function avatarSVG(s, L, modo) {
     L = Object.assign({}, LOOK_INICIAL, L || (s && s.look) || {});
@@ -2878,12 +3035,17 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (['gorra', 'gorro'].includes(L.cabeza) && ['cresta', 'mono', 'tupe', 'afro'].includes(L.pelo)) L.pelo = 'corto';
     const sk = PIEL[+L.piel] || PIEL[1], hc = COLOR_PELO[L.colorPelo] || COLOR_PELO.castano, rc = COLOR_ROPA[L.colorRopa] || COLOR_ROPA.azul, rd = oscurecer(rc, 0.75);
     const fel = animo(s), ene = s && s.p ? s.p.energia : 80;
-    const O = s && s.contrato ? P2.OFERTAS[s.contrato.oferta] : null, c1 = O && O.c1 ? O.c1 : '#2e9d4f', c2 = O && O.c2 ? O.c2 : '#ffffff';
+    const O = s && s.contrato ? P2.OFERTAS[s.contrato.oferta] : null;
+    let c1 = O && O.c1 ? O.c1 : '#2e9d4f', c2 = O && O.c2 ? O.c2 : '#ffffff';
+    const RV = VAR_ROPA[L.ropa]; if (RV) { L.ropa = RV.base; if (RV.c1) { c1 = RV.c1; c2 = RV.c2; } }
+    const CV = VAR_CABEZA[L.cabeza]; if (CV) L.cabeza = 'gorra';
+    const pelo2 = L.pelo; if (pelo2 === 'degradado') L.pelo = 'rapado';
     const marca = s && s.patros && s.patros.length ? P2.MARCAS.find(m => m.id === s.patros[0].id) : null;
     let h = '';
     if (modo === 'busto') {
       if (L.fondo === 'noche') h += `<rect x="-20" y="-30" width="140" height="140" fill="#1d2552"/>${[[18, 0], [80, 6], [30, 60], [86, 52], [62, -6], [12, 34]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff"/>`).join('')}`;
       else if (L.fondo === 'dorado') h += `<rect x="-20" y="-30" width="140" height="140" fill="#f5c518"/><circle cx="50" cy="34" r="44" fill="#ffe27a"/>`;
+      else if (FONDO_ESP[L.fondo]) h += FONDO_ESP[L.fondo];
       else h += `<rect x="-20" y="-30" width="140" height="140" fill="${FONDO_LOOK[L.fondo] || FONDO_LOOK.azul}"/>`;
     } else h += `<ellipse cx="50" cy="153" rx="28" ry="4" fill="rgba(0,0,0,.25)"/>`;
     if (L.extra === 'capa') h += `<path d="M31 74 L14 146 L86 146 L69 74Z" fill="#d6283b"/>`;
@@ -2893,13 +3055,15 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (L.pelo === 'coleta') h += `<path d="M70 24 Q94 28 86 64 Q80 44 68 36Z" fill="${hc}"/>`;
     if (L.pelo === 'trenzas') h += `<path d="M25 46 L21 92 M75 46 L79 92" stroke="${hc}" stroke-width="9" stroke-linecap="round"/><circle cx="21" cy="92" r="3" fill="#e23b3b"/><circle cx="79" cy="92" r="3" fill="#e23b3b"/>`;
     if (L.pelo === 'mono') h += `<circle cx="50" cy="11" r="9" fill="${hc}"/>`;
-    const pc = { chandal: '#4a5260', vaquero: '#3d5f9e', traje: '#2b2f3a', corto: rc, falda: rc }[L.pantalon] || '#4a5260';
+    const pStreet = L.pantalon === 'street'; if (pStreet) L.pantalon = 'vaquero';
+    const pc = pStreet ? '#2a2d34' : { chandal: '#4a5260', vaquero: '#3d5f9e', traje: '#2b2f3a', corto: rc, falda: rc }[L.pantalon] || '#4a5260';
     if (L.pantalon === 'corto') h += `<rect x="38" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="53" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="34" y="104" width="32" height="18" rx="4" fill="${pc}"/><line x1="50" y1="110" x2="50" y2="122" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>`;
     else if (L.pantalon === 'falda') h += `<rect x="38" y="122" width="9" height="20" rx="4" fill="${sk}"/><rect x="53" y="122" width="9" height="20" rx="4" fill="${sk}"/><path d="M34 104 L66 104 L72 128 L28 128Z" fill="${pc}"/>`;
     else {
       h += `<rect x="36" y="104" width="13" height="38" rx="4" fill="${pc}"/><rect x="51" y="104" width="13" height="38" rx="4" fill="${pc}"/>`;
       if (L.pantalon === 'chandal') h += `<rect x="37" y="108" width="2" height="32" fill="#fff" opacity=".8"/><rect x="61" y="108" width="2" height="32" fill="#fff" opacity=".8"/>`;
-      if (L.pantalon === 'vaquero') h += `<path d="M42 108 v30 M58 108 v30" stroke="#f0c040" stroke-width="1" stroke-dasharray="2 2"/>`;
+      if (L.pantalon === 'vaquero' && !pStreet) h += `<path d="M42 108 v30 M58 108 v30" stroke="#f0c040" stroke-width="1" stroke-dasharray="2 2"/>`;
+      if (pStreet) h += `<rect x="37" y="118" width="11" height="8" rx="2" fill="#3b3f4a"/><rect x="52" y="118" width="11" height="8" rx="2" fill="#3b3f4a"/><path d="M36 134 h13 M51 134 h13" stroke="#ff4f8b" stroke-width="2"/>`;
     }
     const zap = (col, extra) => `<rect x="31" y="139" width="19" height="10" rx="5" fill="${col}"/><rect x="50" y="139" width="19" height="10" rx="5" fill="${col}"/>${extra || ''}`;
     if (L.calzado === 'deportivas') h += zap('#ffffff', `<path d="M35 144 h10 M54 144 h10" stroke="${rc}" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#ccc"/><rect x="50" y="146" width="19" height="3" fill="#ccc"/>`);
@@ -2907,27 +3071,37 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     else if (L.calzado === 'chanclas') h += `<rect x="38" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="53" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="31" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/><rect x="50" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/>`;
     else if (L.calzado === 'zapatos') h += zap('#5b3a1e', '<path d="M35 142 h6 M55 142 h6" stroke="#fff" stroke-width="1.5" opacity=".5"/>');
     else if (L.calzado === 'montana') h += zap('#7a5230', '<path d="M36 141 l4 3 M40 141 l4 3 M56 141 l4 3 M60 141 l4 3" stroke="#f6c623" stroke-width="1.5"/><rect x="31" y="146" width="19" height="3" fill="#2a2d34"/><rect x="50" y="146" width="19" height="3" fill="#2a2d34"/>');
+    else if (L.calzado === 'botasPro') h += zap('#3d7bff', '<path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#7fd8ff" stroke-width="2"/><path d="M35 143 h9 M55 143 h9" stroke="#ffc83d" stroke-width="2"/>');
+    else if (L.calzado === 'debut') h += zap('#ff4f8b', '<path d="M35 143 h9 M55 143 h9" stroke="#ffc83d" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#1a1640" stroke-width="2"/>');
+    else if (L.calzado === 'street') h += zap('#ffc83d', '<path d="M35 143 h10 M54 143 h10" stroke="#1a1640" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#fff"/><rect x="50" y="146" width="19" height="3" fill="#fff"/>');
+    else if (L.calzado === 'pro') h += zap('#0b1033', '<path d="M35 143 h9 M55 143 h9" stroke="#3d7bff" stroke-width="2.5"/><path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#8b5cf6" stroke-width="2"/>');
     else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
     const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
-    const tc = L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
+    const tc = RV && RV.tc ? RV.tc : L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
     h += `<rect x="20" y="74" width="11" height="34" rx="5.5" fill="${sk}"/><rect x="69" y="74" width="11" height="34" rx="5.5" fill="${sk}"/>`;
     if (!sinMangas) h += `<rect x="20" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="69" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
     h += `<circle cx="25.5" cy="110" r="5.5" fill="${sk}"/><circle cx="74.5" cy="110" r="5.5" fill="${sk}"/>`;
     if (L.extra === 'reloj') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/>`;
+    if (L.extra === 'relojDep') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#1a1a1a"/><rect x="23" y="101" width="5" height="3" fill="#7fd8ff"/>`;
+    if (L.extra === 'relojPro') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#c9cfdb" stroke="#7d8597" stroke-width=".8"/><circle cx="25.5" cy="102.5" r="1.4" fill="#3d7bff"/>`;
+    if (L.extra === 'relojPremium') h += `<rect x="19" y="99" width="13" height="7" rx="2" fill="#ffc83d" stroke="#c8901a" stroke-width=".8"/><path d="M25.5 100 l2 2.5 -2 2.5 -2 -2.5Z" fill="#fff"/>`;
     h += `<rect x="44" y="58" width="12" height="16" rx="4" fill="${sk}"/>`;
     if (L.ropa === 'sudadera') h += `<path d="M34 72 Q50 56 66 72Z" fill="${rd}"/>`;
     const ancho = L.ropa === 'plumas' ? 3 : 0;
     h += `<path d="M${30 - ancho} 78 Q${30 - ancho} 68 40 68 L60 68 Q${70 + ancho} 68 ${70 + ancho} 78 L${70 + ancho} 110 L${30 - ancho} 110Z" fill="${tc}"/>`;
     if (['camiseta', 'marca', 'equipacion', 'tirantes'].includes(L.ropa)) h += `<path d="M43 68 Q50 ${L.ropa === 'tirantes' ? 80 : 75} 57 68Z" fill="${sk}"/>`;
     if (L.ropa === 'tirantes') h += `<path d="M30 70 h6 M64 70 h6" stroke="${sk}" stroke-width="5"/>`;
-    if (L.ropa === 'equipacion') h += `<rect x="38" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><rect x="57" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><text x="50" y="100" text-anchor="middle" font-size="15" font-weight="900" fill="${c2}" stroke="${c1}" stroke-width=".6" font-family="Arial,sans-serif">10</text>`;
+    if (L.ropa === 'equipacion') h += `<rect x="38" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><rect x="57" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><text x="50" y="100" text-anchor="middle" font-size="15" font-weight="900" fill="${c2}" stroke="${c1}" stroke-width=".6" font-family="Arial,sans-serif">${RV && RV.num ? RV.num : '10'}</text>`;
     if (L.ropa === 'marca') { const t = marca ? marca.n.split(' ')[0].toUpperCase() : '★'; h += `<text x="50" y="94" text-anchor="middle" font-size="${t.length > 9 ? 5.5 : t.length > 6 ? 7 : 9}" font-weight="900" fill="${rc === '#f4f4f4' ? '#e23b3b' : rc}" font-family="Arial,sans-serif">${esc(t)}</text>`; }
     if (L.ropa === 'sudadera') h += `<rect x="40" y="94" width="20" height="10" rx="3" fill="${rd}"/><path d="M46 72 v10 M54 72 v10" stroke="#fff" stroke-width="1.2"/>`;
     if (L.ropa === 'chaqueta') h += `<line x1="50" y1="70" x2="50" y2="110" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M40 68 L50 78 L60 68" fill="none" stroke="${rd}" stroke-width="3"/>`;
     if (L.ropa === 'plumas') h += `<path d="M27 82 h46 M27 92 h46 M27 102 h46" stroke="rgba(0,0,0,.2)" stroke-width="2"/><path d="M42 68 Q50 74 58 68" fill="none" stroke="${rd}" stroke-width="4"/>`;
     if (L.ropa === 'hawaiana') h += `${[[38, 82], [60, 78], [46, 98], [64, 100], [34, 104]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff"/><circle cx="${x}" cy="${y}" r="1.4" fill="#f6c623"/>`).join('')}<path d="M42 68 L50 80 L58 68" fill="none" stroke="#fff" stroke-width="2"/>`;
     if (L.ropa === 'traje') h += `<path d="M43 68 L50 86 L57 68Z" fill="#fff"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#d6283b"/><path d="M43 68 L48 92 M57 68 L52 92" stroke="#444b5c" stroke-width="2"/>`;
+    if (RV && RV.ad) h += RV.ad;
     if (L.extra === 'mochila') h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="#3b4a6b" stroke-width="4"/>`;
+    if (L.extra === 'cadenaExcl') h += `<path d="M39 70 Q50 92 61 70" fill="none" stroke="#ffc83d" stroke-width="3.5"/><path d="M50 84 l5 6 -5 6 -5 -6Z" fill="#7fd8ff" stroke="#ffc83d" stroke-width="1.2"/>`;
+    if (L.extra === 'insignia') h += `<circle cx="61" cy="80" r="5" fill="#1a1640" stroke="#ffc83d" stroke-width="1.5"/><path d="M61 76.5 l1.2 2.5 2.7 .3 -2 1.8 .6 2.7 -2.5 -1.4 -2.5 1.4 .6 -2.7 -2 -1.8 2.7 -.3Z" fill="#ffc83d"/>`;
     if (L.extra === 'cadena') h += `<path d="M41 70 Q50 88 59 70" fill="none" stroke="#f5c518" stroke-width="2.5"/><circle cx="50" cy="83" r="3.2" fill="#f5c518"/>`;
     if (L.extra === 'medalla') h += `<path d="M42 68 L50 86 L58 68" fill="none" stroke="#2f6fe0" stroke-width="3.5"/><circle cx="50" cy="90" r="6.5" fill="#f5c518" stroke="#b08a00"/><text x="50" y="93" text-anchor="middle" font-size="8" font-weight="900" fill="#b08a00">1</text>`;
     if (L.extra === 'balon') h += `<circle cx="84" cy="141" r="9" fill="#fff" stroke="#333" stroke-width="1"/><path d="M84 137 l3.5 2.5 -1.3 4 h-4.4 l-1.3 -4Z" fill="#333"/>`;
@@ -2952,16 +3126,18 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const flequillo = `<path d="M24 42 Q22 14 50 13 Q78 14 76 42 Q72 28 62 26 Q50 32 36 26 Q28 30 24 42Z" fill="${hc}"/>`;
     if (['corto', 'coleta', 'trenzas', 'mono', 'largo'].includes(L.pelo)) h += flequillo;
     else if (L.pelo === 'rizos') h += [[28, 30], [36, 20], [46, 16], [56, 16], [65, 20], [72, 30], [25, 40], [75, 40]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${hc}"/>`).join('');
-    else if (L.pelo === 'rapado') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".55"/>`;
+    else if (L.pelo === 'rapado') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".55"/>` + (pelo2 === 'degradado' ? `<path d="M32 26 Q36 8 52 8 Q68 9 70 24 Q60 16 50 18 Q40 18 32 26Z" fill="${hc}"/>` : '');
     else if (L.pelo === 'calvo') h += `<ellipse cx="40" cy="24" rx="6" ry="3" fill="#fff" opacity=".35"/>`;
     else if (L.pelo === 'tupe') h += `<path d="M24 42 Q22 18 46 15 Q40 2 62 3 Q82 6 76 24 Q78 32 76 42 Q70 26 50 26 Q32 28 24 42Z" fill="${hc}"/>`;
     else if (L.pelo === 'afro') h += `<path d="M26 34 Q50 16 74 34 Q50 26 26 34Z" fill="${hc}"/>`;
     else if (L.pelo === 'cresta') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".5"/><path d="M42 26 L38 -2 L48 10 L50 -8 L54 10 L64 -2 L58 26Z" fill="${hc}"/>`;
     if (L.gafas === 'redondas') h += `<circle cx="39" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><circle cx="61" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><path d="M46 43 h8 M32 42 l-6 -2 M68 42 l6 -2" stroke="#222" stroke-width="2"/>`;
     else if (L.gafas === 'sol') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#111"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#111"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#111" stroke-width="2"/><path d="M33 40 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
+    else if (L.gafas === 'temporada') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#2a1a78" stroke="#d94bff" stroke-width="2"/><path d="M47 41 h6" stroke="#d94bff" stroke-width="2"/><path d="M33 40 l5 0 M56 40 l5 0" stroke="#7fd8ff" stroke-width="1.5"/>`;
+    else if (L.gafas === 'pro') h += `<path d="M29 38 h18 l-2 9 q-7 3 -14 0Z M53 38 h18 l-2 9 q-7 3 -14 0Z" fill="#3a2d10" stroke="#ffc83d" stroke-width="1.5"/><path d="M47 40 h6" stroke="#ffc83d" stroke-width="1.5"/>`;
     else if (L.gafas === 'deportivas') h += `<path d="M26 39 Q50 32 74 39 L72 48 Q50 43 28 48Z" fill="#ff5a1f"/><path d="M30 41 Q50 36 70 41" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/>`;
     else if (L.gafas === 'corazon') { const co = x => `<path d="M${x} 49 l-7 -7 a4 4 0 0 1 7 -4 a4 4 0 0 1 7 4Z" fill="#ff2d6f"/>`; h += co(39) + co(61) + `<path d="M46 42 h8" stroke="#ff2d6f" stroke-width="1.5"/>`; }
-    if (L.cabeza === 'gorra') h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${rc}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${rd}"/><circle cx="50" cy="10" r="2.5" fill="${rd}"/>`;
+    if (L.cabeza === 'gorra') { const g1 = CV || rc, g2 = CV ? oscurecer(CV, 0.7) : rd; h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${g1}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${g2}"/><circle cx="50" cy="10" r="2.5" fill="${g2}"/>${CV === '#1a1640' ? '<path d="M44 24 h12" stroke="#ffc83d" stroke-width="2.5"/>' : ''}`; }
     else if (L.cabeza === 'gorro') h += `<path d="M23 36 Q23 5 50 5 Q77 5 77 36Z" fill="${rc}"/><rect x="22" y="29" width="56" height="9" rx="4" fill="${rd}"/><circle cx="50" cy="4" r="6" fill="#fff"/>`;
     else if (L.cabeza === 'cinta') h += `<path d="M25 30 Q50 22 75 30 L75 36 Q50 28 25 36Z" fill="${rc}"/>`;
     else if (L.cabeza === 'fiesta') h += `<path d="M38 18 L50 -14 L62 18Z" fill="#ff6fb5"/><path d="M41 10 L59 10 M44 2 L56 2" stroke="#f6c623" stroke-width="3"/><circle cx="50" cy="-14" r="4" fill="#f6c623"/>`;
@@ -2993,7 +3169,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function codigo() { let c = ''; for (let i = 0; i < 5; i++) c += '0123456789ABCDEF'[Math.floor(Math.random() * 16)]; return 'TEST-' + c; }
   function nuevaTele() {
     return {
-      id: codigo(), version: 'P2.3', inicio: new Date().toISOString(), msActivo: 0, ultimoMs: null, interacciones: 0,
+      id: codigo(), version: 'P2.4', inicio: new Date().toISOString(), msActivo: 0, ultimoMs: null, interacciones: 0,
       momentos: { T0: { ms: 0, semana: 1 } },
       acciones: {}, decisiones: {}, registro: [], tiempos: [],
       rutas: [], prueba: null, pruebas: [], ofertas: [], clubes: [], contratos: [], partidos: { jugados: 0, titular: 0, suplente: 0, banquillo: 0 },
@@ -3074,6 +3250,14 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     { id: 'p6', t: '¿Te ha interesado gestionar la empresa?', tipo: 'texto' },
     { id: 'p7', t: '¿Qué parte querrías desbloquear después?', tipo: 'multi', ops: ['Más negocios', 'Subir deportivamente', 'Comprar propiedades', 'Comprar un club', 'Otro deporte', 'Otra'] },
     { id: 'p8', t: '¿Volverías a jugar mañana?', tipo: 'una', ops: ['Sí', 'Quizá', 'No'] },
+    // Monetización (P2.4): solo investigación. Ninguna respuesta cambia el juego ni activa ventajas de pago
+    { id: 'm1', t: '¿Te molestaría ver anuncios voluntarios a cambio de recompensas?', tipo: 'una', ops: ['Nada', 'Poco', 'Bastante', 'Mucho'] },
+    { id: 'm2', t: '¿Por qué recompensa mirarías un anuncio?', tipo: 'multi', ops: ['Descuento en la tienda', 'Energía', 'Bonus de empresa', 'Cosmético', 'Ninguna'] },
+    { id: 'm3', t: '¿Cuál de estas compras te plantearías?', tipo: 'multi', ops: ['0,99 €', '1,99 €', '2,99 €', '4,99 €', 'Ninguna'] },
+    { id: 'm4', t: '¿Por qué pagarías?', tipo: 'multi', ops: ['Ropa', 'Coches / aspectos', 'Personalización', 'Quitar anuncios', 'Más carreras', 'Nuevos deportes', 'Otra'] },
+    { id: 'm5', t: '¿Te parece injusto que quien pague tenga cosméticos exclusivos?', tipo: 'una', ops: ['Sí', 'No', 'Depende'] },
+    { id: 'm6', t: '¿Pagarías si diese ventajas deportivas? (solo para investigación)', tipo: 'una', ops: ['Sí', 'No'] },
+    { id: 'm7', t: 'Experimental: ¿pagarías por desbloquear un deporte nuevo? ¿Cuál?', tipo: 'multi', ops: ['No', 'Escalada', 'Tenis', 'Basket', 'Surf', 'Skate'] },
   ];
   const NOMBRES_ACCION = id => (P2.ACCIONES[id] ? P2.ACCIONES[id].n : id);
   const RUTA = { ojeador: 'Ojeador (partidos en la plaza)', jornada: 'Jornada abierta', torneo: 'Torneo local', campus: 'Campus de tecnificación', repesca: 'Repesca (desde el amateur)' };
@@ -3083,7 +3267,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function informeTest(s) {
     const t = T(s), L = [];
     const linea = (k, v) => L.push(`${k}: ${v}`);
-    L.push('TEST P2.3', `ID: ${t.id}`, '');
+    L.push('TEST P2.4', `ID: ${t.id}`, '');
     linea('Inicio', t.inicio.replace('T', ' ').slice(0, 16));
     linea('Duración real (sin pausas de más de 5 min)', duracion(t.msActivo));
     linea('Semanas jugadas', s.semana - 1);
@@ -3129,9 +3313,43 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     linea('Consultas de «¿Por qué ha pasado esto?»', t.porque);
     linea('Momento de salida', `semana ${s.semana}, ${s.fase === 'club' ? 'profesional' : s.fase}, pantalla «${t.ultimaPantalla}», última acción «${t.ultimaAccion ? NOMBRES_ACCION(t.ultimaAccion) : '—'}»${s.pendiente ? `, con una decisión pendiente (${s.pendiente.tipo})` : ''}`);
     linea('Estado final', `nivel ${P2.nf(s.p.nivel)} · reputación deportiva ${Math.round(s.p.rep)} · marca personal ${Math.round(s.p.marca || 0)} · patrimonio ${eur(P2.patrimonio(s))}`);
+    L.push('', ...informeMon(s));
     L.push('', 'PREGUNTAS');
     for (const [i, q] of PREGUNTAS.entries()) { const r = t.respuestas[q.id]; L.push(`${i + 1}. ${q.t}`, `   ${Array.isArray(r) ? (r.length ? r.join(', ') : '—') : (r != null && r !== '' ? String(r) : '—')}`); }
     return L.join('\n');
+  }
+  // MONETIZACIÓN: todo simulado (ningún anuncio ni pago real). Sin datos suficientes, se dice
+  function informeMon(s) {
+    const t = T(s), m = t.mon || { eventos: [], cuentas: {}, deseados: {} }, c = m.cuentas, L = ['MONETIZACIÓN (simulada: sin anuncios ni pagos reales)'];
+    const n = k => c[k] || 0, pct = (a, b) => (b ? `${Math.round(100 * a / b)} %` : 'sin datos');
+    L.push(`  Variante del test: ${s.monVariante || '—'} (${(P2.MONETIZATION.variantes[s.monVariante] || {}).n || '—'})`);
+    L.push(`  Rewarded ofrecidos: ${n('rewarded_offer_shown')} · pulsados: ${n('rewarded_offer_clicked')} · aceptados: ${n('rewarded_offer_accepted')} · tasa de aceptación: ${pct(n('rewarded_offer_accepted'), n('rewarded_offer_shown'))}`);
+    for (const k of Object.keys(P2.REWARDED)) {
+      const sh = n(`rewarded_offer_shown:${k}`), ac = n(`rewarded_offer_accepted:${k}`);
+      if (sh || ac || n(`rewarded_offer_clicked:${k}`)) L.push(`    ${P2.REWARDED[k].n}: ofrecidos ${sh} · pulsados ${n(`rewarded_offer_clicked:${k}`)} · aceptados ${ac}${k === 'cupon' || k === 'oferta' ? ` · usados en una compra ${n(`reward_used:${k}`)}` : ''}`);
+    }
+    L.push('  Compras simuladas (prueba de intención, sin cargo):');
+    let algunaIap = false;
+    for (const I of P2.IAP_PRODUCTS) {
+      const sh = n(`iap_offer_shown:${I.id}`), cl = n(`iap_offer_clicked:${I.id}`), si = n(`iap_intent_yes:${I.id}`), q = n(`iap_intent_maybe:${I.id}`), no = n(`iap_intent_no:${I.id}`);
+      if (sh || cl) { algunaIap = true; L.push(`    ${I.nombre} ${String(I.precio).replace('.', ',')} €: mostrado ${sh} · clic ${cl} · sí ${si} / quizá ${q} / no ${no}`); }
+    }
+    if (!algunaIap) L.push('    Ninguna mostrada');
+    L.push(`  Tasa de clic en compras: ${pct(n('iap_offer_clicked'), n('iap_offer_shown'))} · «sí, lo compraría»: ${pct(n('iap_intent_yes'), n('iap_offer_clicked'))}`);
+    const pr = m.primero || {}, cuando = k => (pr[k] ? `semana ${pr[k].semana} (${duracion(pr[k].ms)})` : '—');
+    L.push(`  Primer clic en una compra: ${cuando('iap_offer_clicked')} · primer anuncio aceptado: ${cuando('rewarded_offer_accepted')}`);
+    const ish = (m.eventos || []).filter(e => e.e === 'interstitial_shown');
+    if (ish.length) {
+      const ult = ish[ish.length - 1], tras = (t.msActivo || 0) - ult.ms;
+      L.push(`  Anuncio obligatorio simulado: ${ish.length} (${ish.map(e => e.momento).join(', ')}) · continuó ${n('interstitial_continue')} · ${tras < 120000 ? 'la sesión acabó menos de 2 min después del último (posible abandono)' : 'siguió jugando después'}`);
+    } else L.push('  Anuncio obligatorio simulado: no ha salido');
+    const des = Object.entries(m.deseados || {}).sort((a, b) => b[1] - a[1]);
+    L.push(`  Objetos deseados (lista de deseos): ${des.length ? des.map(([id], i) => `${i + 1}. ${(P2.producto(id) || { n: id }).n}`).join(' · ') : 'ninguno'}${n('wishlist_reached') ? ` · alcanzados ${n('wishlist_reached')}` : ''}`);
+    const ganado = ['sueldo', 'primas', 'patrocinio', 'trabajo', 'retirado'].reduce((a, k) => a + ((s.acum || {})[k] || 0), 0) + (s.socio ? s.socio.dividendos || 0 : 0);
+    const gastado = (s.acum || {}).compras || 0, cp = t.compras || [];
+    L.push(`  Visitas a la Tienda: ${t.vistas.tienda || 0} · compras: ${cp.length}`);
+    L.push(`  Dinero gastado en Tienda: ${eur(gastado)} · dinero total ganado: ${eur(ganado)} · % de ingresos gastado: ${ganado ? `${Math.round(100 * gastado / ganado)} %` : 'sin datos'}`);
+    return L;
   }
   function responder(s, id, valor) {
     const q = PREGUNTAS.find(x => x.id === id); if (!q) return false;
@@ -3167,36 +3385,44 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // look: prendas del avatar que desbloquea
   const PRODUCTOS = [
     // 👕 Ropa
-    { id: 'camiseta', cat: 'ropa', ic: '👕', n: 'Camiseta de tu equipo favorito', precio: 25, d: 'Para ir a la plaza con estilo.' },
-    { id: 'chandal', cat: 'ropa', ic: '🧥', n: 'Chándal de marca', precio: 90, d: 'El de los entrenamientos buenos.' },
-    { id: 'outfit', cat: 'ropa', ic: '🤵', n: 'Outfit premium', precio: 650, req: { hito: 'contrato' }, look: ['ropa:traje', 'pantalon:traje'], d: 'Para entrevistas y eventos. Desbloquea el traje en tu personaje.' },
+    { id: 'camiseta', cat: 'ropa', ic: '👕', n: 'Camiseta de tu equipo favorito', precio: 25, rareza: 'comun', look: ['ropa:equipoFav'], d: 'Para ir a la plaza con estilo.' },
+    { id: 'chandal', cat: 'ropa', ic: '🧥', n: 'Chándal de marca', precio: 90, rareza: 'comun', look: ['ropa:chandalMarca', 'pantalon:chandal'], d: 'El de los entrenamientos buenos.' },
+    { id: 'outfit', cat: 'ropa', ic: '🤵', n: 'Outfit premium', precio: 650, rareza: 'raro', req: { hito: 'contrato' }, look: ['ropa:traje', 'pantalon:traje'], d: 'Para entrevistas y eventos. Desbloquea el traje en tu personaje.' },
     // ⌚ Accesorios
-    { id: 'gorra', cat: 'accesorios', ic: '🧢', n: 'Gorra', precio: 30, d: 'Colección.' },
-    { id: 'relojDep', cat: 'accesorios', ic: '⌚', n: 'Reloj deportivo', precio: 180, d: 'Cuenta pasos, mide pulsaciones y queda bien.' },
-    { id: 'cadena', cat: 'accesorios', ic: '📿', n: 'Cadena de oro', precio: 3000, req: { hito: 'empresa' }, patrimonial: 0.6, look: ['extra:cadena'], d: 'Un capricho que conserva parte de su valor.' },
-    { id: 'relojLujo', cat: 'accesorios', ic: '💎', n: 'Reloj de lujo', precio: 9000, req: { hito: 'rentable' }, patrimonial: 0.7, look: ['extra:reloj'], d: 'De los que se heredan.' },
+    { id: 'gorra', cat: 'accesorios', ic: '🧢', n: 'Gorra', precio: 30, rareza: 'comun', look: ['cabeza:gorraPlana'], d: 'Colección.' },
+    { id: 'relojDep', cat: 'accesorios', ic: '⌚', n: 'Reloj deportivo', precio: 180, rareza: 'comun', look: ['extra:relojDep'], d: 'Cuenta pasos, mide pulsaciones y queda bien.' },
+    { id: 'cadena', cat: 'accesorios', ic: '📿', n: 'Cadena de oro', precio: 3000, rareza: 'epico', req: { hito: 'empresa' }, patrimonial: 0.6, look: ['extra:cadena'], d: 'Un capricho que conserva parte de su valor.' },
+    { id: 'relojLujo', cat: 'accesorios', ic: '💎', n: 'Reloj de lujo', precio: 9000, rareza: 'legendario', req: { hito: 'rentable' }, patrimonial: 0.7, look: ['extra:reloj'], d: 'De los que se heredan.' },
     // 📱 Tecnología
-    { id: 'movilBasico', cat: 'tecnologia', ic: '📱', n: 'Móvil básico', precio: 120, slot: 'movil', ef: { prensa: 0.05 }, d: 'Fotos decentes: tu prensa y redes rinden un 5 % más.' },
-    { id: 'movilBueno', cat: 'tecnologia', ic: '📲', n: 'Móvil bueno', precio: 450, req: { hito: 'contrato' }, slot: 'movil', ef: { prensa: 0.1 }, d: 'Tus redes rinden un 10 % más.' },
-    { id: 'movilPremium', cat: 'tecnologia', ic: '🤳', n: 'Móvil premium', precio: 1300, req: { hito: 'titular' }, slot: 'movil', ef: { prensa: 0.15 }, d: 'Tus redes rinden un 15 % más.' },
+    { id: 'movilBasico', cat: 'tecnologia', ic: '📱', n: 'Móvil básico', precio: 120, rareza: 'comun', slot: 'movil', ef: { prensa: 0.05 }, d: 'Fotos decentes: tu prensa y redes rinden un 5 % más.' },
+    { id: 'movilBueno', cat: 'tecnologia', ic: '📲', n: 'Móvil bueno', precio: 450, rareza: 'raro', req: { hito: 'contrato' }, slot: 'movil', ef: { prensa: 0.1 }, d: 'Tus redes rinden un 10 % más.' },
+    { id: 'movilPremium', cat: 'tecnologia', ic: '🤳', n: 'Móvil premium', precio: 1300, rareza: 'epico', req: { hito: 'titular' }, slot: 'movil', ef: { prensa: 0.15 }, d: 'Tus redes rinden un 15 % más.' },
     // 🚗 Vehículos
-    { id: 'bici', cat: 'vehiculos', ic: '🚲', n: 'Bicicleta', precio: 180, slot: 'vehiculo', patrimonial: 0.5, ef: { recuperacion: 1 }, d: 'Llegas antes a todo: +1 de energía por semana.' },
-    { id: 'moto', cat: 'vehiculos', ic: '🛵', n: 'Moto', precio: 1900, req: { hito: 'contrato' }, slot: 'vehiculo', patrimonial: 0.6, ef: { recuperacion: 2 }, d: 'Menos autobús: +2 de energía por semana.' },
-    { id: 'cocheUsado', cat: 'vehiculos', ic: '🚗', n: 'Coche de segunda mano', precio: 5200, req: { hito: 'titular' }, slot: 'vehiculo', patrimonial: 0.65, ef: { recuperacion: 3 }, d: 'Tu primer coche: +3 de energía por semana.' },
-    { id: 'deportivo', cat: 'vehiculos', ic: '🏎️', n: 'Coche deportivo', precio: 32000, req: { hito: 'inversion2' }, slot: 'vehiculo', patrimonial: 0.7, ef: { recuperacion: 3 }, d: 'Cuando seas magnate.' },
+    { id: 'bici', cat: 'vehiculos', ic: '🚲', n: 'Bicicleta', precio: 180, rareza: 'comun', slot: 'vehiculo', patrimonial: 0.5, ef: { recuperacion: 1 }, d: 'Llegas antes a todo: +1 de energía por semana.' },
+    { id: 'moto', cat: 'vehiculos', ic: '🛵', n: 'Moto', precio: 1900, rareza: 'raro', req: { hito: 'contrato' }, slot: 'vehiculo', patrimonial: 0.6, ef: { recuperacion: 2 }, d: 'Menos autobús: +2 de energía por semana.' },
+    { id: 'cocheUsado', cat: 'vehiculos', ic: '🚗', n: 'Coche de segunda mano', precio: 5200, rareza: 'raro', req: { hito: 'titular' }, slot: 'vehiculo', patrimonial: 0.65, ef: { recuperacion: 3 }, d: 'Tu primer coche: +3 de energía por semana.' },
+    { id: 'superdeportivo', cat: 'vehiculos', ic: '🚀', n: 'Superdeportivo', precio: 180000, rareza: 'legendario', proximamente: true, d: 'Para cuando seas magnate de verdad.' },
+    { id: 'deportivo', cat: 'vehiculos', ic: '🏎️', n: 'Coche deportivo', precio: 32000, rareza: 'legendario', req: { hito: 'inversion2' }, slot: 'vehiculo', patrimonial: 0.7, ef: { recuperacion: 3 }, d: 'Cuando seas magnate.' },
     // 🏠 Vivienda (la habitación en casa de tus padres la tienes desde el principio)
     { id: 'habitacion', cat: 'vivienda', ic: '🛏️', n: 'Habitación en casa familiar', precio: 0, slot: 'vivienda', inicial: true, d: 'Gratis… y con tus padres al lado.' },
-    { id: 'piso', cat: 'vivienda', ic: '🏢', n: 'Piso pequeño', precio: 16000, req: { hito: 'empresa' }, slot: 'vivienda', patrimonial: 1, ef: { gastosVida: 25, recuperacion: 2 }, d: 'Tuyo: −25 € de gastos a la semana, descansas mejor y vale lo que pagaste.' },
-    { id: 'casaPremium', cat: 'vivienda', ic: '🏡', n: 'Vivienda premium', precio: 65000, req: { hito: 'inversion2' }, slot: 'vivienda', patrimonial: 1, ef: { gastosVida: 40, recuperacion: 4 }, d: 'Con jardín y gimnasio.' },
+    { id: 'piso', cat: 'vivienda', ic: '🏢', n: 'Piso pequeño', precio: 16000, rareza: 'epico', req: { hito: 'empresa' }, slot: 'vivienda', patrimonial: 1, ef: { gastosVida: 25, recuperacion: 2 }, d: 'Tuyo: −25 € de gastos a la semana, descansas mejor y vale lo que pagaste.' },
+    { id: 'casaPremium', cat: 'vivienda', ic: '🏡', n: 'Vivienda premium', precio: 65000, rareza: 'legendario', req: { hito: 'inversion2' }, slot: 'vivienda', patrimonial: 1, ef: { gastosVida: 40, recuperacion: 4 }, d: 'Con jardín y gimnasio.' },
+    { id: 'atico', cat: 'vivienda', ic: '🌇', n: 'Ático con vistas', precio: 250000, rareza: 'legendario', proximamente: true, d: 'La ciudad a tus pies.' },
+    { id: 'villa', cat: 'vivienda', ic: '🏝️', n: 'Villa junto al mar', precio: 600000, rareza: 'legendario', proximamente: true, d: 'Capítulos futuros.' },
+    { id: 'mansion', cat: 'vivienda', ic: '🏰', n: 'Mansión', precio: 1500000, rareza: 'legendario', proximamente: true, d: 'El final del camino… o no.' },
     // 🎮 Ocio
-    { id: 'consola', cat: 'ocio', ic: '🎮', n: 'Videoconsola', precio: 350, d: 'Colección. Las tardes de domingo son tuyas.' },
+    { id: 'consola', cat: 'ocio', ic: '🎮', n: 'Videoconsola', precio: 350, rareza: 'raro', d: 'Colección. Las tardes de domingo son tuyas.' },
     { id: 'escapada', cat: 'ocio', ic: '🏖️', n: 'Escapada de fin de semana', precio: 700, consumible: true, enfria: 8, usar: { energia: 40, rel: { marc: 3, madre: 2 } }, d: '+40 de energía. Te llevas a Marc. Se puede repetir cada 8 semanas.' },
     { id: 'cenaEquipo', cat: 'ocio', ic: '🍝', n: 'Invitar a cenar al equipo', precio: 250, req: { hito: 'contrato' }, consumible: true, enfria: 10, usar: { rel: { iker: 6 }, confianza: 2 }, d: 'El vestuario lo agradece (+2 confianza del míster). Cada 10 semanas.' },
+    // Regalos y planes con tu gente (dinero del juego; nunca dinero real)
+    { id: 'regaloMadre', cat: 'ocio', ic: '💐', n: 'Regalo para tu madre', precio: 120, rareza: 'comun', consumible: true, enfria: 10, usar: { rel: { madre: 5 } }, d: '+5 con tu madre. Cada 10 semanas.' },
+    { id: 'cenaMarc', cat: 'ocio', ic: '🍔', n: 'Cena con Marc', precio: 60, rareza: 'comun', consumible: true, enfria: 6, usar: { rel: { marc: 4 } }, d: '+4 con Marc. Cada 6 semanas.' },
+    { id: 'entradas', cat: 'ocio', ic: '🎟️', n: 'Entradas para un concierto', precio: 150, rareza: 'raro', consumible: true, enfria: 12, usar: { rel: { padre: 4, dani: 4 } }, d: 'Con tu padre y Dani: +4 con cada uno. Cada 12 semanas.' },
     // ⚽ Equipamiento deportivo
-    { id: 'botas', cat: 'equipamiento', ic: '👟', n: 'Botas buenas', precio: 95, slot: 'calzado', ef: { entreno: 0.03 }, d: 'Más cómodas: entrenas un 3 % mejor.' },
-    { id: 'botasPro', cat: 'equipamiento', ic: '⚡', n: 'Botas profesionales', precio: 420, req: { hito: 'contrato' }, slot: 'calzado', ef: { entreno: 0.06 }, d: 'Entrenas un 6 % mejor.' },
+    { id: 'botas', cat: 'equipamiento', ic: '👟', n: 'Botas buenas', precio: 95, rareza: 'comun', look: ['calzado:botas'], slot: 'calzado', ef: { entreno: 0.03 }, d: 'Más cómodas: entrenas un 3 % mejor.' },
+    { id: 'botasPro', cat: 'equipamiento', ic: '⚡', n: 'Botas profesionales', precio: 420, rareza: 'raro', look: ['calzado:botasPro'], req: { hito: 'contrato' }, slot: 'calzado', ef: { entreno: 0.06 }, d: 'Entrenas un 6 % mejor.' },
     { id: 'masaje', cat: 'equipamiento', ic: '💆', n: 'Pistola de masaje', precio: 260, ef: { recuperacion: 2 }, d: '+2 de energía por semana.' },
-    { id: 'gimnasio', cat: 'equipamiento', ic: '🏋️', n: 'Gimnasio en casa', precio: 2600, req: { posee: 'piso' }, patrimonial: 0.5, ef: { entreno: 0.05 }, d: 'Necesitas tu propio piso. Entrenas un 5 % mejor.' },
+    { id: 'gimnasio', cat: 'equipamiento', ic: '🏋️', n: 'Gimnasio en casa', precio: 2600, rareza: 'epico', req: { posee: 'piso' }, patrimonial: 0.5, ef: { entreno: 0.05 }, d: 'Necesitas tu propio piso. Entrenas un 5 % mejor.' },
   ];
   const producto = id => PRODUCTOS.find(p => p.id === id);
   const inventario = s => (Array.isArray(s.inventario) ? s.inventario : (s.inventario = []));
@@ -3204,20 +3430,25 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // Lo que llevas «puesto» en cada hueco (vehículo, vivienda, móvil, calzado)
   const equipado = (s, slot) => { const e = (s.equipado || {})[slot]; return e ? producto(e) : PRODUCTOS.find(p => p.slot === slot && p.inicial) || null; };
 
-  function bloqueoProducto(s, P) {
+  // Precio para ti: el de la lista, o con el cupón / la oferta especial que hayas conseguido (Monetization Lab)
+  const precioPara = (s, P) => (P2.precioConDescuento ? P2.precioConDescuento(s, P) : P.precio);
+  function bloqueoProducto(s, P, sinDinero) {
     if (!P) return 'No existe.';
     if (P.inicial) return 'Ya lo tienes.';
+    if (P.proximamente) return 'Próximamente';
     if (!P.consumible && posee(s, P.id)) return 'Ya es tuyo.';
     if (P.req && P.req.hito && !(s.hitos && s.hitos[P.req.hito])) { const H = P2.HITOS.find(h => h.id === P.req.hito); return `Se desbloquea con: ${H ? H.n.toLowerCase() : P.req.hito}`; }
     if (P.req && P.req.posee && !posee(s, P.req.posee)) return `Necesitas: ${producto(P.req.posee).n.toLowerCase()}`;
     if (P.consumible && P.enfria) { const u = (s.usoTienda || {})[P.id]; if (u != null && s.semana - u < P.enfria) return `Otra vez en ${P.enfria - (s.semana - u)} semanas.`; }
-    if (s.p.dinero < P.precio) return `Te faltan ${eur(P.precio - s.p.dinero)}.`;
+    if (!sinDinero && s.p.dinero < precioPara(s, P)) return `Te faltan ${eur(precioPara(s, P) - s.p.dinero)}.`;
     return null;
   }
   // Comprar: el dinero se resta una sola vez; lo único no se compra dos veces
   function comprar(s, id) {
     const P = producto(id); if (bloqueoProducto(s, P)) return null;
-    s.p.dinero -= P.precio; s.acum.compras = (s.acum.compras || 0) + P.precio;
+    const precio = precioPara(s, P);
+    s.p.dinero -= precio; s.acum.compras = (s.acum.compras || 0) + precio;
+    if (precio !== P.precio && P2.usarDescuento) P2.usarDescuento(s, P.id);
     s.usoTienda = s.usoTienda || {};
     let item = null;
     if (P.consumible) {
@@ -3227,13 +3458,20 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       if (U.confianza && s.fase === 'club') s.confianza = clamp(s.confianza + U.confianza, 0, 100);
       for (const [rid, d] of Object.entries(U.rel || {})) P2.cambiarRel(s, rid, d, P.n);
     } else {
-      item = { uid: 'i' + (s.semana * 1000 + inventario(s).length), id: P.id, semana: s.semana, precioCompra: P.precio, valorActual: P.patrimonial ? Math.round(P.precio * P.patrimonial) : 0 };
+      // El valor sale de lo que pagaste (con descuento, vale menos): así un cupón no se convierte en beneficio al revender
+      item = { uid: 'i' + (s.semana * 1000 + inventario(s).length), id: P.id, semana: s.semana, precioCompra: precio, valorActual: P.patrimonial ? Math.round(precio * P.patrimonial) : 0, skin: null };
       inventario(s).push(item);
       if (P.slot) { s.equipado = s.equipado || {}; s.equipado[P.slot] = P.id; }
-      if (P.look) s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat(P.look)));
+      if (P.look) {
+        s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat(P.look)));
+        const hechas = {};   // te lo pones al momento: «ahora tengo esto»
+        for (const x of P.look) { const [cap, lid] = x.split(':'); if (!hechas[cap] && P2.ponerLook) { P2.ponerLook(s, cap, lid); hechas[cap] = 1; } }
+      }
+      s.historiaCosas = Array.from(new Set((s.historiaCosas || []).concat(P.id)));
     }
-    P2.anotar(s, P.ic, `Me compro: ${P.n.toLowerCase()} (${eur(P.precio)}).`);
-    P2.tele(s, 'compra', { id: P.id, precio: P.precio });
+    if (P2.alComprar) P2.alComprar(s, P, precio);
+    P2.anotar(s, P.ic, `Me compro: ${P.n.toLowerCase()} (${eur(precio)}).`);
+    P2.tele(s, 'compra', { id: P.id, precio });
     return item || { id: P.id, consumido: true };
   }
   // Vender un patrimonial: recuperas su valor actual
@@ -3243,6 +3481,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     s.p.dinero += it.valorActual;
     s.inventario = inventario(s).filter(x => x !== it);
     if (P.slot && s.equipado && s.equipado[P.slot] === P.id) delete s.equipado[P.slot];
+    s.vendidos = (s.vendidos || []).concat({ id: P.id, semana: s.semana, precio: it.valorActual }).slice(-20);
     P2.anotar(s, '🏷️', `Vendo: ${P.n.toLowerCase()} por ${eur(it.valorActual)}.`);
     P2.tele(s, 'ventaPosesion', { id: P.id });
     return it.valorActual;
@@ -3264,7 +3503,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   }
   const valorPosesiones = s => inventario(s).reduce((a, it) => a + (it.valorActual || 0), 0);
 
-  Object.assign(P2, { CATEGORIAS_TIENDA, PRODUCTOS, producto, posee, equipado, bloqueoProducto, comprar, venderPosesion, equipar, efectoTienda, valorPosesiones });
+  const RAREZAS = { comun: { n: 'Común', c: '#8e8aa8' }, raro: { n: 'Raro', c: '#3d7bff' }, epico: { n: 'Épico', c: '#a64bff' }, legendario: { n: 'Legendario', c: '#e8a000' } };
+  Object.assign(P2, { CATEGORIAS_TIENDA, PRODUCTOS, RAREZAS, producto, posee, equipado, bloqueoProducto, precioPara, comprar, venderPosesion, equipar, efectoTienda, valorPosesiones });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 14_relaciones.js =====
@@ -3415,6 +3655,395 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   Object.assign(P2, { RELACIONES, EVENTOS_RELACION, persona, valorRel, estadoRel, cambiarRel, personasVisibles, nombreRel, relVisible: visible });
 })(globalThis.P2 = globalThis.P2 || {});
 
+// ===== 15_monetizacion.js =====
+/* =====================================================================
+   15 · MONETIZATION LAB (P2.4) — TODO SIMULADO
+   Sirve para medir qué anuncios con recompensa y qué compras querría la gente,
+   SIN anuncios reales, SIN pagos, SIN SDK, SIN servidor y SIN moneda premium.
+   Reglas que no se rompen:
+   - El juego está equilibrado sin esto: nada de aquí cambia precios, sueldos, energía ni progresión.
+   - Nunca se vende poder, dinero del juego, contratos, resultados ni se borran consecuencias.
+   - Los anuncios simulados solo dan: un cupón o una oferta en la Tienda (se paga con dinero del juego),
+     un poco de energía con límite estricto, o un cosmético. Nunca durante una decisión ni en las pruebas.
+   - Las compras con dinero real son solo pruebas de intención («¿lo comprarías?»): no hay cargo ni checkout.
+   - Nada de aquí usa el generador aleatorio de la partida (s.rng): la telemetría no cambia el juego.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { clamp, eur } = P2;
+
+  // ---------- Configuración central (todo editable aquí) ----------
+  const MONETIZATION = {
+    activa: true,     // false → no se ofrece nada: el juego queda exactamente igual que sin monetización
+    testMode: true,   // P2.4: SIEMPRE simulado. No existe ningún camino a un anuncio o pago real
+    variantes: {      // test A/B local: se asigna una vez al crear la partida (no cambia la dificultad)
+      A: { n: 'Solo anuncios con recompensa', iap: [] },
+      B: { n: 'Anuncios + Pack Debut', iap: ['debut', 'sinAnuncios'] },
+      C: { n: 'Anuncios + varios packs', iap: ['debut', 'street', 'pro', 'luxury', 'founder', 'sinAnuncios', 'espacios'] },
+    },
+    rewarded: {
+      cupon: { activo: true, pct: 0.10, maximo: 600, cadaSemanas: 4, precioMin: 80, validez: 4 },
+      oferta: { activo: true, pctMin: 0.15, pctMax: 0.25, maximo: 250, cadaSemanas: 6, validez: 3, precioMax: { barrio: 200, club: 700, empresa: 3000, magnate: 10000 } },
+      energia: { activo: true, cantidad: 10, umbral: 35, cadaSemanas: 8 },   // con +15 cada 6 semanas, verlos todos daba +3 de nivel y +7 % de patrimonio: demasiado
+      temporada: { activo: true },
+      empresaBonus: { activo: false, mult: 1.25 },   // futuro: cobrar ingresos offline con bonus. Aún no hay ingresos offline
+    },
+    iap: { maxPorSesion: 2, semanasEntre: 4, entregarCosmeticos: false, minutosFounder: 25, momentoValido: 3 },
+    interstitial: { activo: true, minutosEntre: 12, momentos: ['finTemporada', 'finCapitulo'] },
+    limitesSesion: { rewarded: 6 },
+  };
+
+  const REWARDED = {
+    cupon: { ic: '🏷️', n: 'Cupón de Tienda', d: c => `−${Math.round(c.pct * 100)} % en un objeto (máximo ${eur(c.maximo)})` },
+    oferta: { ic: '🎁', n: 'Oferta especial', d: () => 'Descubres un objeto con descuento (lo pagas con dinero del juego)' },
+    energia: { ic: '⚡', n: 'Recuperación patrocinada', d: c => `+${c.cantidad} de energía` },
+    temporada: { ic: '🕶️', n: 'Cosmético de temporada', d: () => 'Gafas edición temporada (solo estética)' },
+    empresaBonus: { ic: '💼', n: 'Bonus de empresa', d: c => `Cobrar ×${c.mult} lo generado fuera de la partida (futuro)` },
+  };
+
+  // ---------- Productos simulados con dinero real (solo pruebas de intención) ----------
+  // contenido: [capa, id del look, texto] o { tipo, ... } para lo que no es ropa
+  const IAP_PRODUCTS = [
+    { id: 'debut', ic: '🎉', nombre: 'Pack Debut', precio: 0.99, categoria: 'cosmetico', momentoOferta: 'contrato', unaVez: true, rareza: 'raro',
+      descripcion: 'Para celebrar tu primer contrato profesional.',
+      contenido: [['ropa', 'debut', '👕 Outfit exclusivo Debut'], ['calzado', 'debut', '👟 Diseño exclusivo de botas'], ['cabeza', 'gorraDebut', '🧢 Gorra exclusiva'], ['fondo', 'debut', '🎨 Fondo de perfil «Debut»']] },
+    { id: 'street', ic: '🛹', nombre: 'Pack Street', precio: 1.99, categoria: 'cosmetico', momentoOferta: 'titular', unaVez: true, rareza: 'raro',
+      descripcion: 'Estilo de barrio. Solo estética.',
+      contenido: [['ropa', 'street', '👕 Sudadera exclusiva'], ['pantalon', 'street', '👖 Pantalón cargo'], ['calzado', 'street', '👟 Zapatillas'], ['cabeza', 'gorraStreet', '🧢 Gorra'], ['fondo', 'urbano', '🏙️ Fondo urbano']] },
+    { id: 'pro', ic: '⚡', nombre: 'Pack Pro', precio: 2.99, categoria: 'cosmetico', momentoOferta: 'patro', unaVez: true, rareza: 'epico',
+      descripcion: 'Tu carrera despega: viste como un profesional. Sin ventajas.',
+      contenido: [['ropa', 'pro', '🧥 Outfit profesional'], ['extra', 'relojPro', '⌚ Reloj (visual)'], ['pelo', 'degradado', '💇 Peinado degradado'], ['gafas', 'pro', '🕶️ Gafas'], ['fondo', 'estadio', '🏟️ Fondo de estadio'], ['calzado', 'pro', '👟 Variante de botas']] },
+    { id: 'luxury', ic: '💎', nombre: 'Pack Luxury', precio: 3.99, categoria: 'cosmetico', momentoOferta: 'empresa', unaVez: true, rareza: 'legendario',
+      descripcion: 'Para quien ya tiene empresa. El coche se sigue ganando jugando: esto solo cambia su aspecto.',
+      contenido: [['ropa', 'trajeLux', '🤵 Traje exclusivo'], ['extra', 'relojPremium', '⌚ Reloj premium (visual)'], ['extra', 'cadenaExcl', '📿 Cadena exclusiva'], ['fondo', 'premium', '✨ Fondo premium'],
+        { tipo: 'skin', vehiculo: 'deportivo', skin: 'negra', t: '🏎️ Aspecto «Negro mate» para tu deportivo (si lo tienes)' }, { tipo: 'texto', t: '🏠 Decoración de casa (próximamente)' }] },
+    { id: 'founder', ic: '⭐', nombre: 'Founder Pack', precio: 4.99, categoria: 'apoyo', momentoOferta: 'rentable', unaVez: true, rareza: 'legendario',
+      descripcion: 'Para quien quiere apoyar el juego. Sin ventaja competitiva.',
+      contenido: [{ tipo: 'sinAnuncios', t: '🚫 Sin anuncios obligatorios' }, ['extra', 'insignia', '⭐ Insignia Founder'], ['ropa', 'founder', '👕 Outfit Founder'], ['fondo', 'founder', '🖼️ Fondo exclusivo'],
+        { tipo: 'espacios', n: 3, t: '💾 3 espacios extra de carrera' }, ['cabeza', 'gorraStreet', '🧢 Pequeño pack cosmético']] },
+    { id: 'sinAnuncios', ic: '🚫', nombre: 'Sin anuncios', precio: 2.99, categoria: 'sinAnuncios', momentoOferta: 'intersticial', unaVez: true,
+      descripcion: 'Quita solo los anuncios obligatorios. Los anuncios con recompensa siguen ahí si los quieres.',
+      contenido: [{ tipo: 'sinAnuncios', t: '🚫 Fuera los anuncios obligatorios' }, { tipo: 'texto', t: '📺 Los voluntarios con recompensa siguen disponibles' }] },
+    { id: 'espacios', ic: '💾', nombre: '+3 carreras', precio: 1.99, categoria: 'espacios', momentoOferta: 'ajustes', unaVez: true,
+      descripcion: 'Gratis tienes 2 carreras a la vez. En esta prueba no se limita nada: solo medimos si te interesa.',
+      contenido: [{ tipo: 'espacios', n: 3, t: '💾 3 espacios extra de carrera (5 en total)' }] },
+  ];
+  // Deportes futuros: solo para medir interés en el informe. No se venden en P2.4
+  const DEPORTES_FUTUROS = [{ id: 'escalada', ic: '🧗', n: 'Escalada' }, { id: 'tenis', ic: '🎾', n: 'Tenis' }, { id: 'basket', ic: '🏀', n: 'Basket' }, { id: 'surf', ic: '🏄', n: 'Surf' }, { id: 'skate', ic: '🛹', n: 'Skate' }];
+  // Aspectos de vehículo (preparado; en P2.4 solo el del Pack Luxury, de prueba)
+  const SKINS_VEHICULO = { deportivo: [{ id: 'normal', n: 'De serie', c: '#e23b3b' }, { id: 'negra', n: 'Negro mate', c: '#1b1b22', premium: 'luxury' }] };
+
+  // ---------- Estado ----------
+  const nuevoMon = () => ({ ultimo: {}, cupon: null, oferta: null, pend: null, seq: 0, momentos: [], iapVisto: {}, ultimaOfertaIap: null,
+    intersticialPend: null, intersticialMs: null, temporadaPremio: null, deseoAvisado: null, deseoAviso: null, premium: [], sinAnuncios: false });
+  const M = s => (s.mon && typeof s.mon === 'object' ? s.mon : (s.mon = nuevoMon()));
+  const activa = () => MONETIZATION.activa && MONETIZATION.testMode;
+  // Hash estable (sin tocar s.rng): para la variante y para elegir la oferta especial
+  function hash(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+
+  function asignarVariante(s) {
+    if (s.monVariante && MONETIZATION.variantes[s.monVariante]) return s.monVariante;
+    const ids = Object.keys(MONETIZATION.variantes);
+    s.monVariante = ids[hash((s.tele && s.tele.id) || String(s.seed)) % ids.length];
+    return s.monVariante;
+  }
+  const iapEnVariante = (s, id) => { const V = MONETIZATION.variantes[asignarVariante(s)]; return !!V && V.iap.includes(id); };
+
+  // ---------- Telemetría de monetización (separada; nunca toca la partida) ----------
+  function teleMon(s, ev, d = {}) {
+    if (!s || !s.p) return;
+    const t = s.tele || (s.tele = P2.nuevaTele()), m = t.mon || (t.mon = { eventos: [], cuentas: {}, vistos: {}, deseados: {} });
+    const e = Object.assign({ e: ev, semana: s.semana, fase: s.fase, dinero: Math.round(s.p.dinero), energia: Math.round(s.p.energia), ms: t.msActivo || 0, patrimonio: P2.patrimonio ? P2.patrimonio(s) : 0 }, d);
+    m.eventos.push(e); if (m.eventos.length > 300) m.eventos.shift();
+    m.cuentas[ev] = (m.cuentas[ev] || 0) + 1;
+    const sub = d.reward_type || d.producto;
+    if (sub) m.cuentas[`${ev}:${sub}`] = (m.cuentas[`${ev}:${sub}`] || 0) + 1;
+    if (!m.primero) m.primero = {};
+    if (!m.primero[ev]) m.primero[ev] = { semana: s.semana, ms: t.msActivo || 0 };
+    return e;
+  }
+  // «Ofrecido» se cuenta una vez por oferta y semana (no cada vez que se pinta la pantalla)
+  function vistoMon(s, ev, clave, d) {
+    const t = s.tele || (s.tele = P2.nuevaTele()), m = t.mon || (t.mon = { eventos: [], cuentas: {}, vistos: {}, deseados: {} });
+    const k = `${ev}|${clave}|${s.semana}`;
+    if (m.vistos[k]) return false;
+    m.vistos[k] = 1;
+    const ks = Object.keys(m.vistos); if (ks.length > 400) delete m.vistos[ks[0]];
+    teleMon(s, ev, d); return true;
+  }
+
+  // ---------- Descuentos (cupón y oferta especial) ----------
+  function descuentoCupon(precio) { const C = MONETIZATION.rewarded.cupon; return Math.max(0, Math.min(Math.round(precio * C.pct), C.maximo, precio)); }
+  function cuponVigente(s) { const c = M(s).cupon; return c && s.semana - c.semana < MONETIZATION.rewarded.cupon.validez ? c : null; }
+  function ofertaVigente(s) { const o = M(s).oferta; return o && s.semana <= o.hasta ? o : null; }
+  function precioConDescuento(s, P) {
+    if (!P) return 0;
+    const o = ofertaVigente(s); if (o && o.id === P.id) return Math.max(0, o.precio);
+    const c = cuponVigente(s); if (c && c.id === P.id) return Math.max(0, P.precio - descuentoCupon(P.precio));
+    return P.precio;
+  }
+  function usarDescuento(s, id) {
+    const m = M(s);
+    if (m.oferta && m.oferta.id === id) { teleMon(s, 'reward_used', { reward_type: 'oferta', id }); m.oferta = null; }
+    else if (m.cupon && m.cupon.id === id) { teleMon(s, 'reward_used', { reward_type: 'cupon', id }); m.cupon = null; }
+  }
+  const etapaDe = s => (s.hitos.inversion2 ? 'magnate' : s.negocios.length || s.socio ? 'empresa' : s.temporada ? 'club' : 'barrio');
+  function candidatosOferta(s) {
+    const C = MONETIZATION.rewarded.oferta, max = C.precioMax[etapaDe(s)];
+    return P2.PRODUCTOS.filter(P => !P.inicial && !P.proximamente && !P.consumible && P.precio >= 20 && P.precio <= max && !P2.posee(s, P.id) && !P2.bloqueoProducto(s, P, true));
+  }
+
+  // ---------- Anuncios con recompensa (simulados) ----------
+  // Devuelve null si se puede, o el motivo si no
+  function bloqueoRewarded(s, tipo, data = {}) {
+    if (!activa()) return 'Desactivado';
+    const C = MONETIZATION.rewarded[tipo]; if (!C || !C.activo) return 'Desactivado';
+    if (s.pendiente) return 'Primero decide';   // nunca durante una decisión (ni para cambiarla)
+    const u = M(s).ultimo[tipo];
+    if (C.cadaSemanas && u != null && s.semana - u < C.cadaSemanas) return `Otra vez en ${C.cadaSemanas - (s.semana - u)} ${C.cadaSemanas - (s.semana - u) === 1 ? 'semana' : 'semanas'}`;
+    if (tipo === 'cupon') {
+      const P = P2.producto(data.id);
+      if (!P || P.consumible || P.inicial || P.proximamente || P.precio < C.precioMin) return 'Sin cupón para esto';
+      if (P2.posee(s, P.id) || P2.bloqueoProducto(s, P, true)) return 'No disponible';
+      const c = cuponVigente(s); if (c) return c.id === P.id ? 'Ya tienes el cupón' : 'Ya tienes un cupón activo';
+      const o = ofertaVigente(s); if (o && o.id === P.id) return 'Ya está en oferta';
+    }
+    if (tipo === 'oferta') { if (ofertaVigente(s)) return 'Ya tienes una oferta'; if (!candidatosOferta(s).length) return 'No hay ofertas ahora'; }
+    if (tipo === 'energia') {
+      if (s.fase === 'pruebas') return 'No antes de las pruebas';   // nunca altera una prueba
+      if (s.p.energia >= C.umbral) return 'Solo con poca energía';
+      if (s.p.energia >= P2.CFG.energia.max) return 'Ya estás a tope';
+    }
+    if (tipo === 'temporada') { const t = M(s).temporadaPremio; if (!t || t.extra) return 'No disponible'; }
+    return null;
+  }
+  // Toca «Ver anuncio»: abre la simulación con la recompensa (aún no se entrega)
+  function pedirRewarded(s, tipo, data = {}) {
+    const b = bloqueoRewarded(s, tipo, data); if (b) return null;
+    const m = M(s);
+    m.pend = { token: ++m.seq, tipo, data: Object.assign({}, data), semana: s.semana };
+    teleMon(s, 'rewarded_offer_clicked', { reward_type: tipo, contexto: data.contexto || data.id || null });
+    return m.pend;
+  }
+  function cancelarRewarded(s) { const m = M(s); if (m.pend) teleMon(s, 'rewarded_offer_cancelled', { reward_type: m.pend.tipo }); m.pend = null; }
+  // «Simular anuncio y aceptar»: entrega UNA recompensa por token; un segundo intento no da nada
+  function aceptarRewarded(s, token) {
+    const m = M(s), p = m.pend;
+    if (!p || p.token !== token) return null;
+    m.pend = null;
+    if (bloqueoRewarded(s, p.tipo, p.data)) return null;
+    const C = MONETIZATION.rewarded[p.tipo];
+    let r = null;
+    if (p.tipo === 'cupon') { const P = P2.producto(p.data.id); m.cupon = { id: P.id, semana: s.semana, ahorro: descuentoCupon(P.precio) }; r = { tipo: 'cupon', id: P.id, ahorro: m.cupon.ahorro, precio: P.precio - m.cupon.ahorro }; }
+    if (p.tipo === 'oferta') {
+      const l = candidatosOferta(s), h = hash(`${(s.tele && s.tele.id) || s.seed}|${s.semana}`), P = l[h % l.length];
+      const pct = C.pctMin + ((h >>> 8) % 11) / 10 * (C.pctMax - C.pctMin), desc = Math.min(Math.round(P.precio * pct), C.maximo);
+      m.oferta = { id: P.id, original: P.precio, precio: Math.max(0, P.precio - desc), hasta: s.semana + C.validez - 1 };
+      r = { tipo: 'oferta', id: P.id, original: P.precio, precio: m.oferta.precio };
+    }
+    if (p.tipo === 'energia') { const antes = s.p.energia; s.p.energia = clamp(s.p.energia + C.cantidad, 0, P2.CFG.energia.max); r = { tipo: 'energia', ganado: s.p.energia - antes }; }
+    if (p.tipo === 'temporada') { m.temporadaPremio.extra = true; s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat('gafas:temporada'))); r = { tipo: 'temporada', look: 'gafas:temporada' }; }
+    if (!r) return null;
+    m.ultimo[p.tipo] = s.semana;
+    teleMon(s, 'rewarded_offer_accepted', { reward_type: p.tipo, contexto: p.data.contexto || p.data.id || null });
+    return r;
+  }
+  function ofrecidoRewarded(s, tipo, data = {}) { if (!bloqueoRewarded(s, tipo, data)) vistoMon(s, 'rewarded_offer_shown', tipo + (data.id || ''), { reward_type: tipo, contexto: data.contexto || data.id || null }); }
+  // Futuro: cobrar lo generado fuera de la partida. Estructura preparada; sin ingresos offline todavía
+  function bonusOffline(base, conAnuncio) { const C = MONETIZATION.rewarded.empresaBonus; return Math.round(base * (conAnuncio && C.activo ? C.mult : 1)); }
+
+  // ---------- Momentos (hitos y finales) ----------
+  // Las ofertas solo aparecen en momentos buenos; jamás tras perder, lesión, crisis o sin dinero
+  function momentoNegativo(s) {
+    const u = s.ultimo && s.ultimo.partido;
+    return s.p.lesion > 0 || s.p.dinero < 0 || s.negocios.some(n => n.crisis) || (u && u.resultado === 'derrota') || (s.pendiente && ['crisis', 'socioCapital'].includes(s.pendiente.tipo));
+  }
+  function momentoMon(s, k) {
+    if (!activa()) return;
+    const m = M(s);
+    m.momentos.push({ k, semana: s.semana }); if (m.momentos.length > 6) m.momentos.shift();
+    if (MONETIZATION.interstitial.activo && MONETIZATION.interstitial.momentos.includes(k)) m.intersticialPend = k;
+    if (k === 'finTemporada' && MONETIZATION.rewarded.temporada.activo) {
+      m.temporadaPremio = { semana: s.semana, extra: false, visto: false };
+      s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat('ropa:temporada')));   // la camiseta es gratis
+    }
+  }
+  // Oferta de pago que tocaría enseñar ahora (o null). sesion: cuántas se han enseñado en esta sesión
+  function ofertaIapAhora(s, sesion = 0) {
+    if (!activa() || momentoNegativo(s)) return null;
+    const m = M(s), L = MONETIZATION.iap;
+    if (sesion >= L.maxPorSesion) return null;
+    if (m.ultimaOfertaIap != null && s.semana - m.ultimaOfertaIap < L.semanasEntre) return null;
+    const mins = ((s.tele && s.tele.msActivo) || 0) / 60000;
+    for (const mo of m.momentos) {
+      if (s.semana - mo.semana > L.momentoValido) continue;
+      const I = IAP_PRODUCTS.find(x => x.momentoOferta === mo.k && iapEnVariante(s, x.id) && !(x.unaVez && m.iapVisto[x.id] != null));
+      if (!I) continue;
+      if (I.id === 'founder' && mins < L.minutosFounder) continue;   // no demasiado pronto: cuando ya conoces el juego
+      return I;
+    }
+    return null;
+  }
+  function marcarIapMostrado(s, id) { const m = M(s); if (m.iapVisto[id] != null) return; m.iapVisto[id] = s.semana; m.ultimaOfertaIap = s.semana; m.momentos = m.momentos.filter(x => !IAP_PRODUCTS.some(I => I.id === id && I.momentoOferta === x.k)); }
+  function iapMostrado(s, id, donde) { const I = IAP_PRODUCTS.find(x => x.id === id); if (!I) return; vistoMon(s, 'iap_offer_shown', id + donde, { producto: id, precio: I.precio, donde }); }
+  function iapClic(s, id) { const I = IAP_PRODUCTS.find(x => x.id === id); if (!I) return null; teleMon(s, 'iap_offer_clicked', { producto: id, precio: I.precio }); return I; }
+  // «¿Lo comprarías?» → no / quizá / sí. NUNCA hay pago. Solo si la configuración lo pide se entregan los cosméticos
+  function iapIntencion(s, id, resp) {
+    const I = IAP_PRODUCTS.find(x => x.id === id); if (!I || !['no', 'quiza', 'si'].includes(resp)) return null;
+    teleMon(s, `iap_intent_${resp === 'quiza' ? 'maybe' : resp === 'si' ? 'yes' : 'no'}`, { producto: id, precio: I.precio, minutosJugados: Math.round(((s.tele && s.tele.msActivo) || 0) / 60000) });
+    const m = M(s);
+    if (resp === 'si' && MONETIZATION.iap.entregarCosmeticos && !m.premium.includes(id)) {
+      m.premium.push(id);
+      for (const c of I.contenido) if (Array.isArray(c)) s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat(`${c[0]}:${c[1]}`)));
+      if (I.contenido.some(c => c.tipo === 'sinAnuncios')) m.sinAnuncios = true;
+    }
+    return { cargo: 0, producto: id, respuesta: resp };
+  }
+
+  // ---------- Anuncio obligatorio simulado (muy limitado) ----------
+  function intersticialAhora(s) {
+    const m = M(s), C = MONETIZATION.interstitial;
+    if (!activa() || !C.activo || !m.intersticialPend || m.sinAnuncios || s.pendiente) return null;
+    const ms = (s.tele && s.tele.msActivo) || 0;
+    if (m.intersticialMs != null && ms - m.intersticialMs < C.minutosEntre * 60000) { teleMon(s, 'interstitial_skipped', { momento: m.intersticialPend, motivo: 'frecuencia' }); m.intersticialPend = null; return null; }
+    return m.intersticialPend;
+  }
+  function intersticialMostrado(s) { const m = M(s), k = m.intersticialPend; if (!k) return; m.intersticialPend = null; m.intersticialMs = (s.tele && s.tele.msActivo) || 0; teleMon(s, 'interstitial_shown', { momento: k }); }
+  function intersticialContinuar(s) { teleMon(s, 'interstitial_continue', {}); }
+
+  Object.assign(P2, { MONETIZATION, REWARDED, IAP_PRODUCTS, DEPORTES_FUTUROS, SKINS_VEHICULO, nuevoMon, asignarVariante, iapEnVariante, teleMon, vistoMon,
+    descuentoCupon, cuponVigente, ofertaVigente, precioConDescuento, usarDescuento, candidatosOferta,
+    bloqueoRewarded, pedirRewarded, cancelarRewarded, aceptarRewarded, ofrecidoRewarded, bonusOffline,
+    momentoNegativo, momentoMon, ofertaIapAhora, marcarIapMostrado, iapMostrado, iapClic, iapIntencion,
+    intersticialAhora, intersticialMostrado, intersticialContinuar, monEstado: M });
+})(globalThis.P2 = globalThis.P2 || {});
+
+// ===== 16_coleccion.js =====
+/* =====================================================================
+   16 · DESEO Y COLECCIÓN: lo que quieres, lo que tienes y tu historia
+   - Lista de deseos: un objetivo personal destacado (s.deseoActual) y aviso UNA vez al poder pagarlo.
+     Nunca compra solo: comprarlo o invertir sigue siendo tu decisión.
+   - Colecciones: completar una da un fondo de perfil (sin estadísticas).
+   - Mi historia: ligas, ascensos, clubes, marcas, empresas, mayor patrimonio, coches, viviendas.
+   - Eventos por posesiones: algunas compras traen situaciones semanas después (dinero del juego, no real).
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { clamp, eur } = P2;
+
+  // ---------- Lista de deseos ----------
+  const deseable = P => P && !P.inicial && !P.consumible && !P.proximamente && P.precio >= 150;
+  function quiero(s, id) {
+    const P = P2.producto(id); if (!deseable(P)) return false;
+    const m = P2.monEstado(s);
+    if (s.deseoActual === id) { s.deseoActual = null; P2.teleMon(s, 'wishlist_remove', { id }); return true; }
+    if (s.deseoActual) P2.teleMon(s, 'wishlist_remove', { id: s.deseoActual, cambio: true });
+    s.deseoActual = id; m.deseoAvisado = null; m.deseoAviso = null;
+    P2.teleMon(s, 'wishlist_add', { id, precio: P.precio });
+    const t = s.tele; if (t && t.mon) t.mon.deseados[id] = (t.mon.deseados[id] || 0) + 1;
+    return true;
+  }
+  // Se llama al final de cada semana/decisión. Devuelve true solo la primera vez que llegas al precio
+  function revisarDeseo(s) {
+    const id = s.deseoActual; if (!id) return false;
+    const P = P2.producto(id), m = P2.monEstado(s);
+    if (!P || P2.posee(s, id)) { if (P) P2.teleMon(s, 'wishlist_bought', { id }); s.deseoActual = null; m.deseoAviso = null; return false; }
+    if (s.p.dinero >= P.precio && m.deseoAvisado !== id) {
+      m.deseoAvisado = id; m.deseoAviso = { id, semana: s.semana };
+      P2.teleMon(s, 'wishlist_reached', { id, precio: P.precio });
+      return true;
+    }
+    return false;
+  }
+
+  // ---------- Colecciones (premio visual, nunca estadísticas) ----------
+  const COLECCIONES = [
+    { id: 'street', ic: '🛹', n: 'Street', items: ['camiseta', 'chandal', 'gorra', 'botas'], premio: 'fondo:street', premioN: 'Fondo Street' },
+    { id: 'pro', ic: '⚡', n: 'Profesional', items: ['botasPro', 'movilBueno', 'outfit', 'relojDep'], premio: 'fondo:vestuario', premioN: 'Fondo Vestuario' },
+    { id: 'lujo', ic: '💎', n: 'Lujo', items: ['cadena', 'relojLujo', 'deportivo', 'casaPremium'], premio: 'fondo:lujo', premioN: 'Fondo Lujo' },
+    { id: 'temporada', ic: '🏆', n: 'Temporada', items: [], futura: true, n2: 'Cosméticos de temporada gratuitos y premium mezclados (próximamente)' },
+  ];
+  const tieneObj = (s, id) => (s.historiaCosas || []).includes(id) || P2.posee(s, id);
+  function progresoColeccion(s, C) { return { tengo: C.items.filter(id => tieneObj(s, id)).length, total: C.items.length }; }
+  function revisarColecciones(s) {
+    const hechas = s.coleccionesHechas || (s.coleccionesHechas = []), nuevas = [];
+    for (const C of COLECCIONES) {
+      if (C.futura || hechas.includes(C.id)) continue;
+      const p = progresoColeccion(s, C);
+      if (p.tengo === p.total) { hechas.push(C.id); nuevas.push(C); s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat(C.premio))); P2.anotar(s, C.ic, `¡Colección ${C.n} completa! Premio: ${C.premioN}.`); }
+    }
+    return nuevas;
+  }
+
+  // ---------- Mi historia ----------
+  function anotarHistoria(s, k, v) {
+    const h = s.historia || (s.historia = { ascensos: 0, patrimonioMax: 0, semanaMax: 1 });
+    if (k === 'ascenso') h.ascensos++;
+    if (k === 'semana') { const p = P2.patrimonio(s); if (p > h.patrimonioMax) { h.patrimonioMax = p; h.semanaMax = s.semana; } }
+    return h;
+  }
+  function miHistoria(s) {
+    const h = s.historia || { ascensos: 0, patrimonioMax: 0 }, T = s.temporadasJugadas || [];
+    const cosas = (s.historiaCosas || []).map(P2.producto).filter(Boolean);
+    return {
+      temporadas: T.length, ligasGanadas: T.filter(t => t.pos === 1).length, objetivos: T.filter(t => t.cumple).length, ascensos: h.ascensos,
+      clubes: [...new Set(T.map(t => t.club).concat(s.contrato ? [P2.oferta(s).n] : []))],
+      marcas: [...new Set((s.patroHist || []).map(x => x.id).concat((s.patros || []).map(x => x.id)))].map(id => P2.MARCAS.find(m => m.id === id)).filter(Boolean),
+      empresas: s.negocios.length + (s.socio ? 1 : 0) + (s.tele && s.tele.empresa && (s.tele.empresa.venta || s.tele.empresa.cierre) ? 1 : 0),
+      patrimonioMax: Math.max(h.patrimonioMax || 0, P2.patrimonio(s)),
+      vehiculos: cosas.filter(P => P.cat === 'vehiculos'), viviendas: [P2.producto('habitacion')].concat(cosas.filter(P => P.cat === 'vivienda')),
+      partidos: s.stats.jugados, goles: s.stats.goles, hitos: P2.HITOS.filter(H => s.hitos[H.id]),
+      colecciones: (s.coleccionesHechas || []).map(id => COLECCIONES.find(c => c.id === id)).filter(Boolean),
+    };
+  }
+
+  // ---------- Eventos por posesiones (demostración: 4) ----------
+  const prog = (s, sem, efecto, data) => P2.programar(s, sem, efecto, Object.assign({ desde: s.semana }, data || {}));
+  const EVENTOS_POSESION = [
+    { id: 'eventoMotor', ambito: 'relacion', rel: 'marc', fases: ['barrio', 'pruebas', 'amateur', 'club'], soloAgenda: true, cond: () => true, peso: () => 0,
+      ic: '🏎️', titulo: 'Marc quiere estrenar tu deportivo', texto: s => `Desde que te compraste el deportivo (semana ${(s.agendaInfo || {}).desde || '?'}), Marc no para: hay una concentración de coches el sábado.`,
+      ops: [
+        { id: 'ir', n: 'Ir con Marc', ventaja: '+8 con Marc y algo de marca personal', coste: '−10 energía', riesgo: 'Ninguno', tags: ['seguro'],
+          fx: s => { s.p.energia = clamp(s.p.energia - 10, 0, 100); P2.cambiarRel(s, 'marc', 8, 'Fuisteis a la concentración'); P2.sumarMarca(s, 1); return 'Fotos con el coche, gente que te reconoce y un tipo de una marca de neumáticos que te pide el contacto.'; } },
+        { id: 'no', n: 'Mejor no', ventaja: 'Descansas', coste: '−3 con Marc', riesgo: 'Ninguno', tags: ['deporte'], fx: s => { P2.cambiarRel(s, 'marc', -3, 'No fuiste a la concentración'); return 'Marc va solo. Te manda vídeos.'; } },
+      ] },
+    { id: 'padreGasto', ambito: 'relacion', rel: 'padre', fases: ['barrio', 'pruebas', 'amateur', 'club'], soloAgenda: true, cond: () => true, peso: () => 0,
+      ic: '👨', titulo: 'Tu padre: «Estás gastando mucho»', texto: s => `Ha visto lo que te has comprado (semana ${(s.agendaInfo || {}).desde || '?'}). Le preocupa que no ahorres.`,
+      ops: [
+        { id: 'tranquilo', n: 'Explicarle tus números', ventaja: '+4 con tu padre', coste: 'Nada', riesgo: 'Ninguno', tags: ['seguro'], fx: s => { P2.cambiarRel(s, 'padre', 4, 'Le explicaste tus números'); return '«Vale, veo que lo tienes controlado.»'; } },
+        { id: 'mio', n: '«Es mi dinero»', ventaja: 'Zanjas el tema', coste: '−6 con tu padre', riesgo: 'Ninguno', tags: ['riesgo'], fx: s => { P2.cambiarRel(s, 'padre', -6, 'Le dijiste que era tu dinero'); return 'Silencio en la cena.'; } },
+      ] },
+    { id: 'inauguracion', ambito: 'relacion', rel: 'madre', fases: ['barrio', 'pruebas', 'amateur', 'club'], soloAgenda: true, cond: () => true, peso: () => 0,
+      ic: '🏢', titulo: 'Inauguración de tu piso', texto: s => `Ya tienes casa propia (semana ${(s.agendaInfo || {}).desde || '?'}). Tu madre propone celebrarlo.`,
+      ops: [
+        { id: 'fiesta', n: 'Cena para la familia y los amigos', ventaja: '+6 con tu madre, +5 con Marc y Dani', coste: '150 €', riesgo: 'Ninguno', tags: ['seguro'], cond: s => s.p.dinero >= 150,
+          fx: s => { s.p.dinero -= 150; for (const [id, d] of [['madre', 6], ['marc', 5], ['dani', 5], ['padre', 3]]) P2.cambiarRel(s, id, d, 'Inauguraste tu piso'); return 'Tu madre trae croquetas para un regimiento.'; } },
+        { id: 'tranquila', n: 'Algo tranquilo con tus padres', ventaja: '+4 con tu madre', coste: 'Nada', riesgo: 'Ninguno', tags: ['dinero'], fx: s => { P2.cambiarRel(s, 'madre', 4, 'Les enseñaste tu piso'); return 'Tu padre revisa todos los enchufes.'; } },
+      ] },
+    { id: 'cocheFamilia', ambito: 'relacion', rel: 'madre', fases: ['barrio', 'pruebas', 'amateur', 'club'], soloAgenda: true, cond: () => true, peso: () => 0,
+      ic: '🚗', titulo: '¿Nos llevas a ver a la abuela?', texto: s => `Ahora que tienes coche (semana ${(s.agendaInfo || {}).desde || '?'}), tu madre te pide ir el domingo al pueblo.`,
+      ops: [
+        { id: 'llevar', n: 'Llevarles', ventaja: '+7 con tu madre y +3 con tu padre', coste: '−8 energía y 30 € de gasolina', riesgo: 'Ninguno', tags: ['seguro'], cond: s => s.p.dinero >= 30,
+          fx: s => { s.p.dinero -= 30; s.p.energia = clamp(s.p.energia - 8, 0, 100); P2.cambiarRel(s, 'madre', 7, 'Les llevaste a ver a la abuela'); P2.cambiarRel(s, 'padre', 3, 'Les llevaste a ver a la abuela'); return 'La abuela te da un táper y 20 € «para gasolina».'; } },
+        { id: 'no', n: 'Este domingo no puedo', ventaja: 'Descansas', coste: '−4 con tu madre', riesgo: 'Ninguno', tags: ['deporte'], fx: s => { P2.cambiarRel(s, 'madre', -4, 'No les llevaste al pueblo'); return 'Van en autobús.'; } },
+      ] },
+  ];
+  for (const E of EVENTOS_POSESION) P2.SUCESOS.push(E);
+  const lanzar = id => (s, d) => { if (s.sucesosVistos[id] != null) return null; s.sucesosVistos[id] = s.semana; s.agendaInfo = { desde: d.desde }; P2.encolar(s, { tipo: 'suceso', id }); return ['⏳', `Esto viene de lo que compraste en la semana ${d.desde}.`]; };
+  Object.assign(P2.EFECTOS, { eventoMotor: lanzar('eventoMotor'), padreGasto: lanzar('padreGasto'), inauguracion: lanzar('inauguracion'), cocheFamilia: lanzar('cocheFamilia') });
+
+  // Tras cada compra: colecciones y, a veces, una situación futura
+  function alComprar(s, P, precio) {
+    revisarColecciones(s);
+    if (P.id === 'deportivo') prog(s, 5, 'eventoMotor');
+    if (P.id === 'piso' || P.id === 'casaPremium') prog(s, 2, 'inauguracion');
+    if (P.id === 'cocheUsado') prog(s, 4, 'cocheFamilia');
+    if (precio >= 5000 && !(s.sucesosVistos || {}).padreGasto) prog(s, 3, 'padreGasto');
+  }
+
+  Object.assign(P2, { quiero, deseable, revisarDeseo, COLECCIONES, progresoColeccion, revisarColecciones, anotarHistoria, miHistoria, EVENTOS_POSESION, alComprar });
+})(globalThis.P2 = globalThis.P2 || {});
+
 // ===== 20_ui.js =====
 /* =====================================================================
    20 · INTERFAZ (móvil): SITUACIÓN → DECISIÓN → CONSECUENCIA
@@ -3481,6 +4110,32 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     return `<svg viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${defs}${x}</svg>`;
   }
 
+  // ---------- Tu casa y tu vehículo (se ven: «ahora tengo esto») ----------
+  function casaSVG(id) {
+    const v = id || 'habitacion';
+    let x = '';
+    if (v === 'habitacion') x = `<rect width="120" height="120" fill="#6d5ccf"/><rect y="88" width="120" height="32" fill="#4a3a9e"/><rect x="12" y="18" width="26" height="34" rx="2" fill="#ffc83d" opacity=".85"/><path d="M16 46 l8 -12 6 8 4 -5 4 9Z" fill="#ff4f8b"/><rect x="70" y="70" width="46" height="22" rx="4" fill="#8fb4ff"/><rect x="72" y="62" width="14" height="10" rx="3" fill="#fff"/>`;
+    else if (v === 'piso') x = `<rect width="120" height="120" fill="#2c3fa8"/><rect y="90" width="120" height="30" fill="#1b2a7a"/><rect x="62" y="14" width="46" height="44" rx="3" fill="#0b1033" stroke="#cfd8ff" stroke-width="3"/>${[[66, 30, 8, 28], [78, 22, 9, 36], [92, 34, 10, 24]].map(([a, b, w, h]) => `<rect x="${a}" y="${b}" width="${w}" height="${h}" fill="#3b2a9e"/><rect x="${a + 2}" y="${b + 4}" width="3" height="3" fill="#ffd66b"/>`).join('')}<rect x="8" y="74" width="44" height="18" rx="6" fill="#ff7aa8"/><rect x="14" y="66" width="12" height="10" rx="3" fill="#ffc0d6"/>`;
+    else if (v === 'casaPremium') x = `<rect width="120" height="120" fill="#7fd8ff"/><circle cx="96" cy="20" r="10" fill="#ffc83d"/><rect y="86" width="120" height="34" fill="#5b7dff"/><rect x="8" y="94" width="50" height="12" rx="6" fill="#bff3ff"/><rect x="62" y="44" width="52" height="44" fill="#fff"/><path d="M58 46 L88 24 L118 46Z" fill="#1a1640"/><rect x="72" y="58" width="12" height="12" fill="#7fd8ff"/><rect x="92" y="58" width="12" height="12" fill="#7fd8ff"/>`;
+    return `<svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${x}</svg>`;
+  }
+  function vehiculoSVG(id, skin) {
+    const S = (P2.SKINS_VEHICULO[id] || []).find(k => k.id === skin), c = S ? S.c : { bici: '#3d7bff', moto: '#ff4f8b', cocheUsado: '#8fa3c7', deportivo: '#e23b3b', superdeportivo: '#ffc83d' }[id] || '#8fa3c7';
+    const rueda = (x, r = 9) => `<circle cx="${x}" cy="48" r="${r}" fill="#1a1640"/><circle cx="${x}" cy="48" r="${r * 0.45}" fill="#cfd3e6"/>`;
+    let x = '';
+    if (id === 'bici') x = `${rueda(22, 11)}${rueda(78, 11)}<path d="M22 48 L42 26 L66 26 L78 48 M42 26 L50 48 L66 26 M38 20 h10 M64 20 l4 6" stroke="${c}" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    else if (id === 'moto') x = `${rueda(22, 11)}${rueda(80, 11)}<path d="M22 48 L40 30 L68 30 L80 48 Z" fill="${c}"/><rect x="44" y="22" width="20" height="8" rx="4" fill="#1a1640"/><path d="M68 30 L76 18 h6" stroke="#cfd3e6" stroke-width="3" fill="none"/>`;
+    else if (id === 'deportivo' || id === 'superdeportivo') x = `<path d="M4 46 Q6 34 24 32 L40 22 Q56 18 70 24 L88 32 Q98 34 98 46Z" fill="${c}"/><path d="M42 26 Q56 21 68 26 L74 32 L38 32Z" fill="#7fd8ff" opacity=".85"/>${rueda(24)}${rueda(78)}${id === 'superdeportivo' ? '<path d="M2 30 h14" stroke="#1a1640" stroke-width="4"/>' : ''}`;
+    else x = `<path d="M6 46 L8 30 Q10 26 18 26 L30 14 L70 14 L82 26 Q94 28 94 36 L94 46Z" fill="${c}"/><path d="M34 18 L48 18 L48 26 L26 26Z M52 18 L68 18 L78 26 L52 26Z" fill="#bfe9ff"/>${rueda(26)}${rueda(74)}`;
+    return `<svg viewBox="0 0 100 60" aria-hidden="true">${x}</svg>`;
+  }
+  const vivienda = s => (P2.equipado(s, 'vivienda') || { id: 'habitacion' }).id;
+  const vehiculo = s => { const P = P2.equipado(s, 'vehiculo'); if (!P) return null; const it = (s.inventario || []).find(i => i.id === P.id); return { P, skin: it && it.skin }; };
+  function escena(s, grande) {
+    const V = vehiculo(s);
+    return `<div class="escenaCasa ${grande ? 'grande' : ''}">${casaSVG(vivienda(s))}<div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
+  }
+
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
@@ -3512,11 +4167,49 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // ---------- INICIO: tu personaje en su escenario, objetivo, dinero y progreso ----------
   function htmlHero(s) {
     const H = P2.siguienteHito(s), hechos = HITOS.filter(h => s.hitos[h.id]).length, e = etapa(s);
-    return `<div class="hero e-${e}"><div class="stage">${P2.avatarSVG(s, null, 'cuerpo')}</div>
+    return `<div class="hero e-${e}"><div class="stage">${escena(s)}</div>
       <div class="heroInfo"><span class="etq">${ETAPAS[e]} · semana ${s.semana}</span>
         <b class="obj">🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b>
         <div class="xp" aria-label="Progreso del capítulo"><i style="width:${Math.round(100 * hechos / HITOS.length)}%"></i></div><small>${hechos} de ${HITOS.length} hitos</small>
-        <div class="saldo"><span class="oro">💶 ${esc(eur(s.p.dinero))}</span><span>🏦 ${esc(eur(P2.patrimonio(s)))}</span></div></div></div>`;
+        <div class="saldo"><span class="oro">💶 ${esc(eur(s.p.dinero))}</span><span>🏦 ${esc(eur(P2.patrimonio(s)))}</span></div></div></div>${htmlDeseo(s)}`;
+  }
+  // 🎯 Tu objetivo personal (lista de deseos): uno a la vez
+  function htmlDeseo(s) {
+    const P = s.deseoActual && P2.producto(s.deseoActual); if (!P) return '';
+    const p = Math.min(100, Math.round(100 * Math.max(0, s.p.dinero) / P.precio));
+    return `<button class="deseoBar" data-act="verDeseo"><span class="dic">${P.ic}</span><span class="dtx"><small>🎯 TU OBJETIVO PERSONAL</small><b>${esc(P.n)}</b>
+      <span class="xp"><i style="width:${p}%"></i></span><small>Tienes ${esc(eur(s.p.dinero))} · necesitas ${esc(eur(P.precio))}</small></span></button>`;
+  }
+  // Extras del inicio: recompensa de temporada, energía patrocinada y oferta (simulada) en un buen momento
+  function htmlExtrasInicio(s) {
+    let h = '';
+    const m = P2.monEstado(s), tp = m.temporadaPremio;
+    if (P2.MONETIZATION.activa && tp && !tp.visto) {
+      h += `<div class="card premioT"><h3>🎁 RECOMPENSA DE TEMPORADA</h3><p>Has desbloqueado: <b>👕 Camiseta de la temporada</b> (ya está en tu personaje).</p>
+        ${tp.extra ? '<p class="small">✅ También tienes las 🕶️ Gafas edición temporada.</p>' : `${rwBtn(s, 'temporada', {}, 'Consigue también: 🕶️ Gafas edición temporada')}<p class="small">Solo estética: no dan estadísticas.</p>`}
+        <button class="btn w full" data-act="premioVisto">Vale</button></div>`;
+    }
+    if (P2.MONETIZATION.activa && !P2.bloqueoRewarded(s, 'energia')) h += `<div class="card rwCard"><b>⚡ Vas justo de energía</b><p class="small">Descansar sigue siendo la opción de siempre. Si quieres, una vez cada ${P2.MONETIZATION.rewarded.energia.cadaSemanas} semanas:</p>${rwBtn(s, 'energia', { contexto: 'inicio' }, `Recuperación patrocinada: +${P2.MONETIZATION.rewarded.energia.cantidad} energía`)}</div>`;
+    if (!ui.iapCard) { const I = P2.ofertaIapAhora(s, ui.iapSesion || 0); if (I) { P2.marcarIapMostrado(s, I.id); ui.iapCard = I.id; ui.iapSesion = (ui.iapSesion || 0) + 1; P2.guardar(s); } }
+    if (ui.iapCard) h += htmlIapCard(s, ui.iapCard, 'momento');
+    return h;
+  }
+  const TITULO_MOMENTO = { contrato: '🎉 TU PRIMER CONTRATO', titular: '⭐ YA ERES TITULAR', patro: '🤝 TU PRIMER PATROCINADOR', empresa: '💼 TU PRIMERA EMPRESA', rentable: '📈 EMPRESA RENTABLE' };
+  const precioTxt = p => `${String(p.toFixed(2)).replace('.', ',')} €`;
+  function htmlIapCard(s, id, donde) {
+    const I = P2.IAP_PRODUCTS.find(x => x.id === id); if (!I) return '';
+    P2.iapMostrado(s, id, donde);
+    return `<div class="card iapCard rz-${I.rareza || 'raro'}">${donde === 'momento' ? `<small class="mom">${TITULO_MOMENTO[I.momentoOferta] || '🎉'}</small>` : ''}
+      <div class="fila"><div class="iapPrev">${P2.avatarSVG(s, lookPack(s, I), 'busto')}</div><div><b>${I.ic} ${esc(I.nombre.toUpperCase())}</b><p class="small">${esc(I.descripcion)}</p></div></div>
+      <button class="btn full iapBtn" data-act="iap" data-id="${I.id}">Ver · ${precioTxt(I.precio)} <span class="lab">🧪 TEST · sin cargo</span></button>
+      ${donde === 'momento' ? '<button class="btn w full" data-act="iapNo">No, gracias</button>' : ''}</div>`;
+  }
+  // Cómo te quedaría el pack (vista previa)
+  function lookPack(s, I) { const L = Object.assign({}, s.look); for (const c of I.contenido) if (Array.isArray(c)) L[c[0]] = c[1]; return L; }
+  function rwBtn(s, tipo, data, texto) {
+    const lim = (ui.rwSesion || 0) >= P2.MONETIZATION.limitesSesion.rewarded, b = P2.bloqueoRewarded(s, tipo, data);
+    if (!b) P2.ofrecidoRewarded(s, tipo, data);
+    return `<button class="rw" data-act="rw" data-t="${tipo}" data-id="${esc(data.id || '')}" ${b || lim ? 'disabled' : ''}>📺 ${esc(texto)}${b || lim ? `<small>${esc(lim ? 'Límite de esta sesión' : b)}</small>` : ''}</button>`;
   }
   // Accesos rápidos (como en un juego: tus personas, la tienda, tu imperio)
   function htmlAccesos(s) {
@@ -3715,16 +4408,44 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     const cat = ui.cat || 'ropa', prods = P2.PRODUCTOS.filter(P => P.cat === cat && !P.inicial);
     const tile = P => {
       const tuyo = !P.consumible && P2.posee(s, P.id), bl = tuyo ? null : P2.bloqueoProducto(s, P), conf = ui.confirmar === P.id;
-      const estado = tuyo ? 'tuyo' : bl ? 'bloq' : conf ? 'conf' : '';
-      return `<button class="prod ${estado}" data-act="comprarP" data-id="${P.id}" ${tuyo || bl ? 'disabled' : ''}>
+      const estado = tuyo ? 'tuyo' : P.proximamente ? 'bloq prox' : bl ? 'bloq' : conf ? 'conf' : '';
+      const pv = P2.precioPara(s, P), R = P2.RAREZAS[P.rareza || 'comun'], des = s.deseoActual === P.id;
+      const precio = pv !== P.precio ? `<s>${esc(eur(P.precio))}</s> ${esc(eur(pv))}` : esc(eur(P.precio));
+      return `<div class="prod ${estado} rz-${P.rareza || 'comun'}" data-id="${P.id}"><span class="rz" style="--rz:${R.c}">${R.n}</span>
+        ${P2.deseable(P) && !tuyo ? `<button class="deseo ${des ? 'sel' : ''}" data-act="quiero" data-id="${P.id}" aria-pressed="${des}" aria-label="Quiero esto">${des ? '❤️' : '🤍'}</button>` : ''}
         <span class="pic">${P.ic}</span><b>${esc(P.n)}</b><span class="pd">${esc(efectoTxt(P))}</span>
-        <span class="precio">${tuyo ? '✅ Es tuyo' : conf ? `¿Seguro? Toca otra vez` : `💶 ${esc(eur(P.precio))}`}</span>${bl ? `<span class="bl">🔒 ${esc(bl)}</span>` : ''}</button>`;
+        ${bl && !tuyo ? `<span class="bl">🔒 ${esc(bl)}</span>` : ''}
+        <button class="precio" data-act="comprarP" data-id="${P.id}" ${tuyo || bl ? 'disabled' : ''}>${tuyo ? '✅ Es tuyo' : conf ? `¿Seguro? ${precio}` : `💶 ${precio}`}</button>
+        ${!tuyo && P2.MONETIZATION.activa && !P.proximamente && !P.consumible && P.precio >= P2.MONETIZATION.rewarded.cupon.precioMin && pv === P.precio && !(P.req && P.req.hito && !s.hitos[P.req.hito]) ? rwBtn(s, 'cupon', { id: P.id }, `Cupón −${Math.round(P2.MONETIZATION.rewarded.cupon.pct * 100)} % · ahorras ${eur(P2.descuentoCupon(P.precio))}`) : ''}
+        ${pv !== P.precio ? `<span class="cuponOk">${P2.ofertaVigente(s) && P2.ofertaVigente(s).id === P.id ? '🎁 Oferta especial' : '🏷️ Cupón activo'}</span>` : ''}</div>`;
     };
-    return `<div class="card tiendaTop"><div class="fila"><div><h2>🛍️ Tienda</h2><p class="small">Disfruta lo que ganas. Nada es obligatorio para competir; algunos objetos ayudan un poco.</p></div>
+    return `<div class="card tiendaTop"><div class="fila"><div><h2>🛍️ Tienda</h2><p class="small">Disfruta lo que ganas. Nada es obligatorio para competir; algunos objetos ayudan un poco. Toca 🤍 para marcar tu objetivo.</p></div>
         <div class="saldoBox"><small>Disponible</small><b class="oro">${esc(eur(s.p.dinero))}</b></div></div></div>
+      ${htmlOfertaEspecial(s, tile)}
       <div class="cats" role="tablist">${P2.CATEGORIAS_TIENDA.map(c => `<button role="tab" aria-selected="${c.id === cat}" data-act="cat" data-v="${c.id}" class="${c.id === cat ? 'sel' : ''}"><span>${c.ic}</span>${c.n}</button>`).join('')}</div>
       <div class="prods">${prods.map(tile).join('')}</div>
-      ${htmlCosas(s)}`;
+      ${htmlCosas(s)}${htmlColecciones(s)}${htmlPremium(s)}`;
+  }
+  function htmlOfertaEspecial(s, tile) {
+    if (!P2.MONETIZATION.activa) return '';
+    const o = P2.ofertaVigente(s);
+    if (o) return `<div class="sec"><span>🎁 Oferta especial</span><span>hasta la semana ${o.hasta}</span></div><div class="prods uno">${tile(P2.producto(o.id))}</div>`;
+    const b = P2.bloqueoRewarded(s, 'oferta');
+    return `<div class="card ofertaEsp"><b>🎁 OFERTA ESPECIAL</b><span class="small">Un objeto de tu etapa con descuento. Lo pagas con dinero del juego.</span>${b && b !== 'Desactivado' ? `<span class="small">⏳ ${esc(b)}</span>` : rwBtn(s, 'oferta', { contexto: 'tienda' }, 'Ver anuncio para descubrir la oferta')}</div>`;
+  }
+  function htmlColecciones(s) {
+    return `<div class="sec"><span>🏆 Colecciones</span><span>premio visual</span></div><div class="card colec">${P2.COLECCIONES.map(C => {
+      if (C.futura) return `<div class="kv muted"><span>${C.ic} ${esc(C.n)}</span><span class="small">🔒 Próximamente</span></div>`;
+      const p = P2.progresoColeccion(s, C), ok = (s.coleccionesHechas || []).includes(C.id);
+      return `<div class="kv"><span>${C.ic} <b>${esc(C.n)}</b> <span class="small">${C.items.map(id => `${P2.producto(id).ic}`).join(' ')}</span></span><b>${ok ? `✅ ${esc(C.premioN)}` : `${p.tengo}/${p.total}`}</b></div>`;
+    }).join('')}</div>`;
+  }
+  // Estilo premium: solo variante C del test y solo como prueba de intención (sin cargo)
+  function htmlPremium(s) {
+    if (!P2.MONETIZATION.activa) return '';
+    const l = P2.IAP_PRODUCTS.filter(I => I.categoria === 'cosmetico' && P2.iapEnVariante(s, I.id) && s.monVariante === 'C');
+    if (!l.length) return '';
+    return `<div class="sec"><span>⭐ Estilo premium</span><span class="lab">🧪 TEST · sin cargo</span></div><p class="small blanco">Solo estética. Lo que ayuda a jugar se compra siempre con dinero del juego.</p>${l.map(I => htmlIapCard(s, I.id, 'tienda')).join('')}`;
   }
   // Tus cosas: lo que llevas puesto en cada hueco y tu colección
   function htmlCosas(s) {
@@ -3738,6 +4459,38 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       ${inv.filter(it => P2.producto(it.id).patrimonial).map(it => { const P = P2.producto(it.id); return `<div class="kv"><span>${P.ic} ${esc(P.n)} <span class="small">compra ${esc(eur(it.precioCompra))}</span></span>${vender(it)}</div>`; }).join('')}
       ${guardados.map(it => { const P = P2.producto(it.id); return `<div class="kv"><span>${P.ic} ${esc(P.n)} <span class="small">guardado</span></span><button class="btn w mini" data-act="equipar" data-id="${P.id}">Usar</button></div>`; }).join('')}
       ${inv.length ? '' : '<p class="small">Aún no te has comprado nada. Vives en casa de tus padres y vas andando a todas partes.</p>'}</div>`;
+  }
+  function htmlRw(s) {
+    const p = ui.rw, C = P2.MONETIZATION.rewarded[p.tipo], R = P2.REWARDED[p.tipo];
+    let rec = R.d(C);
+    if (p.tipo === 'cupon') { const P = P2.producto(p.data.id), d = P2.descuentoCupon(P.precio); rec = `🏷️ Cupón −${Math.round(C.pct * 100)} % para ${P.ic} ${P.n}: comprar por ${eur(P.precio - d)} en vez de ${eur(P.precio)} (ahorras ${eur(d)}). Válido ${C.validez} semanas.`; }
+    return `<div class="overlay" role="dialog" aria-label="Simulación de anuncio"><div class="modal">
+      <small class="lab">🧪 MONETIZATION LAB</small><h2>📺 SIMULACIÓN DE ANUNCIO</h2>
+      <p>En la versión final aquí aparecería un anuncio de aproximadamente 20–30 segundos.</p>
+      <div class="recompensa"><small>Tu recompensa sería:</small><b>${esc(rec)}</b></div>
+      <button class="btn full" data-act="rwOk">Simular anuncio y aceptar recompensa</button><button class="btn w full" data-act="rwNo">Cancelar</button></div></div>`;
+  }
+  function htmlIapModal(s) {
+    const I = P2.IAP_PRODUCTS.find(x => x.id === ui.iap);
+    if (ui.iapResp) return `<div class="overlay" role="dialog"><div class="modal"><h2>🧪 Gracias</h2><p>${ui.iapResp === 'si' ? '¡Anotado que lo comprarías!' : 'Anotado.'} No se ha cobrado nada${P2.MONETIZATION.iap.entregarCosmeticos ? '' : ' y en esta prueba el pack no se entrega'}.</p><button class="btn full" data-act="iapCerrar">Seguir jugando</button></div></div>`;
+    return `<div class="overlay" role="dialog" aria-label="Prueba de compra"><div class="modal">
+      <small class="lab">🧪 PRUEBA DE COMPRA</small><p>En la versión final esta compra costaría:</p><div class="precioGrande">${precioTxt(I.precio)}</div>
+      <h2>${I.ic} ${esc(I.nombre.toUpperCase())}</h2>${I.contenido.some(Array.isArray) ? `<div class="iapPrev grande">${P2.avatarSVG(s, lookPack(s, I), 'cuerpo')}</div>` : ''}
+      <ul class="cont">${I.contenido.map(c => `<li>${esc(Array.isArray(c) ? c[2] : c.t)}</li>`).join('')}</ul>
+      <p class="small">Sin estadísticas ni ventajas. <b>No se realizará ningún cargo.</b></p><p><b>¿Lo comprarías?</b></p>
+      <div class="seg tres3"><button data-act="iapResp" data-v="no">No</button><button data-act="iapResp" data-v="quiza">Quizá</button><button data-act="iapResp" data-v="si" class="sel">Sí, lo compraría</button></div></div></div>`;
+  }
+  function htmlInter(s) {
+    const sa = P2.iapEnVariante(s, 'sinAnuncios');
+    return `<div class="overlay" role="dialog" aria-label="Anuncio simulado"><div class="modal">
+      <small class="lab">🧪 MONETIZATION LAB</small><h2>📺 Anuncio</h2><p>En la versión gratuita aquí aparecería un anuncio breve.</p>
+      <button class="btn full" data-act="interOk">Continuar</button>${sa ? '<button class="btn w full" data-act="iap" data-id="sinAnuncios">🚫 Sin anuncios · 2,99 € <span class="lab">🧪 TEST</span></button>' : ''}</div></div>`;
+  }
+  function htmlDeseoAviso(s) {
+    const a = P2.monEstado(s).deseoAviso, P = P2.producto(a.id);
+    return `<div class="overlay" role="dialog"><div class="compraOk"><div class="rayos"></div><small>🎉 ¡YA PUEDES COMPRARLO!</small><div class="bigic">${P.ic}</div><h2>${esc(P.n)}</h2>
+      <p>Has llegado a ${esc(eur(s.p.dinero))}. ¿Te lo compras o inviertes ese dinero? Tú decides.</p>
+      <button class="btn full" data-act="deseoTienda">🛍️ Ir a la Tienda</button><button class="btn w full" data-act="deseoLuego">Más tarde</button></div></div>`;
   }
   function htmlNuevaCompra() {
     const P = P2.producto(ui.nuevaCompra); if (!P) return '';
@@ -3771,7 +4524,21 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         ${kv('💶 Dinero disponible', eur(s.p.dinero))}${kv('🏠 Tus cosas con valor', eur(pos))}${kv('💼 Empresas', s.negocios.length ? eur(emp) : '—')}${s.socio ? kv('🤝 Participación', s.socio.vendida ? 'vendida' : eur(soc)) : ''}
         <p class="small">La ropa, el ocio y la tecnología no suman: son para disfrutar. Vehículos, vivienda y joyas conservan parte de lo que pagaste.</p></div>
       ${pat.length ? `<div class="sec"><span>Posesiones</span></div><div class="card">${pat.map(it => { const P = P2.producto(it.id); return kv(`${P.ic} ${esc(P.n)}`, `${eur(it.precioCompra)} → <span class="oro2">${eur(it.valorActual)}</span>`); }).join('')}</div>` : ''}
-      <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>`;
+      <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>
+      ${htmlGaraje(s)}
+      <div class="sec"><span>🏠 Tu casa</span></div><div class="card casaCard">${escena(s, true)}<p class="small">${esc((P2.equipado(s, 'vivienda') || {}).n || '')}. Decoración: próximamente.</p></div>`;
+  }
+  function htmlGaraje(s) {
+    const inv = (s.inventario || []).filter(it => (P2.producto(it.id) || {}).cat === 'vehiculos'), act = (s.equipado || {}).vehiculo;
+    const vend = (s.vendidos || []).filter(v => (P2.producto(v.id) || {}).cat === 'vehiculos');
+    return `<div class="sec"><span>🚗 Garaje</span><span>${inv.length} ${inv.length === 1 ? 'vehículo' : 'vehículos'}</span></div><div class="card garaje">
+      ${inv.length ? inv.map(it => { const P = P2.producto(it.id), skins = P2.SKINS_VEHICULO[it.id] || [];
+        return `<div class="vehC ${act === it.id ? 'act' : ''}"><div class="vsvg">${vehiculoSVG(it.id, it.skin)}</div><div><b>${P.ic} ${esc(P.n)}</b> ${act === it.id ? '<span class="chip bien">En uso</span>' : `<button class="btn w mini" data-act="equipar" data-id="${P.id}">Usar</button>`}
+          <span class="small">Valor ${esc(eur(it.valorActual))} · pagaste ${esc(eur(it.precioCompra))}</span>
+          ${skins.length ? `<span class="small">Aspecto: ${skins.map(k => k.premium ? `🔒 ${esc(k.n)} (Pack ${esc((P2.IAP_PRODUCTS.find(I => I.id === k.premium) || {}).nombre || '')}, prueba)` : esc(k.n)).join(' · ')}</span>` : ''}</div></div>`; }).join('')
+        : '<p class="small">Aún no tienes vehículo: vas andando o en autobús. La bici está en la Tienda.</p>'}
+      ${vend.length ? `<p class="small">Vehículos anteriores: ${vend.map(v => `${P2.producto(v.id).ic} ${esc(P2.producto(v.id).n)} (vendido en la sem. ${v.semana})`).join(' · ')}</p>` : ''}
+      <p class="small">Próximamente: ${P2.PRODUCTOS.filter(P => P.cat === 'vehiculos' && P.proximamente).map(P => `${P.ic} ${esc(P.n)}`).join(', ')}.</p></div>`;
   }
 
   function htmlHitos(s) {
@@ -3783,7 +4550,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
   function htmlAjustes(s) {
     const B = ui.balance;
-    return `${htmlInforme(s)}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
+    const lab = P2.MONETIZATION.activa ? P2.IAP_PRODUCTS.filter(I => P2.iapEnVariante(s, I.id) && (I.categoria !== 'cosmetico') && (I.id !== 'founder' || ((s.tele || {}).msActivo || 0) >= P2.MONETIZATION.iap.minutosFounder * 60000)) : [];
+    return `${htmlInforme(s)}${lab.length ? `<div class="sec"><span>🧪 Productos en prueba</span><span>variante ${esc(s.monVariante || '')}</span></div><p class="small blanco">No se cobra nada: solo queremos saber si te interesarían.</p>${lab.map(I => htmlIapCard(s, I.id, 'ajustes')).join('')}` : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}`)}
       <div class="sec">Copia de seguridad</div><p class="small">Copia este código para guardar la partida fuera del navegador.</p>
       <textarea id="codigo" readonly>${esc(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}</textarea>
       <textarea id="importar" placeholder="Pega aquí un código para cargarlo"></textarea>
@@ -3834,7 +4602,17 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         return `<button class="lk ${puesto ? 'sel' : ''}" data-act="look" data-c="${cap}" data-v="${it.id}" ${bl ? 'disabled' : ''} aria-pressed="${puesto}">${P2.avatarSVG(sv, Object.assign({}, L, { [cap]: it.id }), vista)}<b>${esc(it.n)}</b>${bl ? `<span>🔒 ${esc(bl)}</span>` : ''}</button>`; }).join('')}</div>`;
   }
   function htmlPersonaje(s) {
-    return `<div class="card"><h2>🧍 ${esc(s.nombre)}</h2>${htmlEditor(s, s.look)}</div><div class="card">${htmlTresVariables(s)}</div>${htmlCosas(s)}`;
+    return `<div class="card perfilTop">${escena(s, true)}<h2>🧍 ${esc(s.nombre)}</h2></div><div class="card">${htmlEditor(s, s.look)}</div><div class="card">${htmlTresVariables(s)}</div>${htmlCosas(s)}`;
+  }
+  function htmlHistoria(s) {
+    const H = P2.miHistoria(s), cel = (ic, v, n) => `<div><span>${ic}</span><b>${v}</b><small>${n}</small></div>`;
+    return `<div class="card historia"><h2>🏆 Mi historia</h2><div class="trofeos">
+        ${cel('🏆', H.ligasGanadas, 'ligas ganadas')}${cel('⬆️', H.ascensos, 'ascensos')}${cel('📅', H.temporadas, 'temporadas')}${cel('⚽', H.goles, 'goles')}
+        ${cel('🤝', H.marcas.length, 'patrocinadores')}${cel('💼', H.empresas, 'empresas')}${cel('🏦', esc(eur(H.patrimonioMax)), 'mayor patrimonio')}${cel('🏅', H.hitos.length, 'hitos')}</div></div>
+      <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
+        ${kv('🚗 Vehículos', H.vehiculos.length ? H.vehiculos.map(P => P.ic).join(' ') : '—')}${kv('🏠 Viviendas', H.viviendas.map(P => P.ic).join(' → '))}
+        ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
+      <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
 
   // ---------- Render ----------
@@ -3847,9 +4625,13 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     pintarEtapa(etapa(S));
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
-    const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
-      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio }[ui.vista] || (() => '');
-    $('main').innerHTML = htmlSubtabs(S) + V(S) + (ui.nuevaCompra ? htmlNuevaCompra() : '');
+    const V = { semana: () => htmlHero(S) + htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlExtrasInicio(S) + htmlAccesos(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria }[ui.vista] || (() => '');
+    // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
+    if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
+    const capa = ui.rw ? htmlRw(S) : ui.iap ? htmlIapModal(S) : ui.nuevaCompra ? htmlNuevaCompra() : ui.inter ? htmlInter(S) : P2.monEstado(S).deseoAviso && !ui.nuevaCompra ? htmlDeseoAviso(S) : '';
+    $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + htmlSubtabs(S) + V(S) + capa;
+    ui.flash = '';
     $('main').classList.toggle('conBoton', ui.vista === 'semana');
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
@@ -3889,9 +4671,27 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
         irA(vis.includes(u) ? u : vis[0] || 'semana'); break; }
       case 'cat': ui.cat = b.dataset.v; render(); break;
       case 'comprarP': { const P = P2.producto(id); if (!P) break;
-        if (P.precio >= 500 && ui.confirmar !== id) { ui.confirmar = id; render(); break; }   // lo caro se confirma: ¿coche o empresa?
+        if (P2.precioPara(S, P) >= 500 && ui.confirmar !== id) { ui.confirmar = id; render(); break; }   // lo caro se confirma: ¿coche o empresa?
         ui.confirmar = null; if (P2.comprar(S, id)) { ui.nuevaCompra = id; guardarYPintar(); } break; }
       case 'cerrarCompra': ui.nuevaCompra = null; render(); break;
+      case 'quiero': if (P2.quiero(S, id)) guardarYPintar(); break;
+      case 'verDeseo': { const P = P2.producto(S.deseoActual); if (P) { ui.cat = P.cat; irA('tienda'); } break; }
+      case 'deseoTienda': { const a = P2.monEstado(S).deseoAviso; P2.monEstado(S).deseoAviso = null; if (a) ui.cat = P2.producto(a.id).cat; irA('tienda'); break; }
+      case 'deseoLuego': P2.monEstado(S).deseoAviso = null; guardarYPintar(); break;
+      // Anuncios con recompensa (simulados): nada se entrega hasta «Simular anuncio y aceptar»
+      case 'rw': { const p = P2.pedirRewarded(S, b.dataset.t, { id: b.dataset.id || undefined, contexto: ui.vista }); if (p) { ui.rw = p; guardarYPintar(); } break; }
+      case 'rwNo': P2.cancelarRewarded(S); ui.rw = null; guardarYPintar(); break;
+      case 'rwOk': { const r = ui.rw && P2.aceptarRewarded(S, ui.rw.token); ui.rw = null;
+        if (r) { ui.rwSesion = (ui.rwSesion || 0) + 1;
+          ui.flash = r.tipo === 'cupon' ? `🏷️ Cupón listo: ${P2.producto(r.id).n} por ${eur(r.precio)}` : r.tipo === 'oferta' ? `🎁 Oferta: ${P2.producto(r.id).n} por ${eur(r.precio)} (antes ${eur(r.original)})` : r.tipo === 'energia' ? `⚡ +${r.ganado} de energía` : '🕶️ Gafas edición temporada desbloqueadas'; }
+        guardarYPintar(); break; }
+      case 'premioVisto': { const tp = P2.monEstado(S).temporadaPremio; if (tp) tp.visto = true; guardarYPintar(); break; }
+      // Compras con dinero real: SOLO prueba de intención. Nunca hay checkout ni cargo
+      case 'iap': if (P2.iapClic(S, id)) { ui.iap = id; ui.iapResp = null; ui.inter = false; guardarYPintar(); } break;
+      case 'iapResp': if (P2.iapIntencion(S, ui.iap, b.dataset.v)) { ui.iapResp = b.dataset.v; if (ui.iapCard === ui.iap) ui.iapCard = null; guardarYPintar(); } break;
+      case 'iapCerrar': ui.iap = null; ui.iapResp = null; render(); break;
+      case 'iapNo': ui.iapCard = null; render(); break;
+      case 'interOk': P2.intersticialContinuar(S); ui.inter = false; guardarYPintar(); break;
       case 'equipar': if (P2.equipar(S, id)) guardarYPintar(); break;
       case 'venderP': if (ui.venderP !== id) { ui.venderP = id; render(); } else { ui.venderP = null; P2.venderPosesion(S, id); guardarYPintar(); } break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
@@ -3942,7 +4742,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   globalThis.__P2 = {
     P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
     nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; }, informe: () => P2.informeTest(S),
-    ir: v => irA(v), etapa: () => etapa(S),
+    ir: v => irA(v), etapa: () => etapa(S), ui2: ui,
     jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
     guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },

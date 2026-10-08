@@ -7,7 +7,9 @@
   'use strict';
   const { CFG } = P2;
 
-  function nuevaPartida(opc = {}) {
+  // Partida nueva + variante del test de monetización (se asigna una vez y se guarda)
+  function nuevaPartida(opc = {}) { const s = partidaBase(opc); if (P2.asignarVariante) P2.asignarVariante(s); return s; }
+  function partidaBase(opc = {}) {
     const I = CFG.inicio, seed = (opc.seed >>> 0) || ((Date.now() ^ (Math.random() * 1e9)) >>> 0);
     return {
       saveVersion: CFG.saveVersion,
@@ -15,9 +17,13 @@
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
-      secciones: ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
+      secciones: ['semana', 'relaciones', 'tienda', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar)
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [],   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
+      deseoActual: null,               // objetivo personal de la Tienda (lista de deseos)
+      historiaCosas: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
+      mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
+      monVariante: null,               // A / B / C del test local
       seccionesNuevas: [],
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
@@ -117,6 +123,8 @@
     }
     if (!Array.isArray(s.lookDesbloqueos)) s.lookDesbloqueos = [];
     if (!s.relaciones || typeof s.relaciones !== 'object' || Array.isArray(s.relaciones)) s.relaciones = {};
+    if (s.deseoActual && !(P2.producto && P2.producto(s.deseoActual))) s.deseoActual = null;
+    if (P2.asignarVariante) P2.asignarVariante(s);
     for (const k of Object.keys(s.relaciones)) { const x = s.relaciones[k]; if (!x || typeof x.v !== 'number' || !isFinite(x.v)) delete s.relaciones[k]; else { x.v = P2.clamp(Math.round(x.v), 0, 100); if (!Array.isArray(x.historia)) x.historia = []; } }
     s.saveVersion = CFG.saveVersion;
     return s;
