@@ -22,6 +22,7 @@
       ${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`;
 
   function nombreFase(s) {
+    if (s.fase === 'retirado') { const id = P2.prestige(s).activa; return id ? `${P2.CARRERAS_PRESTIGE[id].ic} ${P2.CARRERAS_PRESTIGE[id].n}` : '👋 Retirado/a del deporte'; }
     const O = P2.oferta(s);
     if (s.fase === 'barrio') return `Captación · semana ${s.semana} de ${CFG.captacion.semanas}`;
     if (s.fase === 'pruebas') return `Preparando las pruebas · semana ${s.semana}`;
@@ -740,7 +741,7 @@
   function htmlSemana(s) {
     const o = opcionesSemana(s), enEquipo = s.fase === 'club' || s.fase === 'amateur', pj = enEquipo && s.temporada ? P2.partidoDeLaJornada(s.temporada) : null;
     const mas = ui.masOps ? `<div class="ops">${o.resto.map((x, i) => tarjetaOp(s, x, i + 3)).join('')}${o.bloq.map(x => `<button class="op gris" disabled><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips"><span class="chip">🔒 ${esc(x.bloqueo)}</span></span></span></button>`).join('')}</div>` : '';
-    return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlDeseo(s)}
+    return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlDeseo(s)}${P2.UIX && P2.UIX.inicio ? P2.UIX.inicio(s, HX) : ''}
       ${enEquipo ? htmlEnJuego(s, pj) : ''}
       <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
       <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>

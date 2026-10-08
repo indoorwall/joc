@@ -123,7 +123,7 @@
     s.p.lesion = Math.max(0, s.p.lesion | 0);
     s.confianza = P2.clamp(s.confianza, 0, 100);
     s.interes = P2.clamp(s.interes, 0, 100);
-    if (!['barrio', 'pruebas', 'amateur', 'club'].includes(s.fase)) s.fase = 'barrio';
+    if (!['barrio', 'pruebas', 'amateur', 'club', 'retirado'].includes(s.fase)) s.fase = 'barrio';
     if ((s.fase === 'club' || s.fase === 'amateur') && (!s.contrato || !s.temporada)) s.fase = s.invitacion ? 'pruebas' : 'barrio';
     if (s.contrato && !P2.OFERTAS[s.contrato.oferta]) { s.contrato = null; s.temporada = null; s.fase = 'barrio'; }
     s.negocios = s.negocios.filter(n => n && P2.NEGOCIOS[n.tipo]).map(n => rellenar(P2.nuevoNegocio(n.tipo, 0), n));

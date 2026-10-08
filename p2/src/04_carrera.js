@@ -29,6 +29,8 @@
     if (s.p.energia < A.energiaMin) return `Necesitas ${A.energiaMin} de energía.`;
     if (A.gasto && s.p.dinero < A.gasto) return `Necesitas ${eur(A.gasto)}.`;
     if (id === 'gestionar' && !s.negocios.length) return 'No tienes empresa.';
+    if (A.prestige && !(P2.accionesPrestige && P2.accionesPrestige(s).some(a => a.id === id))) return 'Ahora no.';
+    if (id === 'prGira' && s.p.dinero < 5000 && P2.prestige(s).activa && P2.CARRERAS_PRESTIGE[P2.prestige(s).activa].tipo === 'eleccion') return `Necesitas ${eur(5000)}.`;
     return null;
   }
   function accionesDisponibles(s) {
@@ -37,7 +39,8 @@
       .filter(id => !(ACCIONES[id].hastaSemana && s.semana > ACCIONES[id].hastaSemana))
       .filter(id => !((id === 'campus' || id === 'jornada' || id === 'torneo') && s.invitacion))
       .filter(id => !(ACCIONES[id].unaVez && s.cont[id]))
-      .map(id => ({ id, A: ACCIONES[id], bloqueo: bloqueoAccion(s, id) }));
+      .filter(id => !ACCIONES[id].prestige || (P2.accionesPrestige && P2.accionesPrestige(s).some(a => a.id === id)))
+      .map(id => { const pa = ACCIONES[id].prestige && P2.accionesPrestige(s).find(a => a.id === id); return { id, A: pa ? Object.assign({}, ACCIONES[id], { n: pa.n, ic: pa.ic, ventaja: 'Avanza tu carrera Prestige' }) : ACCIONES[id], bloqueo: bloqueoAccion(s, id) }; });
   }
 
   const subirNivel = (s, v, techo) => { const antes = s.p.nivel; if (antes >= techo) return 0; s.p.nivel = r1(Math.min(techo, s.p.nivel + v)); return r1(s.p.nivel - antes); };
@@ -122,6 +125,7 @@
   // ---------- Acciones propias de cada deporte ----------
   const GRADOS = ['6a', '6b', '6c', '7a', '7a+', '7b', '7b+', '7c', '7c+', '8a', '8a+', '8b', '8b+', '8c', '8c+', '9a'];
   function accionDeporte(s, id, R, veces) {
+    if (ACCIONES[id] && ACCIONES[id].prestige) return P2.accionPrestige(s, id, R);
     const P = s.p, L = R.lineas, W = R.porque, D = P2.deporteDe(s);
     if (id === 'roca') {
       const g = s.gradoRoca == null ? -1 : s.gradoRoca, sig = Math.min(GRADOS.length - 1, g + 1), dif = 44 + sig * 3;
