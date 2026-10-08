@@ -45,6 +45,7 @@ export function createCommerceClient({ backend, storage, platform = 'mock', conf
     async createAccount({ method = 'email', email = null } = {}) {
       if (!isOnline()) throw err('offline');
       const r = await backend.signUp({ method, email });
+      if (r.pending) return { pending: r.pending };   // web: redirección (Apple/Google) o «revisa tu correo» (enlace mágico)
       st.account = { id: r.userId, token: r.token, method: r.method || method, email: email || null };
       save(); await api.track('account_created', { source: method });
       return api.sync();
@@ -55,7 +56,13 @@ export function createCommerceClient({ backend, storage, platform = 'mock', conf
       st.account = { id: r.userId, token: r.token, method: r.method, email };
       save(); return api.sync();
     },
-    signOut() { st.account = null; save(); },
+    // Sesión que llega de fuera (Supabase Auth en la web tras la redirección; token renovado)
+    async useSession(sess) {
+      if (!sess) return null;
+      st.account = { id: sess.userId, token: sess.token, method: sess.method, email: sess.email || null };
+      save(); return api.sync();
+    },
+    signOut() { st.account = null; save(); if (backend.signOut) backend.signOut(); },
     // Sincroniza con el servidor; offline devuelve la caché (se revalida al volver)
     async sync() {
       if (!st.account) return [];

@@ -2200,6 +2200,7 @@ function createCommerceClient({ backend, storage, platform = 'mock', config: cfg
     async createAccount({ method = 'email', email = null } = {}) {
       if (!isOnline()) throw err('offline');
       const r = await backend.signUp({ method, email });
+      if (r.pending) return { pending: r.pending };   // web: redirección (Apple/Google) o «revisa tu correo» (enlace mágico)
       st.account = { id: r.userId, token: r.token, method: r.method || method, email: email || null };
       save(); await api.track('account_created', { source: method });
       return api.sync();
@@ -2210,7 +2211,13 @@ function createCommerceClient({ backend, storage, platform = 'mock', config: cfg
       st.account = { id: r.userId, token: r.token, method: r.method, email };
       save(); return api.sync();
     },
-    signOut() { st.account = null; save(); },
+    // Sesión que llega de fuera (Supabase Auth en la web tras la redirección; token renovado)
+    async useSession(sess) {
+      if (!sess) return null;
+      st.account = { id: sess.userId, token: sess.token, method: sess.method, email: sess.email || null };
+      save(); return api.sync();
+    },
+    signOut() { st.account = null; save(); if (backend.signOut) backend.signOut(); },
     // Sincroniza con el servidor; offline devuelve la caché (se revalida al volver)
     async sync() {
       if (!st.account) return [];
@@ -7398,12 +7405,27 @@ globalThis.P2C = P2C;
   let COM = null;
   function comercio() {
     if (COM || !globalThis.P2C) return COM;
-    const be = P2C.createMockBackend({ storage: almacen });
-    COM = P2C.createCommerceClient({ backend: be, storage: almacen, platform: 'mock', config: { rewarded: { minigameLife: true } } });
-    COM.backend = be;
+    const W = globalThis.P2C_WEB;
+    if (W && P2C.createHttpBackend && P2C.createWebAuth) {
+      // Build web real: Supabase Auth + Edge Functions + Stripe Checkout (redirección)
+      let auth = null; try { auth = P2C.createWebAuth({ supabaseUrl: W.supabaseUrl, publishableKey: W.publishableKey }); } catch (_) { auth = null; }
+      const be = Object.assign(P2C.createHttpBackend({ functionsUrl: W.functionsUrl, publishableKey: W.publishableKey }),
+        { signUp: o => auth.signUp(o), signIn: o => auth.signIn(o), signOut: () => auth && auth.signOut() });
+      COM = P2C.createCommerceClient({ backend: be, storage: almacen, platform: 'web', config: { environment: W.environment }, navigate: u => location.assign(u) });
+      COM.backend = be; COM.web = true;
+      be.remoteConfig().then(rc => { Object.assign(COM.config, rc || {}); }).catch(() => {});
+      const conSesion = () => auth && auth.session().then(s => s && COM.useSession(s)).then(() => { limpiarLook(S); render(); }).catch(() => {});
+      if (auth) { conSesion(); auth.onChange(conSesion); }
+    } else {
+      // Prototipo: backend simulado en el navegador (mismo servicio que el servidor), sin red ni cobro
+      const be = P2C.createMockBackend({ storage: almacen });
+      COM = P2C.createCommerceClient({ backend: be, storage: almacen, platform: 'mock', config: { rewarded: { minigameLife: true } } });
+      COM.backend = be;
+    }
     P2.tieneEnt = e => COM.has(e);
     return COM;
   }
+  const SIM = () => !(COM && COM.web);
   comercio();
   const realTxt = m => (globalThis.P2C ? P2C.formatMinor(m) : `${(m / 100).toFixed(2).replace('.', ',')} €`);
   const OLD_IAP = { debut: 'pack_debut', street: 'pack_street', pro: 'pack_pro', luxury: 'pack_luxury', founder: 'founder_pack', sinAnuncios: 'remove_ads', espacios: 'extra_save_slots_3' };
@@ -7441,8 +7463,8 @@ globalThis.P2C = P2C;
     const store = C.store(ctxJuego(s));
     const tabs = `<div class="pmTabs" role="tablist">${PM_TABS.map(([k, n]) => `<button role="tab" aria-selected="${pm.tab === k}" class="${pm.tab === k ? 'sel' : ''}" data-act="pmTab" data-v="${k}">${n}</button>`).join('')}</div>`;
     const cabecera = `<div class="card pmHead"><h2>💎 Premium</h2><p class="small">Gratis para jugar. Aquí solo hay <b>identidad</b> y <b>más juego</b>: nunca nivel, victorias, ascensos ni dinero del juego.</p>
-      <p class="small pmModo">🧪 Versión de prueba: compras <b>simuladas</b> (Stripe en modo test, sin red). No se cobra nada.</p>
-      ${C.isGuest() ? `<button class="btn w full" data-act="pmCuenta">🔐 Crear cuenta para proteger tus compras</button>` : `<p class="small">Cuenta: <b>${esc(C.account().email || 'sin email')}</b> · ${esc(C.account().method)} (simulada)</p>`}</div>`;
+      ${SIM() ? '<p class="small pmModo">🧪 Versión de prueba: compras <b>simuladas</b> (Stripe en modo test, sin red). No se cobra nada.</p>' : COM.config.environment !== 'production' ? '<p class="small pmModo">🧪 Stripe en modo TEST: usa una tarjeta de prueba; no se cobra dinero real.</p>' : ''}
+      ${C.isGuest() ? `<button class="btn w full" data-act="pmCuenta">🔐 Crear cuenta para proteger tus compras</button>` : `<p class="small">Cuenta: <b>${esc(C.account().email || 'sin email')}</b> · ${esc(C.account().method)}${SIM() ? ' (simulada)' : ''}</p>`}</div>`;
     let cuerpo = '';
     if (pm.tab === 'comprado') cuerpo = htmlMisCompras(s, C);
     else {
@@ -7471,8 +7493,10 @@ globalThis.P2C = P2C;
     const P = pm.sku && P2C.getProduct(pm.sku);
     const err = pm.error ? `<p class="pmErr" role="alert">${esc(pmErrorTxt(pm.error))}</p>` : '';
     if (pm.paso === 'cuenta') return `<div class="overlay" role="dialog" aria-label="Crear cuenta"><div class="modal"><h2>🔐 Crea una cuenta</h2><p>${esc(C.terms.accountPrompt)}</p>
-      <button class="btn full" data-act="pmCrear" data-v="apple"> Continuar con Apple</button><button class="btn full" data-act="pmCrear" data-v="google">G Continuar con Google</button><button class="btn full" data-act="pmCrear" data-v="email">✉️ Enlace mágico por email</button>
-      <p class="small">🧪 Simulado: no se crea ninguna cuenta real ni se envían datos. Puedes seguir jugando sin cuenta.</p>${err}<button class="btn w full" data-act="pmCerrar">Ahora no</button></div></div>`;
+      <button class="btn full" data-act="pmCrear" data-v="apple"> Continuar con Apple</button><button class="btn full" data-act="pmCrear" data-v="google">G Continuar con Google</button>
+      <input id="pmEmailNuevo" class="inp" type="email" placeholder="o tu email para un enlace mágico" autocomplete="email"><button class="btn full" data-act="pmCrear" data-v="email">✉️ Enlace mágico por email</button>
+      ${pm.aviso ? `<p class="pmOk">${esc(pm.aviso)}</p>` : ''}
+      <p class="small">${SIM() ? '🧪 Simulado: no se crea ninguna cuenta real ni se envían datos.' : 'Sin contraseñas: entras con Apple, Google o un enlace a tu email.'} Puedes seguir jugando sin cuenta.</p>${err}<button class="btn w full" data-act="pmCerrar">Ahora no</button></div></div>`;
     if (pm.paso === 'entrar') return `<div class="overlay" role="dialog" aria-label="Entrar"><div class="modal"><h2>🔐 Entrar</h2><p class="small">Usa el email de tu cuenta (simulada).</p><input id="pmEmail" class="inp" type="email" placeholder="tu@email" autocomplete="email">${err}
       <button class="btn full" data-act="pmEntrarOk">Entrar</button><button class="btn w full" data-act="pmCerrar">Cancelar</button></div></div>`;
     if (!P) return '';
@@ -7481,6 +7505,7 @@ globalThis.P2C = P2C;
       <h2>${esc(P.name)}</h2><div class="pmTotal"><span>Total</span><b>${price}</b></div><p class="small">Aquí, en el juego real, se abriría la página segura de Stripe. En esta versión de prueba <b>no se pide ninguna tarjeta y no se cobra nada</b>.</p>
       <p class="small">Referencia de la orden: <b>${esc(pm.orderRef || '')}</b></p>
       <button class="btn full" data-act="pmPagar" data-v="paid">Pagar ${price} (simulado)</button><button class="btn w full" data-act="pmPagar" data-v="failed">Simular pago rechazado</button><button class="btn w full" data-act="pmPagar" data-v="cancel">Cancelar</button></div></div>`;
+    if (pm.paso === 'redirigiendo') return `<div class="overlay" role="dialog"><div class="modal"><div class="pmSpin" aria-hidden="true"></div><h2>Te llevamos al pago seguro…</h2><p class="small">El pago se hace en la página de Stripe. Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
     if (pm.paso === 'verificando') return `<div class="overlay" role="dialog" aria-label="Verificando"><div class="modal"><div class="pmSpin" aria-hidden="true"></div><h2>${esc(C.terms.verifying)}</h2><p class="small">Esperamos la confirmación del servidor (el webhook de Stripe). Volver de la página de pago no concede nada por sí solo.</p><p class="small">Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
     if (pm.paso === 'lento') return `<div class="overlay" role="dialog"><div class="modal"><h2>⏳ Casi…</h2><p>${esc(C.terms.slow)}</p><button class="btn full" data-act="pmSync">Sincronizar compras</button><button class="btn w full" data-act="pmCerrar">Cerrar</button><p class="small">Ref. ${esc(pm.orderRef || '')}</p></div></div>`;
     if (pm.paso === 'error') return `<div class="overlay" role="dialog"><div class="modal"><h2>No se ha completado</h2><p>No se ha cobrado nada.</p><p class="small">Ref. ${esc(pm.orderRef || '')}</p><button class="btn full" data-act="pmCerrar">Volver</button></div></div>`;
@@ -7641,10 +7666,15 @@ globalThis.P2C = P2C;
       case 'pmCuenta': ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { paso: 'cuenta', error: null }); COM.track('account_prompt', {}); render(); break;
       case 'pmEntrar': ui.pm = Object.assign(ui.pm || { tab: 'destacados' }, { paso: 'entrar', error: null }); render(); break;
       case 'pmEntrarOk': { const em = ($('pmEmail') || {}).value || ''; pmAsync(async () => { await COM.signIn({ email: em.trim() }); ui.pm.paso = null; ui.pm.hist = await COM.history(); }); break; }
-      case 'pmCrear': pmAsync(async () => { await COM.createAccount({ method: b.dataset.v, email: b.dataset.v === 'email' ? `${(S && S.nombre || 'jugador').toLowerCase().replace(/[^a-z0-9]/g, '')}@ejemplo.test` : null }); ui.pm.paso = null; ui.pm.error = null; }); break;
+      case 'pmCrear': { const em = (($('pmEmailNuevo') || {}).value || '').trim();
+        pmAsync(async () => {
+          const r = await COM.createAccount({ method: b.dataset.v, email: b.dataset.v === 'email' ? (em || (SIM() ? `${(S && S.nombre || 'jugador').toLowerCase().replace(/[^a-z0-9]/g, '')}@ejemplo.test` : '')) : null });
+          if (r && r.pending) { ui.pm.aviso = r.pending === 'check_email' ? 'Te hemos enviado un enlace. Ábrelo en este dispositivo para entrar.' : 'Te llevamos a iniciar sesión…'; return; }
+          ui.pm.paso = null; ui.pm.error = null; ui.pm.aviso = null;
+        }); break; }
       case 'pmComprar': { const sku = ui.pm.sku;
         if (COM.isGuest()) { ui.pm.paso = 'cuenta'; COM.track('account_prompt', { sku }); render(); break; }
-        pmAsync(async () => { const r = await COM.purchase(sku, { consentWithdrawal: !!ui.pm.consent }); Object.assign(ui.pm, { paso: 'checkout', orderId: r.orderId, orderRef: r.orderRef, error: null }); }); break; }
+        pmAsync(async () => { const r = await COM.purchase(sku, { consentWithdrawal: !!ui.pm.consent }); Object.assign(ui.pm, { paso: SIM() ? 'checkout' : 'redirigiendo', orderId: r.orderId, orderRef: r.orderRef, error: null }); }); break; }
       case 'pmPagar': { const out = b.dataset.v, orderId = ui.pm.orderId, sku = ui.pm.sku;
         ui.pm.paso = 'verificando'; render();
         pmAsync(async () => {
@@ -7707,6 +7737,17 @@ globalThis.P2C = P2C;
     document.addEventListener('change', e => { const x = e.target; if (S && x.classList && x.classList.contains('respuesta')) { P2.responderTest(S, x.dataset.q, x.value); P2.guardar(S); } });
     render();
     const a = $('arranque'); if (a) a.remove();
+    // Vuelta desde Stripe (build web): «Estamos verificando tu compra…» hasta que el servidor confirme
+    try {
+      const q = new URLSearchParams(location.search), ord = q.get('order');
+      if (comercio() && COM.web && q.get('compra') === 'verificando' && ord) {
+        ui.vista = 'premium'; ui.pm = { tab: 'comprado', paso: 'verificando', orderId: ord, orderRef: ord.replace(/-/g, '').slice(0, 10).toUpperCase() };
+        history.replaceState(null, '', location.pathname);
+        pmAsync(async () => { const o = await COM.waitForOrder(ord, { tries: 40, intervalMs: 1500 });
+          if (o.status === 'FULFILLED') { const P = P2C.getProduct(o.sku); equiparPack(o.sku); ui.pm = { tab: 'comprado' }; ui.celes = (ui.celes || []).concat({ tipo: 'premium', sku: o.sku, n: P.name, ic: (P.assets && P.assets.ic) || '💎', includes: P.includes }); ui.confeti = true; ui.pm.hist = await COM.history(); }
+          else ui.pm.paso = o.status === 'SLOW' ? 'lento' : 'error'; });
+      } else if (q.get('compra') === 'cancelada') { ui.flash = 'Compra cancelada. No se ha cobrado nada.'; history.replaceState(null, '', location.pathname); }
+    } catch (_) { /* sin location (tests) */ }
     // Revalida las compras con la cuenta al arrancar (offline: se usa la caché)
     if (comercio() && !COM.isGuest()) COM.sync().then(() => { limpiarLook(S); if (S) P2.guardar(S); render(); }).catch(() => {});
   }

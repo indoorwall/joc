@@ -30,7 +30,11 @@ export async function runEdge(check) {
       if (req.url.startsWith('/auth/v1/user')) return req.headers.authorization === `Bearer ${TOKEN}` ? send(200, { id: U, email: 'a@test.local' }) : send(401, { msg: 'invalid' });
       if (req.headers.authorization !== 'Bearer sk_test_fake') return send(401, { error: { message: 'bad key' } });
       if (req.method === 'POST' && req.url === '/v1/customers') return send(200, await fake.createCustomer(parseForm(raw), req.headers['idempotency-key']));
-      if (req.method === 'POST' && req.url === '/v1/checkout/sessions') return send(200, await fake.createCheckoutSession(parseForm(raw), req.headers['idempotency-key']));
+      if (req.method === 'POST' && req.url === '/v1/checkout/sessions') {
+        const p = parseForm(raw), s = await fake.createCheckoutSession(p, req.headers['idempotency-key']);
+        if (process.env.E2E_REDIRECT_SUCCESS) s.url = String(p.success_url).replace('{CHECKOUT_SESSION_ID}', s.id);   // «el usuario paga y Stripe le devuelve»
+        return send(200, s);
+      }
       const m = req.url.match(/^\/v1\/(checkout\/sessions|payment_intents)\/([^?]+)/);
       if (m) return send(200, m[1] === 'payment_intents' ? await fake.retrievePaymentIntent(m[2]) : await fake.retrieveCheckoutSession(m[2]));
       send(404, { error: { message: 'not found' } });
@@ -38,13 +42,16 @@ export async function runEdge(check) {
   });
   await new Promise(r => srv.listen(0, '127.0.0.1', r));
   const fakePort = srv.address().port, port = 54000 + Math.floor(Math.random() * 900);
+  // Build web real apuntando al arnés (mismo origen que las funciones)
+  const { execFileSync } = await import('node:child_process');
+  execFileSync(process.execPath, ['p2/build-web.cjs'], { env: Object.assign({}, process.env, { SUPABASE_URL: `http://127.0.0.1:${port}`, SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_e2e', APP_ENV: 'staging' }), stdio: 'ignore' });
   const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
   await pool.query("truncate public.orders, public.payments, public.entitlement_grants, public.entitlements, public.provider_events, public.commerce_accounts, public.refunds, public.purchase_events, public.rate_limits cascade");
   await pool.query("insert into auth.users (id, email) values ($1, 'a@test.local') on conflict do nothing", [U]);
   await pool.query("update remote_config set value = jsonb_set(value, '{environment}', '\"staging\"') where environment = 'staging'");
   const proc = spawn(DENO, ['run', '--no-lock', '--allow-net', '--allow-env', '--allow-read', 'backend/supabase/tests/e2e_harness.ts'], {
     env: Object.assign({}, process.env, { PORT: String(port), APP_ENV: 'staging', SUPABASE_DB_URL: process.env.DATABASE_URL, SUPABASE_URL: `http://127.0.0.1:${fakePort}`, SUPABASE_ANON_KEY: 'anon',
-      STRIPE_SECRET_KEY: 'sk_test_fake', STRIPE_API_BASE: `http://127.0.0.1:${fakePort}/v1`, STRIPE_WEBHOOK_SECRET: SECRET, APP_URL: 'https://juego.test' }), stdio: ['ignore', 'pipe', 'pipe'] });
+      STRIPE_SECRET_KEY: 'sk_test_fake', STRIPE_API_BASE: `http://127.0.0.1:${fakePort}/v1`, STRIPE_WEBHOOK_SECRET: SECRET, APP_URL: `http://127.0.0.1:${port}`, WEB_INDEX: 'dist/web/index.html' }), stdio: ['ignore', 'pipe', 'pipe'] });
   let logs = '';
   await new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('Deno no arrancó: ' + logs)), 60000); proc.stdout.on('data', d => { logs += d; if (/e2e listo/.test(logs)) { clearTimeout(t); res(); } }); proc.stderr.on('data', d => { logs += d; }); proc.on('exit', c => { clearTimeout(t); rej(new Error('Deno salió ' + c + ': ' + logs)); }); });
   const F = (name, opts = {}) => fetch(`http://127.0.0.1:${port}/functions/v1/${name}`, opts).then(async r => ({ status: r.status, body: await r.json().catch(() => null) }));
@@ -86,5 +93,30 @@ export async function runEdge(check) {
     check('[e2e] Admin: un usuario normal recibe 403', adm.status === 403);
     const err500 = await F('restore', { method: 'POST', headers: auth, body: '{}' });
     check('[e2e] Restaurar responde con la lista de entitlements', err500.status === 200 && Array.isArray(err500.body.entitlements));
+    // ---------- Navegador real sobre el BUILD WEB (Stripe Checkout por redirección) ----------
+    let pw = null; try { pw = (await import('playwright')).default; } catch (_) { try { pw = (await import('/opt/node22/lib/node_modules/playwright/index.js')).default; } catch (_) { pw = null; } }
+    if (pw) {
+      await pool.query('truncate public.orders, public.payments, public.entitlement_grants, public.entitlements, public.provider_events, public.rate_limits cascade');
+      process.env.E2E_REDIRECT_SUCCESS = '1';
+      const b = await pw.chromium.launch(); const pg2 = await b.newPage(); const errs = []; pg2.on('pageerror', e => errs.push(e.message));
+      await pg2.route('**/cdn.jsdelivr.net/**', r => r.abort());   // sin supabase-js: la sesión la ponemos a mano
+      await pg2.goto(`http://127.0.0.1:${port}/`);
+      await pg2.evaluate(() => __P2.nueva({ seed: 5, nombre: 'Web' }));
+      check('[e2e web] El build web arranca con el comercio HTTP (no el simulado)', await pg2.evaluate(() => P2C.BUILD === 'web' && __P2.COM.web === true && !P2C.createMockBackend));
+      await pg2.evaluate(t => __P2.COM.useSession({ userId: '11111111-1111-4111-8111-111111111111', token: t, method: 'email', email: 'a@test.local' }), TOKEN);
+      await pg2.evaluate(() => { __P2.S.hitos.contrato = 3; __P2.ui.pm = { tab: 'destacados', sku: 'pack_debut', consent: true }; __P2.render(); });
+      await pg2.click('[data-act="pmComprar"]', { force: true });
+      await pg2.waitForURL(/compra=verificando/, { timeout: 15000 }).catch(() => {});
+      await pg2.waitForFunction(() => /Estamos verificando tu compra/.test(document.body.textContent), null, { timeout: 15000 });
+      await new Promise(r => setTimeout(r, 1200));
+      check('[e2e web] Volver de Stripe (success_url) NO concede nada: «Estamos verificando tu compra…»', await pg2.evaluate(() => !__P2.P2.tieneEnt('cosmetic.debut_pack')));
+      const ord = (await pool.query("select * from orders where sku = 'pack_debut' order by created_at desc limit 1")).rows[0];
+      const evw = await fake.signed(fake.pay(ord.provider_checkout_id));
+      await F('stripe-webhook', { method: 'POST', headers: { 'stripe-signature': evw.header }, body: evw.raw });
+      await pg2.waitForSelector('.cele-premium', { timeout: 20000 });
+      check('[e2e web] Cuando llega el webhook: «¡DESBLOQUEADO!» y el Pack Debut activo en el navegador', await pg2.evaluate(() => __P2.P2.tieneEnt('cosmetic.debut_pack')));
+      check('[e2e web] Sin errores de JavaScript', errs.length === 0, errs.join(' | '));
+      await b.close();
+    } else console.log('(sin Playwright: se salta la prueba del build web en navegador)');
   } finally { proc.kill(); srv.close(); await pool.end(); }
 }

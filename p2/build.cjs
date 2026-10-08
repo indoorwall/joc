@@ -30,11 +30,14 @@ function bundle(files, base) {
   return out.join('\n');
 }
 
-const commerce = bundle(COMMERCE, path.join(root, 'commerce'));
-const js = `// ===== comercio (commerce/, simulado) =====\n${commerce}\n` + fs.readdirSync(dir).filter(f => /^\d\d_.*\.js$/.test(f)).sort().map(f => `// ===== ${f} =====\n` + fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
-const css = fs.readFileSync(path.join(dir, 'estilo.css'), 'utf8');
-const html = fs.readFileSync(path.join(dir, 'plantilla.html'), 'utf8').replace('/*CSS*/', () => css).replace('/*JS*/', () => js);
-const out = path.join(__dirname, 'del_barrio_p2.html');
-fs.writeFileSync(out, html);
-console.log(`${path.relative(process.cwd(), out)}: ${Math.round(html.length / 1024)} KB`);
+function main() {
+  const commerce = bundle(COMMERCE, path.join(root, 'commerce'));
+  const js = `// ===== comercio (commerce/, simulado) =====\n${commerce}\n` + fs.readdirSync(dir).filter(f => /^\d\d_.*\.js$/.test(f)).sort().map(f => `// ===== ${f} =====\n` + fs.readFileSync(path.join(dir, f), 'utf8')).join('\n');
+  const css = fs.readFileSync(path.join(dir, 'estilo.css'), 'utf8');
+  const html = fs.readFileSync(path.join(dir, 'plantilla.html'), 'utf8').replace('/*CSS*/', () => css).replace('/*JS*/', () => js);
+  const out = path.join(__dirname, 'del_barrio_p2.html');
+  fs.writeFileSync(out, html);
+  console.log(`${path.relative(process.cwd(), out)}: ${Math.round(html.length / 1024)} KB`);
+}
+if (require.main === module) main();
 module.exports = { bundle, COMMERCE };

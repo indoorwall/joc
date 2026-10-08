@@ -7,7 +7,9 @@ let current = '';
 Object.defineProperty(Deno, 'serve', { value: (h: any) => { handlers[current] = h; return {}; }, configurable: true, writable: true });
 for (const n of names) { current = n; await import(`../functions/${n}/index.ts`); }
 const port = Number(Deno.env.get('PORT') || 54321);
-originalServe({ port, hostname: '127.0.0.1', onListen: () => console.log(`e2e listo en ${port}`) }, req => {
+const webIndex = Deno.env.get('WEB_INDEX');   // build web (dist/web/index.html) servido en «/» (mismo origen)
+originalServe({ port, hostname: '127.0.0.1', onListen: () => console.log(`e2e listo en ${port}`) }, async req => {
+  if (webIndex && new URL(req.url).pathname === '/') return new Response(await Deno.readTextFile(webIndex), { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   const m = new URL(req.url).pathname.match(/^\/functions\/v1\/([a-z-]+)/);
   const h = m && handlers[m[1]];
   return h ? h(req) : new Response('not found', { status: 404 });
