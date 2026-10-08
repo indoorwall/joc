@@ -125,38 +125,38 @@
   // exposicion: multiplica fama e interés de otros clubes · patroTier: marcas a las que llegas
   const OFERTAS = {
     puerto: {
-      club: 'puerto', primaObjetivo: 800, liga: 'tercera', n: 'UD Puerto', ic: '⚓', lema: 'Dinero más rápido',
+      club: 'puerto', primaObjetivo: 800, c1: '#1d3c78', c2: '#ffffff', liga: 'tercera', n: 'UD Puerto', ic: '⚓', lema: 'Dinero más rápido',
       sueldo: 250, prima: 1800, primaVictoria: 60, temporadas: 1,
       minutos: 6, entreno: 0.6, exposicion: 0.6, patroTier: 'local', objetivo: 'top4', techoNivel: 60,
       pros: ['Sueldo y prima de firma altos', 'Juegas casi seguro'], contras: ['Entrenas peor', 'Poca visibilidad: solo marcas locales', 'Techo bajo: pocas ofertas mejores'],
     },
     atleticoFormacion: {
-      club: 'atleticoB', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Contrato de formación',
+      club: 'atleticoB', c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Contrato de formación',
       sueldo: 90, prima: 0, primaVictoria: 40, temporadas: 2,
       minutos: -6, entreno: 1.4, exposicion: 1.4, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 80,
       pros: ['Entrenas mucho mejor', 'Te ven ojeadores y marcas deportivas', 'Puerta al primer equipo'], contras: ['Cobras poco', 'Cuesta ser titular'],
     },
     atleticoFilial: {
-      club: 'atleticoB', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Ficha del filial',
+      club: 'atleticoB', c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Ficha del filial',
       sueldo: 150, prima: 500, primaVictoria: 40, temporadas: 2,
       minutos: -2, entreno: 1.4, exposicion: 1.5, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 80,
       pros: ['Entrenas mucho mejor', 'Te ven ojeadores y marcas deportivas', 'Puerta al primer equipo'], contras: ['Cobras menos que en Puerto', 'Hay competencia por el puesto'],
     },
     sanroque: {
-      club: 'sanroque', liga: 'regional', n: 'CD San Roque', ic: '🟢', lema: 'Equipo amateur',
+      club: 'sanroque', c1: '#2e9d4f', c2: '#ffffff', liga: 'regional', n: 'CD San Roque', ic: '🟢', lema: 'Equipo amateur',
       sueldo: 40, prima: 0, primaVictoria: 0, temporadas: 1, amateur: true,
       minutos: 10, entreno: 0.8, exposicion: 0.5, patroTier: null, objetivo: 'top4', techoNivel: 58,
       pros: ['Juegas siempre', 'Puedes trabajar a media jornada', 'Repesca cada 6 semanas'], contras: ['No es profesional', 'Casi no cobras'],
     },
     // Ofertas de fin de temporada (según rendimiento e interés)
     atleticoPrimero: {
-      club: 'atletico', liga: 'segunda', n: 'Atlético Ciudad (primer equipo)', ic: '🔴', lema: 'Subes al primer equipo',
+      club: 'atletico', c1: '#d62839', c2: '#ffffff', liga: 'segunda', n: 'Atlético Ciudad (primer equipo)', ic: '🔴', lema: 'Subes al primer equipo',
       sueldo: 520, prima: 3000, primaVictoria: 120, temporadas: 2, sube: true,
       minutos: -4, entreno: 1.5, exposicion: 2.2, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 85,
       pros: ['Gran salto de sueldo y prima', 'Máxima visibilidad'], contras: ['Competencia dura por el puesto'],
     },
     costaReal: {
-      club: 'costa', liga: 'segunda', n: 'Real Costa', ic: '🌊', lema: 'Club de categoría superior',
+      club: 'costa', c1: '#3aa0e0', c2: '#ffffff', liga: 'segunda', n: 'Real Costa', ic: '🌊', lema: 'Club de categoría superior',
       sueldo: 380, prima: 2000, primaVictoria: 80, temporadas: 2,
       minutos: 0, entreno: 1.0, exposicion: 1.1, patroTier: 'deportiva', objetivo: 'top4', techoNivel: 70,
       pros: ['Buen sueldo', 'Llegan marcas deportivas'], contras: ['Pierdes la cantera del Atlético'],

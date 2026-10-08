@@ -13,6 +13,8 @@
       saveVersion: CFG.saveVersion,
       seed, rng: seed,
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
+      look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
+      eleccion: null,                  // acción elegida para la semana (se juega con el botón)
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
       p: { nivel: I.nivel, energia: I.energia, rep: I.rep, dinero: I.dinero, lesion: 0 },
@@ -63,7 +65,7 @@
   function desdeP1(v) {
     const p = v && typeof v.p === 'object' && v.p ? v.p : {};
     const num = (x, d) => (typeof x === 'number' && isFinite(x) ? x : d);
-    const s = nuevaPartida({ nombre: typeof v.nombre === 'string' && v.nombre.trim() ? v.nombre.slice(0, 24) : 'Alex', origen: 'p1' });
+    const s = nuevaPartida({ nombre: typeof v.nombre === 'string' && v.nombre.trim() ? v.nombre.slice(0, 24) : 'Alex', origen: 'p1', look: v.look });
     s.p.dinero = Math.round(P2.clamp(num(p.dinero, CFG.inicio.dinero), 0, 2000));
     s.p.rep = Math.round(P2.clamp(num(p.rep, CFG.inicio.rep), 0, 12));
     s.p.nivel = P2.clamp(num(p.nivel, CFG.inicio.nivel), CFG.inicio.nivel, CFG.inicio.nivel + 6);
@@ -95,6 +97,7 @@
     if (s.pendiente && typeof s.pendiente !== 'object') s.pendiente = null;
     if (!Array.isArray(s.cola)) s.cola = [];
     s.diario = s.diario.slice(-150);
+    if (P2.validarLook) s.look = P2.validarLook(s.look);
     s.saveVersion = CFG.saveVersion;
     return s;
   }

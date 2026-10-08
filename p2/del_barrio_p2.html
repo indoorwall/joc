@@ -38,7 +38,8 @@ button:focus-visible, summary:focus-visible, input:focus-visible { outline: 3px 
 #top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; color: #fff;
   padding: calc(var(--safe-top) + 8px) 12px 8px; background: linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.15)); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 #top:empty { display: none; }
-.hava { width: 44px; height: 44px; flex: none; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 26px; border: 3px solid var(--gold); }
+.hava { width: 48px; height: 48px; flex: none; border-radius: 50%; background: #fff; border: 3px solid var(--gold); padding: 0; overflow: hidden; cursor: pointer; display: block; }
+.hava svg { width: 100%; height: 100%; display: block; }
 .hwho { flex: 1; min-width: 0; }
 .hwho b { display: block; font-size: 16px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hwho span { display: block; font-size: 12px; color: rgba(255,255,255,.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -49,6 +50,7 @@ button:focus-visible, summary:focus-visible, input:focus-visible { outline: 3px 
 .pill.mal { color: #ff9a8f; }
 
 main { padding: 0 12px calc(var(--safe-bottom) + 92px); }
+main.conBoton { padding-bottom: calc(var(--safe-bottom) + 170px); }
 .card { background: var(--card); border-radius: 18px; padding: 12px 14px; margin: 10px 0; box-shadow: 0 4px 0 rgba(0,0,0,.18); }
 .sec { font-size: 12px; font-weight: 900; color: rgba(255,255,255,.85); text-transform: uppercase; letter-spacing: .08em; margin: 14px 4px 6px; display: flex; justify-content: space-between; gap: 8px; }
 .card .sec { color: var(--dim); margin: 10px 0 6px; }
@@ -161,6 +163,35 @@ pre { white-space: pre-wrap; font-size: 11px; background: var(--panel); padding:
 .caminos { font-size: 13px; color: var(--dim); margin-top: 6px; line-height: 1.6; }
 .caminos b { color: var(--ink); white-space: nowrap; }
 .caminos .ok { color: var(--good); }
+
+/* Botón de jugar la semana (como en P1) */
+.jugar { position: fixed; z-index: 7; left: 50%; transform: translateX(-50%); bottom: calc(var(--safe-bottom) + 74px); width: min(456px, calc(100% - 24px));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 62px; border: 0; border-radius: 18px;
+  background: var(--acc); color: var(--acc-txt); font-size: 22px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 6px 0 var(--acc-d), 0 10px 18px rgba(0,0,0,.3); text-shadow: 0 2px 0 rgba(0,0,0,.25); }
+.jugar small { font-size: 13px; letter-spacing: 0; text-transform: none; font-weight: 800; opacity: .95; }
+.jugar:active:not(:disabled) { transform: translate(-50%, 4px); box-shadow: 0 2px 0 var(--acc-d); }
+.jugar:disabled { background: #b8bfcc; box-shadow: 0 6px 0 #8e95a3; cursor: not-allowed; color: #fff; }
+.opt.elegida { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
+.opt.elegida b::after { content: ' ✓'; color: var(--acc-d); }
+
+/* Tu personaje */
+.lookTop { display: flex; gap: 12px; align-items: center; }
+.lookPrev { width: 118px; flex: none; background: var(--panel); border-radius: 16px; padding: 6px; }
+.lookPrev svg { width: 100%; height: auto; display: block; }
+.lookInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.lookTabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0 4px; scrollbar-width: none; }
+.lookTabs::-webkit-scrollbar { display: none; }
+.lookTabs button { flex: none; border: 2px solid var(--line); background: #fff; border-radius: 12px; min-height: 44px; padding: 4px 10px; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.lookTabs button.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
+.lookGrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.lk { border: 2px solid var(--line); background: #fff; border-radius: 12px; padding: 4px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.lk svg { width: 100%; height: auto; display: block; border-radius: 8px; background: var(--panel); }
+.lk b { font-size: 11px; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+.lk span { font-size: 10px; color: var(--dim); text-align: center; }
+.lk.sel { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 3px 0 var(--acc-d); }
+.lk:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 360px) { .lookGrid { grid-template-columns: repeat(3, 1fr); } }
 
 </style>
 </head>
@@ -300,38 +331,38 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   // exposicion: multiplica fama e interés de otros clubes · patroTier: marcas a las que llegas
   const OFERTAS = {
     puerto: {
-      club: 'puerto', primaObjetivo: 800, liga: 'tercera', n: 'UD Puerto', ic: '⚓', lema: 'Dinero más rápido',
+      club: 'puerto', primaObjetivo: 800, c1: '#1d3c78', c2: '#ffffff', liga: 'tercera', n: 'UD Puerto', ic: '⚓', lema: 'Dinero más rápido',
       sueldo: 250, prima: 1800, primaVictoria: 60, temporadas: 1,
       minutos: 6, entreno: 0.6, exposicion: 0.6, patroTier: 'local', objetivo: 'top4', techoNivel: 60,
       pros: ['Sueldo y prima de firma altos', 'Juegas casi seguro'], contras: ['Entrenas peor', 'Poca visibilidad: solo marcas locales', 'Techo bajo: pocas ofertas mejores'],
     },
     atleticoFormacion: {
-      club: 'atleticoB', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Contrato de formación',
+      club: 'atleticoB', c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Contrato de formación',
       sueldo: 90, prima: 0, primaVictoria: 40, temporadas: 2,
       minutos: -6, entreno: 1.4, exposicion: 1.4, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 80,
       pros: ['Entrenas mucho mejor', 'Te ven ojeadores y marcas deportivas', 'Puerta al primer equipo'], contras: ['Cobras poco', 'Cuesta ser titular'],
     },
     atleticoFilial: {
-      club: 'atleticoB', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Ficha del filial',
+      club: 'atleticoB', c1: '#d62839', c2: '#ffffff', liga: 'tercera', n: 'Atlético Ciudad B', ic: '🔴', lema: 'Ficha del filial',
       sueldo: 150, prima: 500, primaVictoria: 40, temporadas: 2,
       minutos: -2, entreno: 1.4, exposicion: 1.5, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 80,
       pros: ['Entrenas mucho mejor', 'Te ven ojeadores y marcas deportivas', 'Puerta al primer equipo'], contras: ['Cobras menos que en Puerto', 'Hay competencia por el puesto'],
     },
     sanroque: {
-      club: 'sanroque', liga: 'regional', n: 'CD San Roque', ic: '🟢', lema: 'Equipo amateur',
+      club: 'sanroque', c1: '#2e9d4f', c2: '#ffffff', liga: 'regional', n: 'CD San Roque', ic: '🟢', lema: 'Equipo amateur',
       sueldo: 40, prima: 0, primaVictoria: 0, temporadas: 1, amateur: true,
       minutos: 10, entreno: 0.8, exposicion: 0.5, patroTier: null, objetivo: 'top4', techoNivel: 58,
       pros: ['Juegas siempre', 'Puedes trabajar a media jornada', 'Repesca cada 6 semanas'], contras: ['No es profesional', 'Casi no cobras'],
     },
     // Ofertas de fin de temporada (según rendimiento e interés)
     atleticoPrimero: {
-      club: 'atletico', liga: 'segunda', n: 'Atlético Ciudad (primer equipo)', ic: '🔴', lema: 'Subes al primer equipo',
+      club: 'atletico', c1: '#d62839', c2: '#ffffff', liga: 'segunda', n: 'Atlético Ciudad (primer equipo)', ic: '🔴', lema: 'Subes al primer equipo',
       sueldo: 520, prima: 3000, primaVictoria: 120, temporadas: 2, sube: true,
       minutos: -4, entreno: 1.5, exposicion: 2.2, patroTier: 'deportiva', objetivo: 'campeon', techoNivel: 85,
       pros: ['Gran salto de sueldo y prima', 'Máxima visibilidad'], contras: ['Competencia dura por el puesto'],
     },
     costaReal: {
-      club: 'costa', liga: 'segunda', n: 'Real Costa', ic: '🌊', lema: 'Club de categoría superior',
+      club: 'costa', c1: '#3aa0e0', c2: '#ffffff', liga: 'segunda', n: 'Real Costa', ic: '🌊', lema: 'Club de categoría superior',
       sueldo: 380, prima: 2000, primaVictoria: 80, temporadas: 2,
       minutos: 0, entreno: 1.0, exposicion: 1.1, patroTier: 'deportiva', objetivo: 'top4', techoNivel: 70,
       pros: ['Buen sueldo', 'Llegan marcas deportivas'], contras: ['Pierdes la cantera del Atlético'],
@@ -481,6 +512,8 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
       saveVersion: CFG.saveVersion,
       seed, rng: seed,
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
+      look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
+      eleccion: null,                  // acción elegida para la semana (se juega con el botón)
       semana: 1,
       fase: 'barrio',                  // barrio · pruebas · amateur · club
       p: { nivel: I.nivel, energia: I.energia, rep: I.rep, dinero: I.dinero, lesion: 0 },
@@ -531,7 +564,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   function desdeP1(v) {
     const p = v && typeof v.p === 'object' && v.p ? v.p : {};
     const num = (x, d) => (typeof x === 'number' && isFinite(x) ? x : d);
-    const s = nuevaPartida({ nombre: typeof v.nombre === 'string' && v.nombre.trim() ? v.nombre.slice(0, 24) : 'Alex', origen: 'p1' });
+    const s = nuevaPartida({ nombre: typeof v.nombre === 'string' && v.nombre.trim() ? v.nombre.slice(0, 24) : 'Alex', origen: 'p1', look: v.look });
     s.p.dinero = Math.round(P2.clamp(num(p.dinero, CFG.inicio.dinero), 0, 2000));
     s.p.rep = Math.round(P2.clamp(num(p.rep, CFG.inicio.rep), 0, 12));
     s.p.nivel = P2.clamp(num(p.nivel, CFG.inicio.nivel), CFG.inicio.nivel, CFG.inicio.nivel + 6);
@@ -563,6 +596,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (s.pendiente && typeof s.pendiente !== 'object') s.pendiente = null;
     if (!Array.isArray(s.cola)) s.cola = [];
     s.diario = s.diario.slice(-150);
+    if (P2.validarLook) s.look = P2.validarLook(s.look);
     s.saveVersion = CFG.saveVersion;
     return s;
   }
@@ -1981,6 +2015,186 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   Object.assign(P2, { POLITICAS, jugarPartida, runBalance, analisisPeluqueria, gestorListo });
 })(globalThis.P2 = globalThis.P2 || {});
 
+// ===== 11_avatar.js =====
+/* =====================================================================
+   11 · TU PERSONAJE: avatar dibujado por capas (mismo dibujo que P1)
+   Se elige al empezar. Algunas prendas se desbloquean con hitos.
+   La cara cambia sola con la energía, las lesiones y cómo te va.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { esc } = P2;
+
+  const PIEL = ['#ffe3c8', '#f6c9a0', '#e2a877', '#c48650', '#8f5b35', '#5e3b22'];
+  const COLOR_PELO = { negro: '#22201f', castano: '#6b4226', rubio: '#e8c36a', pelirrojo: '#c4512b', canoso: '#cfcfcf', azul: '#2f7bf5', rosa: '#ff6fb5', verde: '#3ccf6e' };
+  const COLOR_ROPA = { rojo: '#e23b3b', azul: '#2f6fe0', verde: '#22a35a', amarillo: '#f6c623', negro: '#2a2d34', blanco: '#f4f4f4', morado: '#7b4bd6', naranja: '#ff8a2a' };
+  const FONDO_LOOK = { azul: '#bfe0ff', verde: '#c6f0d2', naranja: '#ffd9b3', morado: '#dccbff', rosa: '#ffd0e6' };
+  const LOOK_INICIAL = { piel: '1', pelo: 'corto', colorPelo: 'castano', cara: 'nada', ropa: 'camiseta', colorRopa: 'azul', pantalon: 'chandal', calzado: 'deportivas', cabeza: 'nada', gafas: 'nada', extra: 'nada', fondo: 'azul' };
+  const VISTA_LOOK = { busto: '6 -12 88 88', cuerpo: '0 -16 100 176', torso: '8 52 84 64', piernas: '14 92 72 64' };
+
+  // Capas y prendas (datos). req.hito: se desbloquea al conseguir ese hito
+  const CAPAS = [['pelo', '💇', 'Pelo', 'busto'], ['colorPelo', '🎨', 'Color de pelo', 'busto'], ['piel', '✋', 'Piel', 'busto'], ['cara', '🧔', 'Cara', 'busto'],
+    ['ropa', '👕', 'Ropa', 'torso'], ['colorRopa', '🖌️', 'Color', 'torso'], ['pantalon', '👖', 'Pantalón', 'piernas'], ['calzado', '👟', 'Calzado', 'piernas'],
+    ['cabeza', '🧢', 'Cabeza', 'busto'], ['gafas', '🕶️', 'Gafas', 'busto'], ['extra', '🎒', 'Extras', 'cuerpo'], ['fondo', '🖼️', 'Fondo', 'busto']];
+  const ITEMS = {
+    piel: [0, 1, 2, 3, 4, 5].map(i => ({ id: String(i), n: `Tono ${i + 1}` })),
+    pelo: [['corto', 'Corto'], ['largo', 'Largo'], ['coleta', 'Coleta'], ['rizos', 'Rizos'], ['rapado', 'Rapado'], ['calvo', 'Sin pelo'], ['mono', 'Moño'], ['tupe', 'Tupé'], ['trenzas', 'Trenzas'], ['afro', 'Afro'], ['cresta', 'Cresta']].map(([id, n]) => ({ id, n })),
+    colorPelo: [['negro', 'Negro'], ['castano', 'Castaño'], ['rubio', 'Rubio'], ['pelirrojo', 'Pelirrojo'], ['canoso', 'Canoso'], ['azul', 'Azul eléctrico'], ['rosa', 'Rosa chicle'], ['verde', 'Verde']].map(([id, n]) => ({ id, n })),
+    cara: [['nada', 'Nada'], ['pecas', 'Pecas'], ['pintura', 'Pintura de guerra'], ['bigote', 'Bigote'], ['perilla', 'Perilla'], ['barba', 'Barba']].map(([id, n]) => ({ id, n })),
+    ropa: [{ id: 'camiseta', n: 'Camiseta' }, { id: 'tirantes', n: 'Tirantes' }, { id: 'hawaiana', n: 'Hawaiana' }, { id: 'sudadera', n: 'Sudadera' }, { id: 'chaqueta', n: 'Chaqueta' }, { id: 'plumas', n: 'Plumas' },
+      { id: 'equipacion', n: 'Camiseta de tu club', req: { hito: 'contrato' } }, { id: 'marca', n: 'Camiseta de tu marca', req: { hito: 'patro' } }, { id: 'traje', n: 'Traje de empresario', req: { hito: 'empresa' } }],
+    colorRopa: [['azul', 'Azul'], ['rojo', 'Rojo'], ['verde', 'Verde'], ['amarillo', 'Amarillo'], ['negro', 'Negro'], ['blanco', 'Blanco'], ['morado', 'Morado'], ['naranja', 'Naranja']].map(([id, n]) => ({ id, n })),
+    pantalon: [{ id: 'chandal', n: 'Chándal' }, { id: 'corto', n: 'Corto' }, { id: 'vaquero', n: 'Vaqueros' }, { id: 'falda', n: 'Falda' }, { id: 'traje', n: 'De traje', req: { hito: 'empresa' } }],
+    calzado: [{ id: 'deportivas', n: 'Deportivas' }, { id: 'chanclas', n: 'Chanclas' }, { id: 'botas', n: 'Botas de fútbol' }, { id: 'montana', n: 'De montaña' }, { id: 'zapatos', n: 'Zapatos' }, { id: 'doradas', n: 'Botas de oro', req: { hito: 'inversion2' } }],
+    cabeza: [{ id: 'nada', n: 'Nada' }, { id: 'cinta', n: 'Cinta' }, { id: 'gorra', n: 'Gorra' }, { id: 'gorro', n: 'Gorro de lana' }, { id: 'fiesta', n: 'Gorro de fiesta' }, { id: 'vaquero', n: 'Sombrero' }, { id: 'corona', n: 'Corona', req: { hito: 'inversion2' } }],
+    gafas: [['nada', 'Sin gafas'], ['corazon', 'Corazón'], ['redondas', 'Redondas'], ['sol', 'De sol'], ['deportivas', 'Deportivas']].map(([id, n]) => ({ id, n })),
+    extra: [{ id: 'nada', n: 'Nada' }, { id: 'balon', n: 'Balón' }, { id: 'mochila', n: 'Mochila' }, { id: 'auriculares', n: 'Auriculares' }, { id: 'capa', n: 'Capa' },
+      { id: 'medalla', n: 'Medalla', req: { hito: 'titular' } }, { id: 'reloj', n: 'Reloj de lujo', req: { hito: 'rentable' } }, { id: 'cadena', n: 'Cadena de oro', req: { hito: 'inversion2' } }],
+    fondo: [['azul', 'Azul'], ['verde', 'Verde'], ['naranja', 'Naranja'], ['morado', 'Morado'], ['rosa', 'Rosa']].map(([id, n]) => ({ id, n }))
+      .concat([{ id: 'noche', n: 'Noche estrellada', req: { hito: 'contrato' } }, { id: 'dorado', n: 'Fondo de oro', req: { hito: 'inversion2' } }]),
+  };
+  const itemLook = (cap, id) => (ITEMS[cap] || []).find(x => x.id === id);
+  function bloqueoLook(s, it) {
+    if (!it || !it.req) return null;
+    if (it.req.hito && !(s && s.hitos && s.hitos[it.req.hito])) { const H = P2.HITOS.find(h => h.id === it.req.hito); return `Hito: ${H ? H.n : it.req.hito}`; }
+    return null;
+  }
+  function ponerLook(s, cap, id) {
+    const it = itemLook(cap, id);
+    if (!it || bloqueoLook(s, it)) return false;
+    s.look = Object.assign({}, LOOK_INICIAL, s.look || {}, { [cap]: id });
+    return true;
+  }
+  // Un look al azar (solo con lo que no necesita hitos)
+  function lookAzar() {
+    const L = {};
+    for (const [cap] of CAPAS) { const l = ITEMS[cap].filter(it => !it.req); L[cap] = l[Math.floor(Math.random() * l.length)].id; }
+    if (Math.random() < 0.6) L.cabeza = 'nada';
+    if (Math.random() < 0.6) L.gafas = 'nada';
+    if (Math.random() < 0.5) L.extra = 'nada';
+    if (Math.random() < 0.5) L.cara = 'nada';
+    return L;
+  }
+  function validarLook(L) {
+    const out = Object.assign({}, LOOK_INICIAL);
+    if (L && typeof L === 'object') for (const [cap] of CAPAS) if (itemLook(cap, L[cap])) out[cap] = L[cap];
+    return out;
+  }
+
+  // Ánimo para la cara: sin felicidad en P2, sale de la energía, las lesiones y el último resultado
+  function animo(s) {
+    if (!s || !s.p) return 70;
+    let a = 65;
+    const u = s.ultimo && s.ultimo.partido;
+    if (u) a += u.resultado === 'victoria' ? 15 : u.resultado === 'derrota' ? -20 : 0;
+    if (s.p.lesion > 0) a -= 30;
+    if (s.negocios && s.negocios.some(n => n.crisis)) a -= 15;
+    return a;
+  }
+
+  function oscurecer(hex, f) { const n = parseInt(hex.slice(1), 16), c = k => Math.round(((n >> k) & 255) * f); return `rgb(${c(16)},${c(8)},${c(0)})`; }
+  function avatarSVG(s, L, modo) {
+    L = Object.assign({}, LOOK_INICIAL, L || (s && s.look) || {});
+    modo = modo || 'cuerpo';
+    if (['gorra', 'gorro'].includes(L.cabeza) && ['cresta', 'mono', 'tupe', 'afro'].includes(L.pelo)) L.pelo = 'corto';
+    const sk = PIEL[+L.piel] || PIEL[1], hc = COLOR_PELO[L.colorPelo] || COLOR_PELO.castano, rc = COLOR_ROPA[L.colorRopa] || COLOR_ROPA.azul, rd = oscurecer(rc, 0.75);
+    const fel = animo(s), ene = s && s.p ? s.p.energia : 80;
+    const O = s && s.contrato ? P2.OFERTAS[s.contrato.oferta] : null, c1 = O && O.c1 ? O.c1 : '#2e9d4f', c2 = O && O.c2 ? O.c2 : '#ffffff';
+    const marca = s && s.patros && s.patros.length ? P2.MARCAS.find(m => m.id === s.patros[0].id) : null;
+    let h = '';
+    if (modo === 'busto') {
+      if (L.fondo === 'noche') h += `<rect x="-20" y="-30" width="140" height="140" fill="#1d2552"/>${[[18, 0], [80, 6], [30, 60], [86, 52], [62, -6], [12, 34]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff"/>`).join('')}`;
+      else if (L.fondo === 'dorado') h += `<rect x="-20" y="-30" width="140" height="140" fill="#f5c518"/><circle cx="50" cy="34" r="44" fill="#ffe27a"/>`;
+      else h += `<rect x="-20" y="-30" width="140" height="140" fill="${FONDO_LOOK[L.fondo] || FONDO_LOOK.azul}"/>`;
+    } else h += `<ellipse cx="50" cy="153" rx="28" ry="4" fill="rgba(0,0,0,.25)"/>`;
+    if (L.extra === 'capa') h += `<path d="M31 74 L14 146 L86 146 L69 74Z" fill="#d6283b"/>`;
+    if (L.extra === 'mochila') h += `<rect x="30" y="72" width="40" height="34" rx="8" fill="#3b4a6b"/>`;
+    if (L.pelo === 'largo') h += `<path d="M23 40 Q23 12 50 12 Q77 12 77 40 L79 84 Q50 92 21 84Z" fill="${hc}"/>`;
+    if (L.pelo === 'afro') h += `<circle cx="50" cy="34" r="33" fill="${hc}"/>`;
+    if (L.pelo === 'coleta') h += `<path d="M70 24 Q94 28 86 64 Q80 44 68 36Z" fill="${hc}"/>`;
+    if (L.pelo === 'trenzas') h += `<path d="M25 46 L21 92 M75 46 L79 92" stroke="${hc}" stroke-width="9" stroke-linecap="round"/><circle cx="21" cy="92" r="3" fill="#e23b3b"/><circle cx="79" cy="92" r="3" fill="#e23b3b"/>`;
+    if (L.pelo === 'mono') h += `<circle cx="50" cy="11" r="9" fill="${hc}"/>`;
+    const pc = { chandal: '#4a5260', vaquero: '#3d5f9e', traje: '#2b2f3a', corto: rc, falda: rc }[L.pantalon] || '#4a5260';
+    if (L.pantalon === 'corto') h += `<rect x="38" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="53" y="118" width="9" height="24" rx="4" fill="${sk}"/><rect x="34" y="104" width="32" height="18" rx="4" fill="${pc}"/><line x1="50" y1="110" x2="50" y2="122" stroke="rgba(0,0,0,.25)" stroke-width="1.5"/>`;
+    else if (L.pantalon === 'falda') h += `<rect x="38" y="122" width="9" height="20" rx="4" fill="${sk}"/><rect x="53" y="122" width="9" height="20" rx="4" fill="${sk}"/><path d="M34 104 L66 104 L72 128 L28 128Z" fill="${pc}"/>`;
+    else {
+      h += `<rect x="36" y="104" width="13" height="38" rx="4" fill="${pc}"/><rect x="51" y="104" width="13" height="38" rx="4" fill="${pc}"/>`;
+      if (L.pantalon === 'chandal') h += `<rect x="37" y="108" width="2" height="32" fill="#fff" opacity=".8"/><rect x="61" y="108" width="2" height="32" fill="#fff" opacity=".8"/>`;
+      if (L.pantalon === 'vaquero') h += `<path d="M42 108 v30 M58 108 v30" stroke="#f0c040" stroke-width="1" stroke-dasharray="2 2"/>`;
+    }
+    const zap = (col, extra) => `<rect x="31" y="139" width="19" height="10" rx="5" fill="${col}"/><rect x="50" y="139" width="19" height="10" rx="5" fill="${col}"/>${extra || ''}`;
+    if (L.calzado === 'deportivas') h += zap('#ffffff', `<path d="M35 144 h10 M54 144 h10" stroke="${rc}" stroke-width="2.5"/><rect x="31" y="146" width="19" height="3" fill="#ccc"/><rect x="50" y="146" width="19" height="3" fill="#ccc"/>`);
+    else if (L.calzado === 'botas') h += zap('#1d1d1f', `<path d="M34 150 v2 M40 150 v2 M46 150 v2 M54 150 v2 M60 150 v2 M66 150 v2" stroke="#999" stroke-width="2"/><path d="M36 143 h8 M55 143 h8" stroke="${c1}" stroke-width="2"/>`);
+    else if (L.calzado === 'chanclas') h += `<rect x="38" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="53" y="139" width="9" height="8" rx="3" fill="#fff"/><rect x="31" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/><rect x="50" y="147" width="19" height="3" rx="1.5" fill="#2f6fe0"/>`;
+    else if (L.calzado === 'zapatos') h += zap('#5b3a1e', '<path d="M35 142 h6 M55 142 h6" stroke="#fff" stroke-width="1.5" opacity=".5"/>');
+    else if (L.calzado === 'montana') h += zap('#7a5230', '<path d="M36 141 l4 3 M40 141 l4 3 M56 141 l4 3 M60 141 l4 3" stroke="#f6c623" stroke-width="1.5"/><rect x="31" y="146" width="19" height="3" fill="#2a2d34"/><rect x="50" y="146" width="19" height="3" fill="#2a2d34"/>');
+    else if (L.calzado === 'doradas') h += zap('#f5c518', '<path d="M35 142 h8 M54 142 h8" stroke="#fff" stroke-width="2" opacity=".8"/><rect x="31" y="146" width="19" height="3" fill="#c99a00"/><rect x="50" y="146" width="19" height="3" fill="#c99a00"/>');
+    const largas = ['sudadera', 'chaqueta', 'plumas', 'traje'].includes(L.ropa), sinMangas = L.ropa === 'tirantes';
+    const tc = L.ropa === 'equipacion' ? c1 : L.ropa === 'traje' ? '#2b2f3a' : L.ropa === 'marca' ? '#ffffff' : rc;
+    h += `<rect x="20" y="74" width="11" height="34" rx="5.5" fill="${sk}"/><rect x="69" y="74" width="11" height="34" rx="5.5" fill="${sk}"/>`;
+    if (!sinMangas) h += `<rect x="20" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/><rect x="69" y="72" width="11" height="${largas ? 34 : 16}" rx="5.5" fill="${tc}"/>`;
+    h += `<circle cx="25.5" cy="110" r="5.5" fill="${sk}"/><circle cx="74.5" cy="110" r="5.5" fill="${sk}"/>`;
+    if (L.extra === 'reloj') h += `<rect x="20" y="100" width="11" height="5" rx="1.5" fill="#f5c518" stroke="#b08a00" stroke-width=".8"/>`;
+    h += `<rect x="44" y="58" width="12" height="16" rx="4" fill="${sk}"/>`;
+    if (L.ropa === 'sudadera') h += `<path d="M34 72 Q50 56 66 72Z" fill="${rd}"/>`;
+    const ancho = L.ropa === 'plumas' ? 3 : 0;
+    h += `<path d="M${30 - ancho} 78 Q${30 - ancho} 68 40 68 L60 68 Q${70 + ancho} 68 ${70 + ancho} 78 L${70 + ancho} 110 L${30 - ancho} 110Z" fill="${tc}"/>`;
+    if (['camiseta', 'marca', 'equipacion', 'tirantes'].includes(L.ropa)) h += `<path d="M43 68 Q50 ${L.ropa === 'tirantes' ? 80 : 75} 57 68Z" fill="${sk}"/>`;
+    if (L.ropa === 'tirantes') h += `<path d="M30 70 h6 M64 70 h6" stroke="${sk}" stroke-width="5"/>`;
+    if (L.ropa === 'equipacion') h += `<rect x="38" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><rect x="57" y="70" width="5" height="40" fill="${c2}" opacity=".9"/><text x="50" y="100" text-anchor="middle" font-size="15" font-weight="900" fill="${c2}" stroke="${c1}" stroke-width=".6" font-family="Arial,sans-serif">10</text>`;
+    if (L.ropa === 'marca') { const t = marca ? marca.n.split(' ')[0].toUpperCase() : '★'; h += `<text x="50" y="94" text-anchor="middle" font-size="${t.length > 9 ? 5.5 : t.length > 6 ? 7 : 9}" font-weight="900" fill="${rc === '#f4f4f4' ? '#e23b3b' : rc}" font-family="Arial,sans-serif">${esc(t)}</text>`; }
+    if (L.ropa === 'sudadera') h += `<rect x="40" y="94" width="20" height="10" rx="3" fill="${rd}"/><path d="M46 72 v10 M54 72 v10" stroke="#fff" stroke-width="1.2"/>`;
+    if (L.ropa === 'chaqueta') h += `<line x1="50" y1="70" x2="50" y2="110" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/><path d="M40 68 L50 78 L60 68" fill="none" stroke="${rd}" stroke-width="3"/>`;
+    if (L.ropa === 'plumas') h += `<path d="M27 82 h46 M27 92 h46 M27 102 h46" stroke="rgba(0,0,0,.2)" stroke-width="2"/><path d="M42 68 Q50 74 58 68" fill="none" stroke="${rd}" stroke-width="4"/>`;
+    if (L.ropa === 'hawaiana') h += `${[[38, 82], [60, 78], [46, 98], [64, 100], [34, 104]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#fff"/><circle cx="${x}" cy="${y}" r="1.4" fill="#f6c623"/>`).join('')}<path d="M42 68 L50 80 L58 68" fill="none" stroke="#fff" stroke-width="2"/>`;
+    if (L.ropa === 'traje') h += `<path d="M43 68 L50 86 L57 68Z" fill="#fff"/><path d="M49 72 L51 72 L52.5 90 L50 94 L47.5 90Z" fill="#d6283b"/><path d="M43 68 L48 92 M57 68 L52 92" stroke="#444b5c" stroke-width="2"/>`;
+    if (L.extra === 'mochila') h += `<path d="M37 70 L38 108 M63 70 L62 108" stroke="#3b4a6b" stroke-width="4"/>`;
+    if (L.extra === 'cadena') h += `<path d="M41 70 Q50 88 59 70" fill="none" stroke="#f5c518" stroke-width="2.5"/><circle cx="50" cy="83" r="3.2" fill="#f5c518"/>`;
+    if (L.extra === 'medalla') h += `<path d="M42 68 L50 86 L58 68" fill="none" stroke="#2f6fe0" stroke-width="3.5"/><circle cx="50" cy="90" r="6.5" fill="#f5c518" stroke="#b08a00"/><text x="50" y="93" text-anchor="middle" font-size="8" font-weight="900" fill="#b08a00">1</text>`;
+    if (L.extra === 'balon') h += `<circle cx="84" cy="141" r="9" fill="#fff" stroke="#333" stroke-width="1"/><path d="M84 137 l3.5 2.5 -1.3 4 h-4.4 l-1.3 -4Z" fill="#333"/>`;
+    h += `<circle cx="25" cy="42" r="5" fill="${sk}"/><circle cx="75" cy="42" r="5" fill="${sk}"/><circle cx="50" cy="40" r="25" fill="${sk}"/>`;
+    if (L.cara === 'barba') h += `<path d="M27 44 Q30 70 50 70 Q70 70 73 44 Q70 58 60 56 Q50 62 40 56 Q30 58 27 44Z" fill="${hc}"/>`;
+    h += `<circle cx="35" cy="50" r="4" fill="#ff7b7b" opacity=".3"/><circle cx="65" cy="50" r="4" fill="#ff7b7b" opacity=".3"/>`;
+    if (L.cara === 'pecas') h += [[40, 49], [43, 51], [38, 52], [60, 49], [57, 51], [62, 52]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#b5651d"/>`).join('');
+    if (L.cara === 'pintura') h += `<path d="M30 47 h9 M30 51 h9 M61 47 h9 M61 51 h9" stroke="${O ? c1 : rc}" stroke-width="2.2" stroke-linecap="round"/>`;
+    const ojo = x => ene < 25 ? `<path d="M${x - 4} 44 h8" stroke="#222" stroke-width="2.4" stroke-linecap="round"/>`
+      : fel > 75 ? `<path d="M${x - 4} 45 Q${x} 39 ${x + 4} 45" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+        : `<circle cx="${x}" cy="43" r="3.3" fill="#222"/><circle cx="${x + 1}" cy="42" r="1" fill="#fff"/>`;
+    h += ojo(39) + ojo(61);
+    h += fel < 40 ? `<path d="M34 35 l7 -2 M66 35 l-7 -2" stroke="${hc}" stroke-width="2" stroke-linecap="round"/>` : `<path d="M34 34 q5 -3 9 0 M57 34 q5 -3 9 0" stroke="${hc}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+    if (ene < 25) h += `<path d="M34 48 q5 3 9 0 M57 48 q5 3 9 0" stroke="#7a6a9a" stroke-width="1.2" fill="none" opacity=".7"/>`;
+    h += fel > 65 ? `<path d="M41 52 Q50 63 59 52Z" fill="#7a2a2a"/><path d="M44 57 Q50 61 56 57" fill="#ff7b8a"/>`
+      : fel >= 40 ? `<path d="M43 54 Q50 59 57 54" stroke="#5a2a2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+        : `<path d="M43 58 Q50 52 57 58" stroke="#5a2a2a" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+    if (fel < 25) h += `<path d="M65 47 q2 4 0 6 q-2 -2 0 -6Z" fill="#59b7ff"/>`;
+    if (L.cara === 'bigote') h += `<path d="M41 51 Q50 46 59 51 Q50 54 41 51Z" fill="${hc}"/>`;
+    if (L.cara === 'perilla') h += `<path d="M46 61 L54 61 L50 69Z" fill="${hc}"/>`;
+    if (s && s.p && s.p.lesion > 0) h += `<g transform="rotate(-20 60 28)"><rect x="52" y="25" width="17" height="6" rx="3" fill="#f3c89a" stroke="#c99a6a" stroke-width=".8"/><path d="M58 26 v4 M62 26 v4" stroke="#c99a6a" stroke-width=".6"/></g>`;
+    const flequillo = `<path d="M24 42 Q22 14 50 13 Q78 14 76 42 Q72 28 62 26 Q50 32 36 26 Q28 30 24 42Z" fill="${hc}"/>`;
+    if (['corto', 'coleta', 'trenzas', 'mono', 'largo'].includes(L.pelo)) h += flequillo;
+    else if (L.pelo === 'rizos') h += [[28, 30], [36, 20], [46, 16], [56, 16], [65, 20], [72, 30], [25, 40], [75, 40]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="8" fill="${hc}"/>`).join('');
+    else if (L.pelo === 'rapado') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".55"/>`;
+    else if (L.pelo === 'calvo') h += `<ellipse cx="40" cy="24" rx="6" ry="3" fill="#fff" opacity=".35"/>`;
+    else if (L.pelo === 'tupe') h += `<path d="M24 42 Q22 18 46 15 Q40 2 62 3 Q82 6 76 24 Q78 32 76 42 Q70 26 50 26 Q32 28 24 42Z" fill="${hc}"/>`;
+    else if (L.pelo === 'afro') h += `<path d="M26 34 Q50 16 74 34 Q50 26 26 34Z" fill="${hc}"/>`;
+    else if (L.pelo === 'cresta') h += `<path d="M26 36 Q28 16 50 15 Q72 16 74 36 Q66 22 50 22 Q34 22 26 36Z" fill="${hc}" opacity=".5"/><path d="M42 26 L38 -2 L48 10 L50 -8 L54 10 L64 -2 L58 26Z" fill="${hc}"/>`;
+    if (L.gafas === 'redondas') h += `<circle cx="39" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><circle cx="61" cy="43" r="7" fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"/><path d="M46 43 h8 M32 42 l-6 -2 M68 42 l6 -2" stroke="#222" stroke-width="2"/>`;
+    else if (L.gafas === 'sol') h += `<rect x="30" y="37" width="17" height="11" rx="4" fill="#111"/><rect x="53" y="37" width="17" height="11" rx="4" fill="#111"/><path d="M47 41 h6 M30 40 l-5 -1 M70 40 l5 -1" stroke="#111" stroke-width="2"/><path d="M33 40 l4 0" stroke="#fff" stroke-width="1.5" opacity=".6"/>`;
+    else if (L.gafas === 'deportivas') h += `<path d="M26 39 Q50 32 74 39 L72 48 Q50 43 28 48Z" fill="#ff5a1f"/><path d="M30 41 Q50 36 70 41" stroke="#fff" stroke-width="1.2" opacity=".6" fill="none"/>`;
+    else if (L.gafas === 'corazon') { const co = x => `<path d="M${x} 49 l-7 -7 a4 4 0 0 1 7 -4 a4 4 0 0 1 7 4Z" fill="#ff2d6f"/>`; h += co(39) + co(61) + `<path d="M46 42 h8" stroke="#ff2d6f" stroke-width="1.5"/>`; }
+    if (L.cabeza === 'gorra') h += `<path d="M24 34 Q24 9 50 9 Q76 9 76 34Z" fill="${rc}"/><path d="M50 30 Q80 26 92 35 Q72 38 50 34Z" fill="${rd}"/><circle cx="50" cy="10" r="2.5" fill="${rd}"/>`;
+    else if (L.cabeza === 'gorro') h += `<path d="M23 36 Q23 5 50 5 Q77 5 77 36Z" fill="${rc}"/><rect x="22" y="29" width="56" height="9" rx="4" fill="${rd}"/><circle cx="50" cy="4" r="6" fill="#fff"/>`;
+    else if (L.cabeza === 'cinta') h += `<path d="M25 30 Q50 22 75 30 L75 36 Q50 28 25 36Z" fill="${rc}"/>`;
+    else if (L.cabeza === 'fiesta') h += `<path d="M38 18 L50 -14 L62 18Z" fill="#ff6fb5"/><path d="M41 10 L59 10 M44 2 L56 2" stroke="#f6c623" stroke-width="3"/><circle cx="50" cy="-14" r="4" fill="#f6c623"/>`;
+    else if (L.cabeza === 'vaquero') h += `<path d="M32 22 Q32 2 50 5 Q68 2 68 22Z" fill="#8a5a2b"/><ellipse cx="50" cy="22" rx="38" ry="6" fill="#6b4422"/><rect x="32" y="16" width="36" height="4" fill="#2a2d34"/>`;
+    else if (L.cabeza === 'corona') h += `<path d="M31 21 L33 1 L42 11 L50 -4 L58 11 L67 1 L69 21Z" fill="#f5c518" stroke="#b08a00" stroke-width="1"/><circle cx="50" cy="15" r="2.5" fill="#e23b3b"/><circle cx="40" cy="16" r="2" fill="#2f6fe0"/><circle cx="60" cy="16" r="2" fill="#22a35a"/>`;
+    if (L.extra === 'auriculares') h += `<path d="M23 42 Q23 7 50 7 Q77 7 77 42" fill="none" stroke="#2a2d34" stroke-width="5"/><rect x="17" y="35" width="10" height="16" rx="4" fill="${rc}"/><rect x="73" y="35" width="10" height="16" rx="4" fill="${rc}"/>`;
+    return `<svg viewBox="${VISTA_LOOK[modo] || VISTA_LOOK.cuerpo}" class="avatar" aria-hidden="true">${h}</svg>`;
+  }
+
+  Object.assign(P2, { LOOK_INICIAL, CAPAS_LOOK: CAPAS, ITEMS_LOOK: ITEMS, COLOR_PELO, COLOR_ROPA, PIEL, itemLook, bloqueoLook, ponerLook, lookAzar, validarLook, avatarSVG });
+})(globalThis.P2 = globalThis.P2 || {});
+
 // ===== 20_ui.js =====
 /* =====================================================================
    20 · INTERFAZ (móvil): SITUACIÓN → DECISIÓN → CONSECUENCIA
@@ -1990,7 +2204,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   'use strict';
   const { CFG, OFERTAS, OBJETIVOS, LIGAS, MARCAS, NEGOCIOS, HITOS, OPORTUNIDADES, esc, eur, nf, fmt, clamp } = P2;
   let S = null;
-  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '' };
+  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '', look: null, capa: 'pelo', nombre: 'Alex' };
   const $ = id => document.getElementById(id);
 
   // ---------- Utilidades de pintado ----------
@@ -1999,7 +2213,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   const kv = (k, v) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`;
   const chip = (t, cls = '') => `<span class="chip ${cls}">${t}</span>`;
   const linea = ([ic, t, cls]) => `<div class="lin ${cls || ''}"><span class="ic">${ic}</span><span>${esc(t)}</span></div>`;
-  const opcion = (o, act, extra = '') => `<button class="opt ${o.prin ? 'prin' : ''}" data-act="${act}" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''} ${extra}>
+  const opcion = (o, act, extra = '', cls = '') => `<button class="opt ${o.prin ? 'prin' : ''} ${cls}" data-act="${act}" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''} ${extra} ${act === 'elegir' ? `aria-pressed="${cls === 'elegida'}"` : ''}>
       <b>${esc(o.n)}</b>
       <span class="ls">${o.ventaja ? `<span class="l"><i class="v">✓</i> ${esc(o.ventaja)}</span>` : ''}${o.coste ? `<span class="l"><i class="c">−</i> ${esc(o.coste)}</span>` : ''}${o.riesgo && o.riesgo !== 'Ninguno' ? `<span class="l"><i class="r">⚠</i> ${esc(o.riesgo)}</span>` : ''}</span>
       ${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`;
@@ -2014,7 +2228,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
 
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
-    return `<div class="hava">${s.fase === 'club' ? P2.oferta(s).ic : '⚽'}</div>
+    return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
       <div class="hwho"><b>${esc(s.nombre)}</b><span>${esc(nombreFase(s))}</span></div>
       <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}</div>`;
   }
@@ -2070,9 +2284,20 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     }
     const l = P2.accionesDisponibles(s);
     const tit = s.fase === 'club' || s.fase === 'amateur' ? '¿Qué haces esta semana, además del partido?' : '¿Qué haces esta semana?';
-    return `<div class="sec"><span>Decisión</span><span>1 acción = 1 semana</span></div><div class="card dec"><h3>${tit}</h3>
-      ${l.filter(x => !x.bloqueo).map(({ id, A }) => opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: A.coste, riesgo: A.riesgo }, 'accion')).join('')}
+    return `<div class="sec"><span>Decisión</span><span>elige y pulsa «Jugar semana»</span></div><div class="card dec"><h3>${tit}</h3>
+      ${l.filter(x => !x.bloqueo).map(({ id, A }) => opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: A.coste, riesgo: A.riesgo }, 'elegir', '', id === eleccion(s) ? 'elegida' : '')).join('')}
       ${l.filter(x => x.bloqueo).map(({ id, A, bloqueo }) => `<button class="opt mini" disabled><b>${A.ic} ${esc(A.n)}</b><span class="bl">🔒 ${esc(bloqueo)}</span></button>`).join('')}</div>`;
+  }
+
+  // Acción elegida para la semana: la tuya si sigue disponible; si no, la primera que se puede hacer
+  function eleccion(s) {
+    const libres = P2.accionesDisponibles(s).filter(x => !x.bloqueo).map(x => x.id);
+    return libres.includes(s.eleccion) ? s.eleccion : libres.includes('descansar') && s.p.energia < 30 ? 'descansar' : libres[0];
+  }
+  function htmlBoton(s) {
+    if (s.pendiente) return `<button class="jugar" id="jugar" disabled>Jugar semana<small>Antes, toma la decisión de arriba</small></button>`;
+    const id = eleccion(s), A = P2.ACCIONES[id];
+    return `<button class="jugar" id="jugar" data-act="jugar">▶ Jugar semana<small>${A ? `${A.ic} ${esc(A.n)}${s.fase === 'club' || s.fase === 'amateur' ? ' + partido' : ''}` : ''}</small></button>`;
   }
 
   // ---------- CONSECUENCIA ----------
@@ -2194,18 +2419,36 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     return `<div class="intro"><div style="font-size:48px">⚽ → 💈 → 🏢</div><h1>Del barrio al negocio</h1><p>Capítulo 1</p>
       <div class="ruta"><span>Barrio</span>→<span>Pruebas</span>→<span>Contrato</span>→<span>Temporada</span>→<span>Primera empresa</span>→<span>Tu imperio</span></div>
       <div class="card"><h3>Empiezas con 17 años</h3><p class="small">Tienes 8 semanas para que un club se fije en ti. Cada semana eliges una sola cosa. No hay una opción siempre buena: todo tiene ventaja, coste y riesgo.</p>
-        <label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="Alex">
+        <label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="${esc(ui.nombre)}"></div>
+      <div class="card"><h3>Tu personaje</h3>${htmlEditor(null, ui.look || (ui.look = Object.assign({}, P2.LOOK_INICIAL)))}
         <button class="btn g full" data-act="empezar">Empezar</button>
         ${p1 ? `<button class="btn w full" data-act="desdeP1">📦 Seguir con tu jugador de P1</button><p class="small">Conserva tu nombre, parte de tus ahorros y algo de fama. Tu partida de P1 no se toca.</p>` : ''}</div></div>`;
   }
 
+  // Editor del avatar: al empezar (s = null, todo lo básico) y luego desde la cabecera (con prendas que abren los hitos)
+  function htmlEditor(s, L) {
+    const cap = ui.capa, capa = P2.CAPAS_LOOK.find(c => c[0] === cap) || P2.CAPAS_LOOK[0], vista = capa[3];
+    const items = P2.ITEMS_LOOK[cap].filter(it => s || !it.req);
+    const sv = s || { p: { energia: 80 }, hitos: {} };
+    return `<div class="lookTop"><div class="lookPrev">${P2.avatarSVG(sv, L, 'cuerpo')}</div>
+        <div class="lookInfo"><span class="small">Elige cada capa. ${s ? 'Algunas prendas se ganan con los hitos.' : 'Más adelante podrás cambiarlo tocando tu cara arriba; algunas prendas se ganan con los hitos.'}</span>
+        <button class="btn w" data-act="lookAzar">🎲 Al azar</button></div></div>
+      <div class="lookTabs" role="tablist">${P2.CAPAS_LOOK.map(([k, ic, n]) => `<button role="tab" aria-selected="${k === cap}" data-act="capa" data-v="${k}" class="${k === cap ? 'sel' : ''}"><span>${ic}</span>${n}</button>`).join('')}</div>
+      <div class="lookGrid">${items.map(it => { const bl = s ? P2.bloqueoLook(s, it) : null, puesto = L[cap] === it.id;
+        return `<button class="lk ${puesto ? 'sel' : ''}" data-act="look" data-c="${cap}" data-v="${it.id}" ${bl ? 'disabled' : ''} aria-pressed="${puesto}">${P2.avatarSVG(sv, Object.assign({}, L, { [cap]: it.id }), vista)}<b>${esc(it.n)}</b>${bl ? `<span>🔒 ${esc(bl)}</span>` : ''}</button>`; }).join('')}</div>`;
+  }
+  function htmlPersonaje(s) {
+    return `<div class="card"><h2>🧍 ${esc(s.nombre)}</h2>${htmlEditor(s, s.look)}</div>`;
+  }
+
   // ---------- Render ----------
   function render() {
-    if (!S) { $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); return; }
+    if (!S) { $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
-    const V = { semana: () => htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes }[ui.vista] || (() => '');
+    const V = { semana: () => htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje }[ui.vista] || (() => '');
     $('main').innerHTML = V(S);
+    $('main').classList.toggle('conBoton', ui.vista === 'semana');
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
 
@@ -2215,7 +2458,15 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
     if (a !== 'reiniciar') ui.reinicio = false;
     if (a !== 'vender') ui.vender = null;
     switch (a) {
-      case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n }); ui.vista = 'semana'; guardarYPintar(); break; }
+      case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n, look: ui.look }); ui.vista = 'semana'; guardarYPintar(); window.scrollTo(0, 0); break; }
+      case 'capa': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = b.dataset.v; render(); break;
+      case 'look': if ($('nombre')) ui.nombre = $('nombre').value;
+        if (S) { if (P2.ponerLook(S, b.dataset.c, b.dataset.v)) guardarYPintar(); }
+        else { const it = P2.itemLook(b.dataset.c, b.dataset.v); if (it && !it.req) { ui.look = Object.assign({}, ui.look, { [b.dataset.c]: b.dataset.v }); render(); } }
+        break;
+      case 'lookAzar': if ($('nombre')) ui.nombre = $('nombre').value; if (S) { S.look = P2.validarLook(P2.lookAzar()); guardarYPintar(); } else { ui.look = P2.validarLook(P2.lookAzar()); render(); } break;
+      case 'elegir': S.eleccion = id; guardarYPintar(); break;
+      case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { S.eleccion = a; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
       case 'vista': ui.vista = b.dataset.v; ui.msg = ''; render(); window.scrollTo(0, 0); break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
@@ -2254,7 +2505,7 @@ window.addEventListener('error', function (e) { var a = document.getElementById(
   globalThis.__P2 = {
     P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
     nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; },
-    jugar: id => { const r = P2.jugarSemana(S, id); guardarYPintar(); return r; },
+    jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
     guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },
     migrateSave: P2.migrateSave, runBalance: (n, m) => P2.runBalance(n || 100, m), informe: (n) => informeTexto(P2.runBalance(n || 100)),

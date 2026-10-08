@@ -6,7 +6,7 @@
   'use strict';
   const { CFG, OFERTAS, OBJETIVOS, LIGAS, MARCAS, NEGOCIOS, HITOS, OPORTUNIDADES, esc, eur, nf, fmt, clamp } = P2;
   let S = null;
-  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '' };
+  const ui = { vista: 'semana', reinicio: false, balance: null, msg: '', look: null, capa: 'pelo', nombre: 'Alex' };
   const $ = id => document.getElementById(id);
 
   // ---------- Utilidades de pintado ----------
@@ -15,7 +15,7 @@
   const kv = (k, v) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`;
   const chip = (t, cls = '') => `<span class="chip ${cls}">${t}</span>`;
   const linea = ([ic, t, cls]) => `<div class="lin ${cls || ''}"><span class="ic">${ic}</span><span>${esc(t)}</span></div>`;
-  const opcion = (o, act, extra = '') => `<button class="opt ${o.prin ? 'prin' : ''}" data-act="${act}" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''} ${extra}>
+  const opcion = (o, act, extra = '', cls = '') => `<button class="opt ${o.prin ? 'prin' : ''} ${cls}" data-act="${act}" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''} ${extra} ${act === 'elegir' ? `aria-pressed="${cls === 'elegida'}"` : ''}>
       <b>${esc(o.n)}</b>
       <span class="ls">${o.ventaja ? `<span class="l"><i class="v">✓</i> ${esc(o.ventaja)}</span>` : ''}${o.coste ? `<span class="l"><i class="c">−</i> ${esc(o.coste)}</span>` : ''}${o.riesgo && o.riesgo !== 'Ninguno' ? `<span class="l"><i class="r">⚠</i> ${esc(o.riesgo)}</span>` : ''}</span>
       ${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`;
@@ -30,7 +30,7 @@
 
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
-    return `<div class="hava">${s.fase === 'club' ? P2.oferta(s).ic : '⚽'}</div>
+    return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
       <div class="hwho"><b>${esc(s.nombre)}</b><span>${esc(nombreFase(s))}</span></div>
       <div class="hres">${pill('💶', fmt(s.p.dinero), s.p.dinero < 0 ? 'mal' : 'oro')}${pill('⚡', Math.round(s.p.energia), s.p.energia < 30 ? 'mal' : '')}${pill('⭐', Math.floor(s.p.rep))}</div>`;
   }
@@ -86,9 +86,20 @@
     }
     const l = P2.accionesDisponibles(s);
     const tit = s.fase === 'club' || s.fase === 'amateur' ? '¿Qué haces esta semana, además del partido?' : '¿Qué haces esta semana?';
-    return `<div class="sec"><span>Decisión</span><span>1 acción = 1 semana</span></div><div class="card dec"><h3>${tit}</h3>
-      ${l.filter(x => !x.bloqueo).map(({ id, A }) => opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: A.coste, riesgo: A.riesgo }, 'accion')).join('')}
+    return `<div class="sec"><span>Decisión</span><span>elige y pulsa «Jugar semana»</span></div><div class="card dec"><h3>${tit}</h3>
+      ${l.filter(x => !x.bloqueo).map(({ id, A }) => opcion({ id, n: `${A.ic} ${A.n}`, ventaja: A.ventaja, coste: A.coste, riesgo: A.riesgo }, 'elegir', '', id === eleccion(s) ? 'elegida' : '')).join('')}
       ${l.filter(x => x.bloqueo).map(({ id, A, bloqueo }) => `<button class="opt mini" disabled><b>${A.ic} ${esc(A.n)}</b><span class="bl">🔒 ${esc(bloqueo)}</span></button>`).join('')}</div>`;
+  }
+
+  // Acción elegida para la semana: la tuya si sigue disponible; si no, la primera que se puede hacer
+  function eleccion(s) {
+    const libres = P2.accionesDisponibles(s).filter(x => !x.bloqueo).map(x => x.id);
+    return libres.includes(s.eleccion) ? s.eleccion : libres.includes('descansar') && s.p.energia < 30 ? 'descansar' : libres[0];
+  }
+  function htmlBoton(s) {
+    if (s.pendiente) return `<button class="jugar" id="jugar" disabled>Jugar semana<small>Antes, toma la decisión de arriba</small></button>`;
+    const id = eleccion(s), A = P2.ACCIONES[id];
+    return `<button class="jugar" id="jugar" data-act="jugar">▶ Jugar semana<small>${A ? `${A.ic} ${esc(A.n)}${s.fase === 'club' || s.fase === 'amateur' ? ' + partido' : ''}` : ''}</small></button>`;
   }
 
   // ---------- CONSECUENCIA ----------
@@ -210,18 +221,36 @@
     return `<div class="intro"><div style="font-size:48px">⚽ → 💈 → 🏢</div><h1>Del barrio al negocio</h1><p>Capítulo 1</p>
       <div class="ruta"><span>Barrio</span>→<span>Pruebas</span>→<span>Contrato</span>→<span>Temporada</span>→<span>Primera empresa</span>→<span>Tu imperio</span></div>
       <div class="card"><h3>Empiezas con 17 años</h3><p class="small">Tienes 8 semanas para que un club se fije en ti. Cada semana eliges una sola cosa. No hay una opción siempre buena: todo tiene ventaja, coste y riesgo.</p>
-        <label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="Alex">
+        <label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="${esc(ui.nombre)}"></div>
+      <div class="card"><h3>Tu personaje</h3>${htmlEditor(null, ui.look || (ui.look = Object.assign({}, P2.LOOK_INICIAL)))}
         <button class="btn g full" data-act="empezar">Empezar</button>
         ${p1 ? `<button class="btn w full" data-act="desdeP1">📦 Seguir con tu jugador de P1</button><p class="small">Conserva tu nombre, parte de tus ahorros y algo de fama. Tu partida de P1 no se toca.</p>` : ''}</div></div>`;
   }
 
+  // Editor del avatar: al empezar (s = null, todo lo básico) y luego desde la cabecera (con prendas que abren los hitos)
+  function htmlEditor(s, L) {
+    const cap = ui.capa, capa = P2.CAPAS_LOOK.find(c => c[0] === cap) || P2.CAPAS_LOOK[0], vista = capa[3];
+    const items = P2.ITEMS_LOOK[cap].filter(it => s || !it.req);
+    const sv = s || { p: { energia: 80 }, hitos: {} };
+    return `<div class="lookTop"><div class="lookPrev">${P2.avatarSVG(sv, L, 'cuerpo')}</div>
+        <div class="lookInfo"><span class="small">Elige cada capa. ${s ? 'Algunas prendas se ganan con los hitos.' : 'Más adelante podrás cambiarlo tocando tu cara arriba; algunas prendas se ganan con los hitos.'}</span>
+        <button class="btn w" data-act="lookAzar">🎲 Al azar</button></div></div>
+      <div class="lookTabs" role="tablist">${P2.CAPAS_LOOK.map(([k, ic, n]) => `<button role="tab" aria-selected="${k === cap}" data-act="capa" data-v="${k}" class="${k === cap ? 'sel' : ''}"><span>${ic}</span>${n}</button>`).join('')}</div>
+      <div class="lookGrid">${items.map(it => { const bl = s ? P2.bloqueoLook(s, it) : null, puesto = L[cap] === it.id;
+        return `<button class="lk ${puesto ? 'sel' : ''}" data-act="look" data-c="${cap}" data-v="${it.id}" ${bl ? 'disabled' : ''} aria-pressed="${puesto}">${P2.avatarSVG(sv, Object.assign({}, L, { [cap]: it.id }), vista)}<b>${esc(it.n)}</b>${bl ? `<span>🔒 ${esc(bl)}</span>` : ''}</button>`; }).join('')}</div>`;
+  }
+  function htmlPersonaje(s) {
+    return `<div class="card"><h2>🧍 ${esc(s.nombre)}</h2>${htmlEditor(s, s.look)}</div>`;
+  }
+
   // ---------- Render ----------
   function render() {
-    if (!S) { $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); return; }
+    if (!S) { $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlIntro(); $('main').classList.remove('conBoton'); return; }
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = htmlNav(S);
-    const V = { semana: () => htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes }[ui.vista] || (() => '');
+    const V = { semana: () => htmlSituacion(S) + htmlDecision(S) + htmlConsecuencia(S) + htmlBoton(S), liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje }[ui.vista] || (() => '');
     $('main').innerHTML = V(S);
+    $('main').classList.toggle('conBoton', ui.vista === 'semana');
   }
   const guardarYPintar = () => { P2.guardar(S); render(); };
 
@@ -231,7 +260,15 @@
     if (a !== 'reiniciar') ui.reinicio = false;
     if (a !== 'vender') ui.vender = null;
     switch (a) {
-      case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n }); ui.vista = 'semana'; guardarYPintar(); break; }
+      case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; S = P2.nuevaPartida({ nombre: n, look: ui.look }); ui.vista = 'semana'; guardarYPintar(); window.scrollTo(0, 0); break; }
+      case 'capa': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = b.dataset.v; render(); break;
+      case 'look': if ($('nombre')) ui.nombre = $('nombre').value;
+        if (S) { if (P2.ponerLook(S, b.dataset.c, b.dataset.v)) guardarYPintar(); }
+        else { const it = P2.itemLook(b.dataset.c, b.dataset.v); if (it && !it.req) { ui.look = Object.assign({}, ui.look, { [b.dataset.c]: b.dataset.v }); render(); } }
+        break;
+      case 'lookAzar': if ($('nombre')) ui.nombre = $('nombre').value; if (S) { S.look = P2.validarLook(P2.lookAzar()); guardarYPintar(); } else { ui.look = P2.validarLook(P2.lookAzar()); render(); } break;
+      case 'elegir': S.eleccion = id; guardarYPintar(); break;
+      case 'jugar': { const a = eleccion(S); if (a && P2.jugarSemana(S, a)) { S.eleccion = a; guardarYPintar(); window.scrollTo(0, 0); } break; }
       case 'desdeP1': { const v = P2.partidaP1(); S = (v && P2.migrateSave(v)) || P2.nuevaPartida({}); ui.vista = 'semana'; guardarYPintar(); break; }
       case 'vista': ui.vista = b.dataset.v; ui.msg = ''; render(); window.scrollTo(0, 0); break;
       case 'accion': if (P2.jugarSemana(S, id)) { guardarYPintar(); window.scrollTo(0, 0); } break;
@@ -270,7 +307,7 @@
   globalThis.__P2 = {
     P2, get S() { return S; }, set S(v) { S = v; }, render, ui,
     nueva: (opc) => { S = P2.nuevaPartida(opc || {}); guardarYPintar(); return S; },
-    jugar: id => { const r = P2.jugarSemana(S, id); guardarYPintar(); return r; },
+    jugar: id => { const r = P2.jugarSemana(S, id || eleccion(S)); guardarYPintar(); return r; }, eleccion: () => eleccion(S),
     decidir: id => { const r = P2.resolverDecision(S, id); guardarYPintar(); return r; },
     guardar: () => P2.guardar(S), cargar: () => { S = P2.cargar(); render(); return S; },
     migrateSave: P2.migrateSave, runBalance: (n, m) => P2.runBalance(n || 100, m), informe: (n) => informeTexto(P2.runBalance(n || 100)),

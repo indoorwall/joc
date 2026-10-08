@@ -8,6 +8,17 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
 
+## 0. Al empezar: tu personaje
+
+Eliges nombre y personaje con el avatar por capas de P1: piel, pelo, color de pelo, cara, ropa, color, pantalón,
+calzado, cabeza, gafas, extras y fondo (botón «Al azar» incluido). Se cambia luego tocando tu cara en la cabecera.
+Algunas prendas se ganan con hitos: camiseta de tu club (contrato), medalla (titular), camiseta de tu marca (patrocinador),
+traje (empresa), reloj (empresa rentable), corona, cadena, botas y fondo de oro (capítulo completado). La cara cambia
+con la energía, las lesiones, el último resultado y las crisis de tu empresa.
+
+**Cómo se juega una semana:** eliges una acción (queda marcada ✓) y pulsas el botón grande **«JUGAR SEMANA»**, como en P1.
+Si hay una decisión pendiente, el botón espera hasta que la tomes.
+
 ## 1. El recorrido
 
 | Etapa | Qué decides | Qué se abre |
@@ -94,7 +105,8 @@ Módulos en `p2/src/` (datos separados de la lógica; la lógica no toca la pant
 | `08_decisiones.js` | Decisiones pendientes (sucesos, ofertas, actos, crisis, repesca, segunda inversión) e hitos |
 | `09_semana.js` | `jugarSemana()` y `resolverDecision()`: las dos únicas puertas que cambian la partida |
 | `10_sim.js` | Políticas automáticas, `runBalance()` y análisis de la peluquería |
-| `20_ui.js`, `estilo.css`, `plantilla.html` | Interfaz (situación → decisión → consecuencia) |
+| `11_avatar.js` | Avatar por capas (datos de prendas, desbloqueos por hito y dibujo) |
+| `20_ui.js`, `estilo.css`, `plantilla.html` | Interfaz (situación → decisión → consecuencia, botón «Jugar semana», editor del personaje) |
 
 `node p2/build.cjs` une todo en `del_barrio_p2.html`. `p2/cargar.cjs` carga la lógica en Node (tests y simulaciones).
 Un club, una marca, un suceso o un negocio nuevo es una entrada de datos más.
@@ -139,12 +151,12 @@ legítimas firman contrato; energía nunca negativa; ninguna decisión se atasca
 
 ## 5. Pruebas
 
-`node tests/p2.test.cjs` (unos 30 s; `--rapido` se salta la interfaz): **67 de 67 comprobaciones superadas**. Incluye lo pedido:
+`node tests/p2.test.cjs` (unos 30 s; `--rapido` se salta la interfaz): **79 de 79 comprobaciones superadas**. Incluye lo pedido:
 energía nunca negativa, recargar no duplica dinero ni caja, una prima no se cobra dos veces, cada partido cuenta una vez,
 la clasificación no duplica resultados, los contratos expiran, las lesiones se curan, una empresa puede perder dinero y
 recuperarse, guardar/cargar conserva todo, P1 migra a P2 sin errores (y su partida no se toca), guardado corrupto apartado sin borrar.
 En la interfaz (Chromium emulando un iPhone 13): la primera decisión se ve sin desplazarse, orden situación → decisión → consecuencia,
-sin `undefined`/`NaN`, sin desplazamiento horizontal y sin errores de JavaScript.
+sin `undefined`/`NaN`, sin desplazamiento horizontal y sin errores de JavaScript; elegir el personaje (12 capas, prendas de hitos bloqueadas), elegir acción sin que pase la semana y jugarla con el botón.
 
 ## 6. Problemas conocidos y límites
 
