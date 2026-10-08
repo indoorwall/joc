@@ -32,6 +32,7 @@ Crea **un proyecto por entorno**. Empieza por `dban-staging`; más adelante, `db
    ```
    - `APP_ENV=staging`
    - `APP_URL=https://juego.tudominio.com`
+   - `ADMIN_URL=` la dirección desde la que abres el panel admin (para CORS)
    - `STRIPE_SECRET_KEY=sk_test_…` y `STRIPE_WEBHOOK_SECRET=whsec_…` (sección 2)
    - `STRIPE_API_VERSION=2026-09-30.endive` (o la versión que tenga fijada tu cuenta de Stripe)
    - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` y `SUPABASE_DB_URL` las pone Supabase
