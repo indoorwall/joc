@@ -61,6 +61,8 @@ export async function runPg(check) {
   // Integridad en la propia base de datos
   const dup = await pool.query("insert into entitlement_grants (id, user_id, entitlement_id, source, source_purchase_id, status) values (gen_random_uuid(), $1, 'cosmetic.debut_pack', 'admin', 'admin:t', 'active') on conflict do nothing", [U]);
   check('[BD] UNIQUE: la misma concesión no se inserta dos veces', dup.rowCount === 0);
+  await pool.query("insert into auth.users (id, email) values ('66666666-6666-4666-8666-666666666666', 'nuevo@test.local')");
+  check('[BD] Al registrarse se crea el perfil mínimo (sin tester ni admin)', (r => r && r.is_tester === false)((await pool.query("select * from profiles where user_id = '66666666-6666-4666-8666-666666666666'")).rows[0]));
   let floatErr = null; try { await pool.query("insert into product_prices (product_id, currency, amount_minor) values ('pack_pro', 'USD', 2.99)"); } catch (e) { floatErr = e.message; }
   const pp = (await pool.query("select amount_minor from product_prices where product_id = 'pack_pro' and currency = 'USD'")).rows[0];
   check('[BD] Los precios son enteros (2.99 nunca se guarda como 2.99)', !!floatErr || !pp || Number(pp.amount_minor) === 3);

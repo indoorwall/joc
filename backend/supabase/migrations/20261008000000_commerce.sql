@@ -279,6 +279,15 @@ create or replace function public.touch_updated_at() returns trigger language pl
 drop trigger if exists orders_touch on public.orders;
 create trigger orders_touch before update on public.orders for each row execute function public.touch_updated_at();
 
+-- Perfil mínimo al registrarse (Apple, Google o enlace mágico): sin datos sensibles
+create or replace function public.handle_new_user() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (user_id) values (new.id) on conflict do nothing;
+  return new;
+end $$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users for each row execute function public.handle_new_user();
+
 -- ---------- RLS ----------
 do $$ declare t text; begin
   foreach t in array array['profiles','devices','commerce_accounts','admin_users','catalog_versions','products','product_prices','product_provider_ids','orders','order_items','payments',

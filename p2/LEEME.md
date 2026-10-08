@@ -68,6 +68,34 @@ Rediseño solo de la interfaz (la lógica, el equilibrio y los guardados no camb
 - **🌍 Mi mundo** (botón arriba a la derecha): Perfil, Vida, Tienda, Inversiones, Liga, Marcas, Empresa, Patrimonio, Historia, Hitos y Ajustes, con lo que aún no
   está abierto en gris y su candado. «‹ Jugar» vuelve al juego.
 
+## P2.5 · Comercio real (arquitectura de producción; aquí, simulado)
+
+Todo el detalle está en [`docs/commerce/`](../docs/commerce/COMMERCE.md): arquitectura, catálogo, Stripe, Apple,
+Google, entitlements, expansiones, Prestige Careers, seguridad, pruebas y el [checklist](../docs/commerce/CHECKLIST.md)
+para pasar a Stripe TEST y, más adelante, a producción.
+
+- **💎 Premium** (en «Mi mundo»): pestañas Destacados, Packs, Deportes, Expansiones, Prestige, Bundles y Comprado.
+  - El precio real tiene un estilo distinto del dinero del juego.
+  - Cada ficha dice qué incluye, si es permanente, sus requisitos y si es «solo aspecto».
+  - La casilla de desistimiento viene desmarcada y «No, gracias» es igual de visible que «Comprar».
+- **Compras simuladas:** el mismo `CommerceService` del servidor corre en el navegador, con un Stripe falso que firma
+  los webhooks como el real. No hay red ni cobro.
+  - La compra pide una cuenta, abre un checkout de prueba y muestra «Estamos verificando tu compra…» hasta que llega
+    el webhook. Entonces sale «¡DESBLOQUEADO!» y el pack se pone solo.
+  - «Mis compras» y «Restaurar compras» funcionan aunque borres la caché, porque las compras están en la cuenta, no en
+    la partida. También hay códigos promocionales.
+- **Vertical slice: Pack Debut (0,99 €).** Outfit, botas, gorra, fondo, insignia 🌟 junto a tu semana y balón firmado
+  en tu vitrina.
+  - «Quitar anuncios» (3,99 €) quita solo los anuncios obligatorios.
+  - `sport_climbing` y `prestige_world_football_president` existen como entitlements de prueba.
+- **Backend real preparado** (`backend/`): migración PostgreSQL con RLS, Edge Functions de Supabase (checkout, webhook
+  de Stripe, entitlements, restaurar, compras, promo, admin, Apple y Google preparados), panel de administración y
+  `.env.example`.
+  - Build web real: `node p2/build-web.cjs`.
+  - Probado contra Postgres real, con las Edge Functions reales en Deno y en navegador.
+- **Comprar nunca da ventajas.** Hay un test que juega 60 semanas con todo comprado y la partida sale idéntica, salvo
+  lo cosmético.
+
 ## P2.4 · Monetization Lab (todo simulado)
 
 Versión para **validar monetización antes de integrar nada real**. No hay AdMob, App Store / Google Play Billing, Stripe,

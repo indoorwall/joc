@@ -12,6 +12,7 @@ import { PRESTIGE_CAREERS, PRESTIGE_STATES, prestigeState, startCandidacy, campa
 import { SPORTS, canPlaySport, registerSportModule, SPORT_MODULE_INTERFACE } from '../../commerce/core/sports.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { SHARED, sharedContent } from '../../commerce/tools/sync-backend.mjs';
+import { catalogDoc } from '../../commerce/tools/gen-catalog-doc.mjs';
 import { placementAllowed, interstitialAllowed, createMockAdProvider, REWARDED_PLACEMENTS } from '../../commerce/core/ads.js';
 
 export async function runUnit(check) {
@@ -125,4 +126,5 @@ export async function runUnit(check) {
   const cfgToml = readFileSync(new URL('../../backend/supabase/config.toml', import.meta.url), 'utf8');
   check('Backend: el webhook de Stripe no exige JWT (verifica la firma); el resto sí', /\[functions\.stripe-webhook\]\s*\nverify_jwt = false/.test(cfgToml) && !/\[functions\.checkout-session\]/.test(cfgToml));
   check('Backend: .gitignore protege los .env', /\.env/.test(readFileSync(new URL('../../.gitignore', import.meta.url), 'utf8')));
+  check('Docs: CATALOG.md está al día con el catálogo (node commerce/tools/gen-catalog-doc.mjs)', readFileSync(new URL('../../docs/commerce/CATALOG.md', import.meta.url), 'utf8') === catalogDoc());
 }

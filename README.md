@@ -18,3 +18,11 @@
 
 Pruebas automáticas (opcional, para desarrollo; necesitan Playwright con Chromium):
 `node tests/p2.test.cjs` · `node tests/p1.test.cjs` · `node tests/p0.test.cjs`
+
+## Comercio (P2.5)
+
+Arquitectura de comercio real (Stripe en web; Apple y Google cuando haya app; entitlements en la cuenta), con backend
+Supabase y tests contra Postgres real. En el juego publicado todo es **simulado**: no hay red ni cobro. Documentación:
+[`docs/commerce/COMMERCE.md`](docs/commerce/COMMERCE.md). Checklist de puesta en marcha:
+[`docs/commerce/CHECKLIST.md`](docs/commerce/CHECKLIST.md).
+
