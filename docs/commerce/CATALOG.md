@@ -28,25 +28,25 @@ Precios en unidades mínimas (céntimos de EUR). Apple y Google usan su precio l
 | `sport_skate` | SPORT_EXPANSION | active | 2,99 € | `sport.skate` | — | siempre | com.delbarrio.sport_skate | sport_skate |
 | `sport_surf` | SPORT_EXPANSION | active | 2,99 € | `sport.surf` | — | siempre | com.delbarrio.sport_surf | sport_surf |
 | `sports_bundle` | BUNDLE | active | 8,99 € | `sport.climbing`<br>`sport.tennis`<br>`sport.basketball`<br>`sport.skate`<br>`sport.surf` | — | siempre | com.delbarrio.sports_bundle | sports_bundle |
-| `expansion_club_owner` | SYSTEM_EXPANSION | coming_soon | 3,99 € | `expansion.club_owner` | — | anyHito=empresa | com.delbarrio.expansion_club_owner | expansion_club_owner |
-| `expansion_real_estate` | SYSTEM_EXPANSION | coming_soon | 2,99 € | `expansion.real_estate` | — | anyHito=empresa | com.delbarrio.expansion_real_estate | expansion_real_estate |
-| `expansion_sports_agency` | SYSTEM_EXPANSION | coming_soon | 2,99 € | `expansion.sports_agency` | — | anyHito=empresa | com.delbarrio.expansion_sports_agency | expansion_sports_agency |
-| `expansion_events` | SYSTEM_EXPANSION | coming_soon | 2,99 € | `expansion.events` | — | anyHito=empresa | com.delbarrio.expansion_events | expansion_events |
-| `expansion_media` | SYSTEM_EXPANSION | coming_soon | 2,99 € | `expansion.media` | — | anyHito=empresa | com.delbarrio.expansion_media | expansion_media |
-| `empire_bundle` | BUNDLE | coming_soon | 6,99 € | `expansion.club_owner`<br>`expansion.real_estate`<br>`expansion.sports_agency`<br>`expansion.events` | — | anyHito=empresa | com.delbarrio.empire_bundle | empire_bundle |
-| `prestige_world_football_president` | PRESTIGE_CAREER | testing | 0,99 € | `prestige.world_football_president` | — | siempre | com.delbarrio.prestige_world_football_president | prestige_world_football_president |
-| `prestige_world_climbing_president` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.world_climbing_president` | sport.climbing | siempre | com.delbarrio.prestige_world_climbing_president | prestige_world_climbing_president |
-| `prestige_world_basket_president` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.world_basket_president` | sport.basketball | siempre | com.delbarrio.prestige_world_basket_president | prestige_world_basket_president |
-| `prestige_world_tennis_president` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.world_tennis_president` | sport.tennis | siempre | com.delbarrio.prestige_world_tennis_president | prestige_world_tennis_president |
-| `prestige_league_president` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.league_president` | — | siempre | com.delbarrio.prestige_league_president | prestige_league_president |
-| `prestige_national_federation` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.national_federation` | — | siempre | com.delbarrio.prestige_national_federation | prestige_national_federation |
-| `prestige_national_coach` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.national_coach` | — | siempre | com.delbarrio.prestige_national_coach | prestige_national_coach |
-| `prestige_sporting_director` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.sporting_director` | — | siempre | com.delbarrio.prestige_sporting_director | prestige_sporting_director |
-| `prestige_agent` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.agent` | — | siempre | com.delbarrio.prestige_agent | prestige_agent |
-| `prestige_referee` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.referee` | — | siempre | com.delbarrio.prestige_referee | prestige_referee |
-| `prestige_media_personality` | PRESTIGE_CAREER | coming_soon | 0,99 € | `prestige.media_personality` | — | siempre | com.delbarrio.prestige_media_personality | prestige_media_personality |
-| `prestige_world_sports_committee` | PRESTIGE_CAREER | coming_soon | 1,99 € | `prestige.world_sports_committee` | 2 de: sport.climbing, sport.tennis, sport.basketball, sport.skate, sport.surf | siempre | com.delbarrio.prestige_world_sports_committee | prestige_world_sports_committee |
-| `prestige_bundle` | BUNDLE | coming_soon | 3,99 € | `prestige.world_football_president`<br>`prestige.league_president`<br>`prestige.national_federation`<br>`prestige.national_coach`<br>`prestige.sporting_director`<br>`prestige.agent`<br>`prestige.referee`<br>`prestige.media_personality` | — | siempre | com.delbarrio.prestige_bundle | prestige_bundle |
+| `expansion_club_owner` | SYSTEM_EXPANSION | active | 3,99 € | `expansion.club_owner` | — | anyHito=empresa | com.delbarrio.expansion_club_owner | expansion_club_owner |
+| `expansion_real_estate` | SYSTEM_EXPANSION | active | 2,99 € | `expansion.real_estate` | — | anyHito=empresa | com.delbarrio.expansion_real_estate | expansion_real_estate |
+| `expansion_sports_agency` | SYSTEM_EXPANSION | active | 2,99 € | `expansion.sports_agency` | — | anyHito=empresa | com.delbarrio.expansion_sports_agency | expansion_sports_agency |
+| `expansion_events` | SYSTEM_EXPANSION | active | 2,99 € | `expansion.events` | — | anyHito=empresa | com.delbarrio.expansion_events | expansion_events |
+| `expansion_media` | SYSTEM_EXPANSION | active | 2,99 € | `expansion.media` | — | anyHito=empresa | com.delbarrio.expansion_media | expansion_media |
+| `empire_bundle` | BUNDLE | active | 6,99 € | `expansion.club_owner`<br>`expansion.real_estate`<br>`expansion.sports_agency`<br>`expansion.events` | — | anyHito=empresa | com.delbarrio.empire_bundle | empire_bundle |
+| `prestige_world_football_president` | PRESTIGE_CAREER | active | 0,99 € | `prestige.world_football_president` | — | siempre | com.delbarrio.prestige_world_football_president | prestige_world_football_president |
+| `prestige_world_climbing_president` | PRESTIGE_CAREER | active | 0,99 € | `prestige.world_climbing_president` | sport.climbing | siempre | com.delbarrio.prestige_world_climbing_president | prestige_world_climbing_president |
+| `prestige_world_basket_president` | PRESTIGE_CAREER | active | 0,99 € | `prestige.world_basket_president` | sport.basketball | siempre | com.delbarrio.prestige_world_basket_president | prestige_world_basket_president |
+| `prestige_world_tennis_president` | PRESTIGE_CAREER | active | 0,99 € | `prestige.world_tennis_president` | sport.tennis | siempre | com.delbarrio.prestige_world_tennis_president | prestige_world_tennis_president |
+| `prestige_league_president` | PRESTIGE_CAREER | active | 0,99 € | `prestige.league_president` | — | siempre | com.delbarrio.prestige_league_president | prestige_league_president |
+| `prestige_national_federation` | PRESTIGE_CAREER | active | 0,99 € | `prestige.national_federation` | — | siempre | com.delbarrio.prestige_national_federation | prestige_national_federation |
+| `prestige_national_coach` | PRESTIGE_CAREER | active | 0,99 € | `prestige.national_coach` | — | siempre | com.delbarrio.prestige_national_coach | prestige_national_coach |
+| `prestige_sporting_director` | PRESTIGE_CAREER | active | 0,99 € | `prestige.sporting_director` | — | siempre | com.delbarrio.prestige_sporting_director | prestige_sporting_director |
+| `prestige_agent` | PRESTIGE_CAREER | active | 0,99 € | `prestige.agent` | — | siempre | com.delbarrio.prestige_agent | prestige_agent |
+| `prestige_referee` | PRESTIGE_CAREER | active | 0,99 € | `prestige.referee` | — | siempre | com.delbarrio.prestige_referee | prestige_referee |
+| `prestige_media_personality` | PRESTIGE_CAREER | active | 0,99 € | `prestige.media_personality` | — | siempre | com.delbarrio.prestige_media_personality | prestige_media_personality |
+| `prestige_world_sports_committee` | PRESTIGE_CAREER | active | 1,99 € | `prestige.world_sports_committee` | 2 de: sport.climbing, sport.tennis, sport.basketball, sport.skate, sport.surf | siempre | com.delbarrio.prestige_world_sports_committee | prestige_world_sports_committee |
+| `prestige_bundle` | BUNDLE | active | 3,99 € | `prestige.world_football_president`<br>`prestige.league_president`<br>`prestige.national_federation`<br>`prestige.national_coach`<br>`prestige.sporting_director`<br>`prestige.agent`<br>`prestige.referee`<br>`prestige.media_personality` | — | siempre | com.delbarrio.prestige_bundle | prestige_bundle |
 | `promo_press` | PROMO | active | solo código | `cosmetic.press_badge` | — | siempre | — | — |
 | `season_pass` | FUTURE_SUBSCRIPTION | draft | — | — | — | siempre | — | — |
 

@@ -9,7 +9,7 @@ import { sanitizeEvent, PURCHASE_EVENTS } from '../../commerce/core/analytics.js
 import { canTransition, ORDER_STATES } from '../../commerce/core/orders.js';
 import { encodeForm, createStripeApi } from '../../commerce/core/stripeApi.js';
 import { PRESTIGE_CAREERS, PRESTIGE_STATES, prestigeState, startCandidacy, campaignWeek, election, officeWeek, eligibility } from '../../commerce/core/prestige.js';
-import { SPORTS, canPlaySport, registerSportModule, SPORT_MODULE_INTERFACE } from '../../commerce/core/sports.js';
+import { SPORTS, SPORT_MODULES, canPlaySport, registerSportModule, SPORT_MODULE_INTERFACE } from '../../commerce/core/sports.js';
 import { readFileSync, existsSync } from 'node:fs';
 import { SHARED, sharedContent } from '../../commerce/tools/sync-backend.mjs';
 import { catalogDoc } from '../../commerce/tools/gen-catalog-doc.mjs';
@@ -26,7 +26,8 @@ export async function runUnit(check) {
     && getProduct('remove_ads').prices.EUR === 399 && getProduct('extra_save_slots_3').prices.EUR === 199 && ['climbing', 'tennis', 'basketball', 'skate', 'surf'].every(s => getProduct(`sport_${s}`).prices.EUR === 299) && getProduct('expansion_club_owner').prices.EUR === 399 && getProduct('prestige_world_football_president').prices.EUR === 99 && getProduct('prestige_world_sports_committee').prices.EUR === 199);
   check('Catálogo: los bundles listan exactamente su contenido y sus entitlements coinciden', PRODUCTS.filter(p => p.type === 'BUNDLE').every(b => b.bundleContents && b.bundleContents.flatMap(s => getProduct(s).entitlements).sort().join() === b.entitlements.slice().sort().join()));
   check('Catálogo: el Prestige Bundle no incluye carreras futuras (8 con nombre)', getProduct('prestige_bundle').entitlements.length === 8);
-  check('Catálogo: vertical slice — Pack Debut active; Escalada y Presidente Mundial en testing', getProduct('pack_debut').status === 'active' && getProduct('sport_climbing').status === 'testing' && getProduct('prestige_world_football_president').status === 'testing');
+  check('Catálogo: todo jugable está a la venta (active) en modo prueba; solo el pase de temporada sigue en borrador', PRODUCTS.filter(p => p.status !== 'active').map(p => p.id).join() === 'season_pass');
+  check('Catálogo: cada producto de pago apunta a algo que el juego sabe abrir (deporte, expansión, Prestige o cosmético)', PRODUCTS.filter(p => p.status === 'active').every(p => p.entitlements.every(e => ENTITLEMENTS[e])));
   check('Catálogo: Presidente Mundial de Escalada requiere sport.climbing; Comité Mundial requiere 2 deportes', getProduct('prestige_world_climbing_president').requires.all.includes('sport.climbing') && getProduct('prestige_world_sports_committee').requires.anyCount.n === 2);
   check('Catálogo: Prestige avisa de que comprar NO garantiza ganar', PRODUCTS.filter(p => p.type === 'PRESTIGE_CAREER').every(p => /NO garantiza ganar/.test(p.disclaimer)));
   check('Catálogo: sin marcas oficiales sin licencia (FIFA, FIBA, IFSC, COI/IOC, UEFA)', !/\b(FIFA|FIBA|IFSC|IOC|COI|UEFA)\b/.test(JSON.stringify(CATALOG)));
@@ -106,7 +107,10 @@ export async function runUnit(check) {
   check('Prestige: Presidente Mundial de Escalada exige la expansión Escalada', eligibility(PRESTIGE_CAREERS.world_climbing_president, Object.assign({ entitlements: [] }, veterano)).missing.some(m => /sport\.climbing/.test(m)));
   // ---------- Deportes ----------
   check('Deportes: fútbol base gratis; los demás con entitlement', canPlaySport('football', []).ok && canPlaySport('climbing', []).reason === 'locked' && SPORTS.length === 6);
-  check('Deportes: Escalada comprada pero sin motor jugable todavía → «Próximamente» (no se rompe nada)', canPlaySport('climbing', ['sport.climbing']).reason === 'coming_soon' && canPlaySport('climbing', ['sport.climbing']).owned);
+  check('Deportes: los 5 deportes de pago tienen motor jugable y se abren con su entitlement', ['climbing', 'tennis', 'basketball', 'skate', 'surf'].every(id => canPlaySport(id, [`sport.${id}`]).ok));
+  { const m = SPORT_MODULES.climbing; delete SPORT_MODULES.climbing; check('Deportes: comprado pero sin motor jugable → «Próximamente» (no se rompe nada)', canPlaySport('climbing', ['sport.climbing']).reason === 'coming_soon' && canPlaySport('climbing', ['sport.climbing']).owned); SPORT_MODULES.climbing = m; }
+  check('Prestige: los 12 cargos del juego existen en el servidor con su entitlement', Object.keys(PRESTIGE_CAREERS).length === 12 && Object.values(PRESTIGE_CAREERS).every(c => ENTITLEMENTS[c.entitlement]));
+  check('Prestige: el Comité Mundial exige 2 deportes además de los méritos', eligibility(PRESTIGE_CAREERS.world_sports_committee, { age: 60, rep: 99, marca: 99, institutional: 1, netWorth: 1e6, entitlements: ['sport.surf'] }).missing.length === 1 && eligibility(PRESTIGE_CAREERS.world_sports_committee, { age: 60, rep: 99, marca: 99, institutional: 1, netWorth: 1e6, entitlements: ['sport.surf', 'sport.skate'] }).ok);
   let modErr = null; try { registerSportModule({ id: 'x', careerEngine: null }); } catch (e) { modErr = e; }
   check('Deportes: un módulo sin la interfaz completa se rechaza', !!modErr && SPORT_MODULE_INTERFACE.length === 9);
   // ---------- Anuncios ----------

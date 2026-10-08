@@ -1,4 +1,4 @@
-# Del barrio al negocio · P2.5 (capítulo 1 + Monetization Lab)
+# Del barrio al negocio · P2.7 (6 deportes, 5 expansiones y Prestige)
 
 Juego de gestión por decisiones, vertical para iPhone. **Empiezas como deportista → construyes tu carrera →
 ganas dinero → inviertes → creas tu primera empresa → se abre tu imperio.** No hay partidos jugables:
@@ -7,6 +7,39 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Abrir: [`del_barrio_p2.html`](del_barrio_p2.html) (un solo archivo, sin conexiones).
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
+
+## P2.7 · Todos los deportes, las expansiones y el Prestige
+
+Todo está jugable. Las compras siguen siendo simuladas (modo prueba): no hay pagos reales hasta «ACTIVAR PRODUCCIÓN».
+
+- **6 deportes.** Al empezar eliges deporte y especialidad; los de pago salen con candado hasta tenerlos.
+  - ⚽ Fútbol (gratis): goles.
+  - 🧗 Escalada: circuito. Cada prueba es de bloque, dificultad o velocidad, y tu especialidad suma. Además, proyectos
+    en roca del 6a al 9a, y premios en metálico.
+  - 🎾 Tenis: sets al mejor de 3 sobre tierra, dura o hierba. Los viajes cuestan dinero y cansan más.
+  - 🏀 Basket: puntos y minutos, sin empates.
+  - 🛹 Skate: circuito en street o park; los vídeos suben tu estilo.
+  - 🏄 Surf: circuito con olas pequeñas, buenas o grandes (cada tabla tiene su ola); viajes de surf.
+  - Cambian ligas, rivales, ofertas, acciones, competiciones, momentos clave, minijuegos, material y el vocabulario
+    de toda la interfaz.
+- **Negocios de cada deporte** (31): por ejemplo, rocódromo y routesetting en escalada, o academia y pistas en tenis.
+  Los grandes piden haber montado antes otro. Una segunda empresa exige que la primera sea rentable; el máximo son 6.
+- **5 expansiones** (en «Mi mundo» → Imperio, cuando tienes empresa):
+  - 🏟️ **Propietario de club:** participaciones, control con el 51 %, entradas, inversión, estadio, patrocinador.
+  - 🏢 **Inmobiliaria:** pisos, locales, parkings, edificios, terrenos, hipotecas (regla del 40 %), reformas y obra
+    nueva.
+  - 💼 **Agencia:** ojear, firmar promesas, ojeadores, comisiones y ofertas por tus representados.
+  - 🎪 **Eventos:** tipo, sede, precio, estrella y retransmisión, con demanda y riesgo.
+  - 📺 **Media:** canales, presentador, tono, derechos y documentales.
+  - Suman al patrimonio. Si se pierde el acceso, se congelan.
+- **🎖️ Prestige: 12 carreras de cargo.** Presidencias mundiales (fútbol, escalada, basket y tenis), de la Liga y de
+  la Federación Nacional; seleccionador, director deportivo, agente, árbitro, comentarista y el Comité Mundial.
+  - Requisitos jugables; al presentarte te retiras y pasan los años hasta la edad del cargo.
+  - Campaña semanal contra un rival, votación (o examen o casting) que **se puede perder**, mandato con aprobación,
+    presupuesto, prestigio, decisiones, crisis y eventos, y después reelección.
+  - Retirarse del deporte también se puede sin Prestige.
+- **Sin pagar para ganar:** las expansiones y el Prestige usan un generador de azar aparte. Un test juega la misma
+  partida con y sin todo comprado y sale idéntica.
 
 ## P2.5 · Interfaz clara: pasar pantallas
 
@@ -614,7 +647,7 @@ todas las combinaciones firman contrato; energía nunca negativa; sin decisiones
 
 ## 5. Pruebas
 
-`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **145 de 145 comprobaciones superadas**.
+`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **430 de 430 comprobaciones superadas**.
 
 - **Las de P2 y P2.1** (ver arriba).
 - **Nuevas de P2.2:**

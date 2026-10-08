@@ -7,7 +7,7 @@
    ===================================================================== */
 (function (P2) {
   'use strict';
-  const { rnd, clamp, r1, eur, nf } = P2;
+  const { clamp, r1, eur, nf } = P2, rnd = P2.rndX;
 
   // tipo: eleccion (votan) · nombramiento (te eligen entre candidatos) · examen (licencia/título) · casting
   // req: rep, marca, temporadas, trofeos, deporte, deportes (cuántos deportes en tu cuenta), institucional, patrimonio
@@ -309,6 +309,6 @@
   if (_sc) P2.semanaExpansiones = (s, R) => { _sc(s, R); if (s.club && s.club.pct >= 51) s.fuePresidenteClub = true; semanaPrestige(s, R); };
 
   // Sección «Prestige» (grupo Carrera): con alguna carrera Prestige en la cuenta, o retirado/a
-  P2.SECCIONES.splice(P2.SECCIONES.findIndex(x => x.id === 'marcas') + 1, 0, { id: 'prestige', ic: '🎖️', n: 'Prestige', grupo: 'carrera', cond: s => s.fase === 'retirado' || Object.keys(CARRERAS).some(tieneCarrera), d: 'Carreras de cargo: presidencias, selección, arbitraje, agencia y medios.' });
+  P2.SECCIONES.splice(P2.SECCIONES.findIndex(x => x.id === 'marcas') + 1, 0, { id: 'prestige', ic: '🎖️', n: 'Prestige', grupo: 'carrera', cond: s => s.fase === 'retirado' || !!(s.hitos && s.hitos.contrato), d: 'Carreras de cargo: presidencias, selección, arbitraje, agencia y medios.' });
   Object.assign(P2, { CARRERAS_PRESTIGE: CARRERAS, INSTITUCIONALES, ACC_TIPO, ACC_CARGO, prestige: pr, requisitosPrestige: requisitos, estadoPrestige: estado, tieneCarrera, retirarse, candidatura, accionPrestige, semanaPrestige, accionesPrestige, dejarCargo, reintentar, fueInstitucional });
 })(globalThis.P2 = globalThis.P2 || {});

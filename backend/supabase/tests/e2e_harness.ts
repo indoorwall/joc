@@ -5,6 +5,9 @@ const handlers: Record<string, (r: Request) => Response | Promise<Response>> = {
 const originalServe = Deno.serve.bind(Deno);
 let current = '';
 Object.defineProperty(Deno, 'serve', { value: (h: any) => { handlers[current] = h; return {}; }, configurable: true, writable: true });
+// Todo el catálogo está a la venta; para probar «Próximamente» el test pide marcar algún SKU así (solo en este arnés)
+const { getProduct } = await import('../functions/_shared/commerce/catalog/catalog.js');
+for (const sku of (Deno.env.get('E2E_COMING_SOON') || '').split(',').filter(Boolean)) { const p = getProduct(sku); if (p) p.status = 'coming_soon'; }
 for (const n of names) { current = n; await import(`../functions/${n}/index.ts`); }
 const port = Number(Deno.env.get('PORT') || 54321);
 const webIndex = Deno.env.get('WEB_INDEX');   // build web (dist/web/index.html) servido en «/» (mismo origen)

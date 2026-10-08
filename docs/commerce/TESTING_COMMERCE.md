@@ -17,7 +17,7 @@ node tests/p2.test.cjs                        # juego + interfaz Premium (Chromi
 
 Resultado de esta entrega (8 de octubre de 2026):
 
-- **`commerce.test.mjs` completo (con Postgres 16 y Deno 2.5): 352 de 352.** Desglose:
+- **`commerce.test.mjs` completo (con Postgres 16 y Deno 2.5): 356 de 356.** Desglose:
   - unitarias;
   - cliente;
   - contrato en memoria;
@@ -26,7 +26,10 @@ Resultado de esta entrega (8 de octubre de 2026):
   - RLS;
   - e2e HTTP;
   - e2e en navegador.
-- **`p2.test.cjs`: 402 de 402** (incluye ranuras, cuenta en el navegador y el contenido de todos los packs).
+- **`p2.test.cjs`: 430 de 430** (incluye ranuras, cuenta en el navegador, el contenido de todos los packs, los 6
+  deportes jugados 30 semanas, negocios del deporte, las 5 expansiones y el Prestige).
+- Todo el catálogo está `active` (en modo prueba). Para probar «Próximamente» y «testing», los tests cambian un
+  producto un momento (`tests/commerce/estado.mjs`; en el e2e, `E2E_COMING_SOON` solo en el arnés).
 
 ## Qué cubren
 
@@ -34,7 +37,7 @@ Resultado de esta entrega (8 de octubre de 2026):
 |---|---|---|
 | Stripe (punto 109) | `contract.mjs` (memoria y Postgres), `edge.e2e.mjs` | checkout válido, producto inexistente, precio manipulado, usuario incorrecto, webhook válido, firma inválida, duplicado, eventos desordenados, pago fallido o asíncrono, expirado, reembolso total y parcial, disputa abierta, ganada y perdida, entitlement duplicado, bundle, restaurar (también con webhook perdido) |
 | Seguridad (punto 110) | `contract.mjs`, `pg.mjs`, `edge.e2e.mjs`, `p2.test.cjs` | cambiar precio, cambiar producto, crear entitlement a mano (RLS), reutilizar checkout, success_url sin pagar, webhook falso, cambiar user id, mezcla test/live, secretos en el cliente |
-| Juego (punto 111) | `p2.test.cjs` «Comercio: …», `unit.mjs` | un pack no sube nivel, reputación ni marca, no mejora partidos ni da dinero (60 semanas idénticas con todo comprado); Prestige no concede el cargo; una expansión sin motor no concede nada; quitar anuncios no afecta al juego |
+| Juego (punto 111) | `p2.test.cjs` «Comercio: …», `unit.mjs` | un pack no sube nivel, reputación ni marca, no mejora partidos ni da dinero (60 semanas idénticas con todo comprado); Prestige no concede el cargo y la campaña se puede perder; el azar de expansiones y Prestige va aparte (`rngX`); un deporte sin motor sale «Próximamente»; quitar anuncios no afecta al juego |
 | Base de datos | `pg.mjs` | migración desde cero, seed al día, RLS (lectura propia, sin escritura de cliente, anónimo), UNIQUE, precios enteros, concesión revocada inmutable, trigger de entitlements, máquina de estados |
 | Router | `unit.mjs` | dev → Mock; web → Stripe; iOS → Apple salvo programa de la UE aprobado, tienda incluida, dispositivo elegible y no menor; Android → Google salvo programa inscrito; flags apagados |
 | Interfaz | `p2.test.cjs` «UI Premium» | ficha completa, casilla sin preselección, «No, gracias» igual de visible, sin urgencia falsa, petición de cuenta, checkout de prueba, «verificando», ¡DESBLOQUEADO!, Mis compras, restaurar con caché borrada, dependencias, próximamente, insignia, quitar anuncios |

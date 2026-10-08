@@ -1,55 +1,48 @@
-# Deportes y expansiones: arquitectura (sin todo el contenido todavía)
+# Deportes y expansiones
 
-> Aquí se implementa la **arquitectura** para todas las expansiones, no el gameplay de 5 deportes y 5 expansiones.
-> Un producto solo se vende cuando su estado es `active`. Ahora mismo, Escalada está en `testing`: el entitlement de
-> prueba existe, pero su juego aún no.
+> Todo está **jugable** y a la venta en modo prueba (`active`, sin pagos reales hasta «ACTIVAR PRODUCCIÓN»).
+> El código del juego está en `p2/src/00_deportes.js`, `00_negocios_deporte.js`, `19_expansiones.js` y
+> `21_ui_expansiones.js`. Ninguna compra da nivel, reputación, marca, dinero ni resultados: abre contenido que hay
+> que jugar. Un test juega 60 semanas con y sin «todo comprado» y la partida es idéntica.
 
-## Deportes (`commerce/core/sports.js`)
+## Deportes (`commerce/core/sports.js` + `p2/src/00_deportes.js`)
 
-```js
-SPORTS = [
-  { id: 'football', entitlement: null, status: 'active' },              // juego base, gratis
-  { id: 'climbing', entitlement: 'sport.climbing', status: 'testing' },
-  { id: 'tennis', … 'coming_soon' }, { id: 'basketball', … }, { id: 'skate', … }, { id: 'surf', … },
-]
-SPORT_MODULE_INTERFACE = ['careerEngine', 'competitionEngine', 'rankingEngine', 'economyHooks', 'events', 'businesses', 'sponsors', 'items', 'prestigeCareers']
-```
+| Deporte | Entitlement | Formato | Lo propio |
+|---|---|---|---|
+| ⚽ Fútbol | — (gratis) | goles | El juego base |
+| 🧗 Escalada | `sport.climbing` | circuito (todos compiten; 10-8-6-5-4-3-2-1 puntos) | Bloque, dificultad y velocidad por prueba; especialidad; proyectos en roca 6a–9a; premios |
+| 🎾 Tenis | `sport.tennis` | sets (al mejor de 3) | Superficies (tierra, dura, hierba); viajes con coste; fatiga extra; premios |
+| 🏀 Basket | `sport.basketball` | puntos (sin empates) | Minutos y línea estadística; tiro |
+| 🛹 Skate | `sport.skate` | circuito | Street y park; vídeos que suben el estilo; calle |
+| 🏄 Surf | `sport.surf` | circuito | Olas pequeñas, buenas o grandes (según la tabla); viajes de surf; premios |
 
-- **`registerSportModule(mod)`** rechaza un módulo que no tenga toda la interfaz.
-- **`canPlaySport(id, entitlements)`** devuelve:
-  - `ok` para el fútbol;
-  - `locked` si falta el entitlement;
-  - `coming_soon` si lo tienes pero el módulo aún no tiene `careerEngine`. Así nunca se cobra algo que rompe la
-    partida: la ficha lo dice antes.
-- **Escalada** ya registra sus datos:
-  - escalera: rocódromo local → autonómico → nacional → internacional → profesional;
-  - modalidades: bloque, dificultad y velocidad;
-  - ingresos: premios, sponsors, clases, campus y routesetting;
-  - negocios: clases, routesetting, tienda, rocódromo, eventos y cadena;
-  - sponsors, objetos y su Prestige (Presidente Mundial de Escalada).
-- **El motor jugable** puede portarse del motor de escalada de P1 (`p1/`), que ya existe. Esa es la fase F6.
-
-**Cómo añadir un deporte:**
-
-1. Crea su módulo, con la interfaz completa, en `commerce/core/sports.js` o en un archivo propio.
-2. Implementa `careerEngine` (por semanas, como `jugarSemana`) y `competitionEngine`.
-3. Cambia el estado del producto en el catálogo a `testing`, pruébalo con testers y después pásalo a `active`.
-4. **Nunca cambies los nombres del fútbol** ni reutilices un SKU.
+- Al empezar una carrera eliges deporte (y especialidad). Los que no tienes salen con candado y su precio.
+- Cada deporte cambia ligas, rivales, ofertas, acciones, competiciones, momentos clave, minijuegos y material.
+  También cambia el vocabulario: la escalada no habla de goles ni de partidos.
+- `canPlaySport(id, entitlements)` devuelve `ok`, `locked` o `coming_soon`. Este último sale si el módulo no tiene
+  motor; ahora los 5 lo tienen.
+- **Negocios del deporte:** cada uno tiene los suyos (escalada: clases, routesetting, tienda, rocódromo, eventos y
+  cadena; tenis: clases, academia, pistas, club, torneos y alto rendimiento; etc.). Los grandes piden haber montado
+  antes el pequeño. Una segunda empresa exige que la primera sea rentable, y el máximo son 6.
 
 ## Expansiones de sistema
 
-| SKU | Entitlement | Contenido previsto |
+Se abren con la expansión **y** con tu primera empresa (hito `empresa`). Sin la expansión, la sección enseña qué
+trae y un botón para verla. Si se pierde el acceso (reembolso), lo construido se congela: no se borra ni sigue
+generando.
+
+| SKU | Entitlement | Qué se juega |
 |---|---|---|
-| `expansion_club_owner` (3,99 €) | `expansion.club_owner` | Participaciones, compra del club, presidencia, director deportivo, entrenador, plantilla, cantera, instalaciones, estadio, sponsors, finanzas |
-| `expansion_real_estate` (2,99 €) | `expansion.real_estate` | Locales, pisos, parkings, edificios, terrenos, reformas, alquiler, financiación, revalorización |
-| `expansion_sports_agency` (2,99 €) | `expansion.sports_agency` | Captación, representados, contratos, sponsors, comisiones, scouting, conflictos, crecimiento |
-| `expansion_events` (2,99 €) | `expansion.events` | Sedes, entradas, sponsors, deportistas, producción, premios, retransmisión, riesgo |
-| `expansion_media` (2,99 €) | `expansion.media` | Canal, streaming, productora, programas, derechos, audiencia, publicidad |
+| `expansion_club_owner` (3,99 €) | `expansion.club_owner` | Comprar participaciones (y el control con el 51 %), precio de las entradas, inversión en plantilla y cantera, ampliar el estadio, buscar patrocinador, aportar o retirar dinero. Cada semana: taquilla, TV, sponsor, gastos y resultados; al final de temporada, ascensos y valor del club |
+| `expansion_real_estate` (2,99 €) | `expansion.real_estate` | Locales, pisos, parkings, edificios y terrenos; hipoteca (el banco no da más del 40 % de tus ingresos), reformas, obra nueva con licencia, alquiler alto o normal, venta. El mercado y el euríbor se mueven cada semana |
+| `expansion_sports_agency` (2,99 €) | `expansion.sports_agency` | Ojear, firmar promesas, contratar ojeadores, comisiones semanales y ofertas por tus representados (decisión) |
+| `expansion_events` (2,99 €) | `expansion.events` | Tipo de evento, sede, precio, estrella invitada, retransmisión; demanda, riesgo y cancelación |
+| `expansion_media` (2,99 €) | `expansion.media` | Fundar el medio, abrir canales, presentador y tono, comprar derechos, documentales; audiencia, publicidad y patrocinio |
 | `empire_bundle` (6,99 €) | las 4 primeras | Exactamente esas 4 |
 | `sports_bundle` (8,99 €) | los 5 deportes | Exactamente esos 5 (no duplica los que ya tengas) |
 
-Todas son `coming_soon` y solo se ven cuando tienes una empresa (`visibleWhen: { anyHito: ['empresa'] }`). Ninguna
-regala empresas, dinero ni victorias: abren **sistemas nuevos** que luego hay que jugar.
+El azar de las expansiones y del Prestige va en un generador aparte (`rngX`), así que tener o usar una expansión
+nunca cambia un partido ni una prueba.
 
 ## No bombardear
 

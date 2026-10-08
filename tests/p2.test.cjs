@@ -682,6 +682,71 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('El informe no incluye el nombre del personaje', !inf.includes('Nombre Secreto'));
 }
 
+// ---------- 6d. Deportes, negocios del deporte, expansiones y Prestige ----------
+{
+  const tieneOrig = P2.tieneEnt;
+  const conEnt = (ents, fn) => { P2.tieneEnt = e => ents === true || ents.includes(e); try { return fn(); } finally { P2.tieneEnt = tieneOrig; } };
+  const semanas = (s, n, accion) => { for (let w = 0; w < n; w++) { resolverTodo(s); P2.jugarSemana(s, accion ? accion(s) : P2.POLITICAS.equilibrada.accion(s)) || P2.jugarSemana(s, 'descansar'); } resolverTodo(s); };
+  const ENT = { escalada: 'sport.climbing', tenis: 'sport.tennis', basket: 'sport.basketball', skate: 'sport.skate', surf: 'sport.surf' };
+  const FORMATO = { futbol: 'goles', basket: 'puntos', tenis: 'sets', escalada: 'circuito', skate: 'circuito', surf: 'circuito' };
+  check('Deportes: el fútbol siempre; los demás solo con su entitlement', P2.deporteDisponible('futbol') && Object.keys(ENT).every(d => !P2.deporteDisponible(d)) && conEnt([ENT.tenis], () => P2.deporteDisponible('tenis') && !P2.deporteDisponible('surf')));
+  for (const dep of Object.keys(FORMATO)) {
+    const r = conEnt(true, () => {
+      const s = P2.nuevaPartida({ seed: 900 + dep.length, deporte: dep }); s.p.nivel = 58; s.p.energia = 90;
+      P2.firmar(s, Object.keys(P2.OFERTAS)[0], null); let err = null;
+      try { semanas(s, 30); } catch (e) { err = e.message; }
+      const T = s.temporada || {}, J = (s.temporadasJugadas || []);
+      return { s, err, formato: T.formato || (J.length ? FORMATO[dep] : null), jugados: s.stats.jugados, nums: [s.p.nivel, s.p.rep, s.p.marca, s.p.dinero].every(Number.isFinite), activo: P2.deporteActivo };
+    });
+    check(`Deportes · ${dep}: 30 semanas de carrera sin errores, con partidos/pruebas y números válidos`, !r.err && r.jugados > 0 && r.nums && r.s.deporte === dep && r.activo === dep, JSON.stringify({ err: r.err, j: r.jugados }));
+    check(`Deportes · ${dep}: formato de resultado «${FORMATO[dep]}»`, r.formato === FORMATO[dep], r.formato);
+  }
+  const sE = conEnt(true, () => P2.nuevaPartida({ seed: 911, deporte: 'escalada' }));
+  check('Deportes: el vocabulario se traduce (escalada no habla de goles ni de partidos)', !/\bgol(es)?\b|\bpartido\b/i.test(P2.tx(sE, 'Marcas un gol en el partido')) && P2.tx(P2.nuevaPartida({ seed: 912 }), 'Marcas un gol en el partido') === 'Marcas un gol en el partido');
+  check('Negocios del deporte: cada carrera ve los suyos (escalada no ve los de tenis)', (() => { const l = P2.negociosDeCarrera(sE); return l.some(k => k.startsWith('escalada_')) && !l.some(k => k.startsWith('tenis_')) && l.includes('peluqueria'); })());
+  check('Negocios del deporte: cada deporte de pago tiene al menos 5 negocios propios; los grandes piden haber montado antes otro', Object.keys(ENT).every(d => Object.keys(P2.NEGOCIOS).filter(k => P2.NEGOCIOS[k].deporte === d).length >= 5) && P2.NEGOCIOS.escalada_cadena.req === 'escalada_rocodromo');
+  conEnt(true, () => P2.activarDeporte('futbol'));
+  // ---------- Expansiones ----------
+  const exp = (ents) => conEnt(ents, () => { const s = enClub('puerto', 920); s.hitos.empresa = 2; s.p.dinero = 3e6; return s; });
+  const sN = exp([]);
+  check('Expansiones: sin comprarla, no se puede usar (y lo dice)', conEnt([], () => typeof P2.comprarInm(sN, 'piso', false, null) === 'string' && typeof P2.fundarMedia(sN, null) === 'string'));
+  const ALL = ['expansion.club_owner', 'expansion.real_estate', 'expansion.sports_agency', 'expansion.events', 'expansion.media'];
+  const sX = exp(ALL);
+  const errs = conEnt(ALL, () => [P2.comprarInm(sX, 'piso', false, null), P2.comprarParticipacion(sX, 'puerto', 51, null), P2.fundarMedia(sX, null), (P2.ojear(sX, null), null)]);
+  check('Expansiones: con la expansión se compra un piso, el 51 % de un club y se funda un medio', errs.every(e => e == null), JSON.stringify(errs));
+  const rng0 = sX.rng; conEnt(ALL, () => P2.semanaExpansiones(sX, { lineas: [], porque: [], ingresos: [], hitos: [] }));
+  check('Expansiones: su azar va aparte (nunca cambia partidos ni pruebas)', sX.rng === rng0 && typeof sX.rngX === 'number');
+  conEnt(ALL, () => semanas(sX, 12, () => 'descansar'));
+  check('Expansiones: 12 semanas con todo en marcha, números válidos y valor en el patrimonio', Number.isFinite(sX.p.dinero) && P2.valorExpansiones(sX) > 0 && Number.isFinite(P2.patrimonio(sX)));
+  const v0 = P2.valorExpansiones(sX), d0 = sX.p.dinero; conEnt([], () => semanas(sX, 3, () => 'descansar'));
+  check('Expansiones: si se pierde el acceso, se congelan (no se borran)', P2.valorExpansiones(sX) > 0 && sX.club && sX.inm.props.length === 1, `${v0} ${d0}`);
+  // ---------- Prestige ----------
+  const PR = 'prestige.league_president';
+  const novato = () => { const s = P2.nuevaPartida({ seed: 930 }); return s; };
+  const veterano = (seed) => { const s = enClub('puerto', seed); s.p.rep = 80; s.p.marca = 60; s.temporadasJugadas = [1, 2, 3, 4, 5, 6].map(() => ({})); s.trofeos = [{}]; return s; };
+  check('Prestige: 12 carreras; sin comprar → LOCKED', Object.keys(P2.CARRERAS_PRESTIGE).length === 12 && P2.estadoPrestige(veterano(931), 'league_president') === 'LOCKED');
+  check('Prestige: comprar no da el cargo (sin méritos → NOT_ELIGIBLE y no te puedes presentar)', conEnt([PR], () => { const s = novato(); return P2.estadoPrestige(s, 'league_president') === 'NOT_ELIGIBLE' && typeof P2.candidatura(s, 'league_president', null) === 'string'; }));
+  const res = { gana: 0, pierde: 0 }; let retirado = true, edad = true, ok12 = true;
+  conEnt([PR], () => { for (let i = 0; i < 12; i++) {
+    const s = veterano(940 + i); const e0 = s.edad;
+    if (P2.candidatura(s, 'league_president', { lineas: [] }) !== null) { ok12 = false; continue; }
+    retirado = retirado && s.fase === 'retirado' && !s.contrato; edad = edad && s.edad === Math.max(e0, P2.CARRERAS_PRESTIGE.league_president.edad);
+    let fueCargo = false;
+    for (let w = 0; w < 80 && P2.prestige(s).activa; w++) { resolverTodo(s); const X = P2.prestige(s).c.league_president; if (X.estado === 'OFFICE') fueCargo = true; P2.jugarSemana(s, X.estado === 'OFFICE' ? (w % 2 ? 'prComunicacion' : 'prGestion') : (w % 3 ? 'prReunion' : 'prGira')); }
+    fueCargo ? res.gana++ : res.pierde++;
+  } });
+  check('Prestige: presentarte te retira del deporte y salta a la edad del cargo', ok12 && retirado && edad);
+  conEnt([PR], () => { for (let i = 0; i < 6; i++) {   // justo en los requisitos y sin hacer campaña: pierde
+    const s = enClub('puerto', 970 + i); s.p.rep = 66; s.p.marca = 31; s.temporadasJugadas = [1, 2, 3, 4].map(() => ({}));
+    P2.candidatura(s, 'league_president', { lineas: [] }); let fueCargo = false;
+    for (let w = 0; w < 60 && P2.prestige(s).activa; w++) { resolverTodo(s); if (P2.prestige(s).c.league_president.estado === 'OFFICE') fueCargo = true; P2.jugarSemana(s, 'descansar'); }
+    fueCargo ? res.gana++ : res.pierde++;
+  } });
+  check('Prestige: la campaña se puede ganar y perder (la compra no garantiza ganar)', res.gana >= 10 && res.pierde >= 6, JSON.stringify(res));
+  check('Prestige: retirarte también sin Prestige; sigue tu imperio', (() => { const s = enClub('puerto', 960); s.p.dinero = 5000; const e = P2.retirarse(s, { lineas: [] }); semanas(s, 3, () => 'descansar'); return e === null && s.fase === 'retirado' && Number.isFinite(s.p.dinero); })());
+  check('Prestige: el Comité Mundial pide 2 deportes, experiencia institucional y patrimonio', P2.requisitosPrestige(veterano(961), 'world_sports_committee').filter(r => !r.ok).length >= 3);
+}
+
 // ---------- 7. Simulación de balance ----------
 let informe;
 {
@@ -923,8 +988,9 @@ let informe;
   check('UI Premium: Prestige avisa «La compra NO garantiza ganar»', (await page.textContent('.pmFicha')).includes('La compra NO garantiza ganar'));
   await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'prestige_world_climbing_president' }; __P2.render(); });
   check('UI Premium: dependencia antes de pagar: «Necesitas la expansión Escalada» + botón para verla', (await page.textContent('.pmFicha')).includes('Necesitas la expansión') && (await page.textContent('.pmFicha')).includes('Escalada') && await page.locator('.pmReq [data-act="pmVer"][data-id="sport_climbing"]').count() === 1 && await page.locator('[data-act="pmComprar"]').count() === 0);
-  await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados', sku: 'sport_tennis' }; __P2.render(); });
+  await page.evaluate(() => { P2C.getProduct('sport_tennis').status = 'coming_soon'; __P2.ui.pm = { tab: 'destacados', sku: 'sport_tennis' }; __P2.render(); });
   check('UI Premium: «Próximamente» no se puede comprar', (await page.textContent('.pmFicha')).includes('Próximamente') && await page.locator('[data-act="pmComprar"]').count() === 0);
+  await page.evaluate(() => { P2C.getProduct('sport_tennis').status = 'active'; __P2.render(); });
   await page.evaluate(() => { __P2.ui.pm = { tab: 'destacados' }; __P2.render(); });
   await ir(page, 'premium');
   check('UI Premium: pestañas Destacados, Packs, Deportes, Expansiones, Prestige, Bundles y Comprado; precios reales con estilo propio', await page.locator('.pmTabs button').count() === 7 && (await page.locator('.precioReal').count()) >= 0 && !(await page.textContent('#main')).includes('gemas'));

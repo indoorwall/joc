@@ -8,7 +8,7 @@
    ===================================================================== */
 (function (P2) {
   'use strict';
-  const { rnd, clamp, r1, eur, nf } = P2;
+  const { clamp, r1, eur, nf } = P2, rnd = P2.rndX;
   const ent = id => `expansion.${id}`;
   const EXP = {
     club_owner: { ent: ent('club_owner'), ic: '🏟️', n: 'Propietario de club', seccion: 'club', sku: 'expansion_club_owner' },
@@ -223,7 +223,7 @@
   }
   function rentaAltaInm(s, uid) { const p = inm(s).props.find(x => x.uid === uid); if (!p) return 'No existe.'; p.rentaAlta = !p.rentaAlta; return null; }
   function semanaInm(s, R) {
-    const I = inm(s); if (!I.props.length && !tieneExp(s, 'real_estate')) return;
+    const I = inm(s);
     // El mercado se mueve un poco cada semana (con tendencia suave al alza) y el euríbor también
     I.mercado = r1(clamp(I.mercado * (1 + (rnd(s) - 0.47) * 0.012), 0.75, 1.6) * 1000) / 1000;
     I.euribor = Math.round(clamp(I.euribor + (rnd(s) - 0.5) * 0.0015, 0.005, 0.06) * 10000) / 10000;
@@ -471,7 +471,7 @@
   }
   // Secciones del juego (en el grupo Imperio): aparecen con la expansión y la primera empresa
   for (const [id, X] of Object.entries(EXP)) P2.SECCIONES.splice(P2.SECCIONES.findIndex(x => x.id === 'patrimonio'), 0, { id: X.seccion, ic: X.ic, n: X.n.replace('Propietario de club', 'Tu club').replace('Imperio inmobiliario', 'Inmuebles').replace('Agencia de deportistas', 'Agencia').replace('Organizador de eventos', 'Eventos').replace('Media & Sports', 'Media'),
-    grupo: 'imperio', cond: s => expAbierta(s, id), d: `${X.n}: expansión desbloqueada.` });
+    grupo: 'imperio', cond: s => !!(s.hitos && s.hitos.empresa), d: `${X.n}: expansión desbloqueada.` });
 
   // Decisión: ofertas para un representado
   P2.DECISIONES.ofertaRepresentado = {

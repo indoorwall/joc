@@ -959,7 +959,7 @@ for (const [c, n] of COMPETITIONS) ENTITLEMENTS[`cosmetic.champion_${c}`] = { ki
 
 // Prestige Careers (comprar = poder JUGAR la campaña; nunca el cargo)
 const PRESTIGE_LIST = [
-  ['world_football_president', 'Presidente de la Federación Mundial de Fútbol', '🌐', 99, null, 'testing'],
+  ['world_football_president', 'Presidente de la Federación Mundial de Fútbol', '🌐', 99],
   ['world_climbing_president', 'Presidente de la Federación Mundial de Escalada', '🧗', 99, ['sport.climbing']],
   ['world_basket_president', 'Presidente de la Federación Mundial de Baloncesto', '🏀', 99, ['sport.basketball']],
   ['world_tennis_president', 'Presidente de la Federación Mundial de Tenis', '🎾', 99, ['sport.tennis']],
@@ -970,7 +970,7 @@ const PRESTIGE_LIST = [
   ['agent', 'Agente internacional', '🤝', 99],
   ['referee', 'Árbitro internacional', '🟨', 99],
   ['media_personality', 'Comentarista / periodista', '🎙️', 99],
-  ['world_sports_committee', 'Presidente del Comité Mundial del Deporte', '🌍', 199, null, 'coming_soon', { anyCount: { n: 2, of: ['sport.climbing', 'sport.tennis', 'sport.basketball', 'sport.skate', 'sport.surf'] } }],
+  ['world_sports_committee', 'Presidente del Comité Mundial del Deporte', '🌍', 199, null, null, { anyCount: { n: 2, of: ['sport.climbing', 'sport.tennis', 'sport.basketball', 'sport.skate', 'sport.surf'] } }],
 ];
 for (const [id, n] of PRESTIGE_LIST) ENTITLEMENTS[`prestige.${id}`] = { kind: 'prestige', n };
 
@@ -1021,25 +1021,25 @@ const PRODUCTS = [
   P({ id: 'sports_bundle', type: 'BUNDLE', status: 'active', priceEUR: 899, entitlements: ['sport.climbing', 'sport.tennis', 'sport.basketball', 'sport.skate', 'sport.surf'],
     bundleContents: ['sport_climbing', 'sport_tennis', 'sport_basketball', 'sport_skate', 'sport_surf'], name: 'Todos los deportes', description: 'Los 5 deportes. Si ya tienes alguno, no se duplica.', includes: ['Escalada', 'Tenis', 'Basket', 'Skate', 'Surf'], assets: { ic: '🏅' } }),
   // ---------- Expansiones de sistema ----------
-  P({ id: 'expansion_club_owner', type: 'SYSTEM_EXPANSION', priceEUR: 399, entitlements: ['expansion.club_owner'], name: 'Propietario de club', description: 'Compra participaciones o un club entero y gobiérnalo.',
+  P({ id: 'expansion_club_owner', status: 'active', type: 'SYSTEM_EXPANSION', priceEUR: 399, entitlements: ['expansion.club_owner'], name: 'Propietario de club', description: 'Compra participaciones o un club entero y gobiérnalo.',
     includes: ['Participaciones y compra de club', 'Presidencia', 'Director deportivo, entrenador, plantilla, cantera', 'Instalaciones, estadio, patrocinadores, finanzas'], visibleWhen: { anyHito: ['empresa'] }, assets: { ic: '🏟️' } }),
-  P({ id: 'expansion_real_estate', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.real_estate'], name: 'Imperio inmobiliario', description: 'Locales, pisos, parkings, edificios y terrenos.',
+  P({ id: 'expansion_real_estate', status: 'active', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.real_estate'], name: 'Imperio inmobiliario', description: 'Locales, pisos, parkings, edificios y terrenos.',
     includes: ['Locales, pisos, parkings, edificios, terrenos', 'Reformas, alquiler, financiación, revalorización'], visibleWhen: { anyHito: ['empresa'] }, assets: { ic: '🏢' } }),
-  P({ id: 'expansion_sports_agency', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.sports_agency'], name: 'Agencia de deportistas', description: 'Capta, representa y negocia.',
+  P({ id: 'expansion_sports_agency', status: 'active', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.sports_agency'], name: 'Agencia de deportistas', description: 'Capta, representa y negocia.',
     includes: ['Captación y scouting', 'Representados, contratos, patrocinadores, comisiones', 'Conflictos y crecimiento de agencia'], visibleWhen: { anyHito: ['empresa'] }, assets: { ic: '💼' } }),
-  P({ id: 'expansion_events', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.events'], name: 'Organizador de eventos', description: 'Sedes, entradas, sponsors y riesgo.',
+  P({ id: 'expansion_events', status: 'active', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.events'], name: 'Organizador de eventos', description: 'Sedes, entradas, sponsors y riesgo.',
     includes: ['Sedes, entradas, sponsors, deportistas', 'Producción, premios, retransmisión, riesgo financiero'], visibleWhen: { anyHito: ['empresa'] }, assets: { ic: '🎪' } }),
-  P({ id: 'expansion_media', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.media'], name: 'Media & Sports', description: 'Tu canal, tu productora, tus derechos.',
+  P({ id: 'expansion_media', status: 'active', type: 'SYSTEM_EXPANSION', priceEUR: 299, entitlements: ['expansion.media'], name: 'Media & Sports', description: 'Tu canal, tu productora, tus derechos.',
     includes: ['Canal, streaming, productora, programas', 'Derechos, audiencia, publicidad, patrocinios'], visibleWhen: { anyHito: ['empresa'] }, assets: { ic: '📺' } }),
-  P({ id: 'empire_bundle', type: 'BUNDLE', priceEUR: 699, entitlements: ['expansion.club_owner', 'expansion.real_estate', 'expansion.sports_agency', 'expansion.events'],
+  P({ id: 'empire_bundle', status: 'active', type: 'BUNDLE', priceEUR: 699, entitlements: ['expansion.club_owner', 'expansion.real_estate', 'expansion.sports_agency', 'expansion.events'],
     bundleContents: ['expansion_club_owner', 'expansion_real_estate', 'expansion_sports_agency', 'expansion_events'], name: 'Empire Bundle', description: 'Club, inmobiliaria, agencia y eventos.', visibleWhen: { anyHito: ['empresa'] },
     includes: ['Propietario de club', 'Imperio inmobiliario', 'Agencia de deportistas', 'Organizador de eventos'], assets: { ic: '👑' } }),
   // ---------- Prestige Careers ----------
-  ...PRESTIGE_LIST.map(([id, n, ic, price, reqAll, status, reqExtra]) => P({ id: `prestige_${id}`, type: 'PRESTIGE_CAREER', status: status || 'coming_soon', priceEUR: price, entitlements: [`prestige.${id}`],
+  ...PRESTIGE_LIST.map(([id, n, ic, price, reqAll, status, reqExtra]) => P({ id: `prestige_${id}`, type: 'PRESTIGE_CAREER', status: status || 'active', priceEUR: price, entitlements: [`prestige.${id}`],
     requires: reqAll || reqExtra ? Object.assign({}, reqAll ? { all: reqAll } : {}, reqExtra || {}) : null, name: n, description: 'Carrera Prestige: una campaña nueva para optar a este cargo con lo que has construido en tu carrera.',
     disclaimer: 'Desbloquea la campaña jugable para intentar conseguir este cargo. La compra NO garantiza ganar.',
     includes: ['Campaña jugable: elegibilidad, candidatura, apoyos, campaña, votación, mandato y reelección'], prestige: id, assets: { ic } })),
-  P({ id: 'prestige_bundle', type: 'BUNDLE', priceEUR: 399, entitlements: ['prestige.world_football_president', 'prestige.league_president', 'prestige.national_federation', 'prestige.national_coach', 'prestige.sporting_director', 'prestige.agent', 'prestige.referee', 'prestige.media_personality'],
+  P({ id: 'prestige_bundle', status: 'active', type: 'BUNDLE', priceEUR: 399, entitlements: ['prestige.world_football_president', 'prestige.league_president', 'prestige.national_federation', 'prestige.national_coach', 'prestige.sporting_director', 'prestige.agent', 'prestige.referee', 'prestige.media_personality'],
     bundleContents: ['prestige_world_football_president', 'prestige_league_president', 'prestige_national_federation', 'prestige_national_coach', 'prestige_sporting_director', 'prestige_agent', 'prestige_referee', 'prestige_media_personality'],
     name: 'Prestige Bundle', description: 'Exactamente estas 8 carreras. No incluye carreras futuras.', includes: ['Presidente de la Federación Mundial de Fútbol', 'Presidente de la Liga', 'Presidente de la Federación Nacional', 'Seleccionador nacional', 'Director deportivo', 'Agente internacional', 'Árbitro internacional', 'Comentarista / periodista'], assets: { ic: '🎖️' } }),
   // ---------- Promo y futuro ----------
@@ -2186,16 +2186,33 @@ const PRESTIGE_STATES = ['LOCKED', 'PURCHASED', 'NOT_ELIGIBLE', 'ELIGIBLE', 'CAN
 const PRESTIGE_DISCLAIMER = 'Desbloquea la campaña jugable para intentar conseguir este cargo. La compra NO garantiza ganar.';
 
 // Requisitos jugables (nunca se compran). game = { age, rep, marca, seasons, hitos, trophies, entitlements, institutional }
+// Los mismos 12 cargos que juega P2 (p2/src/19_prestige.js). termWeeks = semanas de juego de un mandato.
 const PRESTIGE_CAREERS = {
-  world_football_president: { entitlement: 'prestige.world_football_president', n: 'Presidente de la Federación Mundial de Fútbol', voters: 211, termWeeks: 208,
-    eligibility: { minAge: 35, minRep: 85, minSeasons: 8, minMarca: 40, institutional: 1 },
+  world_football_president: { entitlement: 'prestige.world_football_president', n: 'Presidente de la Federación Mundial de Fútbol', type: 'election', voters: 211, termWeeks: 26,
+    eligibility: { minAge: 35, minRep: 80, minSeasons: 5, minMarca: 40, institutional: 1 },
     decisions: ['sedes', 'formatos', 'premios', 'calendario', 'desarrollo', 'sponsors', 'presupuesto', 'reglas', 'federaciones', 'crisis'] },
-  world_climbing_president: { entitlement: 'prestige.world_climbing_president', requires: ['sport.climbing'], n: 'Presidente de la Federación Mundial de Escalada', voters: 90, termWeeks: 208,
-    eligibility: { minAge: 30, minRep: 75, minSeasons: 6 }, decisions: ['calendario mundial', 'sedes', 'modalidades', 'paraescalada', 'juveniles', 'sponsors', 'derechos', 'presupuesto', 'crecimiento'] },
-  league_president: { entitlement: 'prestige.league_president', n: 'Presidente de la Liga', voters: 42, termWeeks: 208, eligibility: { minAge: 30, minRep: 70, minSeasons: 6 },
+  world_climbing_president: { entitlement: 'prestige.world_climbing_president', requires: ['sport.climbing'], n: 'Presidente de la Federación Mundial de Escalada', type: 'election', voters: 90, termWeeks: 24,
+    eligibility: { minAge: 30, minRep: 75, minSeasons: 4 }, decisions: ['calendario mundial', 'sedes', 'modalidades', 'paraescalada', 'juveniles', 'sponsors', 'derechos', 'presupuesto', 'crecimiento'] },
+  world_basket_president: { entitlement: 'prestige.world_basket_president', requires: ['sport.basketball'], n: 'Presidente de la Federación Mundial de Baloncesto', type: 'election', voters: 150, termWeeks: 24,
+    eligibility: { minAge: 30, minRep: 78, minSeasons: 5 }, decisions: ['ventanas de selecciones', '3x3', 'frecuencia del mundial', 'baloncesto femenino'] },
+  world_tennis_president: { entitlement: 'prestige.world_tennis_president', requires: ['sport.tennis'], n: 'Presidente de la Federación Mundial de Tenis', type: 'election', voters: 140, termWeeks: 24,
+    eligibility: { minAge: 30, minRep: 78, minSeasons: 5 }, decisions: ['copa por países', 'calendario', 'juez electrónico', 'ayudas a jugadores'] },
+  league_president: { entitlement: 'prestige.league_president', n: 'Presidente de la Liga', type: 'election', voters: 42, termWeeks: 22, eligibility: { minAge: 30, minRep: 65, minSeasons: 4, minMarca: 30 },
     decisions: ['reparto audiovisual', 'calendario', 'patrocinadores', 'reglas económicas', 'control financiero', 'expansión', 'formato'] },
-  national_coach: { entitlement: 'prestige.national_coach', n: 'Seleccionador nacional', voters: 1, termWeeks: 104, eligibility: { minAge: 32, minRep: 65, minSeasons: 8 },
+  national_federation: { entitlement: 'prestige.national_federation', n: 'Presidente de la Federación Nacional', type: 'election', voters: 120, termWeeks: 22, eligibility: { minAge: 30, minRep: 60, minSeasons: 3 },
+    decisions: ['licencias', 'formación de entrenadores', 'arbitraje', 'sede de la selección'] },
+  national_coach: { entitlement: 'prestige.national_coach', n: 'Seleccionador nacional', type: 'appointment', voters: 1, termWeeks: 20, eligibility: { minAge: 32, minRep: 65, minSeasons: 5, minTrophies: 1 },
     decisions: ['convocatorias', 'torneos', 'selección', 'presión', 'clubes', 'medios'] },
+  sporting_director: { entitlement: 'prestige.sporting_director', n: 'Director deportivo', type: 'appointment', voters: 1, termWeeks: 20, eligibility: { minAge: 30, minRep: 55, minSeasons: 4 },
+    decisions: ['fichajes', 'entrenador', 'ventas', 'ojeadores'] },
+  agent: { entitlement: 'prestige.agent', n: 'Agente internacional', type: 'exam', voters: 1, termWeeks: 24, eligibility: { minAge: 25, minRep: 50, minMarca: 35 },
+    decisions: ['traspasos', 'comisiones', 'renovaciones', 'captación'] },
+  referee: { entitlement: 'prestige.referee', n: 'Árbitro internacional', type: 'exam', voters: 1, termWeeks: 22, eligibility: { minAge: 25, minRep: 45, minSeasons: 3 },
+    decisions: ['jugadas dudosas', 'autoridad', 'preparación física', 'medios'] },
+  media_personality: { entitlement: 'prestige.media_personality', n: 'Comentarista / periodista', type: 'casting', voters: 1, termWeeks: 24, eligibility: { minAge: 22, minRep: 40, minMarca: 45 },
+    decisions: ['exclusivas', 'grandes retransmisiones', 'tono', 'polémicas'] },
+  world_sports_committee: { entitlement: 'prestige.world_sports_committee', requiresAny: { n: 2, of: ['sport.climbing', 'sport.tennis', 'sport.basketball', 'sport.skate', 'sport.surf'] }, n: 'Presidente del Comité Mundial del Deporte', type: 'election', voters: 100, termWeeks: 26,
+    eligibility: { minAge: 40, minRep: 85, minMarca: 50, institutional: 1, minNetWorth: 250000 }, decisions: ['sede de los Juegos', 'nuevos deportes', 'antidopaje', 'derechos de televisión', 'igualdad'] },
 };
 function eligibility(career, game) {
   const e = career.eligibility || {}, g = game || {}, missing = [];
@@ -2204,7 +2221,10 @@ function eligibility(career, game) {
   if (e.minSeasons && !(g.seasons >= e.minSeasons)) missing.push(`${e.minSeasons} temporadas de carrera`);
   if (e.minMarca && !(g.marca >= e.minMarca)) missing.push(`reputación pública ≥ ${e.minMarca}`);
   if (e.institutional && !((g.institutional || 0) >= e.institutional)) missing.push('experiencia institucional');
+  if (e.minTrophies && !((g.trophies || 0) >= e.minTrophies)) missing.push(`${e.minTrophies} título(s)`);
+  if (e.minNetWorth && !((g.netWorth || 0) >= e.minNetWorth)) missing.push(`patrimonio ≥ ${e.minNetWorth}`);
   for (const r of career.requires || []) if (!(g.entitlements || []).includes(r)) missing.push(`expansión ${r}`);
+  if (career.requiresAny && career.requiresAny.of.filter(r => (g.entitlements || []).includes(r)).length < career.requiresAny.n) missing.push(`${career.requiresAny.n} deportes: ${career.requiresAny.of.join(', ')}`);
   return { ok: missing.length === 0, missing };
 }
 // Estado derivado: la compra solo lleva hasta PURCHASED / NOT_ELIGIBLE / ELIGIBLE
@@ -3408,6 +3428,11 @@ globalThis.P2C = P2C;
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
+  // Segundo generador solo para expansiones y Prestige: lo comprado nunca toca el azar de la partida base
+  function rndX(s) {
+    if (typeof s.rngX !== 'number') s.rngX = ((s.seed || 1) ^ 0x9E3779B9) >>> 0;
+    const o = { rng: s.rngX }, v = rnd(o); s.rngX = o.rng; return v;
+  }
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const r1 = v => Math.round(v * 10) / 10;
   const entre = (s, a, b) => a + rnd(s) * (b - a);
@@ -3421,7 +3446,7 @@ globalThis.P2C = P2C;
   const copia = o => JSON.parse(JSON.stringify(o));
   // Poisson sencillo (para goles)
   function poisson(s, l) { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= rnd(s); } while (p > L && k < 12); return k - 1; }
-  Object.assign(P2, { rnd, clamp, r1, entre, entero, azar, fmt, eur, signo, nf, esc, copia, poisson });
+  Object.assign(P2, { rnd, rndX, clamp, r1, entre, entero, azar, fmt, eur, signo, nf, esc, copia, poisson });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 02_estado.js =====
@@ -7574,7 +7599,7 @@ globalThis.P2C = P2C;
    ===================================================================== */
 (function (P2) {
   'use strict';
-  const { rnd, clamp, r1, eur, nf } = P2;
+  const { clamp, r1, eur, nf } = P2, rnd = P2.rndX;
   const ent = id => `expansion.${id}`;
   const EXP = {
     club_owner: { ent: ent('club_owner'), ic: '🏟️', n: 'Propietario de club', seccion: 'club', sku: 'expansion_club_owner' },
@@ -7789,7 +7814,7 @@ globalThis.P2C = P2C;
   }
   function rentaAltaInm(s, uid) { const p = inm(s).props.find(x => x.uid === uid); if (!p) return 'No existe.'; p.rentaAlta = !p.rentaAlta; return null; }
   function semanaInm(s, R) {
-    const I = inm(s); if (!I.props.length && !tieneExp(s, 'real_estate')) return;
+    const I = inm(s);
     // El mercado se mueve un poco cada semana (con tendencia suave al alza) y el euríbor también
     I.mercado = r1(clamp(I.mercado * (1 + (rnd(s) - 0.47) * 0.012), 0.75, 1.6) * 1000) / 1000;
     I.euribor = Math.round(clamp(I.euribor + (rnd(s) - 0.5) * 0.0015, 0.005, 0.06) * 10000) / 10000;
@@ -8037,7 +8062,7 @@ globalThis.P2C = P2C;
   }
   // Secciones del juego (en el grupo Imperio): aparecen con la expansión y la primera empresa
   for (const [id, X] of Object.entries(EXP)) P2.SECCIONES.splice(P2.SECCIONES.findIndex(x => x.id === 'patrimonio'), 0, { id: X.seccion, ic: X.ic, n: X.n.replace('Propietario de club', 'Tu club').replace('Imperio inmobiliario', 'Inmuebles').replace('Agencia de deportistas', 'Agencia').replace('Organizador de eventos', 'Eventos').replace('Media & Sports', 'Media'),
-    grupo: 'imperio', cond: s => expAbierta(s, id), d: `${X.n}: expansión desbloqueada.` });
+    grupo: 'imperio', cond: s => !!(s.hitos && s.hitos.empresa), d: `${X.n}: expansión desbloqueada.` });
 
   // Decisión: ofertas para un representado
   P2.DECISIONES.ofertaRepresentado = {
@@ -8154,7 +8179,7 @@ globalThis.P2C = P2C;
    ===================================================================== */
 (function (P2) {
   'use strict';
-  const { rnd, clamp, r1, eur, nf } = P2;
+  const { clamp, r1, eur, nf } = P2, rnd = P2.rndX;
 
   // tipo: eleccion (votan) · nombramiento (te eligen entre candidatos) · examen (licencia/título) · casting
   // req: rep, marca, temporadas, trofeos, deporte, deportes (cuántos deportes en tu cuenta), institucional, patrimonio
@@ -8456,7 +8481,7 @@ globalThis.P2C = P2C;
   if (_sc) P2.semanaExpansiones = (s, R) => { _sc(s, R); if (s.club && s.club.pct >= 51) s.fuePresidenteClub = true; semanaPrestige(s, R); };
 
   // Sección «Prestige» (grupo Carrera): con alguna carrera Prestige en la cuenta, o retirado/a
-  P2.SECCIONES.splice(P2.SECCIONES.findIndex(x => x.id === 'marcas') + 1, 0, { id: 'prestige', ic: '🎖️', n: 'Prestige', grupo: 'carrera', cond: s => s.fase === 'retirado' || Object.keys(CARRERAS).some(tieneCarrera), d: 'Carreras de cargo: presidencias, selección, arbitraje, agencia y medios.' });
+  P2.SECCIONES.splice(P2.SECCIONES.findIndex(x => x.id === 'marcas') + 1, 0, { id: 'prestige', ic: '🎖️', n: 'Prestige', grupo: 'carrera', cond: s => s.fase === 'retirado' || !!(s.hitos && s.hitos.contrato), d: 'Carreras de cargo: presidencias, selección, arbitraje, agencia y medios.' });
   Object.assign(P2, { CARRERAS_PRESTIGE: CARRERAS, INSTITUCIONALES, ACC_TIPO, ACC_CARGO, prestige: pr, requisitosPrestige: requisitos, estadoPrestige: estado, tieneCarrera, retirarse, candidatura, accionPrestige, semanaPrestige, accionesPrestige, dejarCargo, reintentar, fueInstitucional });
 })(globalThis.P2 = globalThis.P2 || {});
 

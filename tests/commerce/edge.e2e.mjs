@@ -51,7 +51,7 @@ export async function runEdge(check) {
   await pool.query("update remote_config set value = jsonb_set(value, '{environment}', '\"staging\"') where environment = 'staging'");
   const proc = spawn(DENO, ['run', '--no-lock', '--allow-net', '--allow-env', '--allow-read', 'backend/supabase/tests/e2e_harness.ts'], {
     env: Object.assign({}, process.env, { PORT: String(port), APP_ENV: 'staging', SUPABASE_DB_URL: process.env.DATABASE_URL, SUPABASE_URL: `http://127.0.0.1:${fakePort}`, SUPABASE_ANON_KEY: 'anon',
-      STRIPE_SECRET_KEY: 'sk_test_fake', STRIPE_API_BASE: `http://127.0.0.1:${fakePort}/v1`, STRIPE_WEBHOOK_SECRET: SECRET, APP_URL: `http://127.0.0.1:${port}`, WEB_INDEX: 'dist/web/index.html' }), stdio: ['ignore', 'pipe', 'pipe'] });
+      STRIPE_SECRET_KEY: 'sk_test_fake', STRIPE_API_BASE: `http://127.0.0.1:${fakePort}/v1`, STRIPE_WEBHOOK_SECRET: SECRET, APP_URL: `http://127.0.0.1:${port}`, E2E_COMING_SOON: 'sport_tennis', WEB_INDEX: 'dist/web/index.html' }), stdio: ['ignore', 'pipe', 'pipe'] });
   let logs = '';
   await new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('Deno no arrancó: ' + logs)), 60000); proc.stdout.on('data', d => { logs += d; if (/e2e listo/.test(logs)) { clearTimeout(t); res(); } }); proc.stderr.on('data', d => { logs += d; }); proc.on('exit', c => { clearTimeout(t); rej(new Error('Deno salió ' + c + ': ' + logs)); }); });
   const F = (name, opts = {}) => fetch(`http://127.0.0.1:${port}/functions/v1/${name}`, opts).then(async r => ({ status: r.status, body: await r.json().catch(() => null) }));

@@ -3,6 +3,7 @@
 import { createCommerceClient } from '../../commerce/client/commerceClient.js';
 import { createMockBackend } from '../../commerce/client/mockBackend.js';
 import { TERMS_VERSION } from '../../commerce/core/accounts.js';
+import { conEstado } from './estado.mjs';
 
 const memStorage = () => { const m = new Map(); return { getItem: k => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k), _m: m }; };
 const err = async p => { try { await p; return null; } catch (e) { return e.code || e.message; } };
@@ -18,7 +19,7 @@ export async function runClient(check) {
   check('Cliente: sin completar el perfil (edad y términos) no se puede comprar', await err(c.purchase('pack_debut', { consentWithdrawal: true })) === 'profile_required');
   await c.updateProfile({ displayName: 'Alex', country: 'ES', ageBand: '18p', acceptTerms: TERMS_VERSION });
   check('Cliente: en desarrollo el router usa el proveedor simulado (nunca un pago real)', c.route('pack_debut').provider === 'mock');
-  check('Cliente: «Próximamente» no se puede comprar (ni llega al servidor)', await err(c.purchase('sport_tennis', { consentWithdrawal: true })) === 'coming_soon');
+  check('Cliente: «Próximamente» no se puede comprar (ni llega al servidor)', await conEstado('sport_tennis', 'coming_soon', () => err(c.purchase('sport_tennis', { consentWithdrawal: true }))) === 'coming_soon');
   check('Cliente: sin la casilla de desistimiento no hay checkout', await err(c.purchase('pack_debut')) === 'withdrawal_consent_required');
   const r = await c.purchase('pack_debut', { consentWithdrawal: true });
   check('Cliente: comprar devuelve una orden con referencia (para soporte), sin conceder nada todavía', r.orderId && r.orderRef && !c.has('cosmetic.debut_pack'));

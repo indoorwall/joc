@@ -5,6 +5,7 @@ import { createCommerceService } from '../../commerce/core/service.js';
 import { createFakeStripe } from '../../commerce/core/fakeStripe.js';
 import { CATALOG } from '../../commerce/catalog/catalog.js';
 import { accountHash } from '../../commerce/core/service.js';
+import { conEstado } from './estado.mjs';
 
 export async function runContract(name, makeRepo, check) {
   const SECRET = 'whsec_test_contract';
@@ -40,7 +41,7 @@ export async function runContract(name, makeRepo, check) {
     await buy(c, U, 'remove_ads');
     check(T + 'Stripe Customer: uno por usuario (no se crea en cada compra)', c.stripe.calls.filter(x => x[0] === 'createCustomer').length === 1);
     check(T + 'Producto inexistente → error', await err(c.svc.createCheckout(U, { sku: 'pack_gratis_hack', consentWithdrawal: true })) === 'unknown_product');
-    check(T + 'Producto «coming_soon» no se puede cobrar', await err(c.svc.createCheckout(U, { sku: 'sport_tennis', consentWithdrawal: true })) === 'coming_soon');
+    check(T + 'Producto «coming_soon» no se puede cobrar', await conEstado('sport_tennis', 'coming_soon', () => err(c.svc.createCheckout(U, { sku: 'sport_tennis', consentWithdrawal: true }))) === 'coming_soon');
     check(T + 'Producto «draft» no se puede cobrar', await err(c.svc.createCheckout(U, { sku: 'season_pass', consentWithdrawal: true })) !== null);
     check(T + 'Producto solo-promo no se puede cobrar', await err(c.svc.createCheckout(U, { sku: 'promo_press', consentWithdrawal: true })) === 'promo_only');
     check(T + 'Sin sesión no hay checkout', await err(c.svc.createCheckout(null, { sku: 'pack_debut', consentWithdrawal: true })) === 'auth_required');
@@ -152,7 +153,7 @@ export async function runContract(name, makeRepo, check) {
   // ---------- Bundle ----------
   {
     const c = await fresh({ visibleSkus: null });
-    // sports_bundle está coming_soon: en staging lo probamos con un usuario admin que concede escalada y un bundle de test
+    // Usuario que ya tiene escalada (concedida por admin) compra el bundle de deportes
     const repo = c.repo;
     await repo.insertGrant({ id: crypto.randomUUID(), userId: U.id, entitlementId: 'sport.climbing', source: 'admin', sourcePurchaseId: 'admin:x', orderId: null, productId: null, grantedAt: clock().toISOString(), status: 'active' });
     const orderId = crypto.randomUUID();
@@ -301,7 +302,7 @@ export async function runContract(name, makeRepo, check) {
     c.stripe.livemode = true;
     check(T + 'Pagos reales bloqueados hasta «ACTIVAR PRODUCCIÓN» (liveModeAllowed=false)', await err(c.svc.createCheckout(U, { sku: 'pack_debut', consentWithdrawal: true })) === 'live_mode_not_allowed');
     const c2 = await fresh({ environment: 'production', liveModeAllowed: true }, { environment: 'production' });
-    check(T + 'En producción, «testing» no se vende a usuarios normales', await err(c2.svc.createCheckout(U, { sku: 'sport_climbing', consentWithdrawal: true })) === 'not_available');
+    check(T + 'En producción, «testing» no se vende a usuarios normales', await conEstado('sport_climbing', 'testing', () => err(c2.svc.createCheckout(U, { sku: 'sport_climbing', consentWithdrawal: true }))) === 'not_available');
     check(T + 'En producción sin ids de Stripe mapeados → no se inventa un precio', await err(c2.svc.createCheckout(U, { sku: 'pack_debut', consentWithdrawal: true })) === 'stripe_price_not_mapped');
   }
   // ---------- Borrado de cuenta ----------

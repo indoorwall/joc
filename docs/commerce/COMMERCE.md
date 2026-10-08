@@ -186,27 +186,28 @@ orden FULFILLED → entitlement activo.
 
 En `commerce/catalog/catalog.js` (versión 1). Detalle de cada producto y de su contenido en [CATALOG.md](CATALOG.md).
 
-| Tipo | SKUs | Precio | Estado inicial |
+| Tipo | SKUs | Precio | Estado |
 |---|---|---|---|
-| COSMETIC_PACK | `pack_debut` | 0,99 € | **active** (vertical slice) |
-| COSMETIC_PACK | `pack_street`, `pack_pro`, `pack_luxury`, `pack_magnate` | 1,99 / 2,99 / 3,99 / 4,99 € | coming_soon |
-| COSMETIC_PACK | `club_pack_{club}` (puerto, costa, atletico) | 0,99 / 1,99 € | coming_soon |
-| COSMETIC_PACK | `champion_pack_{copa, europa, mundial, liga}` | 0,99 € | coming_soon (solo visible si ganaste esa competición) |
-| SUPPORTER_PACK | `founder_pack` | 4,99 € | coming_soon |
-| REMOVE_ADS | `remove_ads` | 3,99 € | **active** |
-| SAVE_SLOTS | `extra_save_slots_3` | 1,99 € | coming_soon (falta el selector de carreras) |
-| SPORT_EXPANSION | `sport_climbing` | 2,99 € | **testing** (entitlement de prueba) |
-| SPORT_EXPANSION | `sport_tennis`, `sport_basketball`, `sport_skate`, `sport_surf` | 2,99 € | coming_soon |
-| BUNDLE | `sports_bundle` | 8,99 € | coming_soon |
-| SYSTEM_EXPANSION | `expansion_club_owner` | 3,99 € | coming_soon |
-| SYSTEM_EXPANSION | `expansion_real_estate`, `expansion_sports_agency`, `expansion_events`, `expansion_media` | 2,99 € | coming_soon |
-| BUNDLE | `empire_bundle` | 6,99 € | coming_soon |
-| PRESTIGE_CAREER | `prestige_world_football_president` | 0,99 € | **testing** (entitlement de prueba) |
-| PRESTIGE_CAREER | `prestige_world_climbing_president` (requiere `sport.climbing`), `prestige_world_basket_president`, `prestige_world_tennis_president`, `prestige_league_president`, `prestige_national_federation`, `prestige_national_coach`, `prestige_sporting_director`, `prestige_agent`, `prestige_referee`, `prestige_media_personality` | 0,99 € | coming_soon |
-| PRESTIGE_CAREER | `prestige_world_sports_committee` (requiere 2 deportes) | 1,99 € | coming_soon |
-| BUNDLE | `prestige_bundle` (8 carreras con nombre; las futuras no se incluyen) | 3,99 € | coming_soon |
+| COSMETIC_PACK | `pack_debut` | 0,99 € | active |
+| COSMETIC_PACK | `pack_street`, `pack_pro`, `pack_luxury`, `pack_magnate` | 1,99 / 2,99 / 3,99 / 4,99 € | active |
+| COSMETIC_PACK | `club_pack_{club}` (puerto, costa, atletico) | 0,99 / 1,99 € | active (solo visible con ese club) |
+| COSMETIC_PACK | `champion_pack_{copa, europa, mundial, liga}` | 0,99 € | active (solo visible si ganaste esa competición) |
+| SUPPORTER_PACK | `founder_pack` | 4,99 € | active |
+| REMOVE_ADS | `remove_ads` | 3,99 € | active |
+| SAVE_SLOTS | `extra_save_slots_3` | 1,99 € | active |
+| SPORT_EXPANSION | `sport_climbing`, `sport_tennis`, `sport_basketball`, `sport_skate`, `sport_surf` | 2,99 € | active (jugables) |
+| BUNDLE | `sports_bundle` | 8,99 € | active |
+| SYSTEM_EXPANSION | `expansion_club_owner` | 3,99 € | active (jugable) |
+| SYSTEM_EXPANSION | `expansion_real_estate`, `expansion_sports_agency`, `expansion_events`, `expansion_media` | 2,99 € | active (jugables) |
+| BUNDLE | `empire_bundle` | 6,99 € | active |
+| PRESTIGE_CAREER | `prestige_world_football_president`, `prestige_world_climbing_president` (requiere `sport.climbing`), `prestige_world_basket_president` (requiere `sport.basketball`), `prestige_world_tennis_president` (requiere `sport.tennis`), `prestige_league_president`, `prestige_national_federation`, `prestige_national_coach`, `prestige_sporting_director`, `prestige_agent`, `prestige_referee`, `prestige_media_personality` | 0,99 € | active (jugables) |
+| PRESTIGE_CAREER | `prestige_world_sports_committee` (requiere 2 deportes) | 1,99 € | active (jugable) |
+| BUNDLE | `prestige_bundle` (8 carreras con nombre; las futuras no se incluyen) | 3,99 € | active |
 | PROMO | `promo_press` (insignia de prensa) | solo con código | active |
 | FUTURE_SUBSCRIPTION | `season_pass` | — | draft |
+
+«active» significa «a la venta» **en modo prueba**: hasta que digas «ACTIVAR PRODUCCIÓN» no hay pagos reales
+(`liveModeAllowed=false`) y en producción, sin los ids de Stripe mapeados, no se vende nada.
 
 Estados del producto:
 
@@ -357,6 +358,6 @@ Detalle y tests en [SECURITY_COMMERCE.md](SECURITY_COMMERCE.md). Resumen:
 | F2 | Vertical slice: Pack Debut con Stripe TEST (checkout, webhook, entitlement, cosmético, restaurar) | **hecho en simulado y con tests de firma reales**; falta probarlo con tu cuenta de Stripe en modo test |
 | F3 | Premium en el juego, Mis compras, quitar anuncios, `sport_climbing` y `prestige_world_football_president` como entitlements de prueba | **hecho** |
 | F4 | App nativa (Capacitor u otra), StoreKit y Play Billing, verificación en el servidor | arquitectura y endpoints preparados; desactivados |
-| F5 | Contenido de los packs Street, Pro, Luxury, Magnate y Founder; ranuras de carrera | pendiente (estado `coming_soon`) |
-| F6 | Deportes y expansiones (gameplay) | pendiente |
+| F5 | Contenido de los packs Street, Pro, Luxury, Magnate y Founder; ranuras de carrera | **hecho** (P2.6) |
+| F6 | Deportes (5), expansiones (5) y Prestige (12 cargos): gameplay completo | **hecho** (P2.7) |
 | F7 | Revisión legal, Stripe Tax en live y **ACTIVAR PRODUCCIÓN** (solo con tu orden) | pendiente |

@@ -36,19 +36,19 @@ LOCKED ──compra──▶ PURCHASED ─▶ NOT_ELIGIBLE ⇄ ELIGIBLE ─▶ C
 
 | SKU | Cargo (nombre ficticio: sin FIFA, FIBA, IFSC ni COI) | Requiere | Estado |
 |---|---|---|---|
-| `prestige_world_football_president` | Presidente de la Federación Mundial de Fútbol | — | **testing** (entitlement de prueba) |
-| `prestige_world_climbing_president` | Presidente de la Federación Mundial de Escalada | `sport.climbing` | coming_soon |
-| `prestige_world_basket_president` | Presidente de la Federación Mundial de Baloncesto | `sport.basketball` | coming_soon |
-| `prestige_world_tennis_president` | Presidente de la Federación Mundial de Tenis | `sport.tennis` | coming_soon |
-| `prestige_league_president` | Presidente de la Liga | — | coming_soon |
-| `prestige_national_federation` | Presidente de la Federación Nacional | — | coming_soon |
-| `prestige_national_coach` | Seleccionador nacional | — | coming_soon |
-| `prestige_sporting_director` | Director deportivo | — | coming_soon |
-| `prestige_agent` | Agente internacional (versión personal; no sustituye a la expansión Agencia) | — | coming_soon |
-| `prestige_referee` | Árbitro internacional (regional → nacional → internacional → grandes finales) | — | coming_soon |
-| `prestige_media_personality` | Comentarista / periodista | — | coming_soon |
-| `prestige_world_sports_committee` (1,99 €) | Presidente del Comité Mundial del Deporte | 2 deportes | coming_soon |
-| `prestige_bundle` (3,99 €) | Las 8 carreras sin requisito de deporte (con nombre) | — | coming_soon |
+| `prestige_world_football_president` | Presidente de la Federación Mundial de Fútbol | — | active (jugable) |
+| `prestige_world_climbing_president` | Presidente de la Federación Mundial de Escalada | `sport.climbing` | active (jugable) |
+| `prestige_world_basket_president` | Presidente de la Federación Mundial de Baloncesto | `sport.basketball` | active (jugable) |
+| `prestige_world_tennis_president` | Presidente de la Federación Mundial de Tenis | `sport.tennis` | active (jugable) |
+| `prestige_league_president` | Presidente de la Liga | — | active (jugable) |
+| `prestige_national_federation` | Presidente de la Federación Nacional | — | active (jugable) |
+| `prestige_national_coach` | Seleccionador nacional | — | active (jugable) |
+| `prestige_sporting_director` | Director deportivo | — | active (jugable) |
+| `prestige_agent` | Agente internacional (versión personal; no sustituye a la expansión Agencia) | — | active (jugable) |
+| `prestige_referee` | Árbitro internacional (regional → nacional → internacional → grandes finales) | — | active (jugable) |
+| `prestige_media_personality` | Comentarista / periodista | — | active (jugable) |
+| `prestige_world_sports_committee` (1,99 €) | Presidente del Comité Mundial del Deporte | 2 deportes | active (jugable) |
+| `prestige_bundle` (3,99 €) | Las 8 carreras sin requisito de deporte (con nombre) | — | active (jugable) |
 
 Las decisiones previstas de cada cargo están en `PRESTIGE_CAREERS[id].decisions`. Por ejemplo, para la presidencia
 mundial de fútbol: sedes, formatos, premios, calendario, desarrollo, sponsors, presupuesto, reglas, federaciones y
@@ -60,7 +60,21 @@ Si te falta el deporte, la ficha dice «🔒 Necesitas la expansión **Escalada*
 «Comprar» no aparece. El servidor también lo bloquea (`requires`), así que nunca se cobra 0,99 € por algo que no puedes
 usar.
 
-## Siguiente paso de gameplay
+## En el juego (P2.7, `p2/src/19_prestige.js` y `22_ui_prestige.js`)
 
-El motor ya está y está probado. Falta la interfaz y los eventos de cada cargo, que llegarán como una pantalla de
-«campaña» semanal reutilizando el formato de decisiones del juego.
+Los 12 cargos son jugables, en la sección **🎖️ Prestige**:
+
+1. **Requisitos jugables** (nunca se compran): reputación, marca, temporadas, títulos, haber jugado ese deporte,
+   experiencia institucional, deportes en la cuenta o patrimonio, según el cargo. La ficha dice qué te falta.
+2. **Candidatura:** te retiras del deporte y, si hace falta, pasan los años hasta la edad del cargo (te avisa antes).
+3. **Campaña** (4–9 semanas): reuniones por bloques de votantes, programa (credibilidad), medios (con riesgo de
+   polémica), gira (cuesta dinero) y alianzas (promesas que pesan en el mandato). Los nombramientos, exámenes y
+   castings tienen sus propias acciones. Hay un rival.
+4. **Votación** (o examen, o decisión): se puede perder. Un test juega candidatos justos de méritos sin campaña y
+   pierden; candidatos fuertes que hacen campaña ganan.
+5. **Mandato:** aprobación, presupuesto, prestigio y polémica. Cada semana gestión, comunicación, viaje o reforma.
+   Tiene decisiones propias del cargo, crisis y un evento periódico (torneo, ventana de fichajes, gran final…).
+   Si la aprobación se hunde, dimites.
+6. **Reelección** al acabar el mandato. Al terminar la etapa queda en tu historial y puedes volver a presentarte.
+
+Retirarse del deporte también se puede sin Prestige. Tus empresas, inversiones y expansiones siguen.
