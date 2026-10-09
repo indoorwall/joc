@@ -7780,7 +7780,7 @@ globalThis.P2C = P2C;
       for (const x of nuevos) { R && R.lineas.push([x.ic, `Logro: ${x.n} (${x.d}).`, 'bien']); P2.anotar(s, x.ic, `Logro: ${x.n}.`); }
       // Lo memorable queda en Mi historia
       const X = nombreInst(instancia(mom.inst) || INST.penalti);
-      if (mom.imp >= 4 || res === 'PERFECT') recordar(s, res === 'FAIL' ? '😖' : res === 'PERFECT' ? '⭐' : X.ic, `${X.n} · ${MINIJUEGOS[mom.ctx].n.toLowerCase()}: ${res === 'PERFECT' ? 'Perfect' : res === 'GOOD' ? 'conseguido' : 'fallado'}${m.reintentos ? ' (con una vida)' : ''}`);
+      if (mom.imp >= 4 || (res === 'PERFECT' && (mom.imp >= 3 || t.p === 1))) recordar(s, res === 'FAIL' ? '😖' : res === 'PERFECT' ? '⭐' : X.ic, `${X.n} · ${MINIJUEGOS[mom.ctx].n.toLowerCase()}: ${res === 'PERFECT' ? 'Perfect' : res === 'GOOD' ? 'conseguido' : 'fallado'}${m.reintentos ? ' (con una vida)' : ''}`);
     }
     P2.tele(s, 'minigame_result', { minigame_type: mom.inst, engine: mom.motor, importance: mom.imp, match_importance: mom.imp, result: res || 'auto', perfect: res === 'PERFECT', retry: m.reintentos || 0, life_used: (m.reintentos || 0) > 0, simulado: !!m.simulado, jugado });
   }

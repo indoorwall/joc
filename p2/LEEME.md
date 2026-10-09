@@ -8,6 +8,69 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
 
+## P2.5.1 · Ritmo: decisión → expectativa → tensión → habilidad → consecuencia → historia
+
+Sin deportes, expansiones ni Prestige nuevos. Diseño completo y diagnóstico en
+[`docs/P2.5.1_DISENO.md`](../docs/P2.5.1_DISENO.md).
+
+- **Momentos clave en vez de «penalti cada semana».** Antes, el 61 % de los partidos tenía minijuego y el 90 % eran
+  penaltis. Ahora:
+  - lo tiene el 39 % de los partidos que juegas;
+  - el penalti es el 4 % de los momentos;
+  - ningún tipo pasa del 10 %;
+  - nunca se repite el mismo dos veces seguidas;
+  - nunca pasan más de 6 partidos sin ninguno.
+- **4 motores y 15 momentos de fútbol.**
+  - Los motores son timing, secuencia, objetivo y reacción.
+  - Los momentos: penalti, pase al hueco, control orientado, tiro colocado, falta directa, uno contra uno, regate,
+    centro/córner, último pase, contraataque, secuencia de pases, defensa/entrada, remate, prueba física y prueba
+    técnica.
+  - Los demás deportes usan instancias genéricas, con el motor preparado para tener las suyas.
+- **Importancia de 1 a 5.** Un partido normal tiene un 30 % de momento; uno importante (rival directo, últimas
+  jornadas, zona en juego), un 70 %; la promoción y la final, el 100 %.
+  - Se presenta como «🔥 MOMENTO CLAVE» o «🏆 GRAN MOMENTO», con el minuto, la escena y qué consigues si sale o si
+    falla.
+- **La gestión cambia la dificultad real.** Entrenar, descansar, la energía, una lesión reciente, la confianza del
+  míster, las botas, el preparador y la preparación cambian la ventana y la velocidad del minijuego.
+  - Antes de jugar se ve el porqué: «Energía 15: llegas reventado/a».
+  - La marca y los patrocinadores no dan ventaja, y comprar con dinero real tampoco.
+- **Preparación.** «🏆 FINAL · COPA FEDERACIÓN EN 3 SEMANAS · Preparación 62 %» aparece en Inicio.
+  - Entrenar suma; la empresa, el trabajo o un acto de patrocinador restan; la fatiga cuenta.
+  - Cada acción enseña su efecto («📈 Preparación +12»).
+  - Con la misma habilidad, 4 semanas entrenando dan un 64 % de acierto en el momento, frente al 33 % ignorando el
+    deporte.
+- **FAIL / GOOD / PERFECT.**
+  - En un partido, el momento cambia como mucho un gol, con ±5–8 de confianza. Antes eran hasta ±2 goles y −18.
+  - En una final o una promoción, el nivel y la preparación ponen la base y el minijuego inclina entre −15 y +18
+    puntos. Antes, el minijuego lo decidía todo.
+  - Después se enseña **QUÉ PASÓ** y **POR QUÉ IMPORTA**.
+- **Estadísticas y logros** (en Mi historia): jugados, éxito, Perfect, racha y reintentos. Logros: 🧊 Sangre fría,
+  🔥 En racha, 🎯 Diez de diez y ⭐ Polivalente.
+- **Vidas.**
+  - Siguen 3 y se recuperan jugando: una cada 6 semanas.
+  - Tras fallar: «Aceptar resultado» o «❤️ Usar vida y repetir»; sin vidas, «📺 Recuperar 1 vida».
+  - El anuncio da una vida cada 4 semanas como mucho, y 3 por temporada.
+- **Director de eventos.** Mira las últimas 8 semanas para evitar rachas iguales, vacías o saturadas, y empuja lo que
+  falta: relaciones o empresa.
+- **Cruces.**
+  - 7 decisiones empresa ↔ deporte: el empleado que falta, una avería, un cliente que coincide con el patrocinador,
+    la subida de una empleada, una semana de mucha demanda, un proveedor y la colaboración con el patrocinador.
+  - Un Perfect trae clientes a tu negocio y fallar un gran momento le trae polémica.
+  - 9 consecuencias diferidas con tus personas: Iker invierte, Sonia presenta un contacto o una campaña, Marc te
+    presenta a un exjugador, tus padres te ayudan en una crisis, el míster Paco te recomienda, el benéfico de Dani,
+    tu madre en la grada y el consejo de tu padre.
+- **Tienda con deseo.**
+  - El objetivo personal se ve siempre en Inicio, con lo que tienes, lo que cuesta y el porcentaje.
+  - Una sola sugerencia si no has marcado ninguno.
+  - Un recordatorio suave al cobrar algo grande.
+- **Premium.**
+  - Ya no está en la semana 1: se abre con el primer contrato («🔓 Personalización Premium»).
+  - Vive dentro de la Tienda: 🛍️ Tienda · 🎒 Mis cosas · 💎 Premium.
+  - Al empezar, los deportes de pago dicen «🔒 Expansión», sin precio; la ficha con el precio sale al tocarlos.
+- **Mi historia** guarda tu camino: pruebas, ruta amateur, hitos, títulos, finales, momentos y Perfect.
+- **Informe del tester:** sección MINIJUEGOS con el reparto por tipo, el éxito, los Perfect, los reintentos, las
+  vidas por anuncio, la frecuencia y las alertas de diseño, que son configurables.
+
 ## P2.7 · Todos los deportes, las expansiones y el Prestige
 
 Todo está jugable. Las compras siguen siendo simuladas (modo prueba): no hay pagos reales hasta «ACTIVAR PRODUCCIÓN».
@@ -647,7 +710,7 @@ todas las combinaciones firman contrato; energía nunca negativa; sin decisiones
 
 ## 5. Pruebas
 
-`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **430 de 430 comprobaciones superadas**.
+`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **470 de 470 comprobaciones superadas**.
 
 - **Las de P2 y P2.1** (ver arriba).
 - **Nuevas de P2.2:**
