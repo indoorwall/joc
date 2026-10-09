@@ -169,12 +169,19 @@
   function htmlDeseo(s) {
     const P = s.deseoActual && P2.producto(s.deseoActual); if (!P) return '';
     const p = Math.min(100, Math.round(100 * Math.max(0, s.p.dinero) / P.precio));
-    return `<button class="deseoBar" data-act="verDeseo"><span class="dic">${P.ic}</span><span class="dtx"><small>🎯 TU OBJETIVO PERSONAL</small><b>${esc(P.n)}</b>
-      <span class="xp"><i style="width:${p}%"></i></span><small>Tienes ${esc(eur(s.p.dinero))} · necesitas ${esc(eur(P.precio))}</small></span></button>`;
+    return `<button class="deseoBar" data-act="verDeseo"><span class="dic">${P.ic}</span><span class="dtx"><small>❤️ OBJETIVO PERSONAL</small><b>${esc(P.n)}</b>
+      <span class="xp"><i style="width:${p}%"></i></span><small>${esc(fmt(Math.max(0, Math.min(s.p.dinero, P.precio))))} / ${esc(eur(P.precio))} · <span class="pct">${p} %</span>${p >= 100 ? ' · ¡Ya puedes!' : ''}</small></span></button>`;
+  }
+  // Una sola sugerencia de objetivo si llevas tiempo sin marcar ninguno (nunca se repite)
+  function htmlSugDeseo(s) {
+    const l = P2.sugerenciaDeseo(s); if (!l) return '';
+    if (!s.deseoSugerido) s.deseoSugerido = s.semana;
+    return `<div class="card sugDeseo"><b>❤️ ¿Quieres marcar algo como próximo objetivo?</b><p class="small">Lo verás aquí con lo que te falta. Por ejemplo:</p>
+      ${l.map(P => `<button class="btn w full" data-act="quiero" data-id="${P.id}">${P.ic} ${esc(P.n)} · ${esc(eur(P.precio))}</button>`).join('')}<button class="masOps" data-act="sugDeseoNo">No, gracias</button></div>`;
   }
   // Extras del inicio: recompensa de temporada, energía patrocinada y oferta (simulada) en un buen momento
   function htmlExtrasInicio(s) {
-    let h = '';
+    let h = htmlSugDeseo(s);
     const m = P2.monEstado(s), tp = m.temporadaPremio;
     if (P2.MONETIZATION.activa && tp && !tp.visto) {
       h += `<div class="card premioT"><h3>🎁 RECOMPENSA DE TEMPORADA</h3><p>Has desbloqueado: <b>👕 Camiseta de la temporada</b> (ya está en tu personaje).</p>
@@ -419,6 +426,10 @@
     return l.length ? l.join(' · ') : 'Colección: solo por gusto';
   }
   function htmlTienda(s) {
+    const tab = ui.vista === 'premium' ? 'premium' : ui.tiendaTab === 'cosas' ? 'cosas' : 'tienda', okPrem = !!s.hitos.contrato || ui.vista === 'premium';
+    const tabs = `<div class="tiendaTabs" role="tablist">${[['tienda', '🛍️ Tienda'], ['cosas', '🎒 Mis cosas'], ['premium', okPrem ? '💎 Premium' : '💎 Premium 🔒']].map(([k, n]) => `<button role="tab" aria-selected="${tab === k}" class="${tab === k ? 'sel' : ''}" data-act="tiendaTab" data-v="${k}" ${k === 'premium' && !okPrem ? 'disabled title="Se abre con tu primer contrato profesional"' : ''}>${n}</button>`).join('')}</div>`;
+    if (tab === 'premium') return tabs + htmlPremium(s) + htmlPremiumTienda(s);
+    if (tab === 'cosas') return `<div class="card tiendaTop"><h2>🎒 Mis cosas</h2><p class="small">Lo que tienes, lo que llevas puesto y tus colecciones.</p></div>${tabs}${htmlCosas(s)}${htmlColecciones(s)}`;
     const cat = ui.cat || 'ropa', prods = P2.PRODUCTOS.filter(P => P.cat === cat && !P.inicial);
     const tile = P => {
       const tuyo = !P.consumible && P2.posee(s, P.id), bl = tuyo ? null : P2.bloqueoProducto(s, P), conf = ui.confirmar === P.id;
@@ -435,10 +446,10 @@
     };
     return `<div class="card tiendaTop"><div class="fila"><div><h2>🛍️ Tienda</h2><p class="small">Disfruta lo que ganas. Nada es obligatorio para competir; algunos objetos ayudan un poco. Toca 🤍 para marcar tu objetivo.</p></div>
         <div class="saldoBox"><small>Disponible</small><b class="oro">${esc(eur(s.p.dinero))}</b></div></div></div>
-      ${htmlOfertaEspecial(s, tile)}
+      ${tabs}${htmlOfertaEspecial(s, tile)}
       <div class="cats" role="tablist">${P2.CATEGORIAS_TIENDA.map(c => `<button role="tab" aria-selected="${c.id === cat}" data-act="cat" data-v="${c.id}" class="${c.id === cat ? 'sel' : ''}"><span>${c.ic}</span>${c.n}</button>`).join('')}</div>
       <div class="prods">${prods.map(tile).join('')}</div>
-      ${htmlCosas(s)}${htmlColecciones(s)}${htmlPremiumTienda(s)}`;
+      ${s.hitos.contrato ? '' : '<p class="small blanco">💎 Las colecciones Premium se abren con tu primer contrato profesional.</p>'}`;
   }
   function htmlOfertaEspecial(s, tile) {
     if (!P2.MONETIZATION.activa) return '';
@@ -630,7 +641,7 @@
     const p1 = P2.partidaP1();
     const dep = ui.deporte && P2.DEPORTES[ui.deporte] ? ui.deporte : 'futbol', D = P2.DEPORTES[dep];
     const elegirDep = `<div class="card"><h3>Tu deporte</h3><div class="deportes" role="radiogroup">${Object.values(P2.DEPORTES).map(X => { const ok = P2.deporteDisponible(X.id);
-        return `<button role="radio" aria-checked="${X.id === dep}" class="dep ${X.id === dep ? 'sel' : ''} ${ok ? '' : 'lock'}" data-act="deporte" data-v="${X.id}" style="--dc:${X.color}"><span>${X.ic}</span><b>${esc(X.n)}</b><small>${ok ? (X.entitlement ? 'Tuyo' : 'Gratis') : `🔒 ${esc(precioDeporte(X))}`}</small></button>`; }).join('')}</div>
+        return `<button role="radio" aria-checked="${X.id === dep}" class="dep ${X.id === dep ? 'sel' : ''} ${ok ? '' : 'lock'}" data-act="deporte" data-v="${X.id}" style="--dc:${X.color}"><span>${X.ic}</span><b>${esc(X.n)}</b><small>${ok ? (X.entitlement ? 'Disponible' : 'Disponible') : '🔒 Expansión'}</small></button>`; }).join('')}</div>
       <p class="small">${esc(D.d)}</p>
       ${D.especialidades ? `<p class="small"><b>Tu especialidad</b> (te da ventaja en las pruebas que son lo tuyo):</p><div class="chipsel">${D.especialidades.map(([id, n, ic, d]) => `<button data-act="especialidad" data-v="${id}" class="${(ui.esp || D.especialidades[0][0]) === id ? 'sel' : ''}" title="${esc(d)}">${ic} ${esc(n)}</button>`).join('')}</div>
         <p class="small">${esc((D.especialidades.find(([id]) => id === (ui.esp || D.especialidades[0][0])) || [])[3] || '')}</p>` : ''}</div>`;
@@ -661,6 +672,14 @@
   function htmlPersonaje(s) {
     return `<div class="card perfilTop">${escena(s, true)}<h2>🧍 ${esc(s.nombre)}</h2></div><div class="card">${htmlEditor(s, s.look)}</div><div class="card">${htmlTresVariables(s)}</div>${htmlCosas(s)}`;
   }
+  // Momentos clave (minijuegos) y tu camino: lo que el juego recuerda de tu carrera
+  function htmlMomentosHistoria(s) {
+    const st = P2.mjStats(s), L = s.logrosMj || {}, cam = P2.caminoCarrera(s).slice(-25);
+    const tipos = Object.entries(st.porTipo).sort((a, b) => b[1].j - a[1].j).slice(0, 5).map(([id, x]) => { const I = P2.nombreInst(P2.instancia(id) || P2.instancia('penalti')); return `${I.ic} ${esc(I.n)} ${x.e}/${x.j}${x.p ? ` · ${x.p}⭐` : ''}`; });
+    return `<div class="card"><h3>🎮 Momentos clave</h3>${st.jugados ? `${kv('Jugados', st.jugados)}${kv('Conseguidos', `${st.exitos} (${Math.round(100 * st.exitos / st.jugados)} %)`)}${kv('Perfect', `${st.perfects} · mejor racha 🔥 ${st.mejorRacha}`)}${kv('Reintentos con vida', st.reintentos)}${tipos.length ? `<p class="small">${tipos.join(' · ')}</p>` : ''}` : '<p class="small">Aún no has vivido ningún momento clave.</p>'}
+      ${P2.LOGROS_MJ.map(x => `<div class="lin ${L[x.id] ? 'bien' : ''}"><span class="ic">${L[x.id] ? x.ic : '🔒'}</span><span><b>${esc(x.n)}</b> · ${esc(x.d)}${L[x.id] ? ` · semana ${L[x.id]}` : ''}</span></div>`).join('')}</div>
+      ${cam.length ? `<div class="card memorables"><h3>🧭 Tu camino</h3>${cam.map(x => `<div class="lin"><span class="ic">${x.ic}</span><span>${esc(x.t)} · semana ${x.semana}</span></div>`).join('')}</div>` : ''}`;
+  }
   function htmlHistoria(s) {
     const H = P2.miHistoria(s), cel = (ic, v, n) => `<div><span>${ic}</span><b>${v}</b><small>${n}</small></div>`;
     return `<div class="card historia"><h2>🏆 Mi historia</h2><div class="trofeos">
@@ -671,6 +690,7 @@
         ${kv('🏆 Títulos', H.trofeos.length ? H.trofeos.map(x => `${x.ic} ${esc(x.n)}`).join(', ') : '—')}
         ${vitrina().length ? kv('💎 Vitrina', vitrina().map(([, ic, n]) => `${ic} ${esc(n)}`).join(', ')) : ''}
         ${kv('🏆 Colecciones', H.colecciones.length ? H.colecciones.map(C => `${C.ic} ${esc(C.n)}`).join(', ') : '—')}</div>
+      ${htmlMomentosHistoria(s)}
       <div class="card"><h3>Hitos</h3>${H.hitos.length ? H.hitos.map(x => `<div class="lin bien"><span class="ic">✅</span><span>${esc(x.n)} · semana ${s.hitos[x.id]}</span></div>`).join('') : '<p class="small">Tu historia acaba de empezar.</p>'}</div>`;
   }
 
@@ -1075,7 +1095,7 @@
     premium: sku => { ui.pm = Object.assign(ui.pm || { tab: 'expansiones' }, { sku, paso: null, error: null, consent: false }); render(); }, irA: v => irA(v) };
   const MUNDO = [['personaje', '👤', 'Perfil', '#8b5cf6'], ['relaciones', '❤️', 'Vida', '#ff4f8b'], ['tienda', '🛍️', 'Tienda', '#d94bff'], ['inversiones', '📈', 'Inversiones', '#12bfae'],
     ['liga', '📊', 'Liga', '#2f7bff', 'Al fichar'], ['marcas', '🤝', 'Marcas', '#ff9a2e', 'Al fichar'], ['empresa', '💼', 'Empresa', '#0b8a7e', 'Más adelante'], ['patrimonio', '💰', 'Patrimonio', '#e8a000'],
-    ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['premium', '💎', 'Premium', '#111827'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
+    ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
   function htmlMundo(s) {
     const vis = P2.seccionesVisibles(s).map(x => x.id), av = avisos(s), nuevas = s.seccionesNuevas || [];
     return `<div class="velo" data-act="cerrarMundo"><div class="hoja" role="dialog" aria-label="Mi mundo"><div class="asa"></div><h3>🌍 Mi mundo</h3>
@@ -1595,7 +1615,7 @@
     $('top').innerHTML = htmlTop(S);
     $('nav').innerHTML = '';
     const V = { semana: htmlJuego, liga: htmlLiga, empresa: htmlEmpresa, marcas: htmlMarcas, hitos: htmlHitos, ajustes: htmlAjustes, personaje: htmlPersonaje,
-      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones, premium: htmlPremium }[ui.vista]
+      relaciones: htmlRelaciones, tienda: htmlTienda, patrimonio: htmlPatrimonio, historia: htmlHistoria, inversiones: htmlInversiones, premium: htmlTienda }[ui.vista]
       || (P2.UIX && P2.UIX.vistas[ui.vista] ? s => P2.UIX.vistas[ui.vista](s, HX) : () => '');
     // Anuncio obligatorio simulado: solo en transiciones grandes, nunca durante una decisión ni tras comprar
     if (ui.vista === 'semana' && !ui.inter && !ui.nuevaCompra && !ui.mundo && !ui.mj && !ui.paso && !cele && !ui.cu && !(ui.pm && (ui.pm.sku || ui.pm.paso)) && P2.intersticialAhora(S)) { ui.inter = true; P2.intersticialMostrado(S); P2.guardar(S); }
@@ -1711,6 +1731,8 @@
         ui.confirmar = null; if (P2.comprar(S, id)) { ui.nuevaCompra = id; guardarYPintar(); } break; }
       case 'cerrarCompra': ui.nuevaCompra = null; render(); break;
       case 'quiero': if (P2.quiero(S, id)) guardarYPintar(); break;
+      case 'sugDeseoNo': S.deseoSugerido = -1; guardarYPintar(); break;
+      case 'tiendaTab': ui.tiendaTab = b.dataset.v; if (b.dataset.v === 'premium') irA('premium'); else { if (ui.vista === 'premium') ui.vista = 'tienda'; render(); } break;
       case 'verDeseo': { const P = P2.producto(S.deseoActual); if (P) { ui.cat = P.cat; irA('tienda'); } break; }
       case 'deseoTienda': { const a = P2.monEstado(S).deseoAviso; P2.monEstado(S).deseoAviso = null; if (a) ui.cat = P2.producto(a.id).cat; irA('tienda'); break; }
       case 'deseoLuego': P2.monEstado(S).deseoAviso = null; guardarYPintar(); break;

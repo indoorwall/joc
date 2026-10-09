@@ -130,16 +130,15 @@
   function ritmoPartidos(s) {
     const l = semLog(s).filter(x => x.partido); let sin = 0;
     for (let i = l.length - 1; i >= 0 && !l[i].mj; i--) sin++;
+    if (s.mjCuenta && typeof s.mjCuenta.sin === 'number') sin = Math.max(sin, s.mjCuenta.sin);   // también entre temporadas
     return { sin, recientes: l.slice(-CFG_MJ.director.recientes).some(x => x.mj) };
   }
   function probMomento(s, imp) {
     let p = CFG_MJ.prob[imp] || 0;
-    if (imp <= 2) {
-      const D = CFG_MJ.director, r = ritmoPartidos(s);
-      if (r.recientes) p *= D.factorReciente;
-      if (r.sin >= D.sinMjMax) p = Math.min(D.techo, p * D.factorSinMj);
-      if (r.sin >= D.sinMjMax + 1) p = 1;   // nunca más de 6 partidos seguidos sin un momento
-    }
+    const D = CFG_MJ.director, r = ritmoPartidos(s);
+    if (imp <= 2 && r.recientes) p *= D.factorReciente;
+    if (r.sin >= D.sinMjMax) p = Math.min(Math.max(p, D.techo), p * D.factorSinMj);
+    if (r.sin >= D.sinMjMax + 1) p = 1;   // nunca más de 6 partidos seguidos sin un momento
     return p;
   }
 
@@ -309,7 +308,7 @@
   // ---------- Jugador simulado (balance y tests): habilidad 0–1 + dificultad real ----------
   function simularJugador(s, mom, hab, accion, k = '') {
     const M = modificadores(s, mom, accion);
-    const pE = clamp(hab + (M.ventana - 1) * 0.9 - (M.vel - 1) * 0.6 - (mom.imp >= 5 ? 0.03 : 0), 0.02, 0.98);
+    const pE = clamp(hab + (M.ventana - 1) * 0.5 - (M.vel - 1) * 0.4 - (mom.imp >= 5 ? 0.03 : 0), 0.02, 0.98);
     const u = u01(s, `jug|${s.semana}|${mom.inst}|${k}`);
     if (u < pE * hab * 0.55) return 0.95;
     if (u < pE) return 0.72;
@@ -361,9 +360,30 @@
     if (mom) tags.add('minigame');
     if (accion === 'gestionar' || (s.negocios.length && R.lineas.some(l => /^(💈|🏪|🏢|💼)/.test(l[0])))) tags.add('business');
     if (accion === '__acto' || accion === 'prensa') tags.add('sponsor');
-    const l = semLog(s); l.push({ semana: s.semana, t: [...tags].filter(x => ETIQUETAS.includes(x)), partido: !!(R.partido && R.partido.nota != null), mj: mom ? mom.inst : null });
+    const l = semLog(s); l.push({ semana: s.semana, t: [...tags].filter(x => ETIQUETAS.includes(x)), partido: !!(R.partido && R.partido.nota != null) && !String(accion).startsWith('__'), mj: mom ? mom.inst : null });
     while (l.length > 8) l.shift();
     s.tagsSemana = [];
+    // Cuenta de toda la partida (para el informe del tester y las alertas de diseño)
+    const C = s.mjCuenta = s.mjCuenta && typeof s.mjCuenta === 'object' ? s.mjCuenta : { total: 0, porTipo: {}, consecutivas: 0, ult: null, partidos: 0, partidosConMj: 0, sin: 0, maxSin: 0 };
+    const jugo = !!(R.partido && R.partido.nota != null) && !String(accion).startsWith('__');   // las semanas ocupadas (acto, evento) no tienen momento jugable
+    if (jugo) { C.partidos++; if (mom) { C.partidosConMj++; C.sin = 0; } else { C.sin++; C.maxSin = Math.max(C.maxSin, C.sin); } }
+    if (mom) { C.total++; C.porTipo[mom.inst] = (C.porTipo[mom.inst] || 0) + 1; if (C.ult === mom.inst) C.consecutivas++; C.ult = mom.inst; }
+  }
+  // Informe del tester: minijuegos (frecuencia, reparto, éxito, Perfect, reintentos, vidas) y alertas
+  function informeMinijuegos(s) {
+    const C = s.mjCuenta || { total: 0, porTipo: {}, consecutivas: 0, partidos: 0, partidosConMj: 0, maxSin: 0 }, st = stats(s), L = ['MINIJUEGOS (momentos clave)'];
+    const pct = (a, b) => (b ? `${Math.round(100 * a / b)} %` : '—');
+    L.push(`  Minijuegos totales: ${C.total} · jugados por ti: ${st.jugados} · simulados: ${st.simulados}`);
+    const por = Object.entries(C.porTipo).sort((a, b) => b[1] - a[1]);
+    L.push(`  Por tipo: ${por.length ? por.map(([id, n]) => `${nombreInst(instancia(id) || INST.penalti).n} ${n}`).join(' · ') : '—'}`);
+    L.push(`  Éxito: ${pct(st.exitos, st.jugados)} · Perfect: ${pct(st.perfects, st.jugados)} · mejor racha de Perfect: ${st.mejorRacha}`);
+    L.push(`  Reintentos: ${st.reintentos} · vidas usadas: ${st.vidasUsadas} · vidas por anuncio: ${st.vidasAnuncio}`);
+    L.push(`  Frecuencia: ${C.total && C.partidos ? `1 minijuego cada ${(C.partidos / Math.max(1, C.partidosConMj)).toFixed(1)} partidos (${pct(C.partidosConMj, C.partidos)} de los partidos)` : '—'} · repeticiones seguidas: ${C.consecutivas} · máximo de partidos seguidos sin minijuego: ${C.maxSin}`);
+    const maxVidasT = Math.max(0, ...Object.values(st.vidasAnuncioTemp || {}));
+    const M = { total: C.total, maxTipo: C.total ? Math.max(0, ...Object.values(C.porTipo)) / C.total : 0, consecutivas: C.consecutivas };
+    const al = alertasMinijuegos(M, { pctPartidosConMj: C.partidos >= 10 ? C.partidosConMj / C.partidos : null, maxSinMj: C.maxSin, maxVidasAnuncioTemp: maxVidasT });
+    L.push(al.length ? `  ⚠️ ALERTAS: ${al.join(' ')}` : '  Sin alertas de diseño.');
+    return L;
   }
   // Qué le falta a la semana (para elegir sucesos): factor de probabilidad y categorías a empujar
   function EVENT_DIRECTOR(s) {
@@ -420,5 +440,5 @@
     modificadores, dificultadDe, prepEfectiva, aplicarPreparacion, moverPreparacion, detectarEvento,
     nivelRes, bonusPrueba, bonusTorneo, momentoPartido, penalti, probGranPartido, AJUSTE_GRANDE, probSimular, P_SIM, simularJugador,
     mjStats: stats, registrarMomento, recordar, etiquetarSemana, cerrarSemanaLog, EVENT_DIRECTOR, ultimasAcciones,
-    vidas, usarVida, recargarVidas, semanasParaVida, vidasAnuncioTemporada, anotarVidaAnuncio, metricasMinijuegos, alertasMinijuegos });
+    vidas, usarVida, recargarVidas, semanasParaVida, vidasAnuncioTemporada, anotarVidaAnuncio, metricasMinijuegos, alertasMinijuegos, informeMinijuegos });
 })(globalThis.P2 = globalThis.P2 || {});

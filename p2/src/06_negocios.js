@@ -31,7 +31,7 @@
     const comp = c.competidor ? Math.min(1, pr.competidor + (calidad >= 1.15 ? 0.06 : 0)) : 1;
     // Tu marca personal atrae clientes (no tu nivel ni tu reputación deportiva); un patrocinador local manda clientes del barrio
     const famaJugador = (1 + (s && s.p ? s.p.marca || 0 : 0) / 250) * (1 + (s ? P2.efectoPatro(s, 'clientesNegocio') : 0));
-    const demanda = T.demandaBase * (0.4 + n.fama / 100) * pr.demanda * mk.demanda * comp * (c.temporadaAlta > 0 ? 1.4 : 1) * (c.influencer > 0 ? 1.25 : 1) * famaJugador * (opc.azar || 1) * (opc.gestion ? 1.05 : 1);
+    const demanda = T.demandaBase * (0.4 + n.fama / 100) * pr.demanda * mk.demanda * comp * (c.temporadaAlta > 0 ? 1.4 : 1) * (c.influencer > 0 ? 1.25 : 1) * (c.famaDeportiva > 0 ? 1.12 : 1) * (c.polemica > 0 ? 0.9 : 1) * (c.corporativo > 0 ? 1.2 : 1) * (c.colabora > 0 ? 1.15 : 1) * famaJugador * (opc.azar || 1) * (opc.gestion ? 1.05 : 1);
     const clientes = Math.round(Math.min(demanda, capacidad));
     const colas = Math.max(0, demanda - capacidad);
     // La primera semana con el nuevo dueño la clientela desconfía
@@ -39,7 +39,7 @@
     const intereses = Math.round(n.deuda * n.interes) + (n.hipoteca ? Math.round(n.hipoteca.deuda * n.hipoteca.interes) : 0);
     const costes = {
       alquiler: n.local ? 0 : n.alquiler, fijos: Math.max(0, T.fijos - (s ? P2.efectoPatro(s, 'fijosNegocio') : 0)), personal: n.empleados * su.coste, marketing: mk.coste,
-      material: Math.round(clientes * T.consumoCliente), intereses,
+      material: Math.round(clientes * T.consumoCliente * (c.descuento > 0 ? 0.9 : 1)), intereses,
     };
     const totalCostes = Object.values(costes).reduce((a, b) => a + b, 0);
     const justo = n.precio === 'caro' && calidad >= 1.15 ? 1 : pr.justo;
@@ -69,7 +69,7 @@
     if (opc.gestion) n.moral = r1(clamp(n.moral + 0.03, 0.7, 1.1));
     n.ultimo = Object.assign(x, { semana: s.semana, fuga });
     R.lineas.push([T.ic, `${T.n}: ${x.clientes} clientes · ${x.beneficio >= 0 ? 'beneficio' : 'pérdidas'} ${eur(x.beneficio)} · caja ${eur(n.caja)}.${x.colas > 5 ? ` ${x.colas} clientes se van por las colas.` : ''}${fuga}`, x.beneficio >= 0 ? 'bien' : 'mal']);
-    R.porque.push(`${T.n}: demanda ${x.demanda} (fama ${Math.round(n.fama)}, precio ${T.precios[n.precio].n.toLowerCase()}${n.ctx.competidor ? ', competidor' : ''}${n.ctx.temporadaAlta ? ', temporada alta' : ''}${n.ctx.influencer ? ', influencer' : ''}) frente a capacidad ${x.capacidad} (${n.empleados} empleados). Ingresos ${eur(x.ingresos)} − costes ${eur(x.totalCostes)} (${Object.entries(x.costes).filter(([, v]) => v).map(([k, v]) => `${k} ${eur(v)}`).join(', ')}). La fama tiende a ${x.famaObjetivo} (según la calidad real ${P2.nf(x.calidad)} y si el precio es justo).`);
+    R.porque.push(`${T.n}: demanda ${x.demanda} (fama ${Math.round(n.fama)}, precio ${T.precios[n.precio].n.toLowerCase()}${n.ctx.competidor ? ', competidor' : ''}${n.ctx.temporadaAlta ? ', temporada alta' : ''}${n.ctx.influencer ? ', influencer' : ''}${n.ctx.famaDeportiva ? ', tu gran partido trae clientes' : ''}${n.ctx.polemica ? ', polémica por tu fallo' : ''}${n.ctx.corporativo ? ', contrato corporativo' : ''}${n.ctx.colabora ? ', campaña con tu patrocinador' : ''}) frente a capacidad ${x.capacidad} (${n.empleados} empleados). Ingresos ${eur(x.ingresos)} − costes ${eur(x.totalCostes)} (${Object.entries(x.costes).filter(([, v]) => v).map(([k, v]) => `${k} ${eur(v)}`).join(', ')}). La fama tiende a ${x.famaObjetivo} (según la calidad real ${P2.nf(x.calidad)} y si el precio es justo).`);
     // Crisis de liquidez
     if (n.rachaPos >= 2) n.crisisSeguidas = 0;
     if (!n.crisis && (n.caja < 0 || (n.rachaNeg >= K.crisisSemanasNegativas && n.caja < 800))) {

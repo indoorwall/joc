@@ -193,7 +193,18 @@
       for (const k of [25, 40, 60, 80]) if (s.semana >= k && log.dineroEn[k] == null) { log.dineroEn[k] = P2.patrimonio(s); log.nivelEn[k] = s.p.nivel; }   // al cruzar la semana (un evento puede saltarla)
       const a = B.dep.accion(s);
       if (a === 'trabajar') log.trabajos++;
-      const R = P2.jugarSemana(s, a) || P2.jugarSemana(s, 'descansar');
+      // Jugador humano simulado (habilidad 0–1): juega los momentos clave; si falla, gasta una vida (si quiere) y repite
+      let mjOpc;
+      if (opc.habilidad != null && P2.momentoSemana) {
+        const mom = P2.momentoSemana(s, a);
+        if (mom) {
+          let p = P2.simularJugador(s, mom, opc.habilidad, a), rein = 0;
+          if (p < 0.6 && opc.usarVidas !== false && P2.vidas(s).n > 0 && P2.usarVida(s)) { rein = 1; p = P2.simularJugador(s, mom, opc.habilidad, a, 'r'); }
+          mjOpc = { minijuego: { tipo: mom.ctx, p, reintentos: rein } };
+          log.mj = (log.mj || 0) + 1; log.mjOk = (log.mjOk || 0) + (p >= 0.6 ? 1 : 0);
+        }
+      }
+      const R = P2.jugarSemana(s, a, mjOpc) || P2.jugarSemana(s, 'descansar');
       if (!R) { if (opc.debug) console.log('atasco semana', s.semana, a, JSON.stringify(s.pendiente)); log.atascos++; s.pendiente = null; s.cola = []; continue; }
       if (s.p.energia < 0) log.energiaNeg = true;
       if (s.temporada) log.ligaMax = Math.max(log.ligaMax, P2.LIGAS[s.temporada.liga].nivel);
@@ -205,6 +216,7 @@
     log.sueldo = s.contrato ? s.contrato.sueldo : 0; log.club = s.contrato ? s.contrato.oferta : null; log.negocios = s.negocios.length; log.segunda = s.oportunidad;
     log.semanas = s.semana - 1; log.hitos = Object.keys(s.hitos).length; log.patros = s.patroHist.length + s.patros.length; log.posesiones = P2.valorPosesiones(s);
     log.efectivo = Math.round(s.p.dinero); log.energiaMedia = null;
+    log.trofeos = (s.trofeos || []).length; log.ascensosH = (s.historia || {}).ascensos || 0; log.confianza = s.confianza;
     log.socio = s.socio ? { valor: s.socio.valor, aportado: s.socio.aportado, dividendos: s.socio.dividendos } : null;
     return log;
   }

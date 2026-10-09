@@ -747,6 +747,83 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Prestige: el Comité Mundial pide 2 deportes, experiencia institucional y patrimonio', P2.requisitosPrestige(veterano(961), 'world_sports_committee').filter(r => !r.ok).length >= 3);
 }
 
+// ---------- 6e. P2.5.1 · Ritmo: momentos clave, preparación, cruces ----------
+{
+  const resolver = s => { let g = 0; while (s.pendiente && g++ < 12) { const v = P2.vistaPendiente(s); if (!v) { s.pendiente = null; break; } P2.resolverDecision(s, v.ops.find(x => !x.bloqueo).id); } };
+  const jugarBot = (seed, semanas) => { const s = P2.nuevaPartida({ seed }); for (let w = 0; w < semanas; w++) { resolver(s); P2.jugarSemana(s, P2.POLITICAS.equilibrada.accion(s)) || P2.jugarSemana(s, 'descansar'); } return s; };
+  // Frecuencia y reparto (≈100 temporadas)
+  const C = { total: 0, porTipo: {}, consecutivas: 0, partidos: 0, partidosConMj: 0, maxSin: 0, temporadas: 0 };
+  for (let i = 0; i < 16; i++) { const s = jugarBot(8100 + i, 120), c = s.mjCuenta; C.total += c.total; C.consecutivas += c.consecutivas; C.partidos += c.partidos; C.partidosConMj += c.partidosConMj; C.maxSin = Math.max(C.maxSin, c.maxSin); C.temporadas += (s.temporadasJugadas || []).length; for (const [k, v] of Object.entries(c.porTipo)) C.porTipo[k] = (C.porTipo[k] || 0) + v; }
+  const pctMj = C.partidosConMj / C.partidos, maxTipo = Math.max(...Object.values(C.porTipo)) / C.total, pen = (C.porTipo.penalti || 0) / C.total;
+  check(`Ritmo: en ~100 temporadas (${C.temporadas}) entre el 25 y el 45 % de los partidos tienen minijuego (antes 61 %)`, C.temporadas >= 90 && pctMj >= 0.25 && pctMj <= 0.45, `${Math.round(pctMj * 100)} %`);
+  check('Ritmo: ningún tipo monopoliza (máximo 40 %) y el penalti es menos del 20 % (antes 90 %)', maxTipo <= 0.4 && pen < 0.2, `máx ${Math.round(maxTipo * 100)} % · penalti ${Math.round(pen * 100)} %`);
+  check('Ritmo: nunca el mismo minijuego dos veces seguidas', C.consecutivas === 0);
+  check('Ritmo: nunca más de 6 partidos seguidos sin momento', C.maxSin <= 6, C.maxSin);
+  check('Ritmo: al menos 12 tipos distintos de momento aparecen en fútbol', Object.keys(C.porTipo).length >= 12, Object.keys(C.porTipo).length);
+  // Arquitectura
+  const FUT = P2.MINIGAME_INSTANCES.filter(X => X.dep === 'futbol');
+  check('Motor: 4 motores reutilizables y 15 instancias de fútbol, cada una con motor, contexto, peso y cooldown', Object.keys(P2.MOTORES).length === 4 && FUT.length === 15 && FUT.every(X => P2.MOTORES[X.motor] && P2.JUEGOS[X.juego] && X.ctx.length && X.cd >= 1 && X.peso > 0));
+  check('Motor: los demás deportes tienen instancias genéricas por motor (preparado para las suyas)', ['timing', 'secuencia', 'objetivo', 'reaccion'].every(m => P2.MINIGAME_INSTANCES.some(X => X.dep === '*' && X.motor === m)));
+  check('Importancia: partido normal 25–40 %, importante 60–80 %, promoción y final 100 %', P2.CFG_MJ.prob[2] >= 0.25 && P2.CFG_MJ.prob[2] <= 0.4 && P2.CFG_MJ.prob[3] >= 0.6 && P2.CFG_MJ.prob[3] <= 0.8 && P2.CFG_MJ.prob[4] === 1 && P2.CFG_MJ.prob[5] === 1);
+  check('Cooldown: tras un penalti no vuelve a salir hasta pasados 5 momentos (salvo la tanda de una final)', (() => { const s = enClub('puerto', 8200); s.minigameHistory = [{ id: 'penalti', motor: 'timing' }, { id: 'regate', motor: 'secuencia' }, { id: 'corner', motor: 'objetivo' }]; let ok = true; for (let w = 1; w < 60; w++) { s.semana = w; const X = P2.elegirInstancia(s, 'partido', 3); if (X.id === 'penalti' || X.id === 'corner' || X.motor === 'objetivo') ok = false; } return ok; })());
+  check('Cooldown: la elección no toca el azar de la partida', (() => { const s = enClub('puerto', 8201), r = s.rng; for (let w = 1; w < 40; w++) { s.semana = w; P2.momentoSemana(s, 'descansar'); P2.elegirInstancia(s, 'final', 5); } return s.rng === r; })());
+  // Modificadores: la gestión cambia la dificultad
+  const momF = { ctx: 'partido', imp: 3, inst: 'tiroColocado' };
+  const base = enClub('puerto', 8210); base.p.energia = 60; base.confianza = 50;
+  const cans = JSON.parse(JSON.stringify(base)); cans.p.energia = 15;
+  const conf = JSON.parse(JSON.stringify(base)); conf.confianza = 90;
+  const marca = JSON.parse(JSON.stringify(base)); marca.p.marca = 100; marca.patros = [{ id: 'panaderia' }];
+  const mB = P2.modificadores(base, momF), mC = P2.modificadores(cans, momF), mF = P2.modificadores(conf, momF), mM = P2.modificadores(marca, momF);
+  check('Modificadores: llegar reventado/a estrecha la ventana y acelera; la confianza la abre', mC.ventana < mB.ventana && mC.vel > mB.vel && mF.ventana > mB.ventana);
+  check('Modificadores: la marca y los patrocinadores no dan ventaja directa', mM.ventana === mB.ventana && mM.vel === mB.vel);
+  check('Modificadores: comprar con dinero real no cambia la dificultad (sin pay-to-win)', (() => { const o = P2.tieneEnt; P2.tieneEnt = () => true; const m = P2.modificadores(base, momF); P2.tieneEnt = o; return m.ventana === mB.ventana && m.vel === mB.vel; })());
+  // Preparación: misma habilidad, 4 semanas entrenando frente a 4 semanas ignorando el deporte
+  const tasa = acc => { let ok = 0, n = 0; for (let i = 0; i < 60; i++) { const s = enClub('puerto', 8300 + i); s.p.energia = 80; s.eventoImportante = { id: 't', tipo: 'decisivo', n: 'Partido decisivo de prueba', ic: '🏆', semana: s.semana + 4, prep: 50, fatiga: 0, presion: 0, log: [] }; for (let w = 0; w < 4; w++) { resolver(s); s.p.lesion = 0; P2.jugarSemana(s, acc) || P2.jugarSemana(s, 'descansar'); } resolver(s); s.p.lesion = 0; const mom = { ctx: 'final', imp: 5, inst: 'tiroColocado' }; for (let k = 0; k < 5; k++) { n++; if (P2.simularJugador(s, mom, 0.55, 'descansar', 'k' + k) >= 0.6) ok++; } } return ok / n; };
+  const tEnt = tasa('entrenoExtra'), tIgn = tasa('prensa');
+  check('Preparación: con la misma habilidad, 4 semanas entrenando se notan claramente en el minijuego frente a 4 ignorando el deporte', tEnt - tIgn >= 0.1, `${Math.round(tEnt * 100)} % frente a ${Math.round(tIgn * 100)} %`);
+  check('Preparación: el gran partido se anuncia con antelación (final de copa)', (() => { const s = enClub('puerto', 8400); for (let w = 0; w < 12 && !s.eventoImportante; w++) { resolver(s); P2.jugarSemana(s, 'descansar'); } return !!s.eventoImportante && s.eventoImportante.semana - s.semana >= 1; })());
+  check('Preparación: entrenar sube, atender la empresa baja', (() => { const s = enClub('puerto', 8401); s.eventoImportante = { semana: s.semana + 3, prep: 50, fatiga: 0, presion: 0, log: [], n: 'X', ic: '🏆', tipo: 'final' }; const a = P2.prepEfectiva(s.eventoImportante, s, 'entrenoExtra'), b = P2.prepEfectiva(s.eventoImportante, s, 'gestionar'); return a > 50 && b < 50; })());
+  // Resultados y gestión frente a habilidad en finales
+  check('Resultado: FAIL / GOOD / PERFECT', P2.nivelRes(0.95) === 'PERFECT' && P2.nivelRes(0.7) === 'GOOD' && P2.nivelRes(0.3) === 'FAIL');
+  check('Finales: la gestión pone la base; el minijuego inclina como mucho ±18 puntos', (() => { const a = { p: { nivel: 85 }, semana: 1, mjSemana: { tipo: 'final', p: 0.2, semana: 1 } }, b = { p: { nivel: 35 }, semana: 1, mjSemana: { tipo: 'final', p: 0.95, semana: 1 } }; return P2.probGranPartido(a, 'final') > P2.probGranPartido(b, 'final') && Math.max(...Object.values(P2.AJUSTE_GRANDE).map(Math.abs)) <= 0.18; })());
+  check('Partido: un momento clave cambia como mucho un gol', (() => { for (let sd = 8500; sd < 8560; sd++) { const s = enClub('puerto', sd); s.p.energia = 90; for (let w = 0; w < 20; w++) { resolver(s); s.p.lesion = 0; const m = P2.momentoSemana(s, 'descansar'); if (m && m.ctx === 'partido' && m.lado === 'ataque') { const a = JSON.parse(JSON.stringify(s)), b = JSON.parse(JSON.stringify(s)); P2.jugarSemana(a, 'descansar', { minijuego: { tipo: 'partido', p: 0.95 } }); P2.jugarSemana(b, 'descansar', { minijuego: { tipo: 'partido', p: 0.2 } }); const pa = a.ultimo.partido, pb = b.ultimo.partido; if (pa.nota == null) break; return pa.gf - pb.gf === 1 && pa.gc === pb.gc && !!a.ultimo.momento && /POR QUÉ|Vais/.test(JSON.stringify(a.ultimo.momento.porque)); } P2.jugarSemana(s, 'descansar'); } } return false; })());
+  // Perfiles de habilidad y gestión frente a habilidad (simulado)
+  const perfil = (pol, hab) => { const L = []; for (let i = 0; i < 12; i++) L.push(P2.jugarPartida(pol, 8600 + i, 110, { seguir: true, habilidad: hab })); return { contrato: L.filter(x => x.contrato).length / L.length, trofeos: L.reduce((a, x) => a + x.trofeos, 0) / L.length, nivel: L.reduce((a, x) => a + x.nivel, 0) / L.length }; };
+  const pMalo = perfil('equilibrada', 0.25), pExc = perfil('equilibrada', 0.9), pMalGest = perfil('todoTrabajo', 0.9);
+  check('Habilidad: el jugador MALO (25 %) no se queda bloqueado (llega a profesional)', pMalo.contrato === 1, JSON.stringify(pMalo));
+  check('Habilidad: el EXCELENTE (90 %) no rompe la progresión (nivel parecido, algo más de títulos)', Math.abs(pExc.nivel - pMalo.nivel) < 6 && pExc.trofeos <= pMalo.trofeos * 2 + 1, JSON.stringify({ pMalo, pExc }));
+  check('Gestión pesa más que la mano: buen gestor con mala mano supera a mal gestor con mano excelente', pMalo.trofeos > pMalGest.trofeos && pMalo.nivel > pMalGest.nivel, JSON.stringify({ pMalo, pMalGest }));
+  // Vidas
+  const vv = P2.nuevaPartida({ seed: 8700 }); vv.semana = 5;
+  check('Vidas: máximo 3; con 0 no se puede repetir', P2.vidas(vv).n === 3 && P2.usarVida(vv) && P2.usarVida(vv) && P2.usarVida(vv) && !P2.usarVida(vv) && P2.vidas(vv).n === 0);
+  const t1 = P2.pedirRewarded(vv, 'vida', {}), r1v = P2.aceptarRewarded(vv, t1.token), r2v = P2.aceptarRewarded(vv, t1.token);
+  check('Vidas: el anuncio da +1 vida una sola vez (no se duplica)', r1v && r1v.vidas === 1 && r2v === null);
+  check('Vidas: sin farm: otra vida por anuncio no antes de 4 semanas', P2.pedirRewarded(vv, 'vida', {}) === null);
+  check('Vidas: como mucho 3 por anuncio en una temporada', (() => { const x = P2.nuevaPartida({ seed: 8701 }); x.vidas.n = 0; let n = 0; for (let w = 1; w < 26; w++) { x.semana = w; x.vidas.n = 0; const t = P2.pedirRewarded(x, 'vida', {}); if (t && P2.aceptarRewarded(x, t.token)) n++; } return n === 3; })());
+  check('Vidas: se recuperan jugando (1 cada 6 semanas), sin esperar tiempo real', (() => { const x = P2.nuevaPartida({ seed: 8702 }); x.vidas = { n: 0, recarga: x.semana }; for (let w = 0; w < 6; w++) { resolver(x); P2.jugarSemana(x, 'descansar'); } return P2.vidas(x).n === 1; })());
+  // Estadísticas, rachas y logros
+  check('Estadísticas: jugados, éxitos, Perfect, racha y logro «Sangre fría» (Perfect en una final sin vida)', (() => { const x = enClub('puerto', 8710), R = { lineas: [] }; P2.registrarMomento(x, { inst: 'penalti', motor: 'timing', ctx: 'final', imp: 5 }, { p: 0.95, reintentos: 0 }, R); P2.registrarMomento(x, { inst: 'regate', motor: 'secuencia', ctx: 'partido', imp: 2 }, { p: 0.95 }, R); P2.registrarMomento(x, { inst: 'corner', motor: 'objetivo', ctx: 'partido', imp: 2 }, { p: 0.95 }, R); const st = P2.mjStats(x); return st.jugados === 3 && st.perfects === 3 && st.mejorRacha === 3 && x.logrosMj.sangreFria && x.logrosMj.racha3 && x.memorables.length >= 1; })());
+  // Director de eventos
+  check('Director: tras 3 semanas sin sucesos, sube la probabilidad; tras 2 seguidas con suceso, la baja', (() => { const x = P2.nuevaPartida({ seed: 8720 }); x.semLog = [1, 2, 3].map(i => ({ semana: i, t: ['sport'], partido: true })); const a = P2.EVENT_DIRECTOR(x).factorSuceso; x.semLog = [1, 2].map(i => ({ semana: i, t: ['event'], partido: true })); const b = P2.EVENT_DIRECTOR(x).factorSuceso; return a > 1 && b < 1; })());
+  // Cruces
+  const cru = P2.CRUCES.filter(E => E.cruce), rel = P2.CRUCES.filter(E => E.ambito === 'relacion');
+  check('Cruces: al menos 6 decisiones empresa ↔ deporte y 6–10 de relaciones con consecuencia diferida', cru.length >= 6 && rel.length >= 6 && rel.length <= 10);
+  check('Cruces: todas sus opciones se pueden elegir sin romper nada', (() => { for (const E of P2.CRUCES) for (const o of E.ops) { const x = enClub('puerto', 8730); x.p.dinero = 5000; const n = P2.nuevoNegocio('peluqueria', 3000); n.semanas = 8; n.empleados = 3; x.negocios.push(n); x.patros = [{ id: 'panaderia', desde: 1, semanas: 10 }]; x.agente = true; x.amateurSemanas = 4; x.eventoImportante = { semana: x.semana + 2, prep: 50, fatiga: 0, presion: 0, log: [], n: 'Final', ic: '🏆', tipo: 'final' }; x.pendiente = { tipo: 'suceso', id: E.id, neg: n.id }; const r = P2.resolverDecision(x, o.id); if (o.cond && !o.cond(x, n)) continue; if (!r || !Number.isFinite(x.p.dinero) || !Number.isFinite(n.caja)) return false; } return true; })());
+  check('Cruces: atender la empresa antes de una final cuesta preparación', (() => { const x = enClub('puerto', 8740); const n = P2.nuevoNegocio('peluqueria', 3000); n.semanas = 8; x.negocios.push(n); x.eventoImportante = { semana: x.semana + 2, prep: 60, fatiga: 0, presion: 0, log: [], n: 'Final', ic: '🏆', tipo: 'final' }; x.pendiente = { tipo: 'suceso', id: 'empleadoFalta', neg: n.id }; P2.resolverDecision(x, 'ir'); return x.eventoImportante.prep === 50; })());
+  check('Cruces: un Perfect trae clientes a tu negocio y fallar un gran momento, polémica', P2.calcularSemana && (() => { const x = enClub('puerto', 8741); const n = P2.nuevoNegocio('peluqueria', 3000); n.semanas = 8; x.negocios.push(n); const d0 = P2.calcularSemana(x, n).demanda; n.ctx.famaDeportiva = 2; const d1 = P2.calcularSemana(x, n).demanda; n.ctx.famaDeportiva = 0; n.ctx.polemica = 2; const d2 = P2.calcularSemana(x, n).demanda; return d1 > d0 && d2 < d0; })());
+  check('Relaciones: el consejo del exjugador llega semanas después y sube la preparación', (() => { const x = enClub('puerto', 8750); x.eventoImportante = { semana: x.semana + 10, prep: 50, fatiga: 0, presion: 0, log: [], n: 'Final', ic: '🏆', tipo: 'final' }; const l = P2.EFECTOS.consejoExjugador(x, { desde: 3 }); return l && /semana 3/.test(l[1]) && x.eventoImportante.prep === 60; })());
+  // Premium y Tienda
+  const pn = P2.nuevaPartida({ seed: 8760 });
+  check('Premium: no está en la semana 1; se abre con el primer contrato como «Personalización Premium»', !pn.secciones.includes('premium') && (() => { pn.p.nivel = 56; P2.firmar(pn, 'puerto', null); const R = { desbloqueos: [] }; P2.revisarSecciones(pn, R); return pn.secciones.includes('premium') && R.desbloqueos.some(x => x.id === 'premium' && /profesional/.test(x.d)); })());
+  check('Premium: una partida antigua sin contrato lo pierde de la barra (y lo recupera al fichar)', (() => { const x = P2.nuevaPartida({ seed: 8761 }); x.secciones.push('premium'); const m = P2.migrateSave(JSON.parse(JSON.stringify(x))); return !m.secciones.includes('premium'); })());
+  check('Tienda: una sola sugerencia de objetivo si no tienes ninguno (a partir de la semana 10)', (() => { const x = P2.nuevaPartida({ seed: 8762 }); x.semana = 12; x.p.dinero = 300; const a = P2.sugerenciaDeseo(x); x.deseoSugerido = 12; x.semana = 13; const b = P2.sugerenciaDeseo(x); return !!a && b === null; })());
+  check('Tienda: al cobrar algo grande, un recordatorio suave (como mucho cada 8 semanas)', (() => { const x = P2.nuevaPartida({ seed: 8763 }); x.p.dinero = 6000; const R = { lineas: [], dinero0: 1000 }; P2.recordatorioDeseo(x, R); const R2 = { lineas: [], dinero0: 1000 }; x.semana += 2; P2.recordatorioDeseo(x, R2); return R.lineas.some(l => /permitirte/.test(l[1])) && !R2.lineas.length; })());
+  // Mi historia y telemetría
+  check('Mi historia: recuerda pruebas, ruta amateur, contrato, momentos y títulos en una línea de tiempo', (() => { const x = enClub('puerto', 8770); x.pruebas = [{ semana: 9, score: 40 }]; x.amateurSemanas = 8; x.memorables = [{ semana: 30, ic: '⭐', t: 'Penalti · final: Perfect' }]; const l = P2.caminoCarrera(x); return l.some(e => /Pruebas/.test(e.t)) && l.some(e => /amateur/.test(e.t)) && l.some(e => /Perfect/.test(e.t)) && l.every((e, i) => !i || l[i - 1].semana <= e.semana); })());
+  check('Telemetría: el informe del tester trae los minijuegos (por tipo, éxito, Perfect, frecuencia) y sus alertas', (() => { const s = jugarBot(8780, 80), inf = P2.informeTest(s); return /MINIJUEGOS/.test(inf) && /Frecuencia/.test(inf) && /Por tipo/.test(inf) && (/ALERTAS|Sin alertas/.test(inf)); })());
+  check('Telemetría: alerta si un tipo pasa del 40 % o se repite seguido', P2.alertasMinijuegos({ total: 20, maxTipo: 0.5, consecutivas: 1 }).length === 2 && P2.alertasMinijuegos({ total: 20, maxTipo: 0.1, consecutivas: 0 }).length === 0);
+}
+
 // ---------- 7. Simulación de balance ----------
 let informe;
 {
@@ -776,7 +853,8 @@ let informe;
     if (await pg.locator('.atras').count()) await pg.tap('.atras');
     await cerrarAnuncio();
     if (v === 'semana') return;
-    if (await pg.locator('.mundoBtn').count()) { await pg.tap('.mundoBtn'); await pg.tap(`.icono[data-v="${v}"]`); }
+    if (v === 'premium' && await pg.locator('.mundoBtn').count()) { await pg.tap('.mundoBtn'); await pg.tap('.icono[data-v="tienda"]'); await pg.tap('[data-act="tiendaTab"][data-v="premium"]'); }   // Premium vive dentro de la Tienda
+    else if (await pg.locator('.mundoBtn').count()) { await pg.tap('.mundoBtn'); await pg.tap(`.icono[data-v="${v}"]`); }
     else await pg.evaluate(v => __P2.ir(v), v);
   };
   await page.goto(url);
@@ -864,7 +942,11 @@ let informe;
   check('UI: la primera moto sale a lo grande («¡TU PRIMERA MOTO!») y el dinero baja una vez', await page.locator('.cele-coche .cocheEntra svg').isVisible() && (await page.textContent('.cele-coche')).includes('PRIMERA MOTO') && await page.evaluate(dm => __P2.S.p.dinero === dm - 1900, dm));
   await page.click('[data-act="celeOk"]', { force: true });
   check('UI: tras la gran animación no se repite el aviso de «NUEVA COMPRA»', await page.locator('.compraOk').count() === 0);
-  check('UI: la moto aparece en «Tus cosas» como vehículo', (await page.textContent('.cosas')).includes('Moto') && await page.locator('.prod.tuyo[data-id="moto"] .precio').isDisabled());
+  const motoTuya = await page.locator('.prod.tuyo[data-id="moto"] .precio').isDisabled();
+  await page.click('[data-act="tiendaTab"][data-v="cosas"]', { force: true });
+  check('UI: la moto aparece en «Mis cosas» (pestaña de la Tienda) como vehículo', (await page.textContent('.cosas')).includes('Moto') && motoTuya);
+  check('UI: la Tienda tiene tres pestañas (Tienda, Mis cosas, Premium)', await page.locator('.tiendaTabs button').count() === 3);
+  await page.click('[data-act="tiendaTab"][data-v="tienda"]', { force: true });
   await page.reload();
   check('UI: recargar conserva la compra y no la duplica', await page.evaluate(dm => __P2.S.p.dinero === dm - 1900 && __P2.S.inventario.filter(x => x.id === 'moto').length === 1, dm));
   await ir(page, 'patrimonio');
@@ -938,6 +1020,7 @@ let informe;
   check('UI: tras aceptar, el reloj sale con el precio rebajado', (await page.textContent('.prod[data-id="relojDep"] .precio')).includes('162'));
   // ---------- Premium: comercio real (simulado en el navegador, mismo servicio que el servidor) ----------
   const din0 = await page.evaluate(() => ({ d: __P2.S.p.dinero, n: __P2.S.p.nivel, r: __P2.S.p.rep, m: __P2.S.p.marca }));
+  await page.tap('[data-act="tiendaTab"][data-v="premium"]');
   await page.tap('.iapCard [data-act="iap"]');
   const fx = await page.textContent('.pmFicha');
   check('UI Premium: la oferta abre la ficha con nombre, precio REAL, qué incluye, «solo aspecto» y permanente', fx.includes('Pack Debut') && /0,99 €/.test(fx) && fx.includes('dinero real') && fx.includes('Incluye') && fx.includes('Solo aspecto') && fx.includes('Compra permanente'));

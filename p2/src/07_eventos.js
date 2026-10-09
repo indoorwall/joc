@@ -183,13 +183,15 @@
     try { return !!E.cond(s, n); } catch (_) { return false; }
   }
   function tirarSucesos(s) {
-    if (rnd(s) < CFG.sucesos.probSemana) {
-      const l = SUCESOS.filter(E => E.ambito === 'carrera' && disponible(s, E)).map(E => ({ E, w: E.peso(s) }));
+    // Director de eventos (P2.5.1): mira las últimas semanas para evitar rachas iguales, vacías o saturadas
+    const D = P2.EVENT_DIRECTOR ? P2.EVENT_DIRECTOR(s) : { factorSuceso: 1 };
+    if (rnd(s) < (D.forzar ? 0.9 : Math.min(0.9, CFG.sucesos.probSemana * D.factorSuceso))) {
+      const l = SUCESOS.filter(E => E.ambito === 'carrera' && disponible(s, E)).map(E => ({ E, w: E.peso(s) * (E.cruce && D.empujarEmpresa ? 2 : 1) }));
       const x = elegir(s, l);
       if (x) { s.sucesosVistos[x.E.id] = s.semana; P2.encolar(s, { tipo: 'suceso', id: x.E.id }); }
     }
     // Personas: solo cuando hay una situación (nunca mantenimiento semanal)
-    if (!s.pendiente && rnd(s) < CFG.sucesos.probRelacion) {
+    if (!s.pendiente && rnd(s) < CFG.sucesos.probRelacion * (D.empujarRelacion ? 1.8 : 1) * (D.factorSuceso < 1 ? 0.6 : 1)) {
       const l = SUCESOS.filter(E => E.ambito === 'relacion' && !E.soloAgenda && disponible(s, E) && (!E.rel || P2.relVisible(s, P2.persona(E.rel)))).map(E => ({ E, w: E.peso(s) }));
       const x = elegir(s, l);
       if (x) { s.sucesosVistos[x.E.id] = s.semana; P2.encolar(s, { tipo: 'suceso', id: x.E.id }); }
