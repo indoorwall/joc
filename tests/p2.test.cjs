@@ -229,7 +229,7 @@ function enClub(oferta = 'puerto', seed = 5) {
 
   // Navegación progresiva
   const nv = P2.nuevaPartida({ seed: 95 });
-  check('Al empezar se ven Inicio, Relaciones, Tienda, Inversiones, Patrimonio, Premium, Personaje, Mi historia, Hitos y Ajustes (sin Liga, Marcas ni Empresa)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,inversiones,patrimonio,premium,personaje,historia,hitos,ajustes');
+  check('Al empezar se ven Inicio, Relaciones, Tienda, Inversiones, Patrimonio, Personaje, Mi historia, Hitos y Ajustes (sin Liga, Marcas, Empresa ni Premium)', P2.seccionesVisibles(nv).map(x => x.id).join() === 'semana,relaciones,tienda,inversiones,patrimonio,personaje,historia,hitos,ajustes');
   check('Relaciones y Tienda están disponibles desde el inicio (antes que Empresa)', ['relaciones', 'tienda'].every(id => nv.secciones.includes(id)) && !nv.secciones.includes('empresa'));
   nv.p.nivel = 56; P2.firmar(nv, 'puerto', null); const nuevas = P2.revisarSecciones(nv, null).map(x => x.id);
   check('Al firmar se abren Liga y Marcas (y se avisa)', nuevas.includes('liga') && nuevas.includes('marcas') && !P2.seccionesVisibles(nv).some(x => x.id === 'empresa') && nv.seccionesNuevas.includes('liga'));
@@ -315,21 +315,21 @@ function enClub(oferta = 'puerto', seed = 5) {
   check('Minijuegos: «Simular» lo decide tu nivel, como mucho un 80 % (nunca perfecto)', P2.probSimular({ p: { nivel: 99 } }) === 0.8 && P2.probSimular({ p: { nivel: 30 } }) === 0.15 && P2.P_SIM.acierto < 0.9);
   const penP = g => { const x = enClub('puerto', 253); for (let k = 0; k < 40 && x.temporada.jornada < x.temporada.calendario.length - 1; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; P2.jugarSemana(x, 'descansar', g == null ? undefined : { minijuego: { tipo: 'penalti', p: g } }); return x.ultimo.partido; };
   const sinPen = penP(null), conGol = penP(0.75);
-  check('Minijuegos: meter el penalti decisivo suma un gol a tu equipo', sinPen && conGol && conGol.gf === sinPen.gf + (['titular', 'suplente'].includes(sinPen.rol) ? 1 : 0));
+  check('Minijuegos: un minijuego que no toca esta semana no cambia nada (no se puede colar un momento)', (() => { const x = enClub('puerto', 253); x.pendiente = null; const m = P2.momentoSemana(x, 'descansar'); if (m) return true; const a = JSON.parse(JSON.stringify(x)), b = JSON.parse(JSON.stringify(x)); P2.jugarSemana(a, 'descansar'); P2.jugarSemana(b, 'descansar', { minijuego: { tipo: 'partido', p: 1 } }); return a.ultimo.partido.gf === b.ultimo.partido.gf && a.confianza === b.confianza; })());
   const penC = g => { const x = enClub('puerto', 253); for (let k = 0; k < 40 && x.temporada.jornada < x.temporada.calendario.length - 1; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; const c0 = x.confianza; P2.jugarSemana(x, 'descansar', g == null ? undefined : { minijuego: { tipo: 'penalti', p: g } }); return { P: x.ultimo.partido, dc: x.confianza - c0, x }; };
   const fa = penC(0.3), sn = penC(null);
   const juegaFa = ['titular', 'suplente'].includes(fa.P.rol);
-  check('Minijuegos: fallar el penalti tiene consecuencias (gol del rival y menos confianza del míster), como en P1', !juegaFa || (fa.P.gc === sn.P.gc + 1 && fa.dc < sn.dc - 8 && fa.x.ultimo.lineas.some(l => /momento decisivo/i.test(l[1]))));
+  // (P2.5.1: el momento de partido solo cuenta si esa semana hay momento; las pruebas nuevas están en «Ritmo»)
   check('Minijuegos: hay 6 juegos distintos (4 nuevos: toques, pase, jugada ensayada y parada) con dificultad fácil, media o difícil', ['toques', 'pase', 'memoria', 'portero', 'barra', 'penalti'].every(k => P2.JUEGOS[k] && ['Fácil', 'Media', 'Difícil'].includes(P2.JUEGOS[k].dif)) && Object.values(P2.JUEGOS).some(g => g.dif === 'Fácil') && Object.values(P2.JUEGOS).some(g => g.dif === 'Difícil'));
-  check('Minijuegos: lo pequeño (pruebas) se juega con juegos fáciles o medios; lo grande (promociones, finales) puede tocar el difícil', P2.JUEGOS_DE.prueba.every(k => P2.JUEGOS[k].dif !== 'Difícil') && P2.JUEGOS_DE.final.some(k => P2.JUEGOS[k].dif === 'Difícil') && P2.JUEGOS_DE.promocion.some(k => P2.JUEGOS[k].dif === 'Difícil'));
-  check('Minijuegos: el juego cambia de una vez a otra y no toca el azar de la partida', (() => { const x = P2.nuevaPartida({ seed: 260 }), r0 = JSON.stringify(x.rng), vistos = new Set(); for (let w = 1; w < 30; w++) { x.semana = w; vistos.add(P2.juegoMinijuego(x, 'prueba')); } return vistos.size >= 2 && JSON.stringify(x.rng) === r0 && P2.juegoMinijuego(x, 'penalti') === 'penalti'; })());
+  check('Minijuegos: lo pequeño (pruebas) se juega con juegos fáciles o medios; lo grande (promociones, finales) puede tocar el difícil', P2.MINIGAME_INSTANCES.filter(X => X.dep === 'futbol' && X.ctx.includes('prueba')).every(X => P2.JUEGOS[X.juego].dif !== 'Difícil') && P2.MINIGAME_INSTANCES.some(X => X.ctx.includes('final') && P2.JUEGOS[X.juego].dif === 'Difícil') && P2.MINIGAME_INSTANCES.some(X => X.ctx.includes('promocion') && P2.JUEGOS[X.juego].dif === 'Difícil'));
+  check('Minijuegos: el juego cambia de una vez a otra y no toca el azar de la partida', (() => { const x = P2.nuevaPartida({ seed: 260 }), r0 = JSON.stringify(x.rng), vistos = new Set(); x.fase = 'pruebas'; x.invitacion = { via: 'ojeador', semana: 1, dia: 1 }; for (let w = 1; w < 30; w++) { x.semana = w; vistos.add(P2.momentoSemana(x, 'descansar').inst); } return vistos.size >= 2 && JSON.stringify(x.rng) === r0; })());
   check('Vidas: solo un reintento por momento decisivo y se recargan cada 6 semanas (como en P1)', P2.VIDAS.reintentosPorMomento === 1 && P2.VIDAS.recargaSemanas === 6);
   const vi = P2.nuevaPartida({ seed: 254 });
   check('Vidas: empiezas con 3 y repetir un minijuego gasta una', P2.vidas(vi).n === 3 && P2.usarVida(vi) && P2.vidas(vi).n === 2);
   P2.usarVida(vi); P2.usarVida(vi);
   check('Vidas: sin vidas no se puede repetir', P2.vidas(vi).n === 0 && P2.usarVida(vi) === false);
   const pv = P2.pedirRewarded(vi, 'vida', {}); P2.aceptarRewarded(vi, pv.token);
-  check('Vidas: un anuncio (simulado) da +1 vida, una vez por semana', P2.vidas(vi).n === 1 && P2.pedirRewarded(vi, 'vida', {}) === null);
+  check('Vidas: un anuncio (simulado) da +1 vida, y no otra hasta dentro de 4 semanas', P2.vidas(vi).n === 1 && P2.pedirRewarded(vi, 'vida', {}) === null && /4 semanas/.test(P2.bloqueoRewarded(vi, 'vida')));
   for (let w = 0; w < P2.VIDAS.recargaSemanas; w++) { vi.pendiente = null; vi.cola = []; P2.jugarSemana(vi, 'descansar'); }
   check('Vidas: se recargan solas con el tiempo (sin pagar ni ver anuncios)', P2.vidas(vi).n >= 2);
   check('Vidas: se guardan con la partida', P2.migrateSave(JSON.parse(JSON.stringify(vi))).vidas.n === P2.vidas(vi).n);
@@ -338,12 +338,12 @@ function enClub(oferta = 'puerto', seed = 5) {
   const finLiga = x => { const T = x.temporada; for (let k = 0; k < 20 && !T.cerrada; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; return T; };
   const buscaPromo = (clase, oferta = 'costaReal') => { for (let sd = 300; sd < 400; sd++) { const x = enClub(oferta, sd), T = finLiga(x); if (T.promocion && T.promocion.clase === clase) return sd; } return null; };
   const sdA = buscaPromo('ascenso'), sdP = buscaPromo('permanencia');
-  const promo = (sd, p) => { const x = enClub('costaReal', sd), T = finLiga(x), L = P2.LIGAS[T.liga]; const t = P2.minijuegoSemana(x, 'descansar'), X = P2.enJuego(x, 'promocion'); const R = P2.jugarSemana(x, 'descansar', p == null ? undefined : { minijuego: { tipo: 'promocion', p } }); const M = P2.mundo(x); return { x, T, L, t, X, R, sube: M.ligas[L.sube || T.liga].includes(T.yo) && !!L.sube, baja: !!L.baja && M.ligas[L.baja].includes(T.yo), tam: Object.keys(M.ligas).map(k => M.ligas[k].length) }; };
+  const promo = (sd, p, niv) => { const x = enClub('costaReal', sd), T = finLiga(x), L = P2.LIGAS[T.liga]; if (niv != null) x.p.nivel = niv; const t = P2.minijuegoSemana(x, 'descansar'), X = P2.enJuego(x, 'promocion'); const R = P2.jugarSemana(x, 'descansar', p == null ? undefined : { minijuego: { tipo: 'promocion', p } }); const M = P2.mundo(x); return { x, T, L, t, X, R, sube: M.ligas[L.sube || T.liga].includes(T.yo) && !!L.sube, baja: !!L.baja && M.ligas[L.baja].includes(T.yo), tam: Object.keys(M.ligas).map(k => M.ligas[k].length) }; };
   check('Categoría: hay temporadas que acaban en promoción de ascenso y de permanencia', sdA != null && sdP != null);
   if (sdA != null) {
     const a = promo(sdA, null);
     check('Categoría: al acabar justo fuera del ascenso, la temporada espera una semana y esa semana el minijuego es la promoción', a.t === 'promocion' && /Subís/.test(a.X.gana) && /misma categoría/.test(a.X.pierde));
-    const g = promo(sdA, 0.9), pe = promo(sdA, 0.2);
+    const g = promo(sdA, 0.95, 85), pe = promo(sdA, 0.2, 30);
     check('Categoría: ganar la promoción de ascenso te sube de categoría', g.sube && g.T.promocion.estado === 'ganada' && g.R.lineas.some(l => /ASCENSO/.test(l[1])));
     check('Categoría: perderla te deja en la misma categoría, con consecuencias (confianza y reputación)', !pe.sube && !pe.baja && pe.T.promocion.estado === 'perdida' && pe.x.confianza < g.x.confianza && (pe.R.grandes || []).some(G => !G.bien));
     check('Categoría: las ligas siguen teniendo 8 equipos tras una promoción', g.tam.every(n => n === 8) && pe.tam.every(n => n === 8));
@@ -351,24 +351,24 @@ function enClub(oferta = 'puerto', seed = 5) {
     check('Categoría: sin minijuego (bots) la promoción la decide el nivel, siempre igual con la misma semilla', b1.T.promocion.estado === b2.T.promocion.estado && b1.sube === b2.sube);
   }
   if (sdP != null) {
-    const g = promo(sdP, 0.9), pe = promo(sdP, 0.2);
+    const g = promo(sdP, 0.95, 85), pe = promo(sdP, 0.2, 30);
     check('Categoría: ganar la promoción de permanencia te mantiene en la categoría', !g.baja && !g.sube && g.T.promocion.estado === 'ganada');
     check('Categoría: perder la promoción de permanencia te baja de categoría', pe.baja && pe.R.lineas.some(l => /Descenso/.test(l[1])));
     check('Categoría: en la permanencia, si te salvas baja el otro (siguen bajando los mismos clubes)', g.tam.every(n => n === 8) && pe.tam.every(n => n === 8));
   }
   // Copas: la final se juega con el minijuego
   const buscaFinal = id => { for (let sd = 400; sd < 480; sd++) { const x = enClub('costaReal', sd); x.p.nivel = 80; if (id !== 'copa') x[id === 'europa' ? 'europaProxima' : 'convocado'] = true; const T = x.temporada, F = P2.COMPETICIONES[id].final; for (let k = 0; k < 20 && T.jornada < F; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; const c = (T.copas || []).find(c => c.id === id); if (c && c.estado === 'viva' && T.jornada === F) return sd; } return null; };
-  const finalCopa = (id, sd, p) => { const x = enClub('costaReal', sd); x.p.nivel = 80; if (id !== 'copa') x[id === 'europa' ? 'europaProxima' : 'convocado'] = true; const T = x.temporada, F = P2.COMPETICIONES[id].final; for (let k = 0; k < 20 && T.jornada < F; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; const t = P2.minijuegoSemana(x, 'descansar'), X = P2.enJuego(x, 'final'), d0 = x.p.dinero, r0 = x.p.rep; const R = P2.jugarSemana(x, 'descansar', p == null ? undefined : { minijuego: { tipo: 'final', p } }); return { x, t, X, R, dd: x.p.dinero - d0, dr: x.p.rep - r0, c: T.copas.find(c => c.id === id) }; };
+  const finalCopa = (id, sd, p, niv) => { const x = enClub('costaReal', sd); x.p.nivel = 80; if (id !== 'copa') x[id === 'europa' ? 'europaProxima' : 'convocado'] = true; const T = x.temporada, F = P2.COMPETICIONES[id].final; for (let k = 0; k < 20 && T.jornada < F; k++) { x.pendiente = null; x.cola = []; P2.jugarSemana(x, 'descansar'); } x.pendiente = null; x.cola = []; x.p.energia = 90; x.p.lesion = 0; if (niv != null) x.p.nivel = niv; const t = P2.minijuegoSemana(x, 'descansar'), X = P2.enJuego(x, 'final'), d0 = x.p.dinero, r0 = x.p.rep; const R = P2.jugarSemana(x, 'descansar', p == null ? undefined : { minijuego: { tipo: 'final', p } }); return { x, t, X, R, dd: x.p.dinero - d0, dr: x.p.rep - r0, c: T.copas.find(c => c.id === id) }; };
   const pre = enClub('costaReal', 470); pre.europaProxima = true; pre.convocado = true; pre.pendiente = null; P2.jugarSemana(pre, 'descansar');
   check('Copas: cada temporada hay Copa; con plaza europea, Copa de Europa; si te convocan, Mundial', pre.temporada.copas.map(c => c.id).join() === 'copa,europa,mundial' && !pre.europaProxima && !pre.convocado);
   for (const id of ['copa', 'europa', 'mundial']) {
     const sd = buscaFinal(id); if (sd == null) { check(`Copas: se llega a la final de ${P2.COMPETICIONES[id].n}`, false); continue; }
-    const g = finalCopa(id, sd, 0.9), pe = finalCopa(id, sd, 0.2);
+    const g = finalCopa(id, sd, 0.95), pe = finalCopa(id, sd, 0.2, 30);
     check(`Copas: la final de ${P2.COMPETICIONES[id].n} se juega con el minijuego (y dice qué te juegas)`, g.t === 'final' && /Campeones/.test(g.X.gana) && /Subcampeones/.test(g.X.pierde));
     check(`Copas: ganar la final de ${P2.COMPETICIONES[id].n} da el título, premio y fama`, g.c.estado === 'campeon' && g.x.trofeos.some(tr => tr.n === P2.COMPETICIONES[id].n) && g.dd - pe.dd >= P2.COMPETICIONES[id].gana.dinero && g.dr > pe.dr);
     check(`Copas: perder la final de ${P2.COMPETICIONES[id].n} tiene consecuencias (sin título y menos reputación)`, pe.c.estado === 'subcampeon' && !pe.x.trofeos.some(tr => tr.n === P2.COMPETICIONES[id].n) && (pe.R.grandes || []).some(G => !G.bien && /Final perdida/.test(G.titulo)));
   }
-  check('Celebraciones: ganar una final, firmar un contrato o comprar un negocio deja un gran momento para animar (con el dinero)', (() => { const sd = buscaFinal('copa'); const g = finalCopa('copa', sd, 0.9), pe = finalCopa('copa', sd, 0.2); const c = g.x.celebraciones.find(x => x.tipo === 'titulo'); const k = enClub('puerto', 9); return c && c.dinero === P2.COMPETICIONES.copa.gana.dinero && !pe.x.celebraciones.some(x => x.tipo === 'titulo') && k.celebraciones.some(x => x.tipo === 'contrato' && x.sueldo > 0); })());
+  check('Celebraciones: ganar una final, firmar un contrato o comprar un negocio deja un gran momento para animar (con el dinero)', (() => { const sd = buscaFinal('copa'); const g = finalCopa('copa', sd, 0.95), pe = finalCopa('copa', sd, 0.2, 30); const c = g.x.celebraciones.find(x => x.tipo === 'titulo'); const k = enClub('puerto', 9); return c && c.dinero === P2.COMPETICIONES.copa.gana.dinero && !pe.x.celebraciones.some(x => x.tipo === 'titulo') && k.celebraciones.some(x => x.tipo === 'contrato' && x.sueldo > 0); })());
   check('Celebraciones: el primer coche y la primera casa se celebran; el segundo coche no', (() => { const x = P2.nuevaPartida({ seed: 31 }); x.p.dinero = 999999; x.hitos.contrato = 1; x.hitos.titular = 1; x.hitos.capital = 1; x.hitos.empresa = 1; x.hitos.rentable = 1; x.hitos.patro = 1; x.celebraciones = []; P2.comprar(x, 'cocheUsado'); const c1 = x.celebraciones.filter(c => c.tipo === 'coche').length; P2.comprar(x, 'deportivo'); const c2 = x.celebraciones.filter(c => c.tipo === 'coche').length; P2.comprar(x, 'piso'); return c1 === 1 && c2 === 1 && x.celebraciones.some(c => c.tipo === 'casa'); })());
   check('Celebraciones: vender una empresa con beneficio se celebra (y con pérdidas no)', (() => { const x = P2.nuevaPartida({ seed: 32 }); const n = P2.nuevoNegocio('peluqueria', 3000); n.invertido = 100; x.negocios.push(n); x.celebraciones = []; P2.venderNegocio(x, n.id); const y = P2.nuevaPartida({ seed: 32 }); const m = P2.nuevoNegocio('peluqueria', 3000); m.invertido = 1e9; y.negocios.push(m); y.celebraciones = []; P2.venderNegocio(y, m.id); return x.celebraciones.some(c => c.tipo === 'venta' && c.beneficio > 0) && !y.celebraciones.length; })());
   check('Celebraciones: récord de patrimonio al pasar 10.000 € (una vez por cifra)', (() => { const x = P2.nuevaPartida({ seed: 33 }); x.semana = 1; P2.anotarHistoria(x, 'semana'); x.celebraciones = []; x.p.dinero = 12000; P2.anotarHistoria(x, 'semana'); P2.anotarHistoria(x, 'semana'); return x.celebraciones.filter(c => c.tipo === 'patrimonio' && c.cifra === 10000).length === 1; })());
@@ -871,9 +871,9 @@ let informe;
   check('UI: el patrimonio incluye la moto (1.140 €)', (await page.textContent('.patri')).includes('1140'));
   // Minijuego en la interfaz: el día de las pruebas
   await ir(page, 'semana');
-  await page.evaluate(() => { const S = __P2.S; S.pendiente = null; S.cola = []; S.p.lesion = 0; S.p.energia = 90; for (let k = 0; k < 40 && S.temporada.jornada < S.temporada.calendario.length - 1; k++) { S.pendiente = null; S.cola = []; __P2.P2.jugarSemana(S, 'descansar'); } S.pendiente = null; S.cola = []; S.p.lesion = 0; S.p.energia = 90; S.celebraciones = []; __P2.ui.celes = []; __P2.render(); __P2.ui.celes = []; __P2.ui.paso = null; __P2.ui.fiestas = []; __P2.ui.mundo = false; __P2.ui.vista = 'semana'; __P2.render(); });
-  await page.click('.op', { force: true });
-  check('UI: en el partido decisivo sale el minijuego del penalti (con vidas y opción de simular)', (await page.textContent('.mj')).includes('Penalti') && await page.locator('.mj .vidas').isVisible() && await page.locator('[data-act="mjSimular"]').isVisible());
+  await page.evaluate(() => { const S = __P2.S; S.pendiente = null; S.cola = []; S.p.lesion = 0; S.p.energia = 90; for (let k = 0; k < 40 && !(__P2.P2.momentoSemana(S, 'descansar') || {}).ctx; k++) { S.pendiente = null; S.cola = []; S.p.lesion = 0; __P2.P2.jugarSemana(S, 'descansar'); } S.pendiente = null; S.cola = []; S.p.lesion = 0; S.p.energia = 90; S.celebraciones = []; __P2.ui.celes = []; __P2.render(); __P2.ui.celes = []; __P2.ui.paso = null; __P2.ui.fiestas = []; __P2.ui.mundo = false; __P2.ui.vista = 'semana'; __P2.ui.masOps = true; __P2.render(); });
+  await page.click('[data-act="jugarYa"][data-id="descansar"]', { force: true });
+  check('UI: un momento clave se presenta como tal (contexto, qué consigues, vidas y opción de simular)', /MOMENTO CLAVE|GRAN MOMENTO/.test(await page.textContent('.mj')) && await page.locator('.mj .enjuego.bien').isVisible() && await page.locator('.mj .vidas').isVisible() && await page.locator('[data-act="mjSimular"]').isVisible());
   await page.click('[data-act="mjSimular"]', { force: true });
   check('UI: simular enseña si ha salido bien o mal (lo decide tu nivel) y no deja reintentar', (await page.textContent('.mj')).includes('Simulado') && await page.locator('[data-act="mjReintentar"]').count() === 0);
   await page.click('[data-act="mjFin"]', { force: true });
@@ -889,17 +889,17 @@ let informe;
   if (await page.locator('[data-act="interOk"]').count()) await page.click('[data-act="interOk"]', { force: true });
   check('UI: la semana de la promoción avisa de lo que te juegas', (await page.textContent('.partidoProx')).includes('Esta semana') && (await page.textContent('.partidoProx')).includes('✗'));
   await page.click('.op', { force: true });
-  check('UI: el minijuego de la promoción dice qué pasa si ganas y si pierdes', (await page.textContent('.mj')).includes('TE LO JUEGAS TODO') && await page.locator('.mj .enjuego.bien').isVisible() && await page.locator('.mj .enjuego.mal').isVisible());
+  check('UI: el minijuego de la promoción dice qué pasa si ganas y si pierdes', (await page.textContent('.mj')).includes('GRAN MOMENTO') && await page.locator('.mj .enjuego.bien').isVisible() && await page.locator('.mj .enjuego.mal').isVisible());
   await page.evaluate(() => { __P2.ui.mj.res = [0.1, 0.1, 0.1]; __P2.ui.mj.p = 0.1; __P2.ui.mj.fase = 'fin'; __P2.render(); });
-  check('UI: si pierdes la promoción puedes reintentar gastando una vida', (await page.textContent('.mj')).includes('Se escapa') && (await page.locator('[data-act="mjReintentar"]').count() + await page.locator('.rw[data-t="vida"]').count()) === 1);
+  check('UI: si pierdes la promoción puedes aceptar el resultado o reintentar gastando una vida', (await page.textContent('.mj')).includes('No ha salido') && (await page.textContent('.mj')).includes('Aceptar resultado') && (await page.locator('[data-act="mjReintentar"]').count() + await page.locator('.rw[data-t="vida"]').count()) === 1);
   await page.click('[data-act="mjFin"]', { force: true });
   for (let g = 0; g < 4 && await page.locator('[data-act="celeOk"]').count(); g++) await page.click('[data-act="celeOk"]', { force: true });
   check('UI: el resultado de la promoción sale en grande', await page.locator('.res').isVisible() && await page.evaluate(() => __P2.S.ultimo.lineas.some(l => /Promoción|Final por el título/.test(l[1]))));
   for (let g = 0; g < 6 && await page.locator('[data-act="seguir"]').count(); g++) await page.click('[data-act="seguir"]', { force: true });
   // Los 4 minijuegos nuevos, jugados de verdad
-  const mjDe = async juego => { await page.evaluate(j => { const S = __P2.S, T = S.temporada; S.pendiente = null; S.cola = []; T.cerrada = true; T.promocion = { clase: 'ascenso', estado: 'pendiente', pos: 3 }; __P2.ui.celes = []; __P2.ui.paso = null; __P2.ui.fiestas = []; __P2.ui.mundo = false; __P2.ui.inter = false; __P2.ui.vista = 'semana'; __P2.ui.mj = { tipo: 'promocion', juego: j, accion: 'descansar', fase: 'intro', res: [], reintentos: 0, enJuego: __P2.P2.enJuego(S, 'promocion') }; __P2.render(); }, juego); };
+  const mjDe = async juego => { await page.evaluate(j => { const S = __P2.S, T = S.temporada; S.pendiente = null; S.cola = []; T.cerrada = true; T.promocion = { clase: 'ascenso', estado: 'pendiente', pos: 3 }; __P2.ui.celes = []; __P2.ui.paso = null; __P2.ui.fiestas = []; __P2.ui.mundo = false; __P2.ui.inter = false; __P2.ui.vista = 'semana'; __P2.ui.mj = { tipo: 'promocion', juego: j, inst: { toques: 'tecnica', pase: 'paseHueco', memoria: 'tikitaka', portero: 'entrada', barra: 'tiroColocado', penalti: 'penalti' }[j], imp: 4, mom: { motivos: [] }, mods: { ventana: 1, vel: 1, lista: [] }, accion: 'descansar', fase: 'intro', res: [], reintentos: 0, enJuego: __P2.P2.enJuego(S, 'promocion') }; __P2.render(); }, juego); };
   await mjDe('toques');
-  check('UI: el minijuego enseña qué juego es y su dificultad', (await page.textContent('.mjJuego')).includes('Toques') && (await page.textContent('.mjJuego .dif')).includes('Fácil'));
+  check('UI: el minijuego enseña qué momento es, su motor y su dificultad', (await page.textContent('.mjJuego')).includes('Prueba técnica') && (await page.textContent('.mjJuego .dif')).includes('Timing · Normal'));
   await page.click('[data-act="mjEmpezar"]', { force: true });
   for (let k = 0; k < 5; k++) { await page.waitForFunction(() => __P2.ui.mjPos > 88, null, { timeout: 5000 }); await page.click('#mjToque', { force: true }); }
   check('UI: Toques (fácil): tocar cuando el balón baja al pie sale bien', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && __P2.ui.mj.p >= 0.6));
@@ -920,7 +920,8 @@ let informe;
   await page.click('[data-act="mjFlecha"][data-v="0"]', { force: true }); await page.click('[data-act="mjFlecha"][data-v="3"]', { force: true });
   check('UI: Jugada ensayada: equivocarse acaba la jugada (1 de 5 → fallo, se puede reintentar con una vida)', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && Math.abs(__P2.ui.mj.p - 0.2) < 1e-9) && (await page.locator('[data-act="mjReintentar"]').count() + await page.locator('.rw[data-t="vida"]').count()) === 1);
   await mjDe('portero');
-  check('UI: Parada imposible es el juego difícil', (await page.textContent('.mjJuego .dif')).includes('Difícil'));
+  await page.evaluate(() => { __P2.ui.mj.mods = { ventana: 0.7, vel: 1.3, lista: [{ ic: '🪫', t: 'Energía 15: llegas reventado/a', ventana: -0.3, vel: 0.24, bien: false }] }; __P2.render(); });
+  check('UI: llegar cansado/a se nota: «Difícil» y el porqué', (await page.textContent('.mjJuego .dif')).includes('Difícil') && (await page.textContent('.mjMods')).includes('reventado'));
   await page.click('[data-act="mjEmpezar"]', { force: true });
   for (let k = 0; k < 3; k++) { await page.waitForFunction(() => __P2.ui.mj.balon != null, null, { timeout: 6000 }); const lado = await page.evaluate(() => __P2.ui.mj.balon); await page.click(`[data-act="mjParada"][data-v="${lado}"]`, { force: true }); }
   check('UI: Parada imposible: tirarse al lado bueno a tiempo para los tres tiros', await page.evaluate(() => __P2.ui.mj.fase === 'fin' && __P2.ui.mj.p >= 0.6));

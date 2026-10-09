@@ -48,7 +48,9 @@
         else { c.estado = 'eliminado'; R.lineas.push([C.ic, `${C.n}: eliminados en ${ronda[1].toLowerCase()}.`, 'mal']); }
       }
       if (C.final === jp) {
-        const m = mj(s), gana = m && m.tipo === 'final' ? m.p >= 0.6 : azar(s, `${c.id}|final|${T.num}`) < prob(s);
+        // Gestión (nivel + preparación) decide la base; el minijuego inclina la balanza
+        const m = mj(s), pg = P2.probGranPartido(s, 'final'), gana = azar(s, `${c.id}|final|${T.num}`) < pg;
+        R.momento = granMomento(s, m, gana, C.n, pg);
         c.estado = gana ? 'campeon' : 'subcampeon';
         aplicar(s, gana ? C.gana : C.pierde);
         if (gana) { (s.trofeos = s.trofeos || []).push({ id: c.id, ic: C.ic, n: C.n, semana: s.semana }); P2.celebrar(s, Object.assign({ tipo: 'titulo', comp: c.id, n: C.n, ic: C.ic }, C.gana)); }
@@ -57,6 +59,15 @@
         R.lineas.push([gana ? C.ic : '😖', gana ? `¡Ganáis la final de la ${C.n}!` : `Perdéis la final de la ${C.n}.`, gana ? 'bien' : 'mal']);
       }
     }
+  }
+  // Qué pasó y por qué importa en una final o promoción
+  function granMomento(s, m, gana, n, pg) {
+    const ev = s.eventoImportante && s.eventoImportante.semana === s.semana ? s.eventoImportante : null, porque = [];
+    if (ev) porque.push(`Llegabas con un ${Math.round(P2.prepEfectiva(ev, s))} % de preparación`);
+    if (m) { const r = P2.nivelRes(m.p), X = P2.nombreInst(P2.instancia(m.inst) || P2.instancia('penalti')); porque.push(`${X.n}: ${r === 'PERFECT' ? 'Perfect' : r === 'GOOD' ? 'te sale' : 'te falla'} (${r === 'FAIL' ? '' : '+'}${Math.round(P2.AJUSTE_GRANDE[r] * 100)} puntos de probabilidad)`); if (r === 'PERFECT' && gana) s.p.rep = r1(clamp(s.p.rep + 1, 0, 100)); }
+    porque.push(`Opciones de ganar: ${Math.round(pg * 100)} %`);
+    P2.recordar && P2.recordar(s, gana ? '🏆' : '😖', `${n}: ${gana ? 'ganada' : 'perdida'}${ev ? ` (preparación ${Math.round(P2.prepEfectiva(ev, s))} %)` : ''}`);
+    return { ic: gana ? '🏆' : '😖', titulo: gana ? `¡${n.toUpperCase()}: GANADA!` : `${n}: perdida`, bien: gana, que: gana ? 'Lo celebráis en el césped.' : 'Se escapa. Mañana la historia seguirá.', porque, gran: true };
   }
   function aplicar(s, e) {
     if (e.dinero) { s.p.dinero += e.dinero; s.acum.primas += e.dinero; }
@@ -108,7 +119,8 @@
   // Semana de la promoción: la liga ya acabó; se decide con tu minijuego (o por nivel si no lo juegas)
   function jugarPromocion(s, R) {
     const T = s.temporada, pr = T.promocion; if (!pr || pr.estado !== 'pendiente') return false;
-    const m = mj(s), gana = m && m.tipo === 'promocion' ? m.p >= 0.6 : azar(s, `promo|${T.num}|${T.liga}`) < prob(s);
+    const m = mj(s), pg = P2.probGranPartido(s, 'promocion'), gana = azar(s, `promo|${T.num}|${T.liga}`) < pg;
+    R.momento = granMomento(s, m, gana, TXT_PROMO[pr.clase].n, pg);
     pr.estado = gana ? 'ganada' : 'perdida';
     const X = TXT_PROMO[pr.clase];
     R.lineas.push([X.ic, `${X.n}: ${gana ? '¡la ganáis!' : 'la perdéis.'}`, gana ? 'bien' : 'mal']);
@@ -152,5 +164,5 @@
     const c = copaFinalEn(s, T.jornada); return c ? Object.assign({ copa: c.id }, COMPETICIONES[c.id]) : null;
   }
 
-  Object.assign(P2, { iniciarPromocion, promoPendiente, enJuego, COMPETICIONES, CONVOCATORIA, TXT_PROMO, prepararCopas, semanaCopas, clasePromocion, jugarPromocion, ajustarMovimiento, trasTemporada, finalEstaSemana });
+  Object.assign(P2, { iniciarPromocion, promoPendiente, enJuego, COMPETICIONES, CONVOCATORIA, TXT_PROMO, prepararCopas, semanaCopas, clasePromocion, jugarPromocion, ajustarMovimiento, trasTemporada, finalEstaSemana, copaFinalEn });
 })(globalThis.P2 = globalThis.P2 || {});

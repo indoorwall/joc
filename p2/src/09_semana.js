@@ -12,13 +12,18 @@
   function jugarSemana(s, accion, opc) {
     P2.activarDeporte(s.deporte);
     if (s.pendiente) return null;
-    s.mjSemana = opc && opc.minijuego ? { tipo: String(opc.minijuego.tipo), p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
     const especial = accion === '__acto' || accion === '__evento';
     if (!especial && P2.bloqueoAccion(s, accion)) return null;
+    // Momento clave de la semana (el mismo que vio la interfaz antes de jugar). Lo que llega del minijuego solo cuenta si coincide
+    const mom = !especial && P2.momentoSemana ? P2.momentoSemana(s, accion) : null, mjIn = opc && opc.minijuego;
+    const tipoIn = mjIn ? (String(mjIn.tipo) === 'penalti' ? 'partido' : String(mjIn.tipo)) : null;
+    s.mjSemana = mjIn && mom && tipoIn === mom.ctx ? { tipo: mom.ctx, inst: mom.inst, imp: mom.imp, minuto: mom.minuto, p: clamp(+mjIn.p || 0, 0, 1), semana: s.semana } : null;
     const R = nuevoR(s);
     const m = s.semanaMods && s.semanaMods.semana === s.semana ? s.semanaMods : {};
     Object.assign(R, { bonusNota: m.bonusNota || 0, riesgoLesion: m.riesgoLesion || 1, gestion: !!m.gestion, plazaX2: !!m.plazaX2 });
     const lesionInicio = s.p.lesion > 0;
+    if (P2.aplicarPreparacion) P2.aplicarPreparacion(s, accion, R);   // la semana antes de un gran partido cuenta
+    s.ultAcciones = (Array.isArray(s.ultAcciones) ? s.ultAcciones : []).concat({ semana: s.semana, a: accion }).slice(-8);
     const repAntes = s.p.rep;
 
     if (!especial) P2.tele(s, 'accion', { id: accion });
@@ -50,7 +55,7 @@
     // Recuperación, lesiones
     const enEquipo = s.fase === 'club' || s.fase === 'amateur';
     s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio) + P2.efectoPatro(s, 'recuperacion') + P2.efectoTienda(s, 'recuperacion'), 0, CFG.energia.max);
-    if (lesionInicio && s.p.lesion > 0) { s.p.lesion--; if (!s.p.lesion) R.lineas.push(['✅', 'Recuperado/a de la lesión.', 'bien']); }
+    if (lesionInicio && s.p.lesion > 0) { s.p.lesion--; if (!s.p.lesion) { s.finLesion = s.semana; R.lineas.push(['✅', 'Recuperado/a de la lesión.', 'bien']); } }
 
     // Fin de la captación sin prueba: ruta amateur (nunca game over)
     if (s.fase === 'barrio' && !s.invitacion && s.semana >= CFG.captacion.semanas) {
@@ -64,6 +69,11 @@
     }
     P2.revisarHitos(s, R);
     P2.revisarSecciones(s, R);
+    // Momento clave: historial (cooldowns), estadísticas, logros; gran partido que se acerca; variedad de la semana
+    if (mom && P2.registrarMomento) P2.registrarMomento(s, mom, s.mjSemana ? { p: s.mjSemana.p, reintentos: (mjIn && +mjIn.reintentos) || 0, simulado: !!(mjIn && mjIn.simulado) } : null, R);
+    if (P2.detectarEvento) P2.detectarEvento(s, R);
+    if (P2.cerrarSemanaLog) P2.cerrarSemanaLog(s, accion, R, mom);
+    if (P2.recordatorioDeseo) P2.recordatorioDeseo(s, R);
     // Segunda inversión aplazada: se vuelve a proponer cuando ya puedes pagar alguna (como mucho cada 6 semanas)
     if (s.oportunidadAbierta && !s.oportunidad && s.p.dinero >= Math.min(...P2.OPORTUNIDADES.map(o => o.coste)) && s.semana - (s.recordatorioOp || 0) >= 6) {
       s.recordatorioOp = s.semana; P2.encolar(s, { tipo: 'oportunidad' });
@@ -101,6 +111,11 @@
     const R = nuevoR(s);
     const r = D.resolver(s, ev, opId, R);
     if (!r) return null;
+    if (P2.etiquetarSemana) {   // para el director de eventos: qué tipo de cosas pasan
+      const E = ev.tipo === 'suceso' && P2.SUCESOS.find(x => x.id === ev.id);
+      P2.etiquetarSemana(s, E ? (E.ambito === 'relacion' ? 'relationship' : E.ambito === 'empresa' ? 'business' : 'event') : ev.tipo === 'acto' || ev.tipo === 'marca' ? 'sponsor' : 'event');
+      if (E && E.cruce) P2.etiquetarSemana(s, 'business');
+    }
     P2.tele(s, 'decision', { tipo: ev.tipo, id: ev.id || ev.origen || ev.marca || null, op: opId });
     if (r.semana) s.pendiente = null; else P2.siguiente(s);
     P2.revisarSecciones(s, R);

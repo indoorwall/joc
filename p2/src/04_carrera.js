@@ -297,23 +297,22 @@
     let gf, gc, resultado, puesto = null, m = null;
     if (circ) {
       const o = res[0].orden; let i = o.indexOf(T.yo);
-      if (pen) { const mov = pen === 'perfecto' ? -2 : pen === 'gol' ? -1 : pen === 'desastre' ? 2 : 1; const j = clamp(i + mov, 0, o.length - 1); o.splice(i, 1); o.splice(j, 0, T.yo); i = j; }
+      if (pen) { const mov = pen === 'perfecto' || pen === 'gol' ? -1 : pen === 'fallo' ? 1 : 0; const j = clamp(i + mov, 0, o.length - 1); o.splice(i, 1); o.splice(j, 0, T.yo); i = j; }
       puesto = i + 1; gf = puesto; gc = o.length;
       resultado = puesto <= 3 ? 'victoria' : puesto <= 5 ? 'empate' : 'derrota';
     } else {
       m = res.find(x => x.l === T.yo || x.v === T.yo);
       const nosotros = m.l === T.yo ? 'gl' : 'gv', ellos = m.l === T.yo ? 'gv' : 'gl';
       if (T.formato === 'sets' && noCompite) { m[nosotros] = 0; m[ellos] = 2; }
-      if (F === 'goles') {
-        if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 2 : 1;
-        if (pen === 'fallo' || pen === 'desastre') m[ellos] += pen === 'desastre' ? 2 : 1;
-      } else if (F === 'puntos' && pen) {
-        if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 3 : 2; else m[ellos] += pen === 'desastre' ? 3 : 2;
-        if (m.gl === m.gv) m[pen === 'gol' || pen === 'perfecto' ? nosotros : ellos] += 1;
-      } else if (F === 'sets' && pen) {
-        const bien = pen === 'gol' || pen === 'perfecto';
-        if (bien && m[nosotros] < m[ellos] && (m[nosotros] === 1 || pen === 'perfecto')) { m[nosotros] = 2; m[ellos] = 1; }
-        if (!bien && m[nosotros] > m[ellos] && (m[ellos] === 1 || pen === 'desastre')) { m[nosotros] = 1; m[ellos] = 2; }
+      // Momento clave (P2.5.1): como mucho cambia un gol. Ataque: acierto = gol; defensa: fallo = gol del rival
+      const marca = pen === 'gol' || pen === 'perfecto', encaja = pen === 'fallo';
+      if (F === 'goles') { if (marca) m[nosotros] += 1; if (encaja) m[ellos] += 1; }
+      else if (F === 'puntos' && (marca || encaja)) {
+        m[marca ? nosotros : ellos] += 2;
+        if (m.gl === m.gv) m[marca ? nosotros : ellos] += 1;
+      } else if (F === 'sets' && (marca || encaja)) {
+        if (marca && m[nosotros] < m[ellos] && m[nosotros] === 1) { m[nosotros] = 2; m[ellos] = 1; }
+        if (encaja && m[nosotros] > m[ellos] && m[ellos] === 1) { m[nosotros] = 1; m[ellos] = 2; }
       }
       gf = m.l === T.yo ? m.gl : m.gv; gc = m.l === T.yo ? m.gv : m.gl;
       resultado = gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
@@ -322,12 +321,12 @@
     if (juega) {
       const ra = resultado === 'victoria' ? 0.4 : resultado === 'derrota' ? -0.4 : 0;
       nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) + (s.ayudaCompanero ? 0.5 : 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
-      if (pen === 'gol' || pen === 'perfecto') nota += pen === 'perfecto' ? 1 : 0.5; else if (pen) nota -= pen === 'desastre' ? 1 : 0.6;
+      nota += { perfecto: 0.7, gol: 0.5, paradaPlus: 0.5, parada: 0.3, ocasion: -0.4, fallo: -0.6 }[pen] || 0;
       nota = r1(clamp(nota, 3, 10));
       if (F === 'goles') {
         const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
         if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
-        if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
+        if (pen === 'gol' || pen === 'perfecto') goles += 1;
       } else if (F === 'puntos') goles = Math.max(0, Math.round((nota - 4) * 2.6 * (rol === 'titular' ? 1 : 0.5) + (s.especialidad === 'alero' ? 4 : s.especialidad === 'pivot' ? 1 : 0) + (s.tiro || 0) * 0.6 + rnd(s) * 4));   // puntos
       else if (F === 'sets') goles = Math.max(0, Math.round((nota - 5) * 1.8 + rnd(s) * 3 + (cond === 'hierba' ? 2 : 0)));   // aces
       else goles = puesto <= 3 ? 1 : 0;   // circuito: podios
@@ -375,17 +374,28 @@
     P2.tele(s, 'partido', { rol, amateur: !!O.amateur });
     if (P.lesion > 0 && rol === 'lesionado') P.nivel = r1(Math.max(CFG.inicio.nivel, P.nivel - 0.2));
 
+    let momento = null;
     if (pen) {
-      const bien = pen === 'gol' || pen === 'perfecto', grande = pen === 'perfecto' || pen === 'desastre';
-      s.confianza = clamp(s.confianza + (bien ? (grande ? 12 : 8) : (grande ? -18 : -12)), 0, 100);
-      P.rep = r1(clamp(P.rep + (bien ? (grande ? 3 : 1.5) : (grande ? -3 : -1.5)), 0, 100));
-      if (bien) P2.sumarMarca(s, grande ? 2 : 1);
-      R.lineas.push(bien ? ['⭐', `¡Momento decisivo ${grande ? 'perfecto' : 'superado'}! ${grande ? 'Doblete' : 'Gol'} en el último minuto: el míster y la afición te adoran (+${grande ? 12 : 8} confianza).`, 'bien']
-        : ['😖', `Fallas en el momento decisivo${pen === 'desastre' ? ' y el rival marca dos en la contra' : ' y el rival marca en la contra'}. La prensa no lo perdona (−${grande ? 18 : 12} confianza, −${grande ? 3 : 1.5} reputación).`, 'mal']);
+      // FAIL / GOOD / PERFECT: consecuencias pequeñas (la gestión pesa más que la mano)
+      const X = P2.momentoPartido(s), EF = { perfecto: [8, 1.5, 1], gol: [6, 1, 0], ocasion: [-6, -0.5, 0], paradaPlus: [7, 1, 0], parada: [5, 0, 0], fallo: [-6, -1, 0] }[pen];
+      s.confianza = clamp(s.confianza + EF[0], 0, 100); P.rep = r1(clamp(P.rep + EF[1], 0, 100)); if (EF[2]) P2.sumarMarca(s, EF[2]);
+      const bien = EF[0] > 0, mjS = s.mjSemana || {}, min = mjS.minuto ? `Minuto ${mjS.minuto}. ` : '';
+      const tit = { perfecto: `${X.ic} ¡PERFECTO!`, gol: '⚽ ¡GOL!', ocasion: '😖 Ocasión fallada', paradaPlus: '🛡️ ¡Corte perfecto!', parada: '🛡️ ¡La cortas!', fallo: '😖 Gol del rival' }[pen];
+      const que = { perfecto: `${min}${X.n}: lo clavas. Es gol.`, gol: `${min}${X.n}: es gol.`, ocasion: `${min}${X.n}: se escapa la ocasión. El marcador no se mueve.`, paradaPlus: `${min}${X.n}: le robas el balón limpio.`, parada: `${min}${X.n}: llegas a tiempo y evitas el gol.`, fallo: `${min}${X.n}: llegas tarde y marcan.` }[pen];
+      momento = { ic: bien ? '⭐' : '😖', titulo: tit, res: X.res, inst: X.inst, bien, que, porque: [`${EF[0] > 0 ? '+' : ''}${EF[0]} confianza del míster`].concat(EF[1] ? [`${EF[1] > 0 ? '+' : ''}${nf(EF[1])} reputación`] : [], EF[2] ? ['+1 marca personal'] : [], X.res === 'PERFECT' ? ['Queda en «Mi historia»'] : []) };
+      R.lineas.push([bien ? '⭐' : '😖', `${tit.replace(/^\S+ /, '')} ${que} (${momento.porque.join(', ')}).`, bien ? 'bien' : 'mal']);
+      // Cruce carrera → empresa: un gran momento trae clientes; fallar uno grande, polémica
+      if (s.negocios.length && (X.res === 'PERFECT' || (X.res === 'FAIL' && (mjS.imp || 2) >= 3))) for (const n of s.negocios) { if (X.res === 'PERFECT') n.ctx.famaDeportiva = 2; else n.ctx.polemica = 2; }
     } else if (P2.penalti && P2.penalti(s) && !juega) R.lineas.push(['🪑', 'No juegas: el momento decisivo lo vive otro desde el campo.']);
     const rival = P2.nombreEquipo(T, pj.rival);
     const detalle = detallePrueba(s, F, cond, puesto, gc, juega, m && (m.l === T.yo ? [m.gl, m.gv] : m && [m.gv, m.gl]), nota, goles);
     R.partido = { jornada: pj.j + 1, local: pj.local, rival, gf, gc, resultado, rol, nota, goles, prima, lesion, contexto: ctx, pos: P2.posicion(T), formato: F, puesto, cond, detalle };
+    if (momento) {   // QUÉ PASÓ y POR QUÉ IMPORTA
+      const res = circ ? `Acabas ${puesto}º de ${gc}` : `${resultado === 'victoria' ? 'Ganáis' : resultado === 'derrota' ? 'Perdéis' : 'Empatáis'} ${gf}-${gc}`;
+      momento.que += ` ${res}.`;
+      momento.porque.push(`Vais ${R.partido.pos}º`);
+      R.momento = momento;
+    }
     const icR = resultado === 'victoria' ? '✅' : resultado === 'derrota' ? '❌' : '🤝';
     const rolTxt = { titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas (banquillo)', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a (sin energía)' }[rol];
     const condTxt = cond ? ` (${P2.NOMBRE_COND[cond] || cond})` : '';

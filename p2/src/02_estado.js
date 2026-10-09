@@ -31,12 +31,15 @@
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
-      secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes', 'premium'],   // pestañas visibles (se abren al avanzar)
+      secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar). Premium: con el primer contrato, dentro de la Tienda
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [], deco: { casa: 'nada', despacho: 'nada' },   // decoración (solo aspecto)   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
       deseoActual: null,
       vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
-      mjSemana: null,               // objetivo personal de la Tienda (lista de deseos)
+      mjSemana: null,
+      // P2.5.1 · ritmo: historial de momentos (cooldowns), estadísticas, gran partido que se acerca, variedad de semanas
+      minigameHistory: [], mjStats: { jugados: 0, exitos: 0, perfects: 0, racha: 0, mejorRacha: 0, reintentos: 0, vidasUsadas: 0, vidasAnuncio: 0, vidasAnuncioTemp: {}, porTipo: {}, simulados: 0 },
+      logrosMj: {}, memorables: [], eventoImportante: null, semLog: [], tagsSemana: [], ultAcciones: [], finLesion: 0,               // objetivo personal de la Tienda (lista de deseos)
       historiaCosas: [], trofeos: [], celebraciones: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
@@ -144,6 +147,8 @@
     if (!Array.isArray(s.lookDesbloqueos)) s.lookDesbloqueos = [];
     if (!s.relaciones || typeof s.relaciones !== 'object' || Array.isArray(s.relaciones)) s.relaciones = {};
     if (s.deseoActual && !(P2.producto && P2.producto(s.deseoActual))) s.deseoActual = null;
+    // P2.5.1: Premium se abre con el primer contrato (y vive dentro de la Tienda)
+    if (Array.isArray(s.secciones) && !(s.hitos && s.hitos.contrato)) s.secciones = s.secciones.filter(x => x !== 'premium');
     if (P2.asignarVariante) P2.asignarVariante(s);
     for (const k of Object.keys(s.relaciones)) { const x = s.relaciones[k]; if (!x || typeof x.v !== 'number' || !isFinite(x.v)) delete s.relaciones[k]; else { x.v = P2.clamp(Math.round(x.v), 0, 100); if (!Array.isArray(x.historia)) x.historia = []; } }
     s.saveVersion = CFG.saveVersion;

@@ -900,6 +900,38 @@ select.inp { background: #fff; }
 .mal { color: var(--bad); }
 details.mercado summary { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
 
+/* ===== P2.5.1 · Ritmo: momentos clave, preparación, resultado ===== */
+.mj.gran { background: radial-gradient(circle at 50% 0%, #fff3c4, transparent 60%); border-radius: 24px; }
+.mj.gran .eti { color: #b45309; font-size: 15px; }
+.mj.clave .eti { color: #e11d48; }
+.mj .mjEscena { font-weight: 700; color: #2a2540; background: none; }
+.mjMods { display: flex; flex-direction: column; gap: 3px; text-align: left; background: #fff; border-radius: 14px; padding: 10px 12px; margin: 8px 0; box-shadow: 0 3px 0 #e2dcf7; font-size: 13px; }
+.mjMods b { font-size: 14px; margin-bottom: 2px; }
+.mjMods .bien { color: #166534; } .mjMods .mal { color: #9a3412; }
+.prepMini, .prepFila { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin: 6px 0; font-size: 14px; }
+.prepMini .xp, .prepFila .xp { height: 10px; background: #ece8fb; border-radius: 99px; overflow: hidden; }
+.prepMini .xp i, .prepFila .xp i { display: block; height: 100%; background: linear-gradient(90deg, #f59e0b, #22c55e); border-radius: 99px; }
+.prepCard { border: 3px solid var(--oro2); background: linear-gradient(180deg, #fff6d6, #fff 55%); color: #2a2540; }
+.prepCard b:first-child { letter-spacing: .04em; }
+.prepCard small { color: #5b5670; }
+.chip.prepMas { background: #dcfce7; color: #166534; } .chip.prepMenos { background: #ffe4e6; color: #9f1239; }
+.nivelRes { display: inline-block; border-radius: 999px; padding: 2px 12px; color: #fff !important; }
+.nivelRes.r-PERFECT { background: linear-gradient(90deg, #f59e0b, #ec4899); } .nivelRes.r-GOOD { background: #16a34a; } .nivelRes.r-FAIL { background: #64748b; }
+.momentoRes { text-align: left; background: #fff; border-radius: 18px; padding: 12px 14px; margin: 8px 0; box-shadow: 0 4px 0 #e2dcf7; color: #2a2540; }
+.momentoRes.bien { border-left: 6px solid #22c55e; } .momentoRes.mal { border-left: 6px solid #ef4444; }
+.momentoRes small { display: block; font-weight: 900; letter-spacing: .1em; color: #8e8aa8; font-size: 11px; margin-top: 4px; }
+.momentoRes b { font-size: 18px; } .momentoRes p { margin: 2px 0 4px; }
+.momentoRes ul { margin: 2px 0 0; padding-left: 18px; font-size: 14px; }
+.porteria .barrera { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 22px; letter-spacing: -6px; }
+.mjToques .zonaPie { height: auto; bottom: 20%; }
+.deseoBar .pct { font-weight: 900; color: #c88c00; }
+.tiendaTabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+.tiendaTabs button { border: 0; border-radius: 14px; padding: 10px 4px; font-weight: 800; background: #fff; box-shadow: 0 3px 0 #e2dcf7; color: #2a2540; font-size: 14px; }
+.tiendaTabs button.sel { background: #2a2540; color: #fff; box-shadow: 0 3px 0 #111; }
+.tiendaTabs button[disabled] { opacity: .55; }
+.memorables .lin { font-size: 14px; }
+.sugDeseo { border: 2px dashed #d9b3ff; }
+
 </style>
 </head>
 <body>
@@ -3483,12 +3515,15 @@ globalThis.P2C = P2C;
       nombre: opc.nombre || 'Alex', ciudad: I.ciudad, edad: I.edad,
       look: P2.validarLook ? P2.validarLook(opc.look) : (opc.look || {}),   // tu personaje (capas del avatar)
       eleccion: null,                  // acción elegida para la semana (se juega con el botón)
-      secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes', 'premium'],   // pestañas visibles (se abren al avanzar)
+      secciones: ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'],   // pestañas visibles (se abren al avanzar). Premium: con el primer contrato, dentro de la Tienda
       inventario: [], equipado: {}, usoTienda: {}, lookDesbloqueos: [], deco: { casa: 'nada', despacho: 'nada' },   // decoración (solo aspecto)   // tienda: lo que tienes y lo que llevas
       relaciones: {},                  // personas: { id: { v, historia } } (solo cambian por decisiones)
       deseoActual: null,
       vidas: { n: 3, recarga: 1 },       // para repetir minijuegos; se recargan solas y con anuncio (simulado)
-      mjSemana: null,               // objetivo personal de la Tienda (lista de deseos)
+      mjSemana: null,
+      // P2.5.1 · ritmo: historial de momentos (cooldowns), estadísticas, gran partido que se acerca, variedad de semanas
+      minigameHistory: [], mjStats: { jugados: 0, exitos: 0, perfects: 0, racha: 0, mejorRacha: 0, reintentos: 0, vidasUsadas: 0, vidasAnuncio: 0, vidasAnuncioTemp: {}, porTipo: {}, simulados: 0 },
+      logrosMj: {}, memorables: [], eventoImportante: null, semLog: [], tagsSemana: [], ultAcciones: [], finLesion: 0,               // objetivo personal de la Tienda (lista de deseos)
       historiaCosas: [], trofeos: [], celebraciones: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
@@ -3596,6 +3631,8 @@ globalThis.P2C = P2C;
     if (!Array.isArray(s.lookDesbloqueos)) s.lookDesbloqueos = [];
     if (!s.relaciones || typeof s.relaciones !== 'object' || Array.isArray(s.relaciones)) s.relaciones = {};
     if (s.deseoActual && !(P2.producto && P2.producto(s.deseoActual))) s.deseoActual = null;
+    // P2.5.1: Premium se abre con el primer contrato (y vive dentro de la Tienda)
+    if (Array.isArray(s.secciones) && !(s.hitos && s.hitos.contrato)) s.secciones = s.secciones.filter(x => x !== 'premium');
     if (P2.asignarVariante) P2.asignarVariante(s);
     for (const k of Object.keys(s.relaciones)) { const x = s.relaciones[k]; if (!x || typeof x.v !== 'number' || !isFinite(x.v)) delete s.relaciones[k]; else { x.v = P2.clamp(Math.round(x.v), 0, 100); if (!Array.isArray(x.historia)) x.historia = []; } }
     s.saveVersion = CFG.saveVersion;
@@ -4285,23 +4322,22 @@ globalThis.P2C = P2C;
     let gf, gc, resultado, puesto = null, m = null;
     if (circ) {
       const o = res[0].orden; let i = o.indexOf(T.yo);
-      if (pen) { const mov = pen === 'perfecto' ? -2 : pen === 'gol' ? -1 : pen === 'desastre' ? 2 : 1; const j = clamp(i + mov, 0, o.length - 1); o.splice(i, 1); o.splice(j, 0, T.yo); i = j; }
+      if (pen) { const mov = pen === 'perfecto' || pen === 'gol' ? -1 : pen === 'fallo' ? 1 : 0; const j = clamp(i + mov, 0, o.length - 1); o.splice(i, 1); o.splice(j, 0, T.yo); i = j; }
       puesto = i + 1; gf = puesto; gc = o.length;
       resultado = puesto <= 3 ? 'victoria' : puesto <= 5 ? 'empate' : 'derrota';
     } else {
       m = res.find(x => x.l === T.yo || x.v === T.yo);
       const nosotros = m.l === T.yo ? 'gl' : 'gv', ellos = m.l === T.yo ? 'gv' : 'gl';
       if (T.formato === 'sets' && noCompite) { m[nosotros] = 0; m[ellos] = 2; }
-      if (F === 'goles') {
-        if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 2 : 1;
-        if (pen === 'fallo' || pen === 'desastre') m[ellos] += pen === 'desastre' ? 2 : 1;
-      } else if (F === 'puntos' && pen) {
-        if (pen === 'gol' || pen === 'perfecto') m[nosotros] += pen === 'perfecto' ? 3 : 2; else m[ellos] += pen === 'desastre' ? 3 : 2;
-        if (m.gl === m.gv) m[pen === 'gol' || pen === 'perfecto' ? nosotros : ellos] += 1;
-      } else if (F === 'sets' && pen) {
-        const bien = pen === 'gol' || pen === 'perfecto';
-        if (bien && m[nosotros] < m[ellos] && (m[nosotros] === 1 || pen === 'perfecto')) { m[nosotros] = 2; m[ellos] = 1; }
-        if (!bien && m[nosotros] > m[ellos] && (m[ellos] === 1 || pen === 'desastre')) { m[nosotros] = 1; m[ellos] = 2; }
+      // Momento clave (P2.5.1): como mucho cambia un gol. Ataque: acierto = gol; defensa: fallo = gol del rival
+      const marca = pen === 'gol' || pen === 'perfecto', encaja = pen === 'fallo';
+      if (F === 'goles') { if (marca) m[nosotros] += 1; if (encaja) m[ellos] += 1; }
+      else if (F === 'puntos' && (marca || encaja)) {
+        m[marca ? nosotros : ellos] += 2;
+        if (m.gl === m.gv) m[marca ? nosotros : ellos] += 1;
+      } else if (F === 'sets' && (marca || encaja)) {
+        if (marca && m[nosotros] < m[ellos] && m[nosotros] === 1) { m[nosotros] = 2; m[ellos] = 1; }
+        if (encaja && m[nosotros] > m[ellos] && m[ellos] === 1) { m[nosotros] = 1; m[ellos] = 2; }
       }
       gf = m.l === T.yo ? m.gl : m.gv; gc = m.l === T.yo ? m.gv : m.gl;
       resultado = gf > gc ? 'victoria' : gf < gc ? 'derrota' : 'empate';
@@ -4310,12 +4346,12 @@ globalThis.P2C = P2C;
     if (juega) {
       const ra = resultado === 'victoria' ? 0.4 : resultado === 'derrota' ? -0.4 : 0;
       nota = rol === 'titular' ? 6 + (P.nivel - umbral) / 6 + (r - 0.5) * 2.6 + ra + (R.bonusNota || 0) + (s.ayudaCompanero ? 0.5 : 0) : 6 + (P.nivel - umbral) / 8 + (r - 0.5) * 2 + ra * 0.5;
-      if (pen === 'gol' || pen === 'perfecto') nota += pen === 'perfecto' ? 1 : 0.5; else if (pen) nota -= pen === 'desastre' ? 1 : 0.6;
+      nota += { perfecto: 0.7, gol: 0.5, paradaPlus: 0.5, parada: 0.3, ocasion: -0.4, fallo: -0.6 }[pen] || 0;
       nota = r1(clamp(nota, 3, 10));
       if (F === 'goles') {
         const pg = clamp(0.12 + (nota - 6) * 0.08, 0.02, 0.5) * (rol === 'titular' ? 1 : 0.4);
         if (rnd(s) < pg) goles = 1 + (rnd(s) < pg / 3 ? 1 : 0);
-        if (pen === 'gol' || pen === 'perfecto') goles += pen === 'perfecto' ? 2 : 1;
+        if (pen === 'gol' || pen === 'perfecto') goles += 1;
       } else if (F === 'puntos') goles = Math.max(0, Math.round((nota - 4) * 2.6 * (rol === 'titular' ? 1 : 0.5) + (s.especialidad === 'alero' ? 4 : s.especialidad === 'pivot' ? 1 : 0) + (s.tiro || 0) * 0.6 + rnd(s) * 4));   // puntos
       else if (F === 'sets') goles = Math.max(0, Math.round((nota - 5) * 1.8 + rnd(s) * 3 + (cond === 'hierba' ? 2 : 0)));   // aces
       else goles = puesto <= 3 ? 1 : 0;   // circuito: podios
@@ -4363,17 +4399,28 @@ globalThis.P2C = P2C;
     P2.tele(s, 'partido', { rol, amateur: !!O.amateur });
     if (P.lesion > 0 && rol === 'lesionado') P.nivel = r1(Math.max(CFG.inicio.nivel, P.nivel - 0.2));
 
+    let momento = null;
     if (pen) {
-      const bien = pen === 'gol' || pen === 'perfecto', grande = pen === 'perfecto' || pen === 'desastre';
-      s.confianza = clamp(s.confianza + (bien ? (grande ? 12 : 8) : (grande ? -18 : -12)), 0, 100);
-      P.rep = r1(clamp(P.rep + (bien ? (grande ? 3 : 1.5) : (grande ? -3 : -1.5)), 0, 100));
-      if (bien) P2.sumarMarca(s, grande ? 2 : 1);
-      R.lineas.push(bien ? ['⭐', `¡Momento decisivo ${grande ? 'perfecto' : 'superado'}! ${grande ? 'Doblete' : 'Gol'} en el último minuto: el míster y la afición te adoran (+${grande ? 12 : 8} confianza).`, 'bien']
-        : ['😖', `Fallas en el momento decisivo${pen === 'desastre' ? ' y el rival marca dos en la contra' : ' y el rival marca en la contra'}. La prensa no lo perdona (−${grande ? 18 : 12} confianza, −${grande ? 3 : 1.5} reputación).`, 'mal']);
+      // FAIL / GOOD / PERFECT: consecuencias pequeñas (la gestión pesa más que la mano)
+      const X = P2.momentoPartido(s), EF = { perfecto: [8, 1.5, 1], gol: [6, 1, 0], ocasion: [-6, -0.5, 0], paradaPlus: [7, 1, 0], parada: [5, 0, 0], fallo: [-6, -1, 0] }[pen];
+      s.confianza = clamp(s.confianza + EF[0], 0, 100); P.rep = r1(clamp(P.rep + EF[1], 0, 100)); if (EF[2]) P2.sumarMarca(s, EF[2]);
+      const bien = EF[0] > 0, mjS = s.mjSemana || {}, min = mjS.minuto ? `Minuto ${mjS.minuto}. ` : '';
+      const tit = { perfecto: `${X.ic} ¡PERFECTO!`, gol: '⚽ ¡GOL!', ocasion: '😖 Ocasión fallada', paradaPlus: '🛡️ ¡Corte perfecto!', parada: '🛡️ ¡La cortas!', fallo: '😖 Gol del rival' }[pen];
+      const que = { perfecto: `${min}${X.n}: lo clavas. Es gol.`, gol: `${min}${X.n}: es gol.`, ocasion: `${min}${X.n}: se escapa la ocasión. El marcador no se mueve.`, paradaPlus: `${min}${X.n}: le robas el balón limpio.`, parada: `${min}${X.n}: llegas a tiempo y evitas el gol.`, fallo: `${min}${X.n}: llegas tarde y marcan.` }[pen];
+      momento = { ic: bien ? '⭐' : '😖', titulo: tit, res: X.res, inst: X.inst, bien, que, porque: [`${EF[0] > 0 ? '+' : ''}${EF[0]} confianza del míster`].concat(EF[1] ? [`${EF[1] > 0 ? '+' : ''}${nf(EF[1])} reputación`] : [], EF[2] ? ['+1 marca personal'] : [], X.res === 'PERFECT' ? ['Queda en «Mi historia»'] : []) };
+      R.lineas.push([bien ? '⭐' : '😖', `${tit.replace(/^\S+ /, '')} ${que} (${momento.porque.join(', ')}).`, bien ? 'bien' : 'mal']);
+      // Cruce carrera → empresa: un gran momento trae clientes; fallar uno grande, polémica
+      if (s.negocios.length && (X.res === 'PERFECT' || (X.res === 'FAIL' && (mjS.imp || 2) >= 3))) for (const n of s.negocios) { if (X.res === 'PERFECT') n.ctx.famaDeportiva = 2; else n.ctx.polemica = 2; }
     } else if (P2.penalti && P2.penalti(s) && !juega) R.lineas.push(['🪑', 'No juegas: el momento decisivo lo vive otro desde el campo.']);
     const rival = P2.nombreEquipo(T, pj.rival);
     const detalle = detallePrueba(s, F, cond, puesto, gc, juega, m && (m.l === T.yo ? [m.gl, m.gv] : m && [m.gv, m.gl]), nota, goles);
     R.partido = { jornada: pj.j + 1, local: pj.local, rival, gf, gc, resultado, rol, nota, goles, prima, lesion, contexto: ctx, pos: P2.posicion(T), formato: F, puesto, cond, detalle };
+    if (momento) {   // QUÉ PASÓ y POR QUÉ IMPORTA
+      const res = circ ? `Acabas ${puesto}º de ${gc}` : `${resultado === 'victoria' ? 'Ganáis' : resultado === 'derrota' ? 'Perdéis' : 'Empatáis'} ${gf}-${gc}`;
+      momento.que += ` ${res}.`;
+      momento.porque.push(`Vais ${R.partido.pos}º`);
+      R.momento = momento;
+    }
     const icR = resultado === 'victoria' ? '✅' : resultado === 'derrota' ? '❌' : '🤝';
     const rolTxt = { titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas (banquillo)', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a (sin energía)' }[rol];
     const condTxt = cond ? ` (${P2.NOMBRE_COND[cond] || cond})` : '';
@@ -5437,14 +5484,14 @@ globalThis.P2C = P2C;
     { id: 'inversiones', ic: '📈', n: 'Inversiones', grupo: 'imperio', cond: () => true },
     { id: 'empresa', ic: '💼', n: 'Empresa', grupo: 'imperio', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
     { id: 'patrimonio', ic: '💰', n: 'Patrimonio', grupo: 'imperio', cond: () => true },
-    { id: 'premium', ic: '💎', n: 'Premium', grupo: 'imperio', cond: () => true, d: 'Packs, deportes y carreras con dinero real. Solo identidad y más juego: nunca ventajas.' },
+    { id: 'premium', ic: '💎', n: 'Personalización Premium', grupo: 'imperio', cond: s => !!s.hitos.contrato, d: 'Ya eres profesional. Se han desbloqueado colecciones especiales (dentro de la Tienda).' },
     { id: 'personaje', ic: '🧍', n: 'Personaje', grupo: 'perfil', cond: () => true },
     { id: 'historia', ic: '🏆', n: 'Mi historia', grupo: 'perfil', cond: () => true },
     { id: 'hitos', ic: '🏅', n: 'Hitos', grupo: 'perfil', cond: () => true },
     { id: 'ajustes', ic: '⚙️', n: 'Ajustes', grupo: 'perfil', cond: () => true },
   ];
   const GRUPOS = [{ id: 'inicio', ic: '🏠', n: 'Inicio' }, { id: 'carrera', ic: '⚽', n: 'Carrera' }, { id: 'vida', ic: '❤️', n: 'Vida' }, { id: 'imperio', ic: '💼', n: 'Imperio' }, { id: 'perfil', ic: '🧍', n: 'Perfil' }];
-  const BASICAS = ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes', 'premium'];
+  const BASICAS = ['semana', 'relaciones', 'tienda', 'inversiones', 'patrimonio', 'personaje', 'historia', 'hitos', 'ajustes'];
   // Devuelve las secciones recién abiertas (y las guarda para avisar una sola vez)
   function revisarSecciones(s, R) {
     s.secciones = Array.isArray(s.secciones) ? s.secciones : BASICAS.slice();
@@ -5489,13 +5536,18 @@ globalThis.P2C = P2C;
   function jugarSemana(s, accion, opc) {
     P2.activarDeporte(s.deporte);
     if (s.pendiente) return null;
-    s.mjSemana = opc && opc.minijuego ? { tipo: String(opc.minijuego.tipo), p: clamp(+opc.minijuego.p || 0, 0, 1), semana: s.semana } : null;
     const especial = accion === '__acto' || accion === '__evento';
     if (!especial && P2.bloqueoAccion(s, accion)) return null;
+    // Momento clave de la semana (el mismo que vio la interfaz antes de jugar). Lo que llega del minijuego solo cuenta si coincide
+    const mom = !especial && P2.momentoSemana ? P2.momentoSemana(s, accion) : null, mjIn = opc && opc.minijuego;
+    const tipoIn = mjIn ? (String(mjIn.tipo) === 'penalti' ? 'partido' : String(mjIn.tipo)) : null;
+    s.mjSemana = mjIn && mom && tipoIn === mom.ctx ? { tipo: mom.ctx, inst: mom.inst, imp: mom.imp, minuto: mom.minuto, p: clamp(+mjIn.p || 0, 0, 1), semana: s.semana } : null;
     const R = nuevoR(s);
     const m = s.semanaMods && s.semanaMods.semana === s.semana ? s.semanaMods : {};
     Object.assign(R, { bonusNota: m.bonusNota || 0, riesgoLesion: m.riesgoLesion || 1, gestion: !!m.gestion, plazaX2: !!m.plazaX2 });
     const lesionInicio = s.p.lesion > 0;
+    if (P2.aplicarPreparacion) P2.aplicarPreparacion(s, accion, R);   // la semana antes de un gran partido cuenta
+    s.ultAcciones = (Array.isArray(s.ultAcciones) ? s.ultAcciones : []).concat({ semana: s.semana, a: accion }).slice(-8);
     const repAntes = s.p.rep;
 
     if (!especial) P2.tele(s, 'accion', { id: accion });
@@ -5527,7 +5579,7 @@ globalThis.P2C = P2C;
     // Recuperación, lesiones
     const enEquipo = s.fase === 'club' || s.fase === 'amateur';
     s.p.energia = clamp(s.p.energia + (enEquipo ? CFG.energia.recuperacionClub : CFG.energia.recuperacionBarrio) + P2.efectoPatro(s, 'recuperacion') + P2.efectoTienda(s, 'recuperacion'), 0, CFG.energia.max);
-    if (lesionInicio && s.p.lesion > 0) { s.p.lesion--; if (!s.p.lesion) R.lineas.push(['✅', 'Recuperado/a de la lesión.', 'bien']); }
+    if (lesionInicio && s.p.lesion > 0) { s.p.lesion--; if (!s.p.lesion) { s.finLesion = s.semana; R.lineas.push(['✅', 'Recuperado/a de la lesión.', 'bien']); } }
 
     // Fin de la captación sin prueba: ruta amateur (nunca game over)
     if (s.fase === 'barrio' && !s.invitacion && s.semana >= CFG.captacion.semanas) {
@@ -5541,6 +5593,11 @@ globalThis.P2C = P2C;
     }
     P2.revisarHitos(s, R);
     P2.revisarSecciones(s, R);
+    // Momento clave: historial (cooldowns), estadísticas, logros; gran partido que se acerca; variedad de la semana
+    if (mom && P2.registrarMomento) P2.registrarMomento(s, mom, s.mjSemana ? { p: s.mjSemana.p, reintentos: (mjIn && +mjIn.reintentos) || 0, simulado: !!(mjIn && mjIn.simulado) } : null, R);
+    if (P2.detectarEvento) P2.detectarEvento(s, R);
+    if (P2.cerrarSemanaLog) P2.cerrarSemanaLog(s, accion, R, mom);
+    if (P2.recordatorioDeseo) P2.recordatorioDeseo(s, R);
     // Segunda inversión aplazada: se vuelve a proponer cuando ya puedes pagar alguna (como mucho cada 6 semanas)
     if (s.oportunidadAbierta && !s.oportunidad && s.p.dinero >= Math.min(...P2.OPORTUNIDADES.map(o => o.coste)) && s.semana - (s.recordatorioOp || 0) >= 6) {
       s.recordatorioOp = s.semana; P2.encolar(s, { tipo: 'oportunidad' });
@@ -5578,6 +5635,11 @@ globalThis.P2C = P2C;
     const R = nuevoR(s);
     const r = D.resolver(s, ev, opId, R);
     if (!r) return null;
+    if (P2.etiquetarSemana) {   // para el director de eventos: qué tipo de cosas pasan
+      const E = ev.tipo === 'suceso' && P2.SUCESOS.find(x => x.id === ev.id);
+      P2.etiquetarSemana(s, E ? (E.ambito === 'relacion' ? 'relationship' : E.ambito === 'empresa' ? 'business' : 'event') : ev.tipo === 'acto' || ev.tipo === 'marca' ? 'sponsor' : 'event');
+      if (E && E.cruce) P2.etiquetarSemana(s, 'business');
+    }
     P2.tele(s, 'decision', { tipo: ev.tipo, id: ev.id || ev.origen || ev.marca || null, op: opId });
     if (r.semana) s.pendiente = null; else P2.siguiente(s);
     P2.revisarSecciones(s, R);
@@ -6852,7 +6914,7 @@ globalThis.P2C = P2C;
       oferta: { activo: true, pctMin: 0.15, pctMax: 0.25, maximo: 250, cadaSemanas: 6, validez: 3, precioMax: { barrio: 200, club: 700, empresa: 3000, magnate: 10000 } },
       energia: { activo: true, cantidad: 10, umbral: 35, cadaSemanas: 8 },   // con +15 cada 6 semanas, verlos todos daba +3 de nivel y +7 % de patrimonio: demasiado
       temporada: { activo: true },
-      vida: { activo: true, cadaSemanas: 1 },   // +1 vida para repetir un minijuego (nunca deshace decisiones)
+      vida: { activo: true, cadaSemanas: 4, porTemporada: 3 },   // +1 vida para repetir un minijuego (nunca deshace decisiones). Sin farm: 1 cada 4 semanas, 3 por temporada
       empresaBonus: { activo: false, mult: 1.25 },   // futuro: cobrar ingresos offline con bonus. Aún no hay ingresos offline
     },
     iap: { maxPorSesion: 2, semanasEntre: 4, entregarCosmeticos: false, minutosFounder: 25, momentoValido: 3 },
@@ -6983,6 +7045,7 @@ globalThis.P2C = P2C;
     }
     if (tipo === 'temporada') { const t = M(s).temporadaPremio; if (!t || t.extra) return 'No disponible'; }
     if (tipo === 'vida' && P2.vidas(s).n >= P2.VIDAS.max) return 'Ya tienes todas las vidas';
+    if (tipo === 'vida' && C.porTemporada && P2.vidasAnuncioTemporada(s) >= C.porTemporada) return 'Ya no hay más vidas por anuncio esta temporada';
     return null;
   }
   // Toca «Ver anuncio»: abre la simulación con la recompensa (aún no se entrega)
@@ -7010,7 +7073,7 @@ globalThis.P2C = P2C;
       r = { tipo: 'oferta', id: P.id, original: P.precio, precio: m.oferta.precio };
     }
     if (p.tipo === 'energia') { const antes = s.p.energia; s.p.energia = clamp(s.p.energia + C.cantidad, 0, P2.CFG.energia.max); r = { tipo: 'energia', ganado: s.p.energia - antes }; }
-    if (p.tipo === 'vida') { const v = P2.vidas(s); v.n = Math.min(P2.VIDAS.max, v.n + 1); r = { tipo: 'vida', vidas: v.n }; }
+    if (p.tipo === 'vida') { const v = P2.vidas(s); v.n = Math.min(P2.VIDAS.max, v.n + 1); P2.anotarVidaAnuncio(s); r = { tipo: 'vida', vidas: v.n }; }
     if (p.tipo === 'temporada') { m.temporadaPremio.extra = true; s.lookDesbloqueos = Array.from(new Set((s.lookDesbloqueos || []).concat('gafas:temporada'))); r = { tipo: 'temporada', look: 'gafas:temporada' }; }
     if (!r) return null;
     m.ultimo[p.tipo] = s.semana;
@@ -7356,28 +7419,32 @@ globalThis.P2C = P2C;
 
 // ===== 18_minijuegos.js =====
 /* =====================================================================
-   18 · MINIJUEGOS EN LOS MOMENTOS DECISIVOS (y vidas para repetirlos)
-   Solo en momentos especiales: el día de las pruebas, el torneo del barrio y los partidos
-   decisivos (ascenso, descenso, última jornada). Son cortos (un toque) y AYUDAN, pero no lo
-   deciden todo: tu nivel sigue mandando. Siempre se pueden «Simular» (resultado neutro).
-   Vidas: sirven SOLO para repetir un minijuego que ha salido mal (nunca para deshacer una
-   decisión). Se recargan solas (1 cada pocas semanas) y con un anuncio simulado (+1).
-   La nota del minijuego (p, de 0 a 1) llega a la lógica en jugarSemana(s, acción, { minijuego }).
-   Sin minijuego (bots, simulación), todo funciona exactamente igual que antes.
+   18 · MOMENTOS CLAVE Y MINIJUEGOS (P2.5.1: ritmo)
+   GESTIÓN → PREPARACIÓN → MOMENTO IMPORTANTE → MINIJUEGO → CONSECUENCIA → NUEVA DECISIÓN.
+   - 4 motores (timing, secuencia, objetivo, reacción) y muchas instancias con su propio contexto.
+   - Importancia 1–5: decide si hay momento jugable, cómo se presenta y cuánto pesa.
+   - Cooldowns por tipo (s.minigameHistory): el mismo minijuego no se repite seguido.
+   - La gestión cambia la dificultad real (MINIGAME_MODIFIERS) y los grandes partidos se preparan
+     (s.eventoImportante: preparación, fatiga, presión).
+   - Resultado FAIL / GOOD / PERFECT con consecuencias pequeñas: la gestión pesa más que la mano.
+   - Vidas: solo para repetir un minijuego fallado (nunca cambian el resultado solas).
+   Todo lo que decide si hay momento y cuál es determinista (hash de la semilla): no toca el azar de la partida.
+   Sin minijuego (bots, simulación de balance) los partidos se resuelven sin interacción.
    ===================================================================== */
 (function (P2) {
   'use strict';
   const { clamp, r1 } = P2;
 
+  // Contextos (lo que te juegas). 'partido' sustituye al antiguo «Penalti decisivo».
   const MINIJUEGOS = {
-    prueba: { ic: '📋', n: 'Día de pruebas', d: 'Los ojeadores te miran: demuestra lo que vales.', rondas: 3, neutro: 0.4 },
-    torneo: { ic: '🏆', n: 'Final del torneo', d: 'La final del torneo del barrio, con todo el barrio mirando.', rondas: 3, neutro: 0.4 },
-    promocion: { ic: '⬆️', n: 'Promoción', d: 'Te juegas la categoría en un partido.', rondas: 3, neutro: 0.4 },
-    final: { ic: '🏆', n: 'Final', d: 'Una final: no hay segunda oportunidad.', rondas: 3, neutro: 0.4 },
-    penalti: { ic: '🥅', n: 'Penalti decisivo', d: 'Último minuto, penalti a favor. Todo el estadio en silencio.', rondas: 1, neutro: 0.4 },
+    prueba: { ic: '📋', n: 'Día de pruebas', d: 'Los ojeadores te miran: demuestra lo que vales.', rondas: 3, neutro: 0.4, imp: 4 },
+    torneo: { ic: '🏆', n: 'Final del torneo', d: 'La final del torneo del barrio, con todo el barrio mirando.', rondas: 3, neutro: 0.4, imp: 3 },
+    promocion: { ic: '⬆️', n: 'Promoción', d: 'Te juegas la categoría en un partido.', rondas: 3, neutro: 0.4, imp: 4 },
+    final: { ic: '🏆', n: 'Final', d: 'Una final: no hay segunda oportunidad.', rondas: 3, neutro: 0.4, imp: 5 },
+    partido: { ic: '🔥', n: 'Momento clave', d: 'Una jugada que puede cambiar el partido.', rondas: 1, neutro: 0.4, imp: 2 },
   };
-  // Las mecánicas (qué haces con el dedo). Cada momento elige una según lo que se juega:
-  // lo pequeño (pruebas, torneo) con juegos fáciles; lo grande (promociones, finales) con los difíciles.
+  MINIJUEGOS.penalti = MINIJUEGOS.partido;   // partidas guardadas antes de P2.5.1
+  // Skins de la interfaz (cada deporte les cambia el nombre en 00_deportes)
   const JUEGOS = {
     toques: { ic: '⚽', n: 'Toques', dif: 'Fácil', d: 'Toca cuando el balón baje a tu pie. Cinco toques sin que caiga.', rondas: 5 },
     pase: { ic: '👟', n: 'Pase al desmarcado', dif: 'Fácil', d: 'Un compañero se desmarca un instante: tócalo antes de que lo cubran. Tres pases.', rondas: 3 },
@@ -7386,38 +7453,357 @@ globalThis.P2C = P2C;
     portero: { ic: '🧤', n: 'Parada imposible', dif: 'Difícil', d: 'Te chutan: tírate al lado del balón antes de que entre. Tres tiros, cada vez más rápidos.', rondas: 3 },
     penalti: { ic: '🥅', n: 'Penalti', dif: 'Media', d: 'Elige esquina y chuta en el momento justo.', rondas: 1 },
   };
-  const JUEGOS_DE = { prueba: ['toques', 'pase', 'barra'], torneo: ['pase', 'toques', 'memoria'], penalti: ['penalti'], promocion: ['memoria', 'portero', 'barra'], final: ['portero', 'memoria', 'barra'] };
-  function hashMj(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-  // Qué juego toca en este momento: cambia de una vez a otra (sin tocar el azar de la partida)
-  function juegoMinijuego(s, tipo) { const l = JUEGOS_DE[tipo] || ['barra']; return l[hashMj(`${s.seed}|${tipo}|${s.semana}`) % l.length]; }
-  const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1 };   // como en P1
+  // ---------- Motores (la mecánica) ----------
+  const MOTORES = {
+    timing: { n: 'Timing', juegos: ['barra', 'penalti', 'toques'], d: 'Para la marca en la zona buena (o toca en el momento justo).' },
+    secuencia: { n: 'Secuencia', juegos: ['memoria'], d: 'Mira la secuencia y repítela.' },
+    objetivo: { n: 'Objetivo', juegos: ['pase'], d: 'Elige a tiempo la opción libre.' },
+    reaccion: { n: 'Reacción', juegos: ['portero'], d: 'Algo aparece en un lado: tócalo rápido.' },
+  };
+  const MINIGAME_TYPES = MOTORES;
+  // ---------- Instancias (el contexto) ----------
+  // lado: ataque (acierto = gol), defensa (fallo = gol del rival), prueba (puntos en la prueba)
+  // ctx: dónde puede salir · impMin: importancia mínima · peso · cd: momentos que tarda en volver
+  const I = (o) => Object.assign({ dep: 'futbol', impMin: 0, peso: 1, cd: 3, cfg: {} }, o);
+  const MINIGAME_INSTANCES = [
+    I({ id: 'penalti', ic: '🥅', n: 'Penalti', motor: 'timing', juego: 'penalti', lado: 'ataque', ctx: ['partido', 'promocion', 'final'], impMin: 3, peso: 0.45, cd: 5,
+      escena: 'Penalti a favor. El estadio en silencio.', d: 'Elige lado y chuta en el momento justo.', cfg: { rondas: 1 } }),
+    I({ id: 'paseHueco', ic: '👟', n: 'Pase al hueco', motor: 'objetivo', juego: 'pase', lado: 'ataque', ctx: ['partido', 'torneo', 'prueba'],
+      escena: 'Un compañero pica al espacio.', d: 'Pásale al que se desmarca antes de que lo cierren.', cfg: { rondas: 3 } }),
+    I({ id: 'control', ic: '🪄', n: 'Control orientado', motor: 'secuencia', juego: 'memoria', lado: 'ataque', ctx: ['partido', 'prueba'],
+      escena: 'Te llega un balón largo con un rival encima.', d: 'Repite los movimientos del control: amortiguar, orientar, salir.', cfg: { pasos: 3, ms: 650 } }),
+    I({ id: 'tiroColocado', ic: '🎯', n: 'Tiro colocado', motor: 'timing', juego: 'barra', lado: 'ataque', ctx: ['partido', 'final'],
+      escena: 'Te quedas sola/o en la frontal.', d: 'Para la barra en el verde: dos tiros, cada vez más difícil.', cfg: { rondas: 2 } }),
+    I({ id: 'falta', ic: '🧱', n: 'Falta directa', motor: 'timing', juego: 'penalti', lado: 'ataque', ctx: ['partido', 'promocion', 'final'], impMin: 3, peso: 0.6, cd: 4,
+      escena: 'Falta en la frontal. La barrera, a nueve metros.', d: 'Elige por dónde superar la barrera y golpea en el momento justo.', cfg: { rondas: 1, barrera: true } }),
+    I({ id: 'unoContraUno', ic: '🏃', n: 'Uno contra uno', motor: 'reaccion', juego: 'portero', lado: 'ataque', ctx: ['partido', 'final'],
+      escena: 'Solo/a delante del portero.', d: 'El portero se vence a un lado: dispara al hueco que deja, rápido.', cfg: { rondas: 2, reaccion: 'hueco' } }),
+    I({ id: 'regate', ic: '💨', n: 'Regate', motor: 'secuencia', juego: 'memoria', lado: 'ataque', ctx: ['partido', 'torneo'],
+      escena: 'Dos defensas te cierran en la banda.', d: 'Repite la finta en el orden justo (es rápida).', cfg: { pasos: 4, ms: 520 } }),
+    I({ id: 'corner', ic: '🚩', n: 'Centro / córner', motor: 'objetivo', juego: 'pase', lado: 'ataque', ctx: ['partido', 'promocion'],
+      escena: 'Córner a favor. El área llena de gente.', d: 'Centra a la zona donde tu rematador queda libre.', cfg: { rondas: 2, zonas: ['Primer palo', 'Penalti', 'Segundo palo'] } }),
+    I({ id: 'ultimoPase', ic: '🎁', n: 'Último pase', motor: 'objetivo', juego: 'pase', lado: 'ataque', ctx: ['partido', 'final'], impMin: 3, peso: 0.8,
+      escena: 'Contragolpe con superioridad.', d: 'Un solo pase: elige al compañero libre en el instante justo.', cfg: { rondas: 1, ventana: 0.85 } }),
+    I({ id: 'contra', ic: '⚡', n: 'Contraataque', motor: 'secuencia', juego: 'memoria', lado: 'ataque', ctx: ['partido', 'promocion'],
+      escena: 'Robáis en el centro del campo y salís a la carrera.', d: 'Repite la jugada a toda velocidad.', cfg: { pasos: 4, ms: 560 } }),
+    I({ id: 'tikitaka', ic: '🔁', n: 'Secuencia de pases', motor: 'secuencia', juego: 'memoria', lado: 'ataque', ctx: ['partido', 'torneo', 'prueba', 'promocion'],
+      escena: 'Tocáis y tocáis buscando el hueco.', d: 'Memoriza la secuencia de pases y repítela.', cfg: { pasos: 5, ms: 700 } }),
+    I({ id: 'entrada', ic: '🛡️', n: 'Defensa / entrada', motor: 'reaccion', juego: 'portero', lado: 'defensa', ctx: ['partido', 'promocion', 'final'],
+      escena: 'El delantero rival encara a toda velocidad.', d: 'Tápale el lado por el que sale. Si llegas tarde, es gol.', cfg: { rondas: 3, reaccion: 'delantero' } }),
+    I({ id: 'remate', ic: '🤕', n: 'Remate', motor: 'timing', juego: 'barra', lado: 'ataque', ctx: ['partido', 'promocion'], peso: 0.8,
+      escena: 'Centro medido al área.', d: 'Un solo remate: la zona buena es estrecha.', cfg: { rondas: 1, zona: 0.75 } }),
+    I({ id: 'fisica', ic: '🏃', n: 'Prueba física', motor: 'timing', juego: 'toques', lado: 'prueba', ctx: ['prueba', 'torneo'],
+      escena: 'Series de velocidad con el cronómetro delante.', d: 'Toca justo en cada apoyo: cinco series.', cfg: { rondas: 5, vel: 1.12 } }),
+    I({ id: 'tecnica', ic: '⚽', n: 'Prueba técnica', motor: 'timing', juego: 'toques', lado: 'prueba', ctx: ['prueba', 'torneo'],
+      escena: 'Toques, controles y conducción ante los ojeadores.', d: 'Toca cuando el balón baje a tu pie. Cinco toques sin que caiga.', cfg: { rondas: 5 } }),
+    // Resto de deportes: una instancia por motor con el nombre de su skin (preparado para instancias propias más adelante)
+    I({ id: 'g_timing', dep: '*', motor: 'timing', juego: 'barra', lado: 'ataque', ctx: ['partido', 'promocion', 'final'], cfg: { rondas: 2 } }),
+    I({ id: 'g_lanzamiento', dep: '*', motor: 'timing', juego: 'penalti', lado: 'ataque', ctx: ['partido', 'promocion', 'final'], impMin: 3, peso: 0.5, cd: 5, cfg: { rondas: 1 } }),
+    I({ id: 'g_secuencia', dep: '*', motor: 'secuencia', juego: 'memoria', lado: 'ataque', ctx: ['partido', 'torneo', 'prueba', 'promocion', 'final'], cfg: { pasos: 4, ms: 650 } }),
+    I({ id: 'g_objetivo', dep: '*', motor: 'objetivo', juego: 'pase', lado: 'ataque', ctx: ['partido', 'torneo', 'prueba'], cfg: { rondas: 3 } }),
+    I({ id: 'g_reaccion', dep: '*', motor: 'reaccion', juego: 'portero', lado: 'defensa', ctx: ['partido', 'promocion', 'final'], cfg: { rondas: 3 } }),
+    I({ id: 'g_toques', dep: '*', motor: 'timing', juego: 'toques', lado: 'prueba', ctx: ['prueba', 'torneo'], cfg: { rondas: 5 } }),
+  ];
+  const INST = Object.fromEntries(MINIGAME_INSTANCES.map(x => [x.id, x]));
+  // Nombre visible de una instancia (las genéricas toman el de la skin del deporte)
+  const instancia = id => INST[id] || null;
+  const nombreInst = X => (X.dep === '*' ? Object.assign({}, X, { n: (JUEGOS[X.juego] || {}).n || X.id, ic: (JUEGOS[X.juego] || {}).ic || '🎯', d: (JUEGOS[X.juego] || {}).d || '' }) : X);
 
-  // ¿Esta semana hay un momento decisivo con minijuego?
-  function minijuegoSemana(s, accion) {
-    if (s.fase === 'pruebas' && s.invitacion && s.semana >= s.invitacion.dia) return 'prueba';
-    if (accion === 'torneo') return 'torneo';
-    // Lo que más pesa: la categoría (promoción) y las finales (copa, Europa, Mundial)
-    if (P2.promoPendiente && P2.promoPendiente(s)) return 'promocion';
-    if (P2.finalEstaSemana && P2.finalEstaSemana(s)) return 'final';
-    if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && !s.temporada.cerrada && !s.p.lesion) {
-      const T = s.temporada, ultima = T.jornada === T.calendario.length - 1;
-      if (ultima || P2.contexto(T).some(t => /ascenso|descenso|decisiv/i.test(t))) return 'penalti';
+  // ---------- Configuración ----------
+  const CFG_MJ = {
+    prob: { 1: 0.15, 2: 0.30, 3: 0.70, 4: 1, 5: 1 },
+    director: { recientes: 2, factorReciente: 0.5, sinMjMax: 5, factorSinMj: 2, techo: 0.6 },
+    umbral: { perfect: 0.9, good: 0.6 },
+    alertas: { maxTipoPct: 0.4, maxPartidosConMj: 0.7, maxSinMj: 6, maxVidasAnuncioTemporada: 3, minPartidosConMj: 0.15 },
+    historial: 12,
+  };
+  const VIDAS = { max: 3, recargaSemanas: 6, reintentosPorMomento: 1, anuncioPorTemporada: 3 };
+
+  function hashMj(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  const u01 = (s, k) => (hashMj(`${s.seed}|${k}`) % 100000) / 100000;
+  const hist = s => (Array.isArray(s.minigameHistory) ? s.minigameHistory : (s.minigameHistory = []));
+  const semLog = s => (Array.isArray(s.semLog) ? s.semLog : (s.semLog = []));
+  const depId = s => (s && s.deporte) || 'futbol';
+
+  // ---------- Importancia del partido de esta semana ----------
+  const ENTRENO = ['entrenar', 'entrenoExtra', 'preparador', 'campus', 'roca', 'superficie', 'tiro', 'calle'];
+  function importanciaPartido(s) {
+    const T = s.temporada; if (!T || T.cerrada) return null;
+    const ctx = P2.contexto(T), quedan = T.calendario.length - T.jornada, motivos = [];
+    let imp = 2;
+    const enJuego = ctx.some(t => /ascenso|descenso|título|líder/i.test(t)), mitad = T.jornada >= Math.floor(T.calendario.length / 2);
+    if (quedan <= 3 && enJuego) { imp = 3; motivos.push(quedan === 1 ? 'Última jornada' : `Quedan ${quedan} jornadas`); }
+    else if (mitad && ctx.some(t => /Si ganáis, entráis|Si perdéis, podéis salir|Una derrota os mete|ganar os saca/i.test(t))) { imp = 3; motivos.push('Os jugáis la zona'); }
+    const pj = P2.partidoDeLaJornada && P2.partidoDeLaJornada(T);
+    if (pj && T.formato !== 'circuito' && mitad) {
+      // Rival directo: justo en la frontera de ascenso o de descenso, a 3 puntos o menos
+      const tb = P2.clasificacion(T), a = tb.findIndex(r => r.id === T.yo) + 1, b = tb.findIndex(r => r.id === pj.rival) + 1, n = tb.length, Z = P2.zonas(T.liga);
+      const frontera = x => (Z.asc && (x === Z.asc || x === Z.asc + 1)) || (Z.desc && (x === n - Z.desc || x === n - Z.desc + 1)) || (!Z.asc && x <= 2);
+      if (Math.abs(a - b) <= 1 && frontera(a) && frontera(b) && Math.abs(tb[a - 1].pts - tb[b - 1].pts) <= 3) { imp = 3; motivos.push('Rival directo'); }
     }
-    return null;
+    const m = s.semanaMods && s.semanaMods.semana === s.semana ? s.semanaMods : {};
+    if (m.bonusSel || m.bonusNota) { imp = 3; motivos.push('Partido decisivo para ti'); }
+    if (s.eventoImportante && s.eventoImportante.semana === s.semana && s.eventoImportante.tipo === 'decisivo') { imp = Math.max(imp, 3); motivos.push(s.eventoImportante.n); }
+    return { imp, motivos };
   }
-  // Lo que aporta (p = neutro no cambia nada; los bots y la simulación de balance no juegan minijuegos)
+  // Partidos seguidos sin momento y si hubo momento en los últimos partidos (director)
+  function ritmoPartidos(s) {
+    const l = semLog(s).filter(x => x.partido); let sin = 0;
+    for (let i = l.length - 1; i >= 0 && !l[i].mj; i--) sin++;
+    return { sin, recientes: l.slice(-CFG_MJ.director.recientes).some(x => x.mj) };
+  }
+  function probMomento(s, imp) {
+    let p = CFG_MJ.prob[imp] || 0;
+    if (imp <= 2) {
+      const D = CFG_MJ.director, r = ritmoPartidos(s);
+      if (r.recientes) p *= D.factorReciente;
+      if (r.sin >= D.sinMjMax) p = Math.min(D.techo, p * D.factorSinMj);
+      if (r.sin >= D.sinMjMax + 1) p = 1;   // nunca más de 6 partidos seguidos sin un momento
+    }
+    return p;
+  }
+
+  // ---------- Elegir la instancia (pool por contexto, cooldowns, sin repetir motor) ----------
+  function elegirInstancia(s, ctx, imp) {
+    const dep = depId(s), H = hist(s);
+    let pool = MINIGAME_INSTANCES.filter(X => (dep === 'futbol' ? X.dep === 'futbol' : X.dep === '*' || X.dep === dep) && X.ctx.includes(ctx) && imp >= X.impMin);
+    if (!pool.length) pool = MINIGAME_INSTANCES.filter(X => X.dep === '*' && X.ctx.includes(ctx));
+    const ult = H.slice().reverse();
+    const enCd = X => { const k = ult.findIndex(h => h.id === X.id); return k >= 0 && k < X.cd; };
+    const narrativa = X => (ctx === 'final' || ctx === 'promocion') && X.juego === 'penalti' && !H.slice(-2).some(h => h.id === X.id);   // la tanda
+    let ok = pool.filter(X => !enCd(X) || narrativa(X));
+    const ultMotor = H.length ? H[H.length - 1].motor : null;
+    const sinMotor = ok.filter(X => X.motor !== ultMotor); if (sinMotor.length) ok = sinMotor;
+    if (!ok.length) ok = pool.filter(X => !H.length || X.id !== H[H.length - 1].id);
+    if (!ok.length) ok = pool;
+    const w = X => X.peso * (ctx === 'final' && X.juego === 'penalti' ? 2 : 1);
+    const tot = ok.reduce((a, X) => a + w(X), 0); let u = u01(s, `inst|${ctx}|${s.semana}|${H.length}`) * tot;
+    for (const X of ok) { u -= w(X); if (u <= 0) return X; }
+    return ok[ok.length - 1];
+  }
+
+  // ---------- ¿Hay momento jugable esta semana? (puro y determinista: la interfaz lo consulta antes de jugar) ----------
+  function momentoSemana(s, accion) {
+    let ctx = null, imp = 0, motivos = [];
+    if (s.fase === 'pruebas' && s.invitacion && s.semana >= s.invitacion.dia) { ctx = 'prueba'; imp = 4; motivos = ['Te juegas ser profesional']; }
+    else if (accion === 'torneo') { ctx = 'torneo'; imp = 3; motivos = ['La final del torneo']; }
+    else if (P2.promoPendiente && P2.promoPendiente(s)) { ctx = 'promocion'; imp = s.temporada.promocion.clase === 'titulo' ? 5 : 4; motivos = [P2.TXT_PROMO[s.temporada.promocion.clase].n]; }
+    else if (P2.finalEstaSemana && P2.finalEstaSemana(s)) { ctx = 'final'; imp = 5; motivos = [`Final · ${P2.finalEstaSemana(s).n}`]; }
+    else if ((s.fase === 'club' || s.fase === 'amateur') && s.temporada && !s.temporada.cerrada && !s.p.lesion) {
+      const x = importanciaPartido(s); if (!x) return null;
+      if (u01(s, `mom|${s.semana}|${s.temporada.num}`) >= probMomento(s, x.imp)) return null;
+      ctx = 'partido'; imp = x.imp; motivos = x.motivos;
+    }
+    if (!ctx) return null;
+    const X = elegirInstancia(s, ctx, imp);
+    return { tipo: ctx, ctx, imp, inst: X.id, motor: X.motor, juego: X.juego, lado: X.lado, motivos, minuto: ctx === 'partido' || ctx === 'final' || ctx === 'promocion' ? 60 + (hashMj(`${s.seed}|min|${s.semana}`) % 31) : null };
+  }
+  // Compatibilidad: el tipo (contexto) y el juego de la interfaz
+  function minijuegoSemana(s, accion) { const m = momentoSemana(s, accion); return m ? m.ctx : null; }
+  function juegoMinijuego(s, tipo, accion) { const m = momentoSemana(s, accion); return m && m.ctx === tipo ? m.juego : 'barra'; }
+  const JUEGOS_DE = { prueba: ['toques', 'pase', 'memoria'], torneo: ['pase', 'toques', 'memoria'], partido: ['barra', 'pase', 'memoria', 'portero', 'penalti'], promocion: ['memoria', 'portero', 'barra', 'penalti'], final: ['portero', 'memoria', 'barra', 'penalti'] };
+
+  // ---------- Modificadores: la gestión cambia la dificultad real ----------
+  const MINIGAME_MODIFIERS = {
+    entreno: { ic: '🏋️', ventanaPorSesion: 0.06, max: 0.18, semanas: 4 },
+    descanso: { ic: '🛌', vel: -0.08, semanas: 2 },
+    energiaBaja: { ic: '🪫', umbral: 35, ventana: -0.15, vel: 0.12, umbral2: 20 },
+    energiaAlta: { ic: '🔋', umbral: 75, ventana: 0.05 },
+    lesionReciente: { ic: '🩹', semanas: 3, ventana: -0.10 },
+    confianzaAlta: { ic: '😎', umbral: 70, ventana: 0.08 },
+    confianzaBaja: { ic: '😰', umbral: 35, vel: 0.10 },
+    botas: { ic: '👟', botas: 0.04, botasPro: 0.06 },
+    preparador: { ic: '🧑‍🏫', ventana: 0.05 },
+    preparacion: { ic: '📈', escala: 0.30 },   // ±15 % (50 % = neutro)
+    importancia: { ic: '😬', 5: 0.10, 1: -0.10 },
+  };
+  function ultimasAcciones(s, accion) { const l = (Array.isArray(s.ultAcciones) ? s.ultAcciones : []).slice(-8); return accion ? l.concat({ semana: s.semana, a: accion }) : l; }
+  function modificadores(s, mom, accion) {
+    const M = MINIGAME_MODIFIERS, l = [], X = instancia(mom.inst) || {};
+    let ventana = 0, vel = 0;
+    const add = (ic, t, dv, dvel) => { ventana += dv || 0; vel += dvel || 0; l.push({ ic, t, ventana: dv || 0, vel: dvel || 0, bien: (dv || 0) > 0 || (dvel || 0) < 0 }); };
+    const acc = ultimasAcciones(s, accion);
+    const ses = acc.filter(x => s.semana - x.semana < M.entreno.semanas && ENTRENO.includes(x.a)).length;
+    if (ses) add(M.entreno.ic, `Entrenaste ${ses} ${ses === 1 ? 'vez' : 'veces'} en las últimas ${M.entreno.semanas} semanas`, Math.min(M.entreno.max, ses * M.entreno.ventanaPorSesion));
+    else if (s.fase !== 'barrio' && s.fase !== 'pruebas') add('🥱', 'No has entrenado en las últimas semanas', -0.06);
+    if (acc.some(x => s.semana - x.semana < M.descanso.semanas && x.a === 'descansar')) add(M.descanso.ic, 'Llegas descansado/a: más calma', 0, M.descanso.vel);
+    const e = s.p.energia;
+    if (e < M.energiaBaja.umbral2) add(M.energiaBaja.ic, `Energía ${Math.round(e)}: llegas reventado/a`, M.energiaBaja.ventana * 2, M.energiaBaja.vel * 2);
+    else if (e < M.energiaBaja.umbral) add(M.energiaBaja.ic, `Energía ${Math.round(e)}: llegas cansado/a`, M.energiaBaja.ventana, M.energiaBaja.vel);
+    else if (e >= M.energiaAlta.umbral) add(M.energiaAlta.ic, `Energía ${Math.round(e)}: llegas fresco/a`, M.energiaAlta.ventana);
+    if (s.finLesion && s.semana - s.finLesion <= M.lesionReciente.semanas) add(M.lesionReciente.ic, 'Vienes de una lesión: aún notas molestias', M.lesionReciente.ventana);
+    if (s.temporada) {
+      if (s.confianza >= M.confianzaAlta.umbral) add(M.confianzaAlta.ic, `El míster confía en ti (${Math.round(s.confianza)})`, M.confianzaAlta.ventana);
+      else if (s.confianza <= M.confianzaBaja.umbral) add(M.confianzaBaja.ic, `Poca confianza (${Math.round(s.confianza)}): juegas con presión`, 0, M.confianzaBaja.vel);
+    }
+    if (X.motor === 'timing' && P2.posee) { const b = P2.posee(s, 'botasPro') ? M.botas.botasPro : P2.posee(s, 'botas') ? M.botas.botas : 0; if (b) add(M.botas.ic, P2.posee(s, 'botasPro') ? 'Botas profesionales' : 'Botas buenas', b); }
+    if (s.preparador || acc.some(x => s.semana - x.semana < 4 && x.a === 'preparador')) add(M.preparador.ic, 'Has trabajado con un preparador', M.preparador.ventana);
+    const ev = s.eventoImportante;
+    if (ev && ev.semana === s.semana && (mom.imp >= 3)) {
+      const pe = prepEfectiva(ev, s, accion), dv = r1(((pe - 50) / 100) * M.preparacion.escala * 100) / 100;
+      if (dv) add(M.preparacion.ic, `Preparación ${Math.round(pe)} %`, dv);
+      const pres = ev.presion || 0; if (pres >= 15) add('😬', 'Mucha presión en la grada', 0, 0.06); else if (pres <= -10) add('🫶', 'Tu gente en la grada: menos presión', 0, -0.05);
+    }
+    if (M.importancia[mom.imp]) add(mom.imp >= 5 ? M.importancia.ic : '🙂', mom.imp >= 5 ? 'Es una final: nervios' : 'Es un entrenamiento: sin nervios', 0, M.importancia[mom.imp]);
+    return { lista: l, ventana: r1(clamp(1 + ventana, 0.6, 1.4) * 100) / 100, vel: r1(clamp(1 + vel, 0.75, 1.35) * 100) / 100 };
+  }
+  // Dificultad 0 (muy fácil) … 1 (muy difícil), para enseñar y para la telemetría
+  const dificultadDe = M => r1(clamp(0.5 - (M.ventana - 1) * 0.9 + (M.vel - 1) * 0.7, 0, 1) * 100) / 100;
+
+  // ---------- Preparación del gran partido ----------
+  const EFECTO_PREP = { entrenar: [12, 8], entrenoExtra: [12, 8], preparador: [14, 6], campus: [10, 8], roca: [10, 8], superficie: [10, 8], tiro: [10, 8], calle: [8, 6],
+    descansar: [4, -15], plaza: [6, 4], jornada: [6, 4], torneo: [6, 6], trabajar: [-4, 4], gestionar: [-6, 2], prensa: [-3, 0], __acto: [-6, 2], __evento: [-5, 2] };
+  const TXT_PREP = { entrenar: 'Entrenar', entrenoExtra: 'Quedarte a entrenar', preparador: 'Preparador', descansar: 'Descansar', gestionar: 'Atender la empresa', trabajar: 'Trabajar', prensa: 'Prensa', __acto: 'Acto de patrocinador', __evento: 'Semana ocupada' };
+  const prepEfectiva = (ev, s, accion) => {
+    let p = ev.prep, f = ev.fatiga || 0;
+    if (accion && ev.semana >= s.semana && !ev.aplicada) { const e = EFECTO_PREP[accion] || [0, 0]; p += e[0]; f += e[1]; }
+    return clamp(p - Math.max(0, f - 40) / 2, 0, 100);
+  };
+  function aplicarPreparacion(s, accion, R) {
+    const ev = s.eventoImportante; if (!ev || ev.semana < s.semana) return;
+    const e = EFECTO_PREP[accion]; if (!e) return;
+    ev.prep = clamp(ev.prep + e[0], 0, 100); ev.fatiga = clamp((ev.fatiga || 0) + e[1] - 3, 0, 100);
+    if (e[0]) { ev.log = (ev.log || []).concat({ semana: s.semana, t: TXT_PREP[accion] || accion, d: e[0] }).slice(-6); R && R.lineas.push([ev.ic, `${ev.n}: preparación ${e[0] > 0 ? '+' : ''}${e[0]} (${Math.round(ev.prep)} %).`, e[0] > 0 ? 'bien' : 'mal']); }
+    if (ev.semana === s.semana) ev.aplicada = true;
+  }
+  function moverPreparacion(s, dPrep, dPresion, motivo) {
+    const ev = s.eventoImportante; if (!ev || ev.semana < s.semana) return false;
+    ev.prep = clamp(ev.prep + (dPrep || 0), 0, 100); ev.presion = clamp((ev.presion || 0) + (dPresion || 0), -30, 30);
+    if (motivo) ev.log = (ev.log || []).concat({ semana: s.semana, t: motivo, d: dPrep || 0, presion: dPresion || 0 }).slice(-6);
+    return true;
+  }
+  // ¿Se acerca un gran partido? (se llama al acabar la semana, con la jornada ya avanzada)
+  function detectarEvento(s, R) {
+    const T = s.temporada, ev = s.eventoImportante;
+    if (ev && ev.semana < s.semana + 1) s.eventoImportante = null;   // ya se jugó
+    if (ev && ev.tipo === 'final' && !(P2.copaFinalEn && P2.copaFinalEn(s, ev.jornada))) { s.eventoImportante = null; }
+    if (ev && ev.tipo === 'promocion' && T && T.cerrada && !(T.promocion && T.promocion.estado === 'pendiente')) { s.eventoImportante = null; R && R.lineas.push(['📉', 'No habrá promoción: se acaba la preparación especial.']); }
+    if (s.eventoImportante || !T || T.cerrada || (s.fase !== 'club' && s.fase !== 'amateur')) return;
+    const nuevo = (o) => { s.eventoImportante = Object.assign({ prep: 50, fatiga: 0, presion: 0, log: [], anunciada: s.semana + 1 }, o); R && R.lineas.push([o.ic, `${o.n} ${o.semana - s.semana === 1 ? 'la semana que viene' : `en ${o.semana - s.semana} semanas`}. Prepárala bien: lo que decidas cuenta.`, 'bien']); P2.anotar(s, o.ic, `Se acerca: ${o.n}.`); };
+    // Final de copa en las próximas 3 jornadas
+    for (let k = 0; k < 3 && s.fase === 'club'; k++) {
+      const c = P2.copaFinalEn && P2.copaFinalEn(s, T.jornada + k);
+      if (c) { const C = P2.COMPETICIONES[c.id]; return nuevo({ id: `final|${c.id}|${T.num}`, tipo: 'final', n: `Final · ${C.n}`, ic: '🏆', semana: s.semana + 1 + k, jornada: T.jornada + k }); }
+    }
+    const quedan = T.calendario.length - T.jornada;
+    if (quedan <= 3 && quedan >= 1) {
+      const Z = P2.zonas(T.liga), n = P2.clasificacion(T).length, pos = P2.posicion(T);
+      const cercaPromo = (Z.asc && P2.LIGAS[T.liga].sube && Math.abs(pos - (Z.asc + 1)) <= 1) || (Z.desc && pos >= n - Z.desc - 1 && pos <= n - Z.desc + 2);
+      if (cercaPromo && T.formato !== 'circuito') return nuevo({ id: `promo|${T.num}|${T.liga}`, tipo: 'promocion', n: 'Posible promoción', ic: '⬆️', semana: s.semana + 1 + quedan });
+      const enJuego = P2.contexto(T).some(t => /ascenso|descenso|título|líder/i.test(t));
+      if (enJuego) return nuevo({ id: `ult|${T.num}`, tipo: 'decisivo', n: 'Última jornada', ic: '🔥', semana: s.semana + quedan });
+    }
+  }
+
+  // ---------- Resultado: FAIL / GOOD / PERFECT ----------
+  const nivelRes = p => (p >= CFG_MJ.umbral.perfect ? 'PERFECT' : p >= CFG_MJ.umbral.good ? 'GOOD' : 'FAIL');
   const mj = s => (s.mjSemana && s.mjSemana.semana === s.semana ? s.mjSemana : null);
-  function bonusPrueba(s) { const m = mj(s); return m && m.tipo === 'prueba' ? Math.round((m.p - MINIJUEGOS.prueba.neutro) * 12) : 0; }   // −5 … +7
-  function bonusTorneo(s) { const m = mj(s); return m && m.tipo === 'torneo' ? r1((m.p - MINIJUEGOS.torneo.neutro) * 12) : 0; }        // −5 … +7
-  // Penalti (como en P1): aciertas → +1 gol para tu equipo (+2 si es perfecto); fallas → +1 para el rival (+2 si es un desastre)
-  function penalti(s) { const m = mj(s); if (!m || m.tipo !== 'penalti') return null; return m.p >= 0.9 ? 'perfecto' : m.p >= 0.6 ? 'gol' : m.p <= 0.1 ? 'desastre' : 'fallo'; }
+  function bonusPrueba(s) { const m = mj(s); return m && m.tipo === 'prueba' ? Math.round((m.p - MINIJUEGOS.prueba.neutro) * 12) : 0; }   // −5 … +7 (como siempre: la ruta amateur no cambia)
+  function bonusTorneo(s) { const m = mj(s); return m && m.tipo === 'torneo' ? r1((m.p - MINIJUEGOS.torneo.neutro) * 12) : 0; }
+  // Momento de partido → código para el motor del partido. Ataque: GOOD/PERFECT = gol; FAIL = ocasión fallada.
+  // Defensa: GOOD/PERFECT = evitas el gol; FAIL = gol del rival. (Antes: ±2 goles y ±18 de confianza)
+  function momentoPartido(s) {
+    const m = mj(s); if (!m || (m.tipo !== 'partido' && m.tipo !== 'penalti')) return null;
+    const X = instancia(m.inst) || INST.penalti, res = nivelRes(m.p);
+    return { res, lado: X.lado === 'defensa' ? 'defensa' : 'ataque', inst: X.id, n: nombreInst(X).n, ic: nombreInst(X).ic };
+  }
+  // Compatibilidad con el motor del partido (04_carrera): gol / perfecto / fallo / parada
+  function penalti(s) {
+    const x = momentoPartido(s); if (!x) return null;
+    if (x.lado === 'ataque') return x.res === 'PERFECT' ? 'perfecto' : x.res === 'GOOD' ? 'gol' : 'ocasion';
+    return x.res === 'FAIL' ? 'fallo' : x.res === 'PERFECT' ? 'paradaPlus' : 'parada';
+  }
+  // Finales y promociones: la gestión decide la base; el minijuego inclina la balanza (≈25 % del rango)
+  const AJUSTE_GRANDE = { PERFECT: 0.18, GOOD: 0.10, FAIL: -0.15 };
+  function probGranPartido(s, tipo) {
+    let p = P2.probSimular(s);
+    const ev = s.eventoImportante;
+    if (ev && ev.semana === s.semana && (ev.tipo === tipo || (tipo === 'promocion' && ev.tipo === 'promocion'))) p += (prepEfectiva(ev, s) - 50) / 250;
+    const m = mj(s); if (m && m.tipo === tipo) p += AJUSTE_GRANDE[nivelRes(m.p)];
+    return clamp(p, 0.05, 0.95);
+  }
   // «Simular»: lo decide tu nivel, como mucho un 80 % (nunca perfecto)
   function probSimular(s) { return clamp(0.3 + (s.p.nivel - 50) / 50, 0.15, 0.8); }
   const P_SIM = { acierto: 0.72, fallo: 0.25 };
 
+  // ---------- Jugador simulado (balance y tests): habilidad 0–1 + dificultad real ----------
+  function simularJugador(s, mom, hab, accion, k = '') {
+    const M = modificadores(s, mom, accion);
+    const pE = clamp(hab + (M.ventana - 1) * 0.9 - (M.vel - 1) * 0.6 - (mom.imp >= 5 ? 0.03 : 0), 0.02, 0.98);
+    const u = u01(s, `jug|${s.semana}|${mom.inst}|${k}`);
+    if (u < pE * hab * 0.55) return 0.95;
+    if (u < pE) return 0.72;
+    return r1(u * 0.5 * 100) / 100;
+  }
+
+  // ---------- Registro: historial, estadísticas, rachas, logros ----------
+  const stats = s => (s.mjStats && typeof s.mjStats === 'object' ? s.mjStats : (s.mjStats = { jugados: 0, exitos: 0, perfects: 0, racha: 0, mejorRacha: 0, reintentos: 0, vidasUsadas: 0, vidasAnuncio: 0, vidasAnuncioTemp: {}, porTipo: {}, simulados: 0 }));
+  const LOGROS_MJ = [
+    { id: 'sangreFria', ic: '🧊', n: 'Sangre fría', d: 'Perfect en una final o promoción sin usar vida' },
+    { id: 'racha3', ic: '🔥', n: 'En racha', d: '3 Perfect seguidos' },
+    { id: 'diezPerfect', ic: '🎯', n: 'Diez de diez', d: '10 Perfect' },
+    { id: 'polivalente', ic: '⭐', n: 'Polivalente', d: 'Perfect en 5 tipos de momento distintos' },
+  ];
+  function registrarMomento(s, mom, info, R) {
+    const H = hist(s), m = info || {};
+    const jugado = m.p != null && !m.simulado;
+    const res = m.p != null ? nivelRes(m.p) : null;
+    H.push({ id: mom.inst, motor: mom.motor, ctx: mom.ctx, imp: mom.imp, semana: s.semana, res: res || 'auto', retry: m.reintentos || 0, vida: m.reintentos ? 1 : 0, jugado });
+    while (H.length > CFG_MJ.historial) H.shift();
+    const st = stats(s);
+    if (m.simulado) st.simulados++;
+    if (jugado) {
+      st.jugados++; const t = st.porTipo[mom.inst] || (st.porTipo[mom.inst] = { j: 0, e: 0, p: 0 }); t.j++;
+      if (res !== 'FAIL') { st.exitos++; t.e++; }
+      if (res === 'PERFECT') { st.perfects++; t.p++; st.racha++; st.mejorRacha = Math.max(st.mejorRacha, st.racha); } else st.racha = 0;
+      st.reintentos += m.reintentos || 0;
+      const L = s.logrosMj = s.logrosMj || {}, nuevos = [];
+      const lograr = id => { if (!L[id]) { L[id] = s.semana; nuevos.push(LOGROS_MJ.find(x => x.id === id)); } };
+      if (res === 'PERFECT' && mom.imp >= 4 && !m.reintentos) lograr('sangreFria');
+      if (st.racha >= 3) lograr('racha3');
+      if (st.perfects >= 10) lograr('diezPerfect');
+      if (Object.values(st.porTipo).filter(x => x.p > 0).length >= 5) lograr('polivalente');
+      for (const x of nuevos) { R && R.lineas.push([x.ic, `Logro: ${x.n} (${x.d}).`, 'bien']); P2.anotar(s, x.ic, `Logro: ${x.n}.`); }
+      // Lo memorable queda en Mi historia
+      const X = nombreInst(instancia(mom.inst) || INST.penalti);
+      if (mom.imp >= 4 || res === 'PERFECT') recordar(s, res === 'FAIL' ? '😖' : res === 'PERFECT' ? '⭐' : X.ic, `${X.n} · ${MINIJUEGOS[mom.ctx].n.toLowerCase()}: ${res === 'PERFECT' ? 'Perfect' : res === 'GOOD' ? 'conseguido' : 'fallado'}${m.reintentos ? ' (con una vida)' : ''}`);
+    }
+    P2.tele(s, 'minigame_result', { minigame_type: mom.inst, engine: mom.motor, importance: mom.imp, match_importance: mom.imp, result: res || 'auto', perfect: res === 'PERFECT', retry: m.reintentos || 0, life_used: (m.reintentos || 0) > 0, simulado: !!m.simulado, jugado });
+  }
+  function recordar(s, ic, t) { const l = s.memorables = Array.isArray(s.memorables) ? s.memorables : []; l.push({ semana: s.semana, ic, t }); if (l.length > 40) l.shift(); }
+
+  // ---------- Director de eventos: variedad de las últimas semanas ----------
+  const ETIQUETAS = ['sport', 'minigame', 'event', 'relationship', 'business', 'sponsor'];
+  function etiquetarSemana(s, tag) { const l = s.tagsSemana = Array.isArray(s.tagsSemana) ? s.tagsSemana : []; if (!l.includes(tag)) l.push(tag); }
+  function cerrarSemanaLog(s, accion, R, mom) {
+    const tags = new Set(Array.isArray(s.tagsSemana) ? s.tagsSemana : []);
+    if (R.partido || ['entrenar', 'plaza', 'jornada', 'torneo', 'campus', 'preparador', 'entrenoExtra'].includes(accion)) tags.add('sport');
+    if (mom) tags.add('minigame');
+    if (accion === 'gestionar' || (s.negocios.length && R.lineas.some(l => /^(💈|🏪|🏢|💼)/.test(l[0])))) tags.add('business');
+    if (accion === '__acto' || accion === 'prensa') tags.add('sponsor');
+    const l = semLog(s); l.push({ semana: s.semana, t: [...tags].filter(x => ETIQUETAS.includes(x)), partido: !!(R.partido && R.partido.nota != null), mj: mom ? mom.inst : null });
+    while (l.length > 8) l.shift();
+    s.tagsSemana = [];
+  }
+  // Qué le falta a la semana (para elegir sucesos): factor de probabilidad y categorías a empujar
+  function EVENT_DIRECTOR(s) {
+    const l = semLog(s), ult = l.slice(-3), con = t => l.slice(-6).some(x => x.t.includes(t));
+    const sinEventos = ult.length >= 3 && !ult.some(x => x.t.includes('event') || x.t.includes('relationship') || x.t.includes('business'));
+    const seguidos = l.slice(-2).length === 2 && l.slice(-2).every(x => x.t.includes('event') || x.t.includes('relationship'));
+    const firma = x => x.t.slice().sort().join(',');
+    const iguales = ult.length >= 3 && ult.every(x => firma(x) === firma(ult[0]));
+    return {
+      factorSuceso: seguidos ? 0.5 : sinEventos || iguales ? 1.7 : 1,
+      empujarRelacion: !con('relationship'),
+      empujarEmpresa: s.negocios.length > 0 && !con('business'),
+      forzar: iguales,
+      variedad: new Set(l.slice(-6).flatMap(x => x.t)).size,
+    };
+  }
+
   // ---------- Vidas ----------
   const vidas = s => (s.vidas && typeof s.vidas === 'object' ? s.vidas : (s.vidas = { n: VIDAS.max, recarga: s.semana || 1 }));
-  function usarVida(s) { const v = vidas(s); if (v.n <= 0) return false; v.n--; if (v.n === VIDAS.max - 1) v.recarga = s.semana; P2.teleMon && P2.teleMon(s, 'vida_usada', { quedan: v.n }); return true; }
+  function usarVida(s) { const v = vidas(s); if (v.n <= 0) return false; v.n--; if (v.n === VIDAS.max - 1) v.recarga = s.semana; stats(s).vidasUsadas++; P2.teleMon && P2.teleMon(s, 'vida_usada', { quedan: v.n }); return true; }
   function recargarVidas(s) {
     const v = vidas(s);
     if (v.n >= VIDAS.max) { v.recarga = s.semana; return 0; }
@@ -7426,8 +7812,35 @@ globalThis.P2C = P2C;
     return g;
   }
   const semanasParaVida = s => { const v = vidas(s); return v.n >= VIDAS.max ? 0 : Math.max(1, VIDAS.recargaSemanas - (s.semana - v.recarga)); };
+  const claveTemp = s => (s.temporada ? `${s.temporada.liga}-${s.temporada.num}` : `b${Math.floor((s.semana || 0) / 26)}`);
+  const vidasAnuncioTemporada = s => stats(s).vidasAnuncioTemp[claveTemp(s)] || 0;
+  function anotarVidaAnuncio(s) { const st = stats(s), k = claveTemp(s); st.vidasAnuncio++; st.vidasAnuncioTemp[k] = (st.vidasAnuncioTemp[k] || 0) + 1; P2.tele(s, 'rewarded_life', { temporada: k }); }
 
-  Object.assign(P2, { JUEGOS, JUEGOS_DE, juegoMinijuego, probSimular, P_SIM, MINIJUEGOS, VIDAS, minijuegoSemana, bonusPrueba, bonusTorneo, penalti, vidas, usarVida, recargarVidas, semanasParaVida });
+  // ---------- Informe y alertas de diseño ----------
+  function metricasMinijuegos(l, partidos) {
+    const tot = l.length, por = {};
+    for (const x of l) por[x.id] = (por[x.id] || 0) + 1;
+    let consec = 0; for (let i = 1; i < l.length; i++) if (l[i].id === l[i - 1].id) consec++;
+    const jug = l.filter(x => x.jugado), ok = jug.filter(x => x.res !== 'FAIL').length, perf = jug.filter(x => x.res === 'PERFECT').length;
+    return { total: tot, porTipo: por, exito: jug.length ? ok / jug.length : null, perfect: jug.length ? perf / jug.length : null, reintentos: l.reduce((a, x) => a + (x.retry || 0), 0),
+      consecutivas: consec, cadaPartidos: tot ? partidos / tot : null, maxTipo: tot ? Math.max(...Object.values(por)) / tot : 0 };
+  }
+  function alertasMinijuegos(M, extra = {}) {
+    const A = CFG_MJ.alertas, l = [];
+    if (M.total >= 10 && M.maxTipo > A.maxTipoPct) l.push(`Un tipo es el ${Math.round(M.maxTipo * 100)} % de los minijuegos (máximo ${Math.round(A.maxTipoPct * 100)} %).`);
+    if (M.consecutivas > 0) l.push(`El mismo minijuego salió ${M.consecutivas} ${M.consecutivas === 1 ? 'vez' : 'veces'} dos veces seguidas.`);
+    if (extra.pctPartidosConMj != null && extra.pctPartidosConMj > A.maxPartidosConMj) l.push(`El ${Math.round(extra.pctPartidosConMj * 100)} % de los partidos tienen minijuego.`);
+    if (extra.maxSinMj != null && extra.maxSinMj > A.maxSinMj) l.push(`Hubo ${extra.maxSinMj} partidos seguidos sin minijuego.`);
+    if (extra.maxVidasAnuncioTemp != null && extra.maxVidasAnuncioTemp > A.maxVidasAnuncioTemporada) l.push(`${extra.maxVidasAnuncioTemp} vidas por anuncio en una temporada.`);
+    return l;
+  }
+
+  Object.assign(P2, { MINIJUEGOS, JUEGOS, JUEGOS_DE, MOTORES, MINIGAME_TYPES, MINIGAME_INSTANCES, MINIGAME_MODIFIERS, CFG_MJ, VIDAS, LOGROS_MJ, EFECTO_PREP,
+    instancia, nombreInst, importanciaPartido, probMomento, ritmoPartidos, elegirInstancia, momentoSemana, minijuegoSemana, juegoMinijuego,
+    modificadores, dificultadDe, prepEfectiva, aplicarPreparacion, moverPreparacion, detectarEvento,
+    nivelRes, bonusPrueba, bonusTorneo, momentoPartido, penalti, probGranPartido, AJUSTE_GRANDE, probSimular, P_SIM, simularJugador,
+    mjStats: stats, registrarMomento, recordar, etiquetarSemana, cerrarSemanaLog, EVENT_DIRECTOR, ultimasAcciones,
+    vidas, usarVida, recargarVidas, semanasParaVida, vidasAnuncioTemporada, anotarVidaAnuncio, metricasMinijuegos, alertasMinijuegos });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 19_copas.js =====
@@ -7481,7 +7894,9 @@ globalThis.P2C = P2C;
         else { c.estado = 'eliminado'; R.lineas.push([C.ic, `${C.n}: eliminados en ${ronda[1].toLowerCase()}.`, 'mal']); }
       }
       if (C.final === jp) {
-        const m = mj(s), gana = m && m.tipo === 'final' ? m.p >= 0.6 : azar(s, `${c.id}|final|${T.num}`) < prob(s);
+        // Gestión (nivel + preparación) decide la base; el minijuego inclina la balanza
+        const m = mj(s), pg = P2.probGranPartido(s, 'final'), gana = azar(s, `${c.id}|final|${T.num}`) < pg;
+        R.momento = granMomento(s, m, gana, C.n, pg);
         c.estado = gana ? 'campeon' : 'subcampeon';
         aplicar(s, gana ? C.gana : C.pierde);
         if (gana) { (s.trofeos = s.trofeos || []).push({ id: c.id, ic: C.ic, n: C.n, semana: s.semana }); P2.celebrar(s, Object.assign({ tipo: 'titulo', comp: c.id, n: C.n, ic: C.ic }, C.gana)); }
@@ -7490,6 +7905,15 @@ globalThis.P2C = P2C;
         R.lineas.push([gana ? C.ic : '😖', gana ? `¡Ganáis la final de la ${C.n}!` : `Perdéis la final de la ${C.n}.`, gana ? 'bien' : 'mal']);
       }
     }
+  }
+  // Qué pasó y por qué importa en una final o promoción
+  function granMomento(s, m, gana, n, pg) {
+    const ev = s.eventoImportante && s.eventoImportante.semana === s.semana ? s.eventoImportante : null, porque = [];
+    if (ev) porque.push(`Llegabas con un ${Math.round(P2.prepEfectiva(ev, s))} % de preparación`);
+    if (m) { const r = P2.nivelRes(m.p), X = P2.nombreInst(P2.instancia(m.inst) || P2.instancia('penalti')); porque.push(`${X.n}: ${r === 'PERFECT' ? 'Perfect' : r === 'GOOD' ? 'te sale' : 'te falla'} (${r === 'FAIL' ? '' : '+'}${Math.round(P2.AJUSTE_GRANDE[r] * 100)} puntos de probabilidad)`); if (r === 'PERFECT' && gana) s.p.rep = r1(clamp(s.p.rep + 1, 0, 100)); }
+    porque.push(`Opciones de ganar: ${Math.round(pg * 100)} %`);
+    P2.recordar && P2.recordar(s, gana ? '🏆' : '😖', `${n}: ${gana ? 'ganada' : 'perdida'}${ev ? ` (preparación ${Math.round(P2.prepEfectiva(ev, s))} %)` : ''}`);
+    return { ic: gana ? '🏆' : '😖', titulo: gana ? `¡${n.toUpperCase()}: GANADA!` : `${n}: perdida`, bien: gana, que: gana ? 'Lo celebráis en el césped.' : 'Se escapa. Mañana la historia seguirá.', porque, gran: true };
   }
   function aplicar(s, e) {
     if (e.dinero) { s.p.dinero += e.dinero; s.acum.primas += e.dinero; }
@@ -7541,7 +7965,8 @@ globalThis.P2C = P2C;
   // Semana de la promoción: la liga ya acabó; se decide con tu minijuego (o por nivel si no lo juegas)
   function jugarPromocion(s, R) {
     const T = s.temporada, pr = T.promocion; if (!pr || pr.estado !== 'pendiente') return false;
-    const m = mj(s), gana = m && m.tipo === 'promocion' ? m.p >= 0.6 : azar(s, `promo|${T.num}|${T.liga}`) < prob(s);
+    const m = mj(s), pg = P2.probGranPartido(s, 'promocion'), gana = azar(s, `promo|${T.num}|${T.liga}`) < pg;
+    R.momento = granMomento(s, m, gana, TXT_PROMO[pr.clase].n, pg);
     pr.estado = gana ? 'ganada' : 'perdida';
     const X = TXT_PROMO[pr.clase];
     R.lineas.push([X.ic, `${X.n}: ${gana ? '¡la ganáis!' : 'la perdéis.'}`, gana ? 'bien' : 'mal']);
@@ -7585,7 +8010,7 @@ globalThis.P2C = P2C;
     const c = copaFinalEn(s, T.jornada); return c ? Object.assign({ copa: c.id }, COMPETICIONES[c.id]) : null;
   }
 
-  Object.assign(P2, { iniciarPromocion, promoPendiente, enJuego, COMPETICIONES, CONVOCATORIA, TXT_PROMO, prepararCopas, semanaCopas, clasePromocion, jugarPromocion, ajustarMovimiento, trasTemporada, finalEstaSemana });
+  Object.assign(P2, { iniciarPromocion, promoPendiente, enJuego, COMPETICIONES, CONVOCATORIA, TXT_PROMO, prepararCopas, semanaCopas, clasePromocion, jugarPromocion, ajustarMovimiento, trasTemporada, finalEstaSemana, copaFinalEn });
 })(globalThis.P2 = globalThis.P2 || {});
 
 // ===== 19_expansiones.js =====
@@ -9190,6 +9615,8 @@ globalThis.P2C = P2C;
       l.push(`<span class="chip">${ETQ[k]} ${aprox && k !== 'energia' ? '≈' : ''}${v > 0 ? '+' : '−'}${k === 'dinero' ? eur(Math.abs(v)) : nf(Math.round(Math.abs(v) * 10) / 10)}</span>`);
     }
     if (EXTRA_OP[id]) l.push(`<span class="chip">${esc(EXTRA_OP[id])}</span>`);
+    const ev = s.eventoImportante, e = ev && ev.semana >= s.semana && P2.EFECTO_PREP[id];
+    if (e && e[0]) l.push(`<span class="chip ${e[0] > 0 ? 'prepMas' : 'prepMenos'}">📈 Preparación ${e[0] > 0 ? '+' : '−'}${Math.abs(e[0])}</span>`);
     return l.join('');
   }
   // Orden de las opciones: lo especial de la semana primero, después lo básico de tu fase
@@ -9226,10 +9653,18 @@ globalThis.P2C = P2C;
     if (X) return `<div class="partidoProx grandeJuego">${X.ic} Esta semana: <b>${esc(X.n)}</b><br><small>✓ ${esc(X.gana)} · ✗ ${esc(X.pierde)}</small></div>`;
     return pj ? `<div class="partidoProx">⚽ Esta semana: ${pj.local ? 'en casa contra' : 'visitas a'} <b>${esc(P2.nombreEquipo(s.temporada, pj.rival))}</b></div>` : '';
   }
+  // 🏆 FINAL EN 3 SEMANAS · Preparación 62 %: lo que decidas estas semanas cuenta
+  function htmlPreparacion(s) {
+    const ev = s.eventoImportante; if (!ev || ev.semana < s.semana) return '';
+    const k = ev.semana - s.semana, p = Math.round(P2.prepEfectiva(ev, s)), cuando = k <= 0 ? 'ESTA SEMANA' : k === 1 ? 'LA SEMANA QUE VIENE' : `EN ${k + 1} SEMANAS`;
+    const ult = (ev.log || []).slice(-2).map(x => `${x.d > 0 ? '+' : ''}${x.d} ${esc(x.t)}`).join(' · ');
+    return `<div class="card prepCard"><b>${ev.ic} ${esc(ev.n.toUpperCase())} ${cuando}</b><div class="prepFila"><span>Preparación</span><div class="xp"><i style="width:${p}%"></i></div><b>${p} %</b></div>
+      <small>Entrenar +12 · Descansar +4 (y menos fatiga) · Empresa, trabajo o patrocinador restan${ev.fatiga >= 40 ? ` · ⚠️ Fatiga ${Math.round(ev.fatiga)}: descansa` : ''}${ult ? `<br>Últimas semanas: ${ult}` : ''}</small></div>`;
+  }
   function htmlSemana(s) {
     const o = opcionesSemana(s), enEquipo = s.fase === 'club' || s.fase === 'amateur', pj = enEquipo && s.temporada ? P2.partidoDeLaJornada(s.temporada) : null;
     const mas = ui.masOps ? `<div class="ops">${o.resto.map((x, i) => tarjetaOp(s, x, i + 3)).join('')}${o.bloq.map(x => `<button class="op gris" disabled><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips"><span class="chip">🔒 ${esc(x.bloqueo)}</span></span></span></button>`).join('')}</div>` : '';
-    return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlDeseo(s)}${P2.UIX && P2.UIX.inicio ? P2.UIX.inicio(s, HX) : ''}
+    return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlPreparacion(s)}${htmlDeseo(s)}${P2.UIX && P2.UIX.inicio ? P2.UIX.inicio(s, HX) : ''}
       ${enEquipo ? htmlEnJuego(s, pj) : ''}
       <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
       <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>
@@ -9256,7 +9691,8 @@ globalThis.P2C = P2C;
       + (s.contrato ? filaCambio('📣', 'Marca', a.marca, b.marca) + filaCambio('👔', 'Confianza del míster', a.confianza, b.confianza) : '');
     const lineas = R.lineas.filter(l => !P || !/^Jornada \d+:/.test(l[1])).slice(0, 3);
     const sig = ui.fiestas && ui.fiestas.length ? 'Continuar ▶' : s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶';
-    return `<div class="pant res"><div class="grande">${G ? G.ic : ic}</div><h2>${esc(tit)}</h2>${(R.grandes || []).map(x => `<div class="enjuego ${x.bien ? 'bien' : 'mal'}"><b>${x.ic} ${esc(x.titulo)}</b><span>${esc(x.texto)}</span></div>`).join('')}<p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
+    const Mo = R.momento, moHtml = Mo ? `<div class="momentoRes ${Mo.bien ? 'bien' : 'mal'}"><small>QUÉ PASÓ</small><b>${esc(Mo.titulo)}</b><p>${esc(Mo.que)}</p><small>POR QUÉ IMPORTA</small><ul>${Mo.porque.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
+    return `<div class="pant res"><div class="grande">${G ? G.ic : ic}</div><h2>${esc(tit)}</h2>${moHtml}${(R.grandes || []).map(x => `<div class="enjuego ${x.bien ? 'bien' : 'mal'}"><b>${x.ic} ${esc(x.titulo)}</b><span>${esc(x.texto)}</span></div>`).join('')}<p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
       ${P && P.formato === 'circuito' ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada}${P.cond ? ` · ${esc(P2.NOMBRE_COND[P.cond] || '')}` : ''}</small><b>${P.puesto && P.rol !== 'lesionado' && P.rol !== 'noConvocado' && P.rol !== 'banquillo' ? `<span>${P.puesto}º</span> de ${P.gc}` : 'No compites'}</b>${P.detalle ? `<small>${esc(P.detalle)}</small>` : ''}`
         : P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}${P.cond ? ` · ${esc(P2.NOMBRE_COND[P.cond] || '')}` : ''}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>${P.formato === 'sets' && P.detalle ? `<small>${esc(P.detalle)}</small>` : ''}` : ''}${P ? `
         <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.formato === 'puntos' && P.detalle ? ` · ${esc(P.detalle)}` : P.goles && (!P.formato || P.formato === 'goles') ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : P.goles && P.formato === 'sets' ? ` · 🎾 ${P.goles} aces` : ''}</small></div>` : ''}
@@ -9378,85 +9814,129 @@ globalThis.P2C = P2C;
     }
     return `<div class="pant cele cele-${esc(c.tipo)}"><div class="rayos"></div>${h}${cerrar}</div>`;
   }
-  // ---- Minijuegos: barra de tiempo (y esquina en el penalti); vidas para repetir ----
+  // ---- Momentos clave y minijuegos (P2.5.1): 4 motores con skins; la gestión cambia la dificultad; vidas para repetir ----
   const ESQ = [['izq', '⬅️', 'Izquierda'], ['centro', '⬆️', 'Centro'], ['dcha', '➡️', 'Derecha']];
   const corazones = s => { const v = P2.vidas(s); return `<span class="vidas" aria-label="${v.n} vidas">${'❤️'.repeat(v.n)}${'🤍'.repeat(Math.max(0, P2.VIDAS.max - v.n))}</span>`; };
   const juegoDe = J => P2.JUEGOS[J.juego] || P2.JUEGOS.barra;
+  const instDe = J => P2.nombreInst(P2.instancia(J.inst) || P2.instancia('penalti'));
+  const cfgDe = J => (P2.instancia(J.inst) || {}).cfg || {};
+  const rondasDe = J => cfgDe(J).rondas || juegoDe(J).rondas;
+  const modsDe = J => J.mods || { ventana: 1, vel: 1, lista: [] };
+  // Lo que la gestión cambia en cada motor
+  const zonaBarra = J => Math.max(7, (22 - J.res.length * 5) * modsDe(J).ventana * (cfgDe(J).zona || 1));
+  const ventanaPase = J => ([1000, 850, 700][J.res.length] || 700) * (cfgDe(J).ventana || 1) * modsDe(J).ventana;
+  const ventanaTiro = J => ([700, 560, 440][J.res.length] || 440) * modsDe(J).ventana;
+  const inicioToque = J => 60 - (modsDe(J).ventana - 1) * 40;
   const COMPIS = ['Dani', 'Marc', 'Leo'];
   const FLECHAS = [['izquierda', '⬅️'], ['arriba', '⬆️'], ['derecha', '➡️'], ['abajo', '⬇️']];
   const puntosMj = J => `<div class="mjPuntos">${J.res.map(x => `<span>${x >= 0.7 ? '⭐' : x >= 0.4 ? '👍' : '✖️'}</span>`).join('')}</div>`;
   let mjTimer = null;
-  const mjVivo = J => ui.mj === J && ui.vista === 'semana';
+  // Abre el momento de esta semana (o null si no hay)
+  function abrirMomento(id) {
+    const m = P2.momentoSemana(S, id); if (!m) return false;
+    const mods = P2.modificadores(S, m, id), ev = S.eventoImportante && S.eventoImportante.semana === S.semana ? S.eventoImportante : null;
+    ui.mj = { tipo: m.ctx, mom: m, imp: m.imp, inst: m.inst, juego: m.juego, accion: id, fase: 'intro', res: [], reintentos: 0, enJuego: P2.enJuego(S, m.ctx), mods };
+    P2.tele(S, 'minigame_shown', { minigame_type: m.inst, engine: m.motor, importance: m.imp, match_importance: m.imp, difficulty: P2.dificultadDe(mods), preparation: ev ? Math.round(P2.prepEfectiva(ev, S, id)) : null, energy: Math.round(S.p.energia), injury: S.p.lesion > 0 || (S.finLesion && S.semana - S.finLesion <= 3) ? 1 : 0 });
+    return true;
+  }
   // Empieza (o vuelve a empezar) el juego que toca en este momento
   function empezarJuego(J) {
     clearTimeout(mjTimer); J.res = []; J.msg = ''; J.libre = null; J.balon = null;
     J.fase = { penalti: 'esquina', barra: 'barra', toques: 'toques', pase: 'pase', memoria: 'mver', portero: 'portero' }[J.juego] || 'barra';
     if (J.fase === 'pase') programarPase(J);
     if (J.fase === 'portero') programarTiro(J);
-    if (J.fase === 'mver') { const n = J.tipo === 'torneo' ? 4 : 5; J.sec = Array.from({ length: n }, () => Math.floor(Math.random() * 4)); J.entrada = []; J.idx = -1; programarMemoria(J); }
+    if (J.fase === 'mver') {
+      const v = modsDe(J).ventana, base = cfgDe(J).pasos || (J.tipo === 'torneo' ? 4 : 5), n = Math.max(3, base + (v <= 0.85 ? 1 : v >= 1.2 ? -1 : 0));
+      J.sec = Array.from({ length: n }, () => Math.floor(Math.random() * 4)); J.entrada = []; J.idx = -1; programarMemoria(J);
+    }
   }
-  function siguienteRonda(J, prog) { if (J.res.length >= juegoDe(J).rondas) { terminarMinijuego(); render(); } else { prog(J); render(); } }
+  function siguienteRonda(J, prog) { if (J.res.length >= rondasDe(J)) { terminarMinijuego(); render(); } else { prog(J); render(); } }
   function programarPase(J) {
     J.libre = null;
     mjTimer = setTimeout(() => { if (ui.mj !== J) return; J.libre = Math.floor(Math.random() * 3); J.t0 = performance.now(); J.msg = ''; render();
-      const ventana = [1000, 850, 700][J.res.length] || 700;
-      mjTimer = setTimeout(() => { if (ui.mj !== J || J.libre == null) return; J.res.push(0); J.msg = '¡Lo han cubierto!'; siguienteRonda(J, programarPase); }, ventana);
+      mjTimer = setTimeout(() => { if (ui.mj !== J || J.libre == null) return; J.res.push(0); J.msg = cfgDe(J).zonas ? '¡Te lo despejan!' : '¡Lo han cubierto!'; siguienteRonda(J, programarPase); }, ventanaPase(J));
     }, 700 + Math.random() * 1100);
   }
   function programarTiro(J) {
     J.balon = null;
     mjTimer = setTimeout(() => { if (ui.mj !== J) return; J.balon = ['izq', 'centro', 'dcha'][Math.floor(Math.random() * 3)]; J.t0 = performance.now(); J.msg = ''; render();
-      const ventana = [700, 560, 440][J.res.length] || 440;
-      mjTimer = setTimeout(() => { if (ui.mj !== J || J.balon == null) return; J.res.push(0); J.balon = null; J.msg = '¡Gol! No llegas.'; siguienteRonda(J, programarTiro); }, ventana);
+      const rx = cfgDe(J).reaccion;
+      mjTimer = setTimeout(() => { if (ui.mj !== J || J.balon == null) return; J.res.push(0); J.balon = null; J.msg = rx === 'hueco' ? 'Tarde: el portero se recupera.' : rx === 'delantero' ? '¡Se te escapa!' : '¡Gol! No llegas.'; siguienteRonda(J, programarTiro); }, ventanaTiro(J));
     }, 800 + Math.random() * 1400);
   }
   function programarMemoria(J) {
-    mjTimer = setTimeout(() => { if (ui.mj !== J) return; J.idx++; if (J.idx >= J.sec.length) { J.fase = 'mrep'; render(); return; } render(); programarMemoria(J); }, J.idx < 0 ? 600 : 750);
+    const ms = (cfgDe(J).ms || 750) / modsDe(J).vel;
+    mjTimer = setTimeout(() => { if (ui.mj !== J) return; J.idx++; if (J.idx >= J.sec.length) { J.fase = 'mrep'; render(); return; } render(); programarMemoria(J); }, J.idx < 0 ? 600 : ms);
+  }
+  // Por qué es más fácil o más difícil (lo que has decidido estas semanas)
+  function htmlMods(J) {
+    const l = modsDe(J).lista.filter(x => x.ventana || x.vel).slice(0, 5); if (!l.length) return '';
+    const d = P2.dificultadDe(modsDe(J)), txt = d <= 0.35 ? 'Más fácil de lo normal' : d >= 0.65 ? 'Más difícil de lo normal' : 'Dificultad normal';
+    return `<div class="mjMods"><b>${txt}</b>${l.map(x => `<span class="${x.bien ? 'bien' : 'mal'}">${x.bien ? '✅' : '⚠️'} ${x.ic} ${esc(x.t)}</span>`).join('')}</div>`;
+  }
+  // Qué consigues según el resultado (antes de jugar y al acabar)
+  function efectoMomento(J, res) {
+    const X = P2.instancia(J.inst) || {}, def = X.lado === 'defensa';
+    if (J.tipo === 'partido') return def ? { PERFECT: 'Robo limpio: evitas el gol, +7 confianza, +1 reputación', GOOD: 'Evitas el gol: +5 confianza', FAIL: 'Gol del rival: −6 confianza, −1 reputación' }[res]
+      : { PERFECT: '¡Gol! +1 para tu equipo, +8 confianza, +1,5 reputación y un recuerdo', GOOD: 'Gol: +1 para tu equipo, +6 confianza', FAIL: 'Ocasión fallada: −6 confianza (el marcador no cambia)' }[res];
+    if (J.tipo === 'final' || J.tipo === 'promocion') { const a = Math.round(P2.AJUSTE_GRANDE[res] * 100); return `${a > 0 ? '+' : ''}${a} puntos de probabilidad de ganar. Tu nivel y tu preparación ponen el resto.`; }
+    const p = { PERFECT: 0.95, GOOD: 0.7, FAIL: 0.3 }[res];
+    if (J.tipo === 'prueba') { const bp = P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p: J.p != null ? J.p : p, semana: 0 }, semana: 0 }); return `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`; }
+    const bt = P2.bonusTorneo({ mjSemana: { tipo: 'torneo', p: J.p != null ? J.p : p, semana: 0 }, semana: 0 }); return `${bt >= 0 ? '+' : ''}${nf(bt)} en la final del torneo`;
   }
   function htmlMinijuego(s) {
-    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo], X = J.enJuego, Gj = juegoDe(J);
-    const chip = `<div class="mjJuego"><span>${Gj.ic} ${esc(Gj.n)}</span><em class="dif d-${Gj.dif === 'Fácil' ? 'facil' : Gj.dif === 'Difícil' ? 'dificil' : 'media'}">${Gj.dif}</em></div>`;
-    if (J.fase === 'intro') return `<div class="pant res mj"><div class="grande">${X ? X.ic : M.ic}</div><small class="eti">${X ? 'TE LO JUEGAS TODO' : 'MOMENTO DECISIVO'}</small><h2>${esc(X ? X.n : M.n)}</h2><p>${esc(X ? X.d : M.d)}</p>
-      ${X ? `<div class="enjuego bien"><b>✓ Si ganas</b><span>${esc(X.gana)}</span></div><div class="enjuego mal"><b>✗ Si pierdes</b><span>${esc(X.pierde)}</span></div>` : ''}${chip}<p class="small">${esc(Gj.d)}</p>${corazones(s)}
-      <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular: lo decide tu nivel (${Math.round(P2.probSimular(s) * 100)} % de acierto)</button></div>`;
-    if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span></div><h2>¿A qué lado chutas?</h2>
-      <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div></div>`;
+    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo], X = J.enJuego, Gj = juegoDe(J), Ii = instDe(J), C = cfgDe(J), gran = (J.imp || 2) >= 4;
+    const dd = P2.dificultadDe(modsDe(J)), difN = dd <= 0.35 ? 'Fácil' : dd >= 0.65 ? 'Difícil' : 'Normal';
+    const chip = `<div class="mjJuego"><span>${Ii.ic} ${esc(Ii.n)}</span><em class="dif d-${difN === 'Fácil' ? 'facil' : difN === 'Difícil' ? 'dificil' : 'media'}">${esc(P2.MOTORES[(P2.instancia(J.inst) || {}).motor || 'timing'].n)} · ${difN}</em></div>`;
+    if (J.fase === 'intro') {
+      const m = J.mom || {}, ev = s.eventoImportante && s.eventoImportante.semana === s.semana ? s.eventoImportante : null;
+      const escena = [m.minuto ? `Minuto ${m.minuto}.` : '', Ii.escena || M.d].filter(Boolean).join(' ');
+      return `<div class="pant res mj ${gran ? 'gran' : 'clave'}"><small class="eti">${gran ? '🏆 GRAN MOMENTO' : '🔥 MOMENTO CLAVE'}</small><div class="grande">${X ? X.ic : Ii.ic}</div><h2>${esc(X ? X.n : Ii.n)}</h2>
+        <p class="mjEscena">${esc(escena)}</p>${!X && (m.motivos || []).length ? `<p class="small">${esc(m.motivos.join(' · '))}</p>` : ''}
+        ${X ? `<div class="enjuego bien"><b>✓ Si ganas</b><span>${esc(X.gana)}</span></div><div class="enjuego mal"><b>✗ Si pierdes</b><span>${esc(X.pierde)}</span></div>` : `<div class="enjuego bien"><b>✓ Si sale</b><span>${esc(efectoMomento(J, 'GOOD'))}</span></div><div class="enjuego mal"><b>✗ Si falla</b><span>${esc(efectoMomento(J, 'FAIL'))}</span></div>`}
+        ${ev ? `<div class="prepMini"><span>📈 Preparación</span><div class="xp"><i style="width:${Math.round(P2.prepEfectiva(ev, s, J.accion))}%"></i></div><b>${Math.round(P2.prepEfectiva(ev, s, J.accion))} %</b></div>` : ''}
+        ${htmlMods(J)}${chip}<p class="small">${esc(Ii.d || Gj.d)}</p>${corazones(s)}
+        <button class="cta oro" data-act="mjEmpezar">¡Jugar! ▶</button><button class="masOps" data-act="mjSimular">Simular: lo decide tu nivel (${Math.round(P2.probSimular(s) * 100)} % de acierto)</button></div>`;
+    }
+    if (J.fase === 'esquina') return `<div class="pant res mj"><div class="porteria"><span class="portero">🧤</span>${C.barrera ? '<span class="barrera">🧍🧍🧍</span>' : ''}</div><h2>${C.barrera ? '¿Por dónde superas la barrera?' : '¿A qué lado chutas?'}</h2>
+      <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjEsquina" data-v="${k}"><span class="ic">${ic}</span><span class="tx"><b>${C.barrera && k === 'centro' ? 'Por encima' : n}</b></span></button>`).join('')}</div></div>`;
     if (J.fase === 'barra') {
-      const z = Math.max(10, 22 - J.res.length * 5);
-      return `<div class="pant res mj"><small class="eti">${J.tipo === 'penalti' ? 'POTENCIA Y PRECISIÓN' : `TIRO ${J.res.length + 1} DE ${Gj.rondas}`}</small><h2>¡Para en el verde!</h2>
+      const z = zonaBarra(J), n = rondasDe(J);
+      return `<div class="pant res mj"><small class="eti">${n === 1 ? (J.juego === 'penalti' ? 'POTENCIA Y PRECISIÓN' : 'UN SOLO INTENTO') : `INTENTO ${J.res.length + 1} DE ${n}`}</small><h2>¡Para en el verde!</h2>
         <div class="mjBarra"><span class="zona" style="left:${50 - z / 2}%;width:${z}%"></span><span class="marca" id="mjMarca"></span></div>
         <div class="mjPuntos">${J.res.map(x => `<span class="${x >= 0.7 ? 'bien' : x >= 0.4 ? 'medio' : 'mal'}">${x >= 0.7 ? '⭐' : x >= 0.4 ? '👍' : '✖️'}</span>`).join('')}</div>
         <button class="cta" data-act="mjParar" id="mjParar">¡AHORA!</button></div>`;
     }
-    const msg = J.msg ? `<p class="mjMsg">${esc(J.msg)}</p>` : '<p class="mjMsg">&nbsp;</p>';
-    // Toques (fácil): toca cuando el balón baja a tu pie
-    if (J.fase === 'toques') return `<div class="pant res mj"><small class="eti">TOQUE ${J.res.length + 1} DE ${Gj.rondas}</small><h2>¡Toca cuando baje!</h2>
-      <div class="mjToques"><span class="zonaPie"></span><span class="balon" id="mjBalon">⚽</span><span class="pie">👟</span></div>${puntosMj(J)}${msg}
-      <button class="cta" data-act="mjToque" id="mjToque">¡TOQUE!</button></div>`;
-    // Pase al desmarcado (fácil): un compañero se queda solo un instante
-    if (J.fase === 'pase') return `<div class="pant res mj"><small class="eti">PASE ${Math.min(J.res.length + 1, Gj.rondas)} DE ${Gj.rondas}</small><h2>${J.libre != null ? '¡Ahora! ¡Está solo!' : 'Espera al desmarque…'}</h2>
-      <div class="mjCampo">${COMPIS.map((n, i) => `<button class="comp ${J.libre === i ? 'libre' : ''}" data-act="mjPase" data-v="${i}"><span class="mono">${J.libre === i ? '🙋' : '🧍'}</span><small>${n}</small>${J.libre === i ? '' : '<i class="rival">🛡️</i>'}</button>`).join('')}</div>${puntosMj(J)}${msg}</div>`;
-    // Jugada ensayada (media): memoriza y repite
+    const msg = J.msg ? `<p class="mjMsg">${esc(J.msg)}</p>` : '<p class="mjMsg">&nbsp;</p>', n = rondasDe(J);
+    if (J.fase === 'toques') return `<div class="pant res mj"><small class="eti">${J.inst === 'fisica' ? 'SERIE' : 'TOQUE'} ${J.res.length + 1} DE ${n}</small><h2>${J.inst === 'fisica' ? '¡Apoya justo abajo!' : '¡Toca cuando baje!'}</h2>
+      <div class="mjToques"><span class="zonaPie" style="top:${inicioToque(J) * 0.78}%"></span><span class="balon" id="mjBalon">${J.inst === 'fisica' ? '🏃' : '⚽'}</span><span class="pie">👟</span></div>${puntosMj(J)}${msg}
+      <button class="cta" data-act="mjToque" id="mjToque">${J.inst === 'fisica' ? '¡YA!' : '¡TOQUE!'}</button></div>`;
+    if (J.fase === 'pase') { const nombres = C.zonas || COMPIS; return `<div class="pant res mj"><small class="eti">${C.zonas ? 'CENTRO' : 'PASE'} ${Math.min(J.res.length + 1, n)} DE ${n}</small><h2>${J.libre != null ? (C.zonas ? '¡Ahora! ¡Está solo!' : '¡Ahora! ¡Está solo!') : C.zonas ? 'Mira el área…' : 'Espera al desmarque…'}</h2>
+      <div class="mjCampo">${nombres.map((nm, i) => `<button class="comp ${J.libre === i ? 'libre' : ''}" data-act="mjPase" data-v="${i}"><span class="mono">${J.libre === i ? '🙋' : '🧍'}</span><small>${esc(nm)}</small>${J.libre === i ? '' : '<i class="rival">🛡️</i>'}</button>`).join('')}</div>${puntosMj(J)}${msg}</div>`; }
     if (J.fase === 'mver') return `<div class="pant res mj"><small class="eti">MIRA LA JUGADA</small><h2>Memoriza el orden</h2>
       <div class="mjPizarra"><span class="flechaGrande">${J.idx >= 0 && J.idx < J.sec.length ? FLECHAS[J.sec[J.idx]][1] : '📋'}</span></div>
       <div class="mjSec">${J.sec.map((_, i) => `<span class="${i === J.idx ? 'on' : i < J.idx ? 'ya' : ''}"></span>`).join('')}</div><p class="mjMsg">Paso ${Math.max(1, Math.min(J.sec.length, J.idx + 1))} de ${J.sec.length}</p></div>`;
     if (J.fase === 'mrep') return `<div class="pant res mj"><small class="eti">TU TURNO</small><h2>Repite la jugada</h2>
       <div class="mjSec">${J.sec.map((_, i) => `<span class="${i < J.entrada.length ? 'ya' : ''}">${i < J.entrada.length ? FLECHAS[J.entrada[i]][1] : ''}</span>`).join('')}</div>
       <div class="mjFlechas">${FLECHAS.map(([k, ic], i) => `<button class="op azul" data-act="mjFlecha" data-v="${i}" aria-label="${k}"><span class="ic">${ic}</span></button>`).join('')}</div></div>`;
-    // Parada imposible (difícil): reflejos
-    if (J.fase === 'portero') return `<div class="pant res mj"><small class="eti">TIRO ${Math.min(J.res.length + 1, Gj.rondas)} DE ${Gj.rondas}</small><h2>${J.balon != null ? '¡¡YA!!' : 'Atento…'}</h2>
-      <div class="porteria tiros">${['izq', 'centro', 'dcha'].map(k => `<span class="hueco">${J.balon === k ? '⚽' : ''}</span>`).join('')}</div>
-      <div class="esquinas">${ESQ.map(([k, ic, n]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjParada" data-v="${k}"><span class="ic">${k === 'centro' ? '🧤' : ic}</span><span class="tx"><b>${n}</b></span></button>`).join('')}</div>${puntosMj(J)}${msg}</div>`;
-    // fin
-    const p = J.p, bien = p >= 0.6, tit = X ? (bien ? '¡LO HABÉIS CONSEGUIDO!' : '¡Se escapa!') : J.tipo === 'penalti' ? (bien ? '¡GOOOOL!' : J.parada ? '¡Parada del portero!' : '¡Fuera!') : p >= 0.75 ? '¡Espectacular!' : bien ? '¡Bien hecho!' : 'No ha salido…';
-    const bp = P2.bonusPrueba({ mjSemana: { tipo: 'prueba', p, semana: 0 }, semana: 0 }), bt = P2.bonusTorneo({ mjSemana: { tipo: 'torneo', p, semana: 0 }, semana: 0 });
-    const ef = X ? (bien ? X.gana : X.pierde) : J.tipo === 'prueba' ? `${bp >= 0 ? '+' : ''}${bp} puntos en la prueba${bp < 0 ? ': los ojeadores apuntan tus fallos' : ''}`
-      : J.tipo === 'torneo' ? `${bt >= 0 ? '+' : ''}${nf(bt)} en la final del torneo`
-        : (P2.deporteDe(S).penTxt || ['¡Perfecto! +2 goles para tu equipo, +12 de confianza y más fama', '+1 gol para tu equipo, +8 de confianza y más fama', 'Desastre: el rival marca dos en la contra, −18 de confianza y la prensa te cae encima', 'El rival marca en la contra: −12 de confianza y −1,5 de reputación'])[p >= 0.9 ? 0 : bien ? 1 : p <= 0.1 ? 2 : 3];
-    const v = P2.vidas(S);
-    return `<div class="pant res mj"><div class="grande">${bien ? '🎉' : '😬'}</div><h2>${tit}</h2><p>${esc(ef)}</p>${corazones(s)}
-      <button class="cta ${bien ? 'oro' : ''}" data-act="mjFin">${bien ? '¡Genial! Seguir ▶' : 'Seguir con este resultado ▶'}</button>
-      ${!bien && !J.simulado && J.reintentos < P2.VIDAS.reintentosPorMomento ? (v.n > 0 ? `<button class="cta reintentar" data-act="mjReintentar">🔁 Reintentar (−1 ❤️)</button><p class="small">Solo un reintento por momento decisivo.</p>` : `${rwBtn(s, 'vida', { contexto: 'minijuego' }, 'Ver anuncio: +1 vida')}<p class="small">O espera: recuperas una vida en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`) : ''}
+    if (J.fase === 'portero') {
+      const rx = C.reaccion, que = rx === 'hueco' ? '🥅' : rx === 'delantero' ? '🏃' : '⚽';
+      const h2 = J.balon != null ? (rx === 'hueco' ? '¡Dispara ahí!' : rx === 'delantero' ? '¡Tápale!' : '¡¡YA!!') : rx === 'hueco' ? 'El portero sale…' : rx === 'delantero' ? 'Te encara…' : 'Atento…';
+      return `<div class="pant res mj"><small class="eti">${rx === 'hueco' ? 'TIRO' : rx === 'delantero' ? 'DUELO' : 'TIRO'} ${Math.min(J.res.length + 1, n)} DE ${n}</small><h2>${h2}</h2>
+      <div class="porteria tiros">${['izq', 'centro', 'dcha'].map(k => `<span class="hueco">${J.balon === k ? que : ''}</span>`).join('')}</div>
+      <div class="esquinas">${ESQ.map(([k, ic, nm]) => `<button class="op ${k === 'centro' ? 'naranja' : 'azul'}" data-act="mjParada" data-v="${k}"><span class="ic">${rx === 'hueco' ? '⚽' : rx === 'delantero' ? '🛡️' : k === 'centro' ? '🧤' : ic}</span><span class="tx"><b>${nm}</b></span></button>`).join('')}</div>${puntosMj(J)}${msg}</div>`;
+    }
+    // Fin: FAIL / GOOD / PERFECT, qué consigues y el reintento con vida
+    const res = P2.nivelRes(J.p), bien = res !== 'FAIL';
+    const tit = res === 'PERFECT' ? '⭐ ¡PERFECT!' : res === 'GOOD' ? (J.juego === 'penalti' && J.tipo === 'partido' ? '¡GOOOOL!' : '✅ ¡Conseguido!') : J.parada ? '🧤 ¡Parada del portero!' : '✖ No ha salido';
+    const v = P2.vidas(S), puedeRepetir = !bien && !J.simulado && J.reintentos < P2.VIDAS.reintentosPorMomento;
+    const bRw = P2.bloqueoRewarded(S, 'vida', { contexto: 'minijuego' });
+    return `<div class="pant res mj ${gran ? 'gran' : ''}"><div class="grande">${res === 'PERFECT' ? '🌟' : bien ? '🎉' : '😬'}</div><small class="eti nivelRes r-${res}">${res}</small><h2>${tit}</h2><p>${esc(efectoMomento(J, res))}</p>
+      ${X ? `<p class="small">${esc(bien ? X.gana : X.pierde)} (si se confirma)</p>` : ''}${corazones(s)}
+      <button class="cta ${bien ? 'oro' : ''}" data-act="mjFin">${bien ? 'Seguir ▶' : 'Aceptar resultado ▶'}</button>
+      ${puedeRepetir ? (v.n > 0 ? `<button class="cta reintentar" data-act="mjReintentar">❤️ Usar vida y repetir (te quedan ${v.n})</button><p class="small">Una vida no cambia el resultado: vuelves a jugarlo. Solo un reintento por momento.</p>`
+        : !bRw ? `${rwBtn(s, 'vida', { contexto: 'minijuego' }, 'Recuperar 1 vida (anuncio)')}<p class="small">O acepta el resultado: recuperas una vida jugando en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`
+          : `<p class="small">Sin vidas. ${esc(bRw === 'Desactivado' ? '' : bRw + '. ')}Recuperas una jugando en ${P2.semanasParaVida(s)} ${P2.semanasParaVida(s) === 1 ? 'semana' : 'semanas'}.</p>`) : ''}
       ${J.simulado ? '<p class="small">Simulado: lo ha decidido tu nivel.</p>' : ''}</div>`;
   }
   let mjAnim = null;
@@ -9464,22 +9944,22 @@ globalThis.P2C = P2C;
     cancelAnimationFrame(mjAnim);
     if (ui.mj && ui.mj.fase === 'toques') {   // el balón sube y baja; abajo (≈100) está tu pie
       const b = document.getElementById('mjBalon'); if (!b) return;
-      const vel = 0.0021 + ui.mj.res.length * 0.00025, t0 = performance.now();
+      const vel = (0.0021 + ui.mj.res.length * 0.00025) * modsDe(ui.mj).vel * (cfgDe(ui.mj).vel || 1), t0 = performance.now();
       const paso = tt => { ui.mjPos = 100 * Math.abs(Math.sin((tt - t0) * vel)); b.style.top = (ui.mjPos * 0.78) + '%'; mjAnim = requestAnimationFrame(paso); };
       mjAnim = requestAnimationFrame(paso); return;
     }
     const el = document.getElementById('mjMarca'); if (!el || !ui.mj) return;
-    const vel = 0.0024 + ui.mj.res.length * 0.0009 + (ui.mj.tipo === 'penalti' ? 0.0012 : 0), t0 = performance.now();
+    const vel = (0.0024 + ui.mj.res.length * 0.0009 + (ui.mj.juego === 'penalti' ? 0.0012 : 0)) * modsDe(ui.mj).vel * (cfgDe(ui.mj).vel || 1), t0 = performance.now();
     const paso = tt => { ui.mjPos = 50 + 48 * Math.sin((tt - t0) * vel); el.style.left = ui.mjPos + '%'; mjAnim = requestAnimationFrame(paso); };
     mjAnim = requestAnimationFrame(paso);
   }
   function terminarMinijuego() {
-    const J = ui.mj, M = P2.MINIJUEGOS[J.tipo];
-    if (J.tipo === 'penalti') {
+    const J = ui.mj;
+    if (J.juego === 'penalti') {
       const sc = J.res[0], portero = ESQ[Math.floor(Math.random() * 3)][0];
       const gol = sc >= 0.85 || (sc >= 0.4 && portero !== J.esquina);
       J.parada = !gol && sc >= 0.4; J.p = gol ? 0.6 + 0.4 * sc : 0.3 * sc;
-    } else if (J.juego !== 'memoria') J.p = J.res.reduce((a, b) => a + b, 0) / juegoDe(J).rondas;
+    } else if (J.juego !== 'memoria') J.p = J.res.reduce((a, b) => a + b, 0) / rondasDe(J);
     clearTimeout(mjTimer);
     J.fase = 'fin';
   }
@@ -10098,17 +10578,16 @@ globalThis.P2C = P2C;
       case 'elegir': S.eleccion = id; guardarYPintar(); break;
       // Un toque juega la semana
       case 'jugarYa': { if (P2.bloqueoAccion(S, id)) break;
-        const t = P2.minijuegoSemana(S, id);
-        if (t) { ui.mj = { tipo: t, juego: P2.juegoMinijuego(S, t), accion: id, fase: 'intro', res: [], reintentos: 0, enJuego: P2.enJuego(S, t) }; render(); window.scrollTo(0, 0); break; }
+        if (abrirMomento(id)) { render(); window.scrollTo(0, 0); break; }
         jugarConfirmado(id); break; }
       case 'mjEmpezar': empezarJuego(ui.mj); render(); break;
-      case 'mjToque': { cancelAnimationFrame(mjAnim); const J = ui.mj, pos = ui.mjPos == null ? 0 : ui.mjPos, x = clamp((pos - 60) / 24, 0, 1);
+      case 'mjToque': { cancelAnimationFrame(mjAnim); const J = ui.mj, pos = ui.mjPos == null ? 0 : ui.mjPos, x = clamp((pos - inicioToque(J)) / 24, 0, 1);
         J.res.push(x); J.msg = x >= 0.7 ? '¡Toque perfecto!' : x > 0 ? 'Justo…' : '¡Se te cae!';
-        if (J.res.length >= juegoDe(J).rondas) terminarMinijuego(); render(); break; }
+        if (J.res.length >= rondasDe(J)) terminarMinijuego(); render(); break; }
       case 'mjPase': { const J = ui.mj; if (J.fase !== 'pase') break; clearTimeout(mjTimer); const v = +b.dataset.v;
         if (J.libre == null) { J.res.push(0); J.msg = '¡Demasiado pronto! Lo cortan.'; }
         else if (v !== J.libre) { J.res.push(0); J.msg = 'Ese estaba marcado…'; }
-        else { const ventana = [1000, 850, 700][J.res.length] || 700, x = clamp(1 - 0.4 * (performance.now() - J.t0) / ventana, 0.6, 1); J.res.push(x); J.msg = x >= 0.8 ? '¡Pase perfecto!' : '¡Buen pase!'; }
+        else { const ventana = ventanaPase(J), x = clamp(1 - 0.4 * (performance.now() - J.t0) / ventana, 0.6, 1); J.res.push(x); J.msg = x >= 0.8 ? '¡Pase perfecto!' : '¡Buen pase!'; }
         J.libre = null; siguienteRonda(J, programarPase); break; }
       case 'mjFlecha': { const J = ui.mj; if (J.fase !== 'mrep') break; const v = +b.dataset.v;
         if (v !== J.sec[J.entrada.length]) { J.p = J.entrada.length / J.sec.length; J.fallo = true; terminarMinijuego(); render(); break; }
@@ -10116,16 +10595,16 @@ globalThis.P2C = P2C;
       case 'mjParada': { const J = ui.mj; if (J.fase !== 'portero') break; clearTimeout(mjTimer); const v = b.dataset.v;
         if (J.balon == null) { J.res.push(0); J.msg = '¡Te tiras antes de tiempo!'; }
         else if (v !== J.balon) { J.res.push(0); J.msg = 'Al otro lado… ¡gol!'; }
-        else { const ventana = [700, 560, 440][J.res.length] || 440, x = clamp(1 - 0.5 * (performance.now() - J.t0) / ventana, 0.5, 1); J.res.push(x); J.msg = x >= 0.8 ? '¡PARADÓN!' : '¡La sacas!'; }
+        else { const ventana = ventanaTiro(J), x = clamp(1 - 0.5 * (performance.now() - J.t0) / ventana, 0.5, 1), rx = cfgDe(J).reaccion; J.res.push(x); J.msg = rx === 'hueco' ? (x >= 0.8 ? '¡Golazo!' : '¡Gol!') : rx === 'delantero' ? (x >= 0.8 ? '¡Robo limpio!' : '¡La cortas!') : x >= 0.8 ? '¡PARADÓN!' : '¡La sacas!'; }
         J.balon = null; siguienteRonda(J, programarTiro); break; }
       case 'mjEsquina': ui.mj.esquina = b.dataset.v; ui.mj.fase = 'barra'; render(); break;
-      case 'mjParar': { cancelAnimationFrame(mjAnim); const J = ui.mj, pos = ui.mjPos == null ? 50 : ui.mjPos, z = Math.max(10, 22 - J.res.length * 5);
+      case 'mjParar': { cancelAnimationFrame(mjAnim); const J = ui.mj, pos = ui.mjPos == null ? 50 : ui.mjPos, z = zonaBarra(J);
         J.res.push(clamp(1 - Math.max(0, Math.abs(pos - 50) - z / 4) / 40, 0, 1));
-        if (J.res.length >= juegoDe(J).rondas) terminarMinijuego();
+        if (J.res.length >= rondasDe(J)) terminarMinijuego();
         render(); break; }
       case 'mjSimular': { clearTimeout(mjTimer); const J = ui.mj, ok = Math.random() < P2.probSimular(S); J.p = ok ? P2.P_SIM.acierto : P2.P_SIM.fallo; J.parada = !ok; J.simulado = true; J.fase = 'fin'; render(); break; }
       case 'mjReintentar': if (P2.usarVida(S)) { ui.mj.reintentos++; ui.mj.fallo = false; empezarJuego(ui.mj); guardarYPintar(); } break;
-      case 'mjFin': { clearTimeout(mjTimer); const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos, simulado: !!J.simulado }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p } }); break; }
+      case 'mjFin': { clearTimeout(mjTimer); const J = ui.mj; ui.mj = null; P2.teleMon(S, 'minijuego', { tipo: J.tipo, inst: J.inst, p: Math.round(J.p * 100) / 100, reintentos: J.reintentos, simulado: !!J.simulado }); jugarConfirmado(J.accion, { minijuego: { tipo: J.tipo, p: J.p, reintentos: J.reintentos, simulado: !!J.simulado } }); break; }
       case 'celeOk': ui.celes.shift(); if (ui.celes.length) ui.confeti = true; render(); window.scrollTo(0, 0); break;
       case 'seguir': if (ui.paso === 'fiesta') ui.fiestas.shift();
         if (ui.fiestas && ui.fiestas.length) { ui.paso = 'fiesta'; ui.confeti = true; } else { ui.paso = null; ui.res = null; ui.dec = null; }

@@ -882,3 +882,35 @@ select.inp { background: #fff; }
 .kv .col .btn { white-space: nowrap; }
 .mal { color: var(--bad); }
 details.mercado summary { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+
+/* ===== P2.5.1 · Ritmo: momentos clave, preparación, resultado ===== */
+.mj.gran { background: radial-gradient(circle at 50% 0%, #fff3c4, transparent 60%); border-radius: 24px; }
+.mj.gran .eti { color: #b45309; font-size: 15px; }
+.mj.clave .eti { color: #e11d48; }
+.mj .mjEscena { font-weight: 700; color: #2a2540; background: none; }
+.mjMods { display: flex; flex-direction: column; gap: 3px; text-align: left; background: #fff; border-radius: 14px; padding: 10px 12px; margin: 8px 0; box-shadow: 0 3px 0 #e2dcf7; font-size: 13px; }
+.mjMods b { font-size: 14px; margin-bottom: 2px; }
+.mjMods .bien { color: #166534; } .mjMods .mal { color: #9a3412; }
+.prepMini, .prepFila { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin: 6px 0; font-size: 14px; }
+.prepMini .xp, .prepFila .xp { height: 10px; background: #ece8fb; border-radius: 99px; overflow: hidden; }
+.prepMini .xp i, .prepFila .xp i { display: block; height: 100%; background: linear-gradient(90deg, #f59e0b, #22c55e); border-radius: 99px; }
+.prepCard { border: 3px solid var(--oro2); background: linear-gradient(180deg, #fff6d6, #fff 55%); color: #2a2540; }
+.prepCard b:first-child { letter-spacing: .04em; }
+.prepCard small { color: #5b5670; }
+.chip.prepMas { background: #dcfce7; color: #166534; } .chip.prepMenos { background: #ffe4e6; color: #9f1239; }
+.nivelRes { display: inline-block; border-radius: 999px; padding: 2px 12px; color: #fff !important; }
+.nivelRes.r-PERFECT { background: linear-gradient(90deg, #f59e0b, #ec4899); } .nivelRes.r-GOOD { background: #16a34a; } .nivelRes.r-FAIL { background: #64748b; }
+.momentoRes { text-align: left; background: #fff; border-radius: 18px; padding: 12px 14px; margin: 8px 0; box-shadow: 0 4px 0 #e2dcf7; color: #2a2540; }
+.momentoRes.bien { border-left: 6px solid #22c55e; } .momentoRes.mal { border-left: 6px solid #ef4444; }
+.momentoRes small { display: block; font-weight: 900; letter-spacing: .1em; color: #8e8aa8; font-size: 11px; margin-top: 4px; }
+.momentoRes b { font-size: 18px; } .momentoRes p { margin: 2px 0 4px; }
+.momentoRes ul { margin: 2px 0 0; padding-left: 18px; font-size: 14px; }
+.porteria .barrera { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 22px; letter-spacing: -6px; }
+.mjToques .zonaPie { height: auto; bottom: 20%; }
+.deseoBar .pct { font-weight: 900; color: #c88c00; }
+.tiendaTabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0; }
+.tiendaTabs button { border: 0; border-radius: 14px; padding: 10px 4px; font-weight: 800; background: #fff; box-shadow: 0 3px 0 #e2dcf7; color: #2a2540; font-size: 14px; }
+.tiendaTabs button.sel { background: #2a2540; color: #fff; box-shadow: 0 3px 0 #111; }
+.tiendaTabs button[disabled] { opacity: .55; }
+.memorables .lin { font-size: 14px; }
+.sugDeseo { border: 2px dashed #d9b3ff; }
