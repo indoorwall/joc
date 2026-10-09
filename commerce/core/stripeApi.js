@@ -25,6 +25,8 @@ export function createStripeApi({ secretKey, apiVersion, fetchImpl = globalThis.
   return {
     livemode: secretKey.startsWith('sk_live_') || secretKey.startsWith('rk_live_'),
     createCustomer: (p, idem) => call('POST', '/customers', p, idem),
+    createProduct: (p, idem) => call('POST', '/products', p, idem),
+    createPrice: (p, idem) => call('POST', '/prices', p, idem),
     createCheckoutSession: (p, idem) => call('POST', '/checkout/sessions', p, idem),
     retrieveCheckoutSession: (id) => call('GET', `/checkout/sessions/${encodeURIComponent(id)}`, { expand: ['payment_intent.latest_charge.balance_transaction'] }),
     retrievePaymentIntent: (id) => call('GET', `/payment_intents/${encodeURIComponent(id)}`, { expand: ['latest_charge.balance_transaction'] }),

@@ -15,6 +15,7 @@ Deno.serve(handle(async req => {
     case 'webhookErrors': return json(await a.webhookErrors(admin));
     case 'attention': return json(await a.ordersNeedingAttention(admin));
     case 'retry': return json(await a.retryFulfillment(admin, b.orderId));
+    case 'stripeSync': return json(await a.syncStripe(admin));
     case 'report': return json(await a.report(admin, { from: b.from, to: b.to }));
     default: return json({ error: 'unknown_action' }, 400);
   }

@@ -22,6 +22,7 @@ export function createPgRepo({ pool }) {
     // --- catálogo ---
     async getPrice(sku, currency) { const r = (await this.q('select amount_minor, currency from product_prices where product_id = $1 and currency = $2', [sku, currency])).rows[0]; return r ? { amountMinor: Number(r.amount_minor), currency: r.currency } : null; },
     async getProviderIds(sku, provider, environment) { const r = (await this.q('select provider_product_id, provider_price_id from product_provider_ids where product_id = $1 and provider = $2 and environment = $3', [sku, provider, environment])).rows[0]; return r ? { productId: r.provider_product_id, priceId: r.provider_price_id } : null; },
+    async setProviderIds(r) { await this.q('insert into product_provider_ids (product_id, provider, environment, provider_product_id, provider_price_id) values ($1, $2, $3, $4, $5) on conflict (product_id, provider, environment) do update set provider_product_id = excluded.provider_product_id, provider_price_id = excluded.provider_price_id', [r.sku, r.provider, r.environment, r.productId, r.priceId]); },
     // --- cuentas ---
     async getCommerceAccount(userId) { return row((await this.q('select user_id, stripe_customer_id from commerce_accounts where user_id = $1', [userId])).rows[0]); },
     async setStripeCustomer(userId, customerId) {

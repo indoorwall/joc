@@ -25,8 +25,10 @@ enable_signup = true        # magic link (sin contraseña propia)
 otp_length = 6              # código de 6 cifras en el correo (la plantilla usa {{ .Token }}; el enlace mágico sigue valiendo)
 otp_expiry = 600            # 10 minutos
 
+# Apple y Google se activan en el panel de Supabase (Auth → Providers) con sus client_id y secret.
+# Aquí quedan desactivados para que la CLI no exija esos secretos al desplegar funciones.
 [auth.external.apple]
-enabled = true              # client_id / secret: en el panel de Supabase (Sign in with Apple)
+enabled = false
 
 [auth.external.google]
-enabled = true              # client_id / secret: en el panel de Supabase (Google OAuth)
+enabled = false

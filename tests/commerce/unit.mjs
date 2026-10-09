@@ -90,6 +90,25 @@ export async function runUnit(check) {
   // ---------- Órdenes ----------
   check('Órdenes: 10 estados y transiciones cerradas (REFUNDED/REVOKED son finales)', ORDER_STATES.length === 10 && !canTransition('REFUNDED', 'FULFILLED') && !canTransition('CREATED', 'FULFILLED') && canTransition('PAID', 'FULFILLED') && canTransition('DISPUTED', 'REVOKED'));
 
+  // ---------- Sincronizar el catálogo con Stripe (servidor) ----------
+  {
+    const { createMemoryRepo } = await import('../../commerce/core/memoryRepo.js');
+    const { createCommerceService } = await import('../../commerce/core/service.js');
+    const calls = []; let n = 0;
+    const fakeS = { livemode: false, createProduct: async (p, k) => { calls.push(['p', k]); return { id: 'prod_' + (++n) }; }, createPrice: async (p, k) => { calls.push(['pr', k, p.unit_amount]); return { id: 'price_' + n }; } };
+    const repo = createMemoryRepo(); repo.seedAdmin('adm');
+    const svc = createCommerceService({ repo, stripe: fakeS, env: { environment: 'staging' } });
+    const adminOk = await repo.isAdmin('adm');
+    if (adminOk) {
+      const r1 = await svc.admin.syncStripe({ id: 'adm' }), r2 = await svc.admin.syncStripe({ id: 'adm' });
+      check('Stripe: sincronizar crea producto y precio (con el precio del catálogo) de lo que se vende, y repetirlo no duplica', r1.creados.length >= 30 && r2.creados.length === 0 && r2.yaExistian.length === r1.creados.length && calls.some(c => c[0] === 'pr' && c[2] === 99) && !r1.creados.some(x => x.sku === 'promo_press' || x.sku === 'season_pass'));
+    }
+    let e = null; try { await svc.admin.syncStripe({ id: 'nadie' }); } catch (x) { e = x; }
+    check('Stripe: solo un admin puede sincronizar el catálogo', !!e && (e.code === 'forbidden' || e.status === 403));
+    const svcLive = createCommerceService({ repo: createMemoryRepo(), stripe: Object.assign({}, fakeS, { livemode: true }), env: { environment: 'staging' } });
+    let e2 = null; const r0 = svcLive; try { await r0.admin.syncStripe({ id: 'adm' }); } catch (x) { e2 = x; }
+    check('Stripe: una clave real fuera de producción no sincroniza nada', !!e2);
+  }
   // ---------- Prestige ----------
   const W = PRESTIGE_CAREERS.world_football_president;
   check('Prestige: 10 estados (LOCKED…FORMER)', PRESTIGE_STATES.join() === 'LOCKED,PURCHASED,NOT_ELIGIBLE,ELIGIBLE,CANDIDATE,CAMPAIGN,ELECTION,OFFICE,REELECTION,FORMER');

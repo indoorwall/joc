@@ -29,6 +29,7 @@ export function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
 
     // --- catálogo ---
     async getPrice(sku, currency) { return S.prices[`${sku}|${currency}`] || null; },
+    async setProviderIds(r) { S.providerIds = S.providerIds.filter(x => !(x.sku === r.sku && x.provider === r.provider && x.environment === r.environment)); S.providerIds.push(r); },
     async getProviderIds(sku, provider, environment) { return S.providerIds.find(r => r.sku === sku && r.provider === provider && r.environment === environment) || null; },
 
     // --- cuentas ---

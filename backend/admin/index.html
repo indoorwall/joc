@@ -44,6 +44,10 @@
     <div id="detail"></div>
   </section>
   <section class="card">
+    <h2>Stripe</h2>
+    <p>Crea en Stripe los productos y precios que falten (en el modo de la clave configurada) y guarda sus ids. Repetirlo no duplica nada.</p>
+    <div class="row"><button data-a="stripeSync">Sincronizar catálogo con Stripe</button></div>
+    <div id="stripe"></div>
     <h2>Necesitan atención</h2>
     <div class="row"><button data-a="attention">Órdenes pagadas sin entregar / en disputa</button><button class="sec" data-a="webhookErrors">Errores de webhook</button></div>
     <div id="attention"></div>
@@ -81,6 +85,7 @@
     },
     async grant() { await call({ action: 'grant', userId: $('uid').value.trim(), entitlementId: $('ent').value.trim(), reason: $('reason').value.trim() }); await actions.user(); },
     async revoke() { if (!confirm('¿Revocar este entitlement? Queda registrado.')) return; await call({ action: 'revoke', userId: $('uid').value.trim(), entitlementId: $('ent').value.trim(), reason: $('reason').value.trim() }); await actions.user(); },
+    async stripeSync() { if (!confirm('¿Crear en Stripe los productos que falten?')) return; const r = await call({ action: 'stripeSync' }); $('stripe').innerHTML = `<p>Entorno <b>${esc(r.environment)}</b> · ${r.livemode ? 'MODO REAL' : 'modo prueba'} · creados ${r.creados.length} · ya existían ${r.yaExistian.length}</p>` + table(r.creados, [['sku', 'Producto'], ['product', 'Stripe product'], ['price', 'Stripe price']]); },
     async attention() {
       const rows = await call({ action: 'attention' });
       $('attention').innerHTML = table(rows, [['id', 'Orden'], ['sku', 'Producto'], ['status', 'Estado'], ['fulfillment_error', 'Error'], ['id', '', id => `<button class="sec" onclick="retry('${esc(id)}')">Reintentar entrega</button>`]]);
