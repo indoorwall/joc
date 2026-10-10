@@ -209,7 +209,7 @@
     R.porque.push(`Pruebas = ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} = ${score}. Rangos: ${CFG.pruebas.rangos.filter(r => r.min > -99).map(r => `${r.min}+ → ${r.ofertas.map(o => OFERTAS[o].n + (o === 'atleticoFormacion' ? ' (formación)' : o === 'atleticoFilial' ? ' (filial)' : '')).join(' y ')}`).join(' · ')}.`);
     s.preparador = false;
     if (ofertas.length) P2.encolar(s, { tipo: 'ofertas', origen: via === 'repesca' ? 'repesca' : 'pruebas', ofertas, score });
-    else P2.encolar(s, { tipo: 'ofertas', origen: 'sinOferta', ofertas: s.fase === 'amateur' ? [] : ['sanroque'], score });
+    else { if (P2.recordarClub && s.fase !== 'amateur') P2.recordarClub(s, 'atleticoB', 'descarto'); P2.encolar(s, { tipo: 'ofertas', origen: 'sinOferta', ofertas: s.fase === 'amateur' ? [] : ['sanroque'], score }); }
     return score;
   }
 

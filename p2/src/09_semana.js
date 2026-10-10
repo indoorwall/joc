@@ -74,6 +74,7 @@
     if (P2.detectarEvento) P2.detectarEvento(s, R);
     if (P2.cerrarSemanaLog) P2.cerrarSemanaLog(s, accion, R, mom);
     if (P2.recordatorioDeseo) P2.recordatorioDeseo(s, R);
+    if (P2.revisarMeta) P2.revisarMeta(s, R);
     // Segunda inversión aplazada: se vuelve a proponer cuando ya puedes pagar alguna (como mucho cada 6 semanas)
     if (s.oportunidadAbierta && !s.oportunidad && s.p.dinero >= Math.min(...P2.OPORTUNIDADES.map(o => o.coste)) && s.semana - (s.recordatorioOp || 0) >= 6) {
       s.recordatorioOp = s.semana; P2.encolar(s, { tipo: 'oportunidad' });

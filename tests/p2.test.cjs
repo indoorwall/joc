@@ -837,6 +837,50 @@ let informe;
 }
 
 // ---------- 8. Interfaz ----------
+// ---------- P2.6: experiencia (situación, objetivos, calendario, memoria, narración) ----------
+{
+  const s = P2.nuevaPartida({ seed: 26, nombre: 'Test', sueno: 'imperio' });
+  const sit = P2.situacionSemana(s);
+  check('P2.6: la semana 1 empieza con una situación narrada por un personaje (Marc, plaza o almacén)', sit && sit.quien.n && /ojeadores/.test(sit.texto) && /almacén/.test(sit.texto));
+  check('P2.6: tu gran sueño se guarda y tiene progreso y texto', s.sueno === 'imperio' && P2.sueno(s).prog(s) >= 0 && typeof P2.sueno(s).txt(s) === 'string' && P2.SUENOS.length === 4);
+  check('P2.6: sin objetivo personal elegido no se inventa uno', P2.objetivoPersonal(s) === null);
+  check('P2.6: se puede elegir una meta disponible (y no una inventada)', P2.fijarMeta(s, 'moto') && !P2.fijarMeta(s, 'noExiste') && P2.objetivoPersonal(s).tipo === 'meta' && s.metaPersonal === 'moto');
+  const P = P2.PRODUCTOS.find(x => P2.deseable(x) && x.precio > 300);
+  P2.quiero(s, P.id);
+  check('P2.6: la lista de deseos manda sobre la meta (producto concreto, con lo que falta)', P2.objetivoPersonal(s).tipo === 'deseo' && P2.objetivoPersonal(s).n === P.n);
+  const cal = P2.calendario(s, 3);
+  check('P2.6: el calendario da como mucho 3 cosas, ordenadas por cercanía, en lenguaje humano', cal.length >= 1 && cal.length <= 3 && cal.every((x, i) => !i || cal[i - 1].sem <= x.sem) && cal.every(x => x.t && x.ic) && /semana/.test(P2.cuandoTxt(2)));
+  const narr = P2.narrarSemana(s, 'plaza', { rep: 2, dinero: 150, energia: 80 }, { rep: 6, dinero: 150, energia: 70 }, { lineas: [] });
+  check('P2.6: el resultado de la semana se cuenta en lenguaje humano (y dice lo que falta para el ojeador)', typeof narr === 'string' && /reputación/.test(narr));
+  // Memoria de clubes
+  const s2 = P2.nuevaPartida({ seed: 27 });
+  const O = P2.OFERTAS.puerto; P2.recordarClub(s2, O.club, 'rechazado'); s2.semana += 10;
+  check('P2.6: los clubes recuerdan si les dijiste que no', /les dijiste que no/.test(P2.notaClub(s2, 'puerto') || ''));
+  check('P2.6: cada club tiene identidad propia', Object.keys(P2.IDENTIDAD).length >= 6 && P2.IDENTIDAD.puerto.n && P2.IDENTIDAD.sanroque.n !== P2.IDENTIDAD.puerto.n);
+  // La familia opina de las compras grandes, no de las pequeñas
+  const caro = P2.PRODUCTOS.find(x => x.precio >= 1500 && !x.patrimonial), barato = P2.PRODUCTOS.find(x => x.precio < 200 && x.precio > 0);
+  check('P2.6: la familia opina de las compras grandes (y no de las pequeñas)', P2.opinionCompra(s2, caro) && /«/.test(P2.opinionCompra(s2, caro).t) && P2.opinionCompra(s2, barato) === null);
+  // UD Puerto paga tarde: consecuencia diferida
+  const s3 = P2.nuevaPartida({ seed: 28 }); s3.p.nivel = 58; P2.firmar(s3, 'puerto', { lineas: [], porque: [], ingresos: [], hitos: [] }); resolverTodo(s3);
+  const E = P2.SUCESOS.find(x => x.id === 'pagoRetrasado');
+  s3.semana = (s3.contrato.desde || s3.semana) + 5;
+  const d0 = s3.p.dinero, c0 = s3.confianza;
+  E.ops.find(o => o.id === 'esperar').fx(s3);
+  const ag = s3.agenda.find(a => a.efecto === 'pagoAtrasado');
+  const devuelto = P2.EFECTOS.pagoAtrasado(s3, ag.data);
+  check('P2.6: si UD Puerto paga tarde y esperas, ganas confianza y cobras 3 semanas después (consecuencia diferida)', E.cond(s3) && s3.confianza > c0 && ag && ag.semana === s3.semana + 3 && s3.p.dinero === d0 && /por fin te paga/.test(devuelto[1]));
+  // Pequeña victoria temprana: tras la primera semana, el reto 3 contra 3 de la plaza (sin azar)
+  const s4 = P2.nuevaPartida({ seed: 30 }); P2.jugarSemana(s4, 'entrenar'); const v4 = P2.vistaPendiente(s4);
+  const r4 = s4.p.rep, d4 = s4.p.dinero; P2.resolverDecision(s4, 'jugar');
+  check('P2.6: tras la primera semana llega una pequeña victoria (reto en la plaza: +3 reputación y 30 €)', v4 && v4.titulo.includes('3 contra 3') && s4.p.rep === r4 + 3 && s4.p.dinero === d4 + 30);
+  const s5 = P2.nuevaPartida({ seed: 31 }); P2.jugarSemana(s5, 'entrenar'); P2.resolverDecision(s5, 'mirar'); for (let k = 0; k < 4; k++) { resolverTodo(s5); P2.jugarSemana(s5, 'entrenar'); }
+  check('P2.6: el reto de la plaza sale una sola vez', Object.keys(s5.sucesosVistos).filter(k => k === 'primeraPachanga').length === 1 && !(s5.pendiente && s5.pendiente.id === 'primeraPachanga'));
+  // Partidas antiguas: se cargan con los campos nuevos sin perder nada
+  const vieja = JSON.parse(JSON.stringify(P2.nuevaPartida({ seed: 29, nombre: 'Antigua' }))); delete vieja.sueno; delete vieja.metaPersonal; delete vieja.memClubes; delete vieja.introVista; vieja.p.dinero = 777;
+  const m = P2.migrateSave(vieja);
+  check('P2.6: una partida guardada antes de P2.6 carga igual (mismo dinero y nombre) y sin sueño impuesto', m && m.nombre === 'Antigua' && m.p.dinero === 777 && m.memClubes && typeof m.memClubes === 'object' && P2.objetivoPersonal(m) === null && P2.calendario(m).length >= 0 && !!P2.situacionSemana(m));
+}
+
 (async () => {
   if (process.argv.includes('--rapido')) return fin();
   require('child_process').execSync('node ' + path.join(__dirname, '..', 'p2', 'build.cjs'));
@@ -857,7 +901,18 @@ let informe;
     else if (await pg.locator('.mundoBtn').count()) { await pg.tap('.mundoBtn'); await pg.tap(`.icono[data-v="${v}"]`); }
     else await pg.evaluate(v => __P2.ir(v), v);
   };
+  const saltar = async pg => { if (await pg.locator('[data-act="histSaltar"]').count()) await pg.tap('.histSaltar'); };
   await page.goto(url);
+  // P2.6: la primera vez se cuenta la historia (4 pantallas, saltable, sin nada de pago)
+  const hTxt = [];
+  for (let i = 0; i < 4; i++) { hTxt.push(await page.textContent('.historiaIntro')); if (i < 3) await page.click('.historiaIntro', { position: { x: 100, y: 300 } }); }
+  check('Historia: la primera vez salen 4 pantallas con los textos pedidos', hTxt[0].includes('Tienes 17 años') && hTxt[0].includes('150 €') && /construye tu carrera/i.test(hTxt[1]) && /construye tu imperio/i.test(hTxt[2]) && hTxt[3].includes('De tenerlo todo por conseguir'), hTxt.map(x => x.slice(0, 40)).join(' | '));
+  check('Historia: se puede saltar en cualquier momento y acaba en «EMPEZAR MI HISTORIA»', await page.locator('.histSaltar').isVisible() && (await page.textContent('.histEmpezar')).includes('EMPEZAR MI HISTORIA'));
+  check('Historia: no enseña nada de pago (Premium, packs, precios en dinero real)', !/Premium|pack|3,99|💎/i.test(hTxt.join(' ')));
+  await page.tap('.histEmpezar');
+  check('Historia: después, «¿Quién eres?» con nombre, aspecto, deporte y tu gran sueño', await page.locator('#nombre').isVisible() && await page.locator('[data-act="elegirSueno"]').count() === 4 && (await page.textContent('[data-act="empezar"]')).includes('EMPEZAR MI HISTORIA'));
+  await page.tap('[data-act="elegirSueno"][data-v="imperio"]');
+  await page.tap('[data-act="editarLook"]');
   check('UI: arranca en la pantalla de inicio', await page.locator('[data-act="empezar"]').isVisible());
   check('UI: al empezar se elige el personaje (5 grupos, 21 capas y vista previa)', await page.locator('.lookGrupos button').count() === 5 && P2.CAPAS_LOOK.length === 21 && await page.locator('.lookPrev svg').isVisible());
   await page.fill('#nombre', 'Vega');
@@ -869,6 +924,9 @@ let informe;
   check('UI: en el inicio no se ofrecen prendas que exigen hitos', await page.locator('.lk[data-v="traje"], .lk[data-v="corona"]').count() === 0);
   check('UI: el nombre no se pierde al cambiar de capa', await page.inputValue('#nombre') === 'Vega');
   await page.tap('[data-act="empezar"]');
+  check('Historia: el sueño elegido se guarda y la intro no vuelve a salir', await page.evaluate(() => __P2.S.sueno === 'imperio' && __P2.S.introVista === true) && await page.locator('.historiaIntro').count() === 0);
+  check('Inicio: situación con personaje, AHORA, tu objetivo y tu gran sueño', await page.locator('.situ').isVisible() && (await page.textContent('.situ')).includes('Marc') && (await page.textContent('.objs')).includes('AHORA') && (await page.textContent('.objs')).includes('TU GRAN SUEÑO'));
+  check('Inicio: cada opción dice su ventaja y su riesgo', await page.evaluate(() => [...document.querySelectorAll('.pant > .ops > .op')].every(b => b.querySelector('.ganas'))));
   check('UI: la partida empieza con el personaje elegido (también piercing y tatuaje)', await page.evaluate(() => __P2.S.look.pelo === 'rizos' && __P2.S.look.colorRopa === 'rojo' && __P2.S.look.gafas === 'sol' && __P2.S.look.piercing === 'combo' && __P2.S.look.tatuaje === 'rosa' && __P2.S.nombre === 'Vega'));
   check('UI: tu cara sale en la cabecera', await page.locator('#top .hava svg').isVisible());
   check('UI: sin barra de botones abajo: solo el botón «Mi mundo» arriba', await page.locator('#nav button').count() === 0 && await page.locator('.mundoBtn').isVisible());
@@ -885,7 +943,7 @@ let informe;
   await page.reload();
   const despues = await page.evaluate(() => ({ d: __P2.S.p.dinero, s: __P2.S.semana, n: __P2.S.p.nivel }));
   check('UI: recargar no duplica nada (dinero, semana y nivel iguales)', JSON.stringify(antes) === JSON.stringify(despues), JSON.stringify([antes, despues]));
-  check('UI: tras recargar vuelves a tu semana', await page.locator('.op').count() >= 3);
+  check('UI: tras recargar vuelves a tu semana (o a la situación pendiente: el reto de la plaza)', await page.locator('.op').count() >= 3 || (await page.locator('.sit').isVisible() && (await page.textContent('.sit')).includes('3 contra 3')));
   // Una situación: pantalla propia, respuestas grandes; después, su consecuencia y a seguir
   await page.evaluate(() => { __P2.S.pendiente = { tipo: 'suceso', id: 'masHoras' }; __P2.render(); });
   check('UI: con algo pendiente, sale la situación y no las opciones de la semana', await page.locator('.sit').isVisible() && await page.locator('.op').count() === 0 && await page.locator('.resp').count() >= 2);
@@ -931,6 +989,27 @@ let informe;
   const malas = [];
   for (const v of ['semana', 'relaciones', 'liga', 'marcas', 'tienda', 'empresa', 'patrimonio', 'personaje', 'hitos', 'ajustes']) { await ir(page, v); const tx = await page.evaluate(() => document.getElementById('main').innerText); const m = tx.match(/.{0,40}(undefined|NaN|\[object).{0,20}/); if (m) malas.push(v + ': ' + m[0]); }
   check('UI: ninguna vista muestra undefined/NaN', !malas.length, malas.join(' | '));
+  // P2.6: empresa con resumen claro; tienda con escaparate y activo/consumo; sueño en Mi historia; intro desde Ajustes
+  await page.evaluate(() => { const n = __P2.S.negocios[0]; n.ultimo = Object.assign({}, __P2.P2.calcularSemana(__P2.S, n)); __P2.render(); });
+  await ir(page, 'empresa');
+  check('P2.6 UI: la empresa resume la semana (entró, salió, ganaste/perdiste, en caja) y da un aviso', await page.locator('.resNeg').isVisible() && /Entró[\s\S]*Salió[\s\S]*(Ganaste|Perdiste)[\s\S]*En caja/.test(await page.textContent('.resNeg')) && await page.locator('.resNegAviso').count() === 1);
+  await page.evaluate(() => { __P2.S.p.dinero = 400; __P2.render(); });
+  await ir(page, 'tienda');
+  check('P2.6 UI: la tienda tiene escaparate con lo que aún no puedes pagar (y marcarlo como objetivo)', await page.locator('.vitrinaDeseo .escItem').count() >= 1);
+  check('P2.6 UI: cada artículo dice si es activo (conserva valor) o consumo', await page.evaluate(() => [...document.querySelectorAll('.tile, .prod, [data-act="comprarP"]')].length > 0 && document.querySelectorAll('.tipoBien').length > 0 && [...document.querySelectorAll('.tipoBien')].every(x => /Activo|Estilo de vida|Se gasta/.test(x.textContent))));
+  check('P2.6 UI: lo que no puedes pagar dice cuánto te falta', await page.locator('.faltan').count() > 0);
+  await page.tap('.vitrinaDeseo .escItem');
+  check('P2.6 UI: marcar algo del escaparate lo pone como tu objetivo', await page.evaluate(() => !!__P2.S.deseoActual));
+  await ir(page, 'historia');
+  check('P2.6 UI: Mi historia enseña tu gran sueño y deja cambiarlo', await page.locator('.suenoCard').isVisible() && await page.locator('.suenoCard [data-act="elegirSueno"]').count() === 4);
+  await page.tap('.suenoCard [data-act="elegirSueno"][data-v="leyenda"]');
+  check('P2.6 UI: cambiar el sueño se guarda', await page.evaluate(() => __P2.S.sueno === 'leyenda'));
+  await ir(page, 'ajustes');
+  await page.tap('[data-act="histVer"]');
+  check('P2.6 UI: la introducción se puede volver a ver desde Ajustes (y se cierra)', await page.locator('.historiaIntro').isVisible());
+  await page.tap('.histSaltar');
+  check('P2.6 UI: al cerrarla vuelves a tu partida sin perder nada', await page.locator('.historiaIntro').count() === 0 && await page.evaluate(() => !!__P2.S && __P2.S.negocios.length === 1));
+  await page.evaluate(() => { __P2.S.deseoActual = null; __P2.S.p.dinero = 5000; __P2.guardar(); __P2.render(); });
   // Tienda: comprar, ver la celebración, inventario y patrimonio
   await page.evaluate(() => { __P2.S.p.dinero = 5000; __P2.guardar(); });
   await ir(page, 'tienda');
@@ -1100,13 +1179,13 @@ let informe;
   // ---------- Mis carreras y cuenta (otro navegador limpio) ----------
   {
     const c3 = await b.newContext({ ...pw.devices['iPhone 13'], reducedMotion: 'reduce' }); const p3 = await c3.newPage(); p3.on('pageerror', e => errs.push(e.message));
-    await p3.goto(url);
+    await p3.goto(url); await saltar(p3);
     await p3.fill('#nombre', 'Lola'); await p3.tap('[data-act="empezar"]');
     await p3.evaluate(() => { __P2.S.semana = 6; __P2.guardar(); });
     await p3.tap('[data-act="mundo"]'); await p3.tap('.mundoAcc [data-act="guardarSalir"]');
     check('UI Carreras: «Guardar y salir» guarda y lleva a «Mis carreras»', (await p3.textContent('.flash')).includes('Partida guardada') && await p3.locator('.carrera[data-i="0"] [data-act="carSeguir"]').count() === 1);
     check('UI Carreras: 2 ranuras gratis, 3 más bloqueadas con «+3 carreras»', await p3.locator('[data-act="carNueva"]').count() === 1 && await p3.locator('[data-act="carMas"]').count() === 3);
-    await p3.tap('[data-act="carNueva"]'); await p3.fill('#nombre', 'Pepe'); await p3.tap('[data-act="empezar"]');
+    await p3.tap('[data-act="carNueva"]'); check('Historia: una carrera nueva vuelve a contar la intro', await p3.locator('.historiaIntro').isVisible()); await saltar(p3); await p3.fill('#nombre', 'Pepe'); await p3.tap('[data-act="empezar"]');
     await p3.reload();
     check('UI Carreras: al abrir el juego continúa la última carrera jugada', await p3.evaluate(() => __P2.S && __P2.S.nombre === 'Pepe'));
     await p3.evaluate(() => __P2.ir('ajustes')); await p3.tap('.card [data-act="carreras"]');
@@ -1163,14 +1242,14 @@ let informe;
   }
   // Partida de P1 en el navegador → «Seguir con tu jugador de P1»
   const ctx2 = await b.newContext({ ...pw.devices['iPhone 13'], reducedMotion: 'reduce' }); const p2 = await ctx2.newPage();
-  await p2.goto(url);
+  await p2.goto(url); await saltar(p2);
   await p2.evaluate(() => { localStorage.setItem('del_barrio_al_negocio_p1_v5', JSON.stringify({ nombre: 'Ruth', semana: 80, fase: 'club', p: { dinero: 5000, rep: 50, nivel: 70 } })); });
-  await p2.reload();
+  await p2.reload(); await saltar(p2);
   await p2.tap('[data-act="desdeP1"]');
   check('UI: una partida de P1 pasa a P2 sin errores y sin borrar la de P1', await p2.evaluate(() => __P2.S.nombre === 'Ruth' && __P2.S.saveVersion === 2 && !!localStorage.getItem('del_barrio_al_negocio_p1_v5')));
   // Guardado corrupto: no rompe y no se borra
   await p2.evaluate(() => { __P2.S = null; localStorage.setItem('del_barrio_al_negocio_p2', '{roto'); });
-  await p2.reload();
+  await p2.reload(); await saltar(p2);
   check('UI: un guardado corrupto no rompe el juego y se aparta una copia', await p2.locator('[data-act="empezar"]').isVisible() && await p2.evaluate(() => Object.keys(localStorage).some(k => k.startsWith('del_barrio_al_negocio_p2_copia_'))));
   // Informe de prueba en Ajustes
   await ir(page, 'ajustes');

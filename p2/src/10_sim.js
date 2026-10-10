@@ -218,6 +218,7 @@
     log.efectivo = Math.round(s.p.dinero); log.energiaMedia = null;
     log.trofeos = (s.trofeos || []).length; log.ascensosH = (s.historia || {}).ascensos || 0; log.confianza = s.confianza;
     log.socio = s.socio ? { valor: s.socio.valor, aportado: s.socio.aportado, dividendos: s.socio.dividendos } : null;
+    if (opc.estado) log.s = s;   // para capturas y pruebas de interfaz
     return log;
   }
 

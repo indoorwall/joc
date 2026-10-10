@@ -58,7 +58,8 @@
             return op('renovar', c.n, `${eur(c.sueldo)}/semana · prima ${eur(c.prima)} · ${c.temporadas} temporadas`, 'Sigues donde estás', `Techo de nivel ${O.techoNivel}`, { tags: ['seguro'], clubIc: O.ic });
           }
           const O = OFERTAS[id];
-          return op(id, `${O.ic} ${O.n} · ${O.lema}`, `${eur(O.sueldo)}/semana${O.prima ? ` · prima ${eur(O.prima)}` : ''} · ${O.pros.join(' · ')}`, O.contras.join(' · ') || '—', `Entreno ×${nf(O.entreno)} · exposición ×${nf(O.exposicion)} · ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}`,
+          const Id = P2.IDENTIDAD && P2.IDENTIDAD[id], nota = P2.notaClub && P2.notaClub(s, id);
+          return op(id, `${O.ic} ${O.n} · ${Id ? `${Id.ic} ${Id.n}` : O.lema}${nota ? ` — ${nota}` : ''}`, `${eur(O.sueldo)}/semana${O.prima ? ` · prima ${eur(O.prima)}` : ''} · ${O.pros.join(' · ')}`, O.contras.join(' · ') || '—', `Entreno ×${nf(O.entreno)} · exposición ×${nf(O.exposicion)} · ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}`,
             { tags: O.sueldo >= 200 ? ['dinero'] : ['deporte'], oferta: id });
         });
         if (ev.origen === 'fin' && ev.contratoVivo) ops.push(op('seguir', 'Seguir con tu contrato actual', `Te quedan ${s.contrato.temporadasRestantes} temporadas`, 'Nada', 'Ninguno', { tags: ['seguro'] }));
@@ -78,6 +79,8 @@
         }
         if (id === 'renovar') { P2.firmarRenovacion(s, ev.condiciones.find(x => x.id === 'renovar'), R); return { texto: `Renuevas con ${P2.oferta(s).n}.`, titulo: 'Renovación', ic: '✍️' }; }
         if (!ev.ofertas.includes(id)) return null;
+        // Memoria: a quién dijiste que no y dónde jugaste (los clubes se acuerdan)
+        if (P2.recordarClub) { for (const o of ev.ofertas) if (o !== id && o !== 'renovar' && OFERTAS[o]) P2.recordarClub(s, OFERTAS[o].club, 'rechazado'); P2.recordarClub(s, OFERTAS[id].club, 'jugaste'); }
         P2.firmar(s, id, R);
         return { texto: `Firmas con ${OFERTAS[id].n}: ${eur(OFERTAS[id].sueldo)}/semana.`, titulo: 'Contrato firmado', ic: OFERTAS[id].ic, firma: id };
       },

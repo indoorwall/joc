@@ -21,6 +21,7 @@
     const s = partidaBase(opc); s.deporte = dep;
     const E = (P2.DEPORTES && P2.DEPORTES[dep].especialidades) || null;
     s.especialidad = E ? (E.some(([id]) => id === opc.especialidad) ? opc.especialidad : E[0][0]) : null;
+    if (dep === 'futbol') s.agenda.push({ semana: 1, efecto: 'primeraPachanga', data: {} });   // P2.6: pequeña victoria temprana
     if (P2.asignarVariante) P2.asignarVariante(s); return s;
   }
   function partidaBase(opc = {}) {
@@ -39,7 +40,9 @@
       mjSemana: null,
       // P2.5.1 · ritmo: historial de momentos (cooldowns), estadísticas, gran partido que se acerca, variedad de semanas
       minigameHistory: [], mjStats: { jugados: 0, exitos: 0, perfects: 0, racha: 0, mejorRacha: 0, reintentos: 0, vidasUsadas: 0, vidasAnuncio: 0, vidasAnuncioTemp: {}, porTipo: {}, simulados: 0 },
-      logrosMj: {}, memorables: [], eventoImportante: null, semLog: [], tagsSemana: [], ultAcciones: [], finLesion: 0,               // objetivo personal de la Tienda (lista de deseos)
+      logrosMj: {}, memorables: [],
+      // P2.6 · experiencia: tu gran sueño, tu objetivo personal y lo que recuerdan los clubes
+      sueno: P2.SUENOS && P2.SUENOS.some(x => x.id === opc.sueno) ? opc.sueno : null, metaPersonal: null, memClubes: {}, introVista: !!opc.introVista, eventoImportante: null, semLog: [], tagsSemana: [], ultAcciones: [], finLesion: 0,               // objetivo personal de la Tienda (lista de deseos)
       historiaCosas: [], trofeos: [], celebraciones: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local

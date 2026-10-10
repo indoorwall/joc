@@ -8,6 +8,36 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
 
+## P2.6 · Experiencia del primer contacto
+
+Detalle, ritmo por perfiles y lo que está o no verificado: [`docs/P2.6_EXPERIENCIA.md`](../docs/P2.6_EXPERIENCIA.md).
+
+- **Historia inicial:**
+  - son 4 pantallas: «Tienes 17 años, 150 € en el bolsillo…», «Construye tu carrera», «Construye tu imperio» y
+    «De tenerlo todo por conseguir… a poder conseguirlo todo»;
+  - duran unos 26 s, se pueden saltar y terminan en «EMPEZAR MI HISTORIA»;
+  - salen solas solo en una carrera nueva y se pueden volver a ver en Ajustes;
+  - no muestran nada de pago.
+- **Creación:** nombre, aspecto con un toque (el editor completo, plegado), deporte y tu gran sueño.
+- **Inicio:**
+  - situación (un personaje te habla);
+  - objetivos: AHORA, TU OBJETIVO y TU GRAN SUEÑO;
+  - opciones con «✓ ventaja · ⚠️ riesgo»;
+  - la semana contada con una frase;
+  - «📅 Próximamente» con 2–3 acontecimientos.
+- **Pequeña victoria temprana:** el reto 3 contra 3 de la plaza tras la primera semana (sin azar).
+- **Clubes y familia:**
+  - los clubes tienen identidad y recuerdan lo que les dijiste;
+  - UD Puerto a veces paga tarde (consecuencia diferida);
+  - la familia opina de las compras grandes.
+- **Empresa:** resumen semanal (entró, salió, ganaste o perdiste, en caja), más un aviso o una oportunidad.
+- **Tienda:**
+  - escaparate de lo que aún no puedes pagar;
+  - cada artículo dice si es 🏦 activo, 🛍️ estilo de vida o ⚡ se gasta;
+  - «Te faltan X €».
+- **Mi historia:** muestra tu sueño y deja cambiarlo.
+- **Ritmo:** `node p2/ritmo_perfiles.cjs` (bots A–E, primeras 50 semanas).
+
 ## P2.5.1 · Ritmo: decisión → expectativa → tensión → habilidad → consecuencia → historia
 
 Sin deportes, expansiones ni Prestige nuevos. Diseño completo y diagnóstico en
@@ -710,7 +740,7 @@ todas las combinaciones firman contrato; energía nunca negativa; sin decisiones
 
 ## 5. Pruebas
 
-`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **470 de 470 comprobaciones superadas**.
+`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **501 de 501 comprobaciones superadas**.
 
 - **Las de P2 y P2.1** (ver arriba).
 - **Nuevas de P2.2:**

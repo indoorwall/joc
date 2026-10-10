@@ -932,6 +932,77 @@ details.mercado summary { display: flex; flex-direction: column; gap: 2px; curso
 .memorables .lin { font-size: 14px; }
 .sugDeseo { border: 2px dashed #d9b3ff; }
 
+/* ===== P2.6 · Experiencia: introducción, creación, situación, objetivos, calendario ===== */
+.historiaIntro { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; justify-content: flex-end; padding: 18px 20px calc(26px + env(safe-area-inset-bottom)); color: #fff; overflow: hidden; cursor: pointer; animation: histIn .5s both; }
+.historiaIntro.h-barrio { background: linear-gradient(180deg, #ffb37a 0%, #f07a6a 38%, #4b2d6e 100%); }
+.historiaIntro.h-carrera { background: radial-gradient(circle at 25% 12%, rgba(255,255,255,.65), transparent 14%), radial-gradient(circle at 78% 10%, rgba(255,255,255,.55), transparent 13%), linear-gradient(180deg, #0b2a6b 0%, #1446a8 55%, #1f8a4c 56%, #18703d 100%); }
+.historiaIntro.h-imperio { background: linear-gradient(180deg, #0d0b2a 0%, #2a1a6e 55%, #5f35c9 100%); }
+.historiaIntro.h-final { background: radial-gradient(circle at 50% 35%, #ffd76a 0%, #ff9a2e 28%, #5f35c9 70%, #1a1240 100%); }
+.histSaltar { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 14px; background: rgba(0,0,0,.28); color: #fff; border: 0; border-radius: 999px; padding: 8px 14px; font-weight: 800; font-size: 14px; z-index: 5; }
+.histEscena { flex: 1; position: relative; display: flex; align-items: flex-end; justify-content: center; min-height: 260px; }
+.histAv { width: 170px; animation: histSube .7s both .1s; }
+.histAv svg { width: 100%; height: auto; filter: drop-shadow(0 12px 18px rgba(0,0,0,.35)); }
+.histFx { position: absolute; inset: 10% 0 auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.histFx span { background: rgba(255,255,255,.18); backdrop-filter: blur(4px); border-radius: 999px; padding: 8px 14px; font-size: 22px; font-weight: 900; animation: histPop .5s both; }
+.histTxt { text-align: center; margin: 12px 0 8px; }
+.histTxt small { letter-spacing: .14em; font-weight: 900; opacity: .85; }
+.histTxt h1 { font-size: 30px; line-height: 1.12; margin: 8px 0; color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.18); background: none; -webkit-text-fill-color: #fff; }
+.histTxt p { font-size: 17px; opacity: .95; margin: 0; }
+.h-final .histTxt h1 { font-size: 32px; } .h-final .histTxt p { font-size: 24px; font-weight: 900; }
+.histPuntos { display: flex; justify-content: center; gap: 8px; margin: 10px 0; }
+.histPuntos i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.4); } .histPuntos i.on { background: #fff; width: 22px; border-radius: 99px; }
+.histToca { text-align: center; opacity: .7; font-size: 13px; margin: 0; }
+.histEmpezar { width: 100%; font-size: 20px; }
+@keyframes histIn { from { opacity: 0 } } @keyframes histSube { from { transform: translateY(40px); opacity: 0 } } @keyframes histPop { from { transform: scale(.4); opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { .historiaIntro, .histAv, .histFx span { animation: none; } }
+.intro.crear { text-align: left; } .intro.crear h1 { margin-top: 2px; } .intro.crear > .eti { font-weight: 900; letter-spacing: .12em; color: #c88c00; }
+.crearYo { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center; }
+.crearAv svg { width: 100%; height: auto; } .crearDatos .fila { display: flex; gap: 6px; margin-top: 8px; } .crearDatos .fila .btn { flex: 1; font-size: 14px; padding: 10px 6px; }
+.suenos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sueno { border: 2px solid var(--line); background: #fff; border-radius: 16px; padding: 10px; text-align: left; display: grid; gap: 2px; color: var(--ink); }
+.sueno span { font-size: 26px; } .sueno b { font-size: 14px; line-height: 1.2; } .sueno.sel { border-color: #c88c00; background: #fff6d6; box-shadow: 0 3px 0 #f1d17a; }
+.intro.crear .cta { width: 100%; margin: 10px 0 4px; } .centro { text-align: center; }
+.situ { position: relative; margin: -18px 10px 10px; background: #fff; border-radius: 18px; padding: 10px 14px; box-shadow: 0 4px 0 #e2dcf7; color: var(--ink); z-index: 2; }
+.situ::before { content: ''; position: absolute; top: -9px; left: 50%; border: 9px solid transparent; border-top: 0; border-bottom-color: #fff; transform: translateX(-50%); }
+.situ b { font-size: 13px; } .situ p { margin: 2px 0; font-size: 14px; line-height: 1.28; } .situ small { color: var(--dim); font-size: 12px; }
+.exterior { height: 112px; }
+.objs { gap: 8px; }
+.oRow { display: grid; gap: 3px; text-align: left; } .oRow small { font-size: 11px; font-weight: 900; letter-spacing: .1em; color: var(--dim); }
+.oRow.mini { background: var(--panel); border: 0; border-radius: 14px; padding: 8px 10px; grid-template-columns: 1fr auto; align-items: center; color: var(--ink); font: inherit; }
+.oRow.mini small { grid-column: 1 / -1; } .oRow.mini b { font-size: 15px; } .oRow.mini .xp { grid-column: 1 / -1; height: 7px; background: #e6e2f7; border-radius: 99px; overflow: hidden; } .oRow.mini .xp i { display: block; height: 100%; background: linear-gradient(90deg, #ff4f8b, #ffc22e); }
+.oRow.mini em { grid-column: 1 / -1; font-style: normal; font-size: 12px; color: var(--dim); font-weight: 800; }
+.oRow.sueno .xp i { background: linear-gradient(90deg, #8b5cf6, #2f7bff); } .oRow .vacio { color: #c92d63; }
+.metaSel .metaOp { display: flex; justify-content: space-between; } .metaSel .metaOp.sel { outline: 3px solid #ff4f8b; }
+.cal h3 { margin: 0 0 6px; } .calRow { display: grid; grid-template-columns: 112px 1fr; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; } .calRow:first-of-type { border-top: 0; } .calRow .cuando { font-weight: 900; color: #5f35c9; font-size: 13px; }
+.op .ganas { opacity: .95; font-weight: 700; }
+.narra { font-size: 17px; line-height: 1.35; background: #fff; border-radius: 16px; padding: 10px 14px; box-shadow: 0 3px 0 #e2dcf7; color: var(--ink); }
+.opinion { background: rgba(255,255,255,.14); border-radius: 12px; padding: 8px 10px; font-size: 14px; }
+
+.objs { grid-template-columns: 1fr 1fr; padding: 10px 12px; } .objs .ahora { grid-column: 1 / -1; } .objs .ahora b { font-size: 16px; } .objs .ahora .fila { font-size: 12px; }
+.oRow.mini { padding: 6px 8px; } .oRow.mini b { font-size: 13px; line-height: 1.2; } .oRow.mini small { font-size: 10px; } .oRow.mini em { font-size: 11px; }
+.exterior .pj { width: 58px; }
+.tipoBien { font-size: 11px; font-weight: 800; border-radius: 999px; padding: 2px 8px; align-self: center; }
+.tipoBien.activo { background: #dcfce7; color: #166534; } .tipoBien.consumo { background: #f3e8ff; color: #6b21a8; }
+.faltan { font-size: 12px; font-weight: 800; color: #c92d63; }
+.vitrinaDeseo h3 { margin: 0; } .escRow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.escItem { border: 2px solid var(--line); background: #fff; border-radius: 16px; padding: 8px 6px; display: grid; gap: 4px; text-align: center; color: var(--ink); font: inherit; }
+.escItem .pic { font-size: 30px; } .escItem b { font-size: 12px; line-height: 1.15; } .escItem small { font-size: 11px; color: var(--dim); font-weight: 800; }
+.escItem .xp { height: 6px; background: #eee9fb; border-radius: 99px; overflow: hidden; } .escItem .xp i { display: block; height: 100%; background: linear-gradient(90deg, #ff4f8b, #ffc22e); }
+.escItem.sel { border-color: #ff4f8b; background: #fff0f5; }
+.resNeg { background: var(--panel); border-radius: 16px; padding: 10px; margin: 8px 0; }
+.resNegFila { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center; font-size: 11px; color: var(--dim); font-weight: 800; }
+.resNegFila b { display: block; font-size: 14px; color: var(--ink); } .resNegFila .mas b { color: #0b8a5e; } .resNegFila .menos b { color: #c92d63; }
+.resNegAviso { margin: 8px 0 0; font-size: 14px; } .resNegAviso.mal { color: #9f1239; } .resNegAviso.bien { color: #166534; }
+.suenoCard { display: grid; gap: 4px; } .suenoCard > small { font-weight: 900; letter-spacing: .1em; color: var(--dim); font-size: 11px; }
+.suenoCard .xp { height: 8px; background: #eee9fb; border-radius: 99px; overflow: hidden; } .suenoCard .xp i { display: block; height: 100%; background: linear-gradient(90deg, #8b5cf6, #2f7bff); }
+.suenos.mini { grid-template-columns: 1fr 1fr; margin-top: 6px; } .suenos.mini .sueno { font-size: 12px; font-weight: 800; padding: 6px; }
+/* P2.6 · inicio compacto: la primera opción cabe en la primera pantalla de un iPhone */
+.exterior { height: 96px; } .exterior .pj { width: 52px; bottom: 4px; }
+.situ { margin: -14px 8px 8px; padding: 8px 12px; } .situ p { font-size: 13.5px; line-height: 1.25; } .situ small { font-size: 11.5px; line-height: 1.2; display: block; }
+.objs { margin-top: 6px; }
+.pant { gap: 10px; } .situ { margin-bottom: -4px; } .objs { margin-top: 0; padding: 8px 10px; gap: 6px; } .objs .ahora { gap: 2px; }
+.oRow.mini { padding: 5px 8px; gap: 2px; } .pant > h1 { font-size: 22px; margin-top: 0; }
+
 </style>
 </head>
 <body>
@@ -3527,6 +3598,7 @@ globalThis.P2C = P2C;
     const s = partidaBase(opc); s.deporte = dep;
     const E = (P2.DEPORTES && P2.DEPORTES[dep].especialidades) || null;
     s.especialidad = E ? (E.some(([id]) => id === opc.especialidad) ? opc.especialidad : E[0][0]) : null;
+    if (dep === 'futbol') s.agenda.push({ semana: 1, efecto: 'primeraPachanga', data: {} });   // P2.6: pequeña victoria temprana
     if (P2.asignarVariante) P2.asignarVariante(s); return s;
   }
   function partidaBase(opc = {}) {
@@ -3545,7 +3617,9 @@ globalThis.P2C = P2C;
       mjSemana: null,
       // P2.5.1 · ritmo: historial de momentos (cooldowns), estadísticas, gran partido que se acerca, variedad de semanas
       minigameHistory: [], mjStats: { jugados: 0, exitos: 0, perfects: 0, racha: 0, mejorRacha: 0, reintentos: 0, vidasUsadas: 0, vidasAnuncio: 0, vidasAnuncioTemp: {}, porTipo: {}, simulados: 0 },
-      logrosMj: {}, memorables: [], eventoImportante: null, semLog: [], tagsSemana: [], ultAcciones: [], finLesion: 0,               // objetivo personal de la Tienda (lista de deseos)
+      logrosMj: {}, memorables: [],
+      // P2.6 · experiencia: tu gran sueño, tu objetivo personal y lo que recuerdan los clubes
+      sueno: P2.SUENOS && P2.SUENOS.some(x => x.id === opc.sueno) ? opc.sueno : null, metaPersonal: null, memClubes: {}, introVista: !!opc.introVista, eventoImportante: null, semLog: [], tagsSemana: [], ultAcciones: [], finLesion: 0,               // objetivo personal de la Tienda (lista de deseos)
       historiaCosas: [], trofeos: [], celebraciones: [], vendidos: [], coleccionesHechas: [], historia: { ascensos: 0, patrimonioMax: 0, semanaMax: 1 },
       mon: P2.nuevoMon ? P2.nuevoMon() : {},   // Monetization Lab (todo simulado)
       monVariante: null,               // A / B / C del test local
@@ -4256,7 +4330,7 @@ globalThis.P2C = P2C;
     R.porque.push(`Pruebas = ${partes.map(([t, v]) => `${t} ${nf(v)}`).join(' + ')} = ${score}. Rangos: ${CFG.pruebas.rangos.filter(r => r.min > -99).map(r => `${r.min}+ → ${r.ofertas.map(o => OFERTAS[o].n + (o === 'atleticoFormacion' ? ' (formación)' : o === 'atleticoFilial' ? ' (filial)' : '')).join(' y ')}`).join(' · ')}.`);
     s.preparador = false;
     if (ofertas.length) P2.encolar(s, { tipo: 'ofertas', origen: via === 'repesca' ? 'repesca' : 'pruebas', ofertas, score });
-    else P2.encolar(s, { tipo: 'ofertas', origen: 'sinOferta', ofertas: s.fase === 'amateur' ? [] : ['sanroque'], score });
+    else { if (P2.recordarClub && s.fase !== 'amateur') P2.recordarClub(s, 'atleticoB', 'descarto'); P2.encolar(s, { tipo: 'ofertas', origen: 'sinOferta', ofertas: s.fase === 'amateur' ? [] : ['sanroque'], score }); }
     return score;
   }
 
@@ -5247,7 +5321,8 @@ globalThis.P2C = P2C;
             return op('renovar', c.n, `${eur(c.sueldo)}/semana · prima ${eur(c.prima)} · ${c.temporadas} temporadas`, 'Sigues donde estás', `Techo de nivel ${O.techoNivel}`, { tags: ['seguro'], clubIc: O.ic });
           }
           const O = OFERTAS[id];
-          return op(id, `${O.ic} ${O.n} · ${O.lema}`, `${eur(O.sueldo)}/semana${O.prima ? ` · prima ${eur(O.prima)}` : ''} · ${O.pros.join(' · ')}`, O.contras.join(' · ') || '—', `Entreno ×${nf(O.entreno)} · exposición ×${nf(O.exposicion)} · ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}`,
+          const Id = P2.IDENTIDAD && P2.IDENTIDAD[id], nota = P2.notaClub && P2.notaClub(s, id);
+          return op(id, `${O.ic} ${O.n} · ${Id ? `${Id.ic} ${Id.n}` : O.lema}${nota ? ` — ${nota}` : ''}`, `${eur(O.sueldo)}/semana${O.prima ? ` · prima ${eur(O.prima)}` : ''} · ${O.pros.join(' · ')}`, O.contras.join(' · ') || '—', `Entreno ×${nf(O.entreno)} · exposición ×${nf(O.exposicion)} · ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}`,
             { tags: O.sueldo >= 200 ? ['dinero'] : ['deporte'], oferta: id });
         });
         if (ev.origen === 'fin' && ev.contratoVivo) ops.push(op('seguir', 'Seguir con tu contrato actual', `Te quedan ${s.contrato.temporadasRestantes} temporadas`, 'Nada', 'Ninguno', { tags: ['seguro'] }));
@@ -5267,6 +5342,8 @@ globalThis.P2C = P2C;
         }
         if (id === 'renovar') { P2.firmarRenovacion(s, ev.condiciones.find(x => x.id === 'renovar'), R); return { texto: `Renuevas con ${P2.oferta(s).n}.`, titulo: 'Renovación', ic: '✍️' }; }
         if (!ev.ofertas.includes(id)) return null;
+        // Memoria: a quién dijiste que no y dónde jugaste (los clubes se acuerdan)
+        if (P2.recordarClub) { for (const o of ev.ofertas) if (o !== id && o !== 'renovar' && OFERTAS[o]) P2.recordarClub(s, OFERTAS[o].club, 'rechazado'); P2.recordarClub(s, OFERTAS[id].club, 'jugaste'); }
         P2.firmar(s, id, R);
         return { texto: `Firmas con ${OFERTAS[id].n}: ${eur(OFERTAS[id].sueldo)}/semana.`, titulo: 'Contrato firmado', ic: OFERTAS[id].ic, firma: id };
       },
@@ -5622,6 +5699,7 @@ globalThis.P2C = P2C;
     if (P2.detectarEvento) P2.detectarEvento(s, R);
     if (P2.cerrarSemanaLog) P2.cerrarSemanaLog(s, accion, R, mom);
     if (P2.recordatorioDeseo) P2.recordatorioDeseo(s, R);
+    if (P2.revisarMeta) P2.revisarMeta(s, R);
     // Segunda inversión aplazada: se vuelve a proponer cuando ya puedes pagar alguna (como mucho cada 6 semanas)
     if (s.oportunidadAbierta && !s.oportunidad && s.p.dinero >= Math.min(...P2.OPORTUNIDADES.map(o => o.coste)) && s.semana - (s.recordatorioOp || 0) >= 6) {
       s.recordatorioOp = s.semana; P2.encolar(s, { tipo: 'oportunidad' });
@@ -5900,6 +5978,7 @@ globalThis.P2C = P2C;
     log.efectivo = Math.round(s.p.dinero); log.energiaMedia = null;
     log.trofeos = (s.trofeos || []).length; log.ascensosH = (s.historia || {}).ascensos || 0; log.confianza = s.confianza;
     log.socio = s.socio ? { valor: s.socio.valor, aportado: s.socio.aportado, dividendos: s.socio.dividendos } : null;
+    if (opc.estado) log.s = s;   // para capturas y pruebas de interfaz
     return log;
   }
 
@@ -8735,6 +8814,208 @@ globalThis.P2C = P2C;
     MED, media, fundarMedia, abrirCanal, configurarMedia, comprarDerechos, documental });
 })(globalThis.P2 = globalThis.P2 || {});
 
+// ===== 19_experiencia.js =====
+/* =====================================================================
+   19 · EXPERIENCIA (P2.6): que el jugador entienda, se ilusione y sepa siempre qué hace
+   - Situación de la semana: alguien de tu vida te pone en contexto antes de decidir.
+   - Objetivos: inmediato (el siguiente hito), personal (lo que tú quieres) y gran sueño.
+   - Calendario: los próximos 2–3 acontecimientos que importan para decidir.
+   - Consecuencias contadas como historia (los números siguen ahí, debajo).
+   - Clubes con identidad y memoria (quién te descartó, a quién rechazaste).
+   Todo es presentación o datos ligeros sobre los sistemas que ya existen: no toca el azar de la partida.
+   ===================================================================== */
+(function (P2) {
+  'use strict';
+  const { CFG, clamp, eur, nf } = P2;
+  const h32 = str => { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
+  const elige = (s, k, l) => l[h32(`${s.seed}|${k}|${s.semana}`) % l.length];
+  const nombre = (s, id) => { const R = P2.persona && P2.persona(id); return R ? (P2.nombreRel ? P2.nombreRel(s, R) : R.n) : id; };
+
+  // ---------- Gran sueño (se elige al crear la carrera; se puede cambiar en Mi historia) ----------
+  const SUENOS = [
+    { id: 'primera', ic: '🏟️', n: 'Jugar en la máxima categoría', d: 'Llegar a lo más alto en tu deporte.', prog: s => clamp(((s.temporada ? P2.LIGAS[s.temporada.liga].nivel : 0) || 0) / 4, 0, 1), txt: s => (s.temporada ? `Ahora: ${P2.LIGAS[s.temporada.liga].n}` : 'Aún sin club') },
+    { id: 'leyenda', ic: '🏆', n: 'Ser una leyenda: 5 títulos', d: 'Ganar copas, ligas y finales.', prog: s => clamp((s.trofeos || []).length / 5, 0, 1), txt: s => `${(s.trofeos || []).length} de 5 títulos` },
+    { id: 'imperio', ic: '🏢', n: 'Tener mi propio imperio: 3 empresas', d: 'Que tus negocios trabajen por ti.', prog: s => clamp(s.negocios.length / 3, 0, 1), txt: s => `${s.negocios.length} de 3 empresas` },
+    { id: 'millon', ic: '💰', n: 'Ser millonario/a', d: 'Un millón de patrimonio.', prog: s => clamp(P2.patrimonio(s) / 1e6, 0, 1), txt: s => `${eur(P2.patrimonio(s))} de 1.000.000 €` },
+  ];
+  const sueno = s => SUENOS.find(x => x.id === s.sueno) || null;
+
+  // ---------- Objetivo personal: lo que TÚ quieres (aprovecha hitos, patrimonio y la lista de deseos) ----------
+  const tiene = (s, id) => !!(P2.posee && P2.posee(s, id));
+  const METAS = [
+    { id: 'contrato', ic: '✍️', n: 'Firmar mi primer contrato', hecho: s => !!s.hitos.contrato, prog: s => (s.hitos.contrato ? 1 : s.hitos.prueba ? 0.6 : clamp(s.p.rep / CFG.captacion.repOjeador, 0, 1) * 0.5) },
+    { id: 'titular', ic: '👕', n: 'Ser titular', hecho: s => !!s.hitos.titular, prog: s => clamp((s.stats.titular || 0) / CFG.club.titularidadesHito, 0, 1), req: s => !!s.hitos.contrato },
+    { id: 'patro', ic: '🤝', n: 'Conseguir mi primer patrocinador', hecho: s => !!s.hitos.patro, prog: s => (s.hitos.patro ? 1 : clamp((s.p.marca || 0) / 15, 0, 0.9)), req: s => !!s.hitos.contrato },
+    { id: 'titulo', ic: '🏆', n: 'Ganar una competición', hecho: s => (s.trofeos || []).length > 0, prog: s => ((s.trofeos || []).length ? 1 : 0), req: s => !!s.hitos.contrato },
+    { id: 'moto', ic: '🛵', n: 'Comprarme una moto', hecho: s => tiene(s, 'moto'), prog: s => clamp(s.p.dinero / 1900, 0, 1), producto: 'moto' },
+    { id: 'coche', ic: '🚗', n: 'Comprarme un coche', hecho: s => ['cocheUsado', 'deportivo', 'superdeportivo'].some(id => tiene(s, id)), prog: s => clamp(s.p.dinero / 5200, 0, 1), producto: 'cocheUsado' },
+    { id: 'negocio', ic: '💈', n: 'Ahorrar para abrir un negocio', hecho: s => s.negocios.length > 0, prog: s => clamp(s.p.dinero / Math.max(1, P2.capitalNecesario ? P2.capitalNecesario('peluqueria', 0) : 12000), 0, 1) },
+    { id: 'rentable', ic: '📈', n: 'Tener una empresa rentable', hecho: s => !!s.hitos.rentable, prog: s => (s.hitos.rentable ? 1 : s.negocios.length ? clamp((s.negocios[0].rachaPos || 0) / 6, 0, 0.95) : 0), req: s => s.negocios.length > 0 },
+    { id: 'p100k', ic: '🏦', n: 'Llegar a 100.000 € de patrimonio', hecho: s => P2.patrimonio(s) >= 1e5, prog: s => clamp(P2.patrimonio(s) / 1e5, 0, 1) },
+    { id: 'p1m', ic: '💎', n: 'Llegar al millón de patrimonio', hecho: s => P2.patrimonio(s) >= 1e6, prog: s => clamp(P2.patrimonio(s) / 1e6, 0, 1), req: s => P2.patrimonio(s) >= 1e5 },
+  ];
+  const metasDisponibles = s => METAS.filter(m => !m.hecho(s) && (!m.req || m.req(s)));
+  // El objetivo personal visible: la lista de deseos manda (es un producto concreto); si no, la meta elegida
+  function objetivoPersonal(s) {
+    const P = s.deseoActual && P2.producto && P2.producto(s.deseoActual);
+    if (P) return { tipo: 'deseo', ic: P.ic, n: P.n, prog: clamp(Math.max(0, s.p.dinero) / P.precio, 0, 1), txt: `${eur(Math.max(0, Math.min(s.p.dinero, P.precio)))} / ${eur(P.precio)}`, listo: s.p.dinero >= P.precio };
+    const M = METAS.find(m => m.id === s.metaPersonal);
+    if (M && !M.hecho(s)) return { tipo: 'meta', id: M.id, ic: M.ic, n: M.n, prog: M.prog(s), txt: `${Math.round(M.prog(s) * 100)} %` };
+    return null;
+  }
+  function fijarMeta(s, id) { if (id && !METAS.some(m => m.id === id)) return false; s.metaPersonal = id || null; if (id) P2.tele(s, 'meta_personal', { id }); return true; }
+  // Si cumples tu objetivo personal: se celebra y se propone el siguiente
+  function revisarMeta(s, R) {
+    const M = METAS.find(m => m.id === s.metaPersonal);
+    if (M && M.hecho(s)) { s.metaPersonal = null; R && R.lineas.push(['🎯', `¡Objetivo personal cumplido: ${M.n}! Elige el siguiente en Inicio.`, 'bien']); P2.anotar(s, '🎯', `Objetivo cumplido: ${M.n}.`); P2.recordar && P2.recordar(s, '🎯', `Objetivo personal cumplido: ${M.n}`); }
+  }
+
+  // ---------- Calendario: los próximos acontecimientos que ayudan a decidir ----------
+  function calendario(s, max = 3) {
+    const l = [], add = (sem, ic, t, imp = 2) => { if (sem >= 0 && sem < 30) l.push({ sem, ic, t, imp }); };
+    if (s.fase === 'barrio') add(P2.semanasCaptacion(s) - 1, '⏰', 'Fin de la captación: o te ve un ojeador o toca el amateur', 3);
+    if (s.fase === 'pruebas' && s.invitacion) add(s.invitacion.dia - s.semana, '📋', 'Día de pruebas: nivel y energía cuentan', 5);
+    if (s.fase === 'amateur') { const k = CFG.amateur.repescaCada - ((s.amateurSemanas || 0) % CFG.amateur.repescaCada); add(k - 1, '🔁', 'Repesca: otra oportunidad de ser profesional', 4); }
+    const ev = s.eventoImportante; if (ev && ev.semana >= s.semana) add(ev.semana - s.semana, ev.ic, `${ev.n} (preparación ${Math.round(P2.prepEfectiva(ev, s))} %)`, 5);
+    const T = s.temporada;
+    if (T && !T.cerrada && (s.fase === 'club' || s.fase === 'amateur')) {
+      const q = T.calendario.length - T.jornada;
+      if (!ev || ev.tipo !== 'promocion') add(q, '🏁', s.contrato && s.contrato.temporadasRestantes <= 1 && !P2.OFERTAS[s.contrato.oferta].amateur ? 'Fin de temporada y de tu contrato: toca negociar' : 'Fin de temporada', s.contrato && s.contrato.temporadasRestantes <= 1 ? 4 : 2);
+      for (const c of (T.copas || [])) if (c.estado === 'viva') { const C = P2.COMPETICIONES[c.id]; if (!ev || ev.tipo !== 'final' || ev.jornada !== C.final) add(C.final - T.jornada, C.ic, `Final de la ${C.n} (si llegáis)`, 3); }
+    }
+    for (const p of s.patros || []) { const M = P2.MARCAS && P2.MARCAS[p.id]; const fin = p.desde + p.semanas - s.semana; if (M) add(fin, '🤝', `Acaba el patrocinio de ${M.n}`, 2); if (p.proxActo != null) add(p.proxActo - s.semana, '📣', `Acto de ${M ? M.n : 'tu patrocinador'} (ocupa la semana)`, 2); }
+    for (const n of s.negocios) if (n.deuda > 0) add(0, '🏦', `Cuota del préstamo: ${eur(n.cuota)}/semana (te quedan ${eur(n.deuda)})`, 1);
+    if (s.oportunidadAbierta && !s.oportunidad) add(0, '🔑', 'Segunda inversión disponible en Empresa', 2);
+    const v = P2.vidas(s); if (v.n < P2.VIDAS.max) add(P2.semanasParaVida(s), '❤️', 'Recuperas una vida', 1);
+    l.sort((a, b) => a.sem - b.sem || b.imp - a.imp);
+    const vistos = new Set();
+    return l.filter(x => { if (vistos.has(x.t)) return false; vistos.add(x.t); return true; }).slice(0, max);
+  }
+  const cuandoTxt = k => (k <= 0 ? 'Esta semana' : k === 1 ? 'La semana que viene' : `En ${k} semanas`);
+
+  // ---------- Situación de la semana: alguien de tu vida te pone en contexto ----------
+  function situacionSemana(s) {
+    const K = CFG.captacion, e = s.p.energia, din = s.p.dinero;
+    const marc = { ic: '🧑', n: nombre(s, 'marc') }, madre = { ic: '👩', n: nombre(s, 'madre') }, padre = { ic: '👨', n: nombre(s, 'padre') }, dani = { ic: '🧑‍🦱', n: nombre(s, 'dani') };
+    const mister = { ic: '👔', n: s.temporada ? nombre(s, 'mister') : 'El míster' }, paco = { ic: '👔', n: 'Míster Paco' };
+    if (s.fase === 'barrio') {
+      const falta = Math.max(0, Math.ceil(K.repOjeador - s.p.rep)), q = P2.semanasCaptacion(s);
+      if (s.semana === 1) return { quien: marc, texto: '«Dicen que los ojeadores se pasan por la plaza cuando hay buenos partidos… aunque en el almacén buscan gente y pagan bien.»', pista: 'Plaza → reputación · Entrenar → nivel · Trabajar → dinero' };
+      if (e < 35) return { quien: madre, texto: '«Te veo agotado/a. Si sigues así, cualquier ojeador te pillará en un mal día.»', pista: 'Descansar recupera energía; con poca energía todo rinde menos.' };
+      if (din < 60) return { quien: padre, texto: '«Este mes vamos justos en casa. Algo de dinero no vendría mal… aunque tú sabrás qué es lo importante.»', pista: 'Sin dinero no puedes pagar extras como el campus o el preparador.' };
+      if (falta <= 4 && falta > 0) return { quien: dani, texto: `«¡Estás a nada! Un buen partido más en la plaza y seguro que alguien pregunta por ti.» (te faltan ${falta} de reputación)`, pista: 'La reputación atrae a los ojeadores.' };
+      return elige(s, 'barrio', [
+        { quien: marc, texto: `«Te faltan ${falta} de reputación para que venga un ojeador. Quedan ${q} semanas: o lo intentas fuerte o te buscas un plan B.»` },
+        { quien: dani, texto: '«En la plaza hay pique este finde. Si juegas, que se note.»' },
+        { quien: padre, texto: '«Lo del fútbol está bien, pero ¿y si no sale? Piensa también en ganar algo.»' },
+      ]);
+    }
+    if (s.fase === 'pruebas' && s.invitacion) {
+      const k = s.invitacion.dia - s.semana;
+      return { quien: marc, texto: k <= 0 ? '«¡Hoy es el día! Respira, céntrate y demuestra lo que vales.»' : `«¡Te han invitado a una prueba! Es ${k === 1 ? 'la semana que viene' : `dentro de ${k} semanas`}. Llega con nivel y con energía.»`, pista: 'Entrenar sube el nivel; el preparador te enseña qué te van a pedir.' };
+    }
+    if (s.fase === 'amateur') {
+      const k = CFG.amateur.repescaCada - ((s.amateurSemanas || 0) % CFG.amateur.repescaCada);
+      return { quien: paco, texto: `«Aquí juegas cada domingo, chaval/a. En ${k} ${k === 1 ? 'semana' : 'semanas'} vuelven los ojeadores a la repesca: que te vean en forma.»`, pista: 'Puedes compaginar el amateur con media jornada de trabajo.' };
+    }
+    if (s.fase === 'retirado') return null;
+    const ev = s.eventoImportante;
+    if (ev && ev.semana >= s.semana) { const k = ev.semana - s.semana; return { quien: mister, texto: `«${ev.n} ${k <= 0 ? 'es esta semana' : k === 1 ? 'es la semana que viene' : `es en ${k} semanas`}. Quiero verte preparado/a: lo que hagas estos días cuenta.»`, pista: `Preparación ${Math.round(P2.prepEfectiva(ev, s))} %: entrenar suma; empresa, trabajo y actos restan.` }; }
+    const n = s.negocios.find(x => x.crisis || x.rachaNeg >= 2);
+    if (n) return { quien: { ic: '💼', n: 'Tu encargada' }, texto: `«El negocio lleva ${n.rachaNeg} semanas perdiendo dinero. Habría que tomar decisiones…»`, pista: 'En Empresa puedes cambiar precios, sueldos, personal y publicidad.' };
+    if (e < 35) return { quien: madre, texto: '«Estás reventado/a. Así no vas a rendir el domingo.»', pista: 'Con poca energía juegas peor y te lesionas más.' };
+    const T = s.temporada;
+    if (T && !T.cerrada) {
+      const pj = P2.partidoDeLaJornada(T), riv = pj ? P2.nombreEquipo(T, pj.rival) : null, ctx = P2.contexto(T)[0] || '';
+      const pt = P2.probTitular ? P2.probTitular(s) : null;
+      if (pt && pt.p < 0.5) return { quien: mister, texto: `«Ahora mismo no eres titular fijo. Demuéstrame en los entrenos que mereces jugar${riv ? ` contra ${riv}` : ''}.»`, pista: `Opciones de jugar: ${Math.round(pt.p * 100)} %. El entreno extra le gusta al míster.` };
+      return elige(s, 'club', [
+        { quien: mister, texto: `«${riv ? `Esta semana, ${riv}. ` : ''}${ctx}»` },
+        { quien: { ic: '⚽', n: nombre(s, 'iker') }, texto: `«${riv ? `¿Has visto cómo juega ${riv}? ` : ''}Esta semana nos la jugamos, eh.»` },
+        { quien: dani, texto: '«Todo el barrio va a verte jugar. No nos falles.»' },
+      ]);
+    }
+    return null;
+  }
+
+  // ---------- Consecuencias contadas como historia ----------
+  const FRASES = {
+    entrenar: [['Horas de técnica y toques: notas el balón más pegado al pie.', 'nivel'], ['Entrenas a tope. Cansa, pero se nota.', 'nivel']],
+    plaza: [['Medio barrio se queda mirando tus regates. Se empieza a hablar de ti.', 'rep'], ['Partidazo en la plaza. Alguien ha grabado tu golazo.', 'rep']],
+    trabajar: [['Cargas cajas toda la semana. Acabas reventado/a, pero cobras.', 'dinero']],
+    mediaJornada: [['Media jornada: algo de dinero sin dejar el balón.', 'dinero']],
+    descansar: [['Duermes, comes bien y vuelves con ganas.', 'energia'], ['Una semana tranquila. El cuerpo lo agradece.', 'energia']],
+    jornada: [['Jornada abierta: te miden con otros chavales de tu edad.', 'rep']],
+    torneo: [['Torneo del barrio: pierdes el aliento, ganas cartel.', 'rep']],
+    campus: [['Campus de tecnificación: entrenadores de verdad te corrigen cada gesto.', 'nivel']],
+    preparador: [['El preparador te enseña lo que piden en las pruebas.', 'nivel']],
+    entrenoExtra: [['Te quedas cuando todos se van. El míster lo ve.', 'nivel']],
+    prensa: [['Entrevistas y redes: tu nombre suena más.', 'marca']],
+    gestionar: [['Una semana en la empresa: números, clientes y equipo.', 'dinero']],
+  };
+  function narrarSemana(s, id, a, b, R) {
+    const l = FRASES[id]; if (!l) return null;
+    const f = elige(s, 'fr|' + id, l);
+    let extra = '';
+    if (b.energia < 25) extra = ' Ojo: vas muy justo/a de energía.';
+    else if (id === 'trabajar' && b.dinero - a.dinero >= 150) extra = ' Ese dinero te da margen para lo que venga.';
+    else if (id === 'plaza' && s.fase === 'barrio') { const falta = Math.max(0, Math.ceil(CFG.captacion.repOjeador - b.rep)); extra = falta ? ` Te faltan ${falta} de reputación para atraer a un ojeador.` : ' ¡Ya has llamado la atención de los ojeadores!'; }
+    else if (R && R.partido && R.partido.nota != null && R.partido.nota >= 8) extra = ' Y el domingo, partidazo.';
+    return f[0] + extra;
+  }
+
+  // ---------- Clubes con identidad y memoria ----------
+  const IDENTIDAD = {
+    puerto: { ic: '⏱️', n: 'Juegas seguro', d: 'Paga bien y te da minutos, pero el club va justo de dinero.' },
+    atleticoFormacion: { ic: '🌱', n: 'Apuesta por jóvenes', d: 'La mejor cantera: entrenas mejor, cobras poco.' },
+    atleticoFilial: { ic: '🏟️', n: 'Mejores instalaciones', d: 'Filial de un grande: mucha competencia por el puesto.' },
+    sanroque: { ic: '🏘️', n: 'Club de barrio', d: 'Juegas siempre; nadie te paga, pero te ven en la repesca.' },
+    atleticoPrimero: { ic: '🔥', n: 'Mucha presión', d: 'El primer equipo: visibilidad máxima y cero paciencia.' },
+    costaReal: { ic: '📺', n: 'Visibilidad', d: 'Club de categoría: llegan marcas deportivas.' },
+    academiaElite: { ic: '⭐', n: 'Oportunidad única', d: 'Pocas veces se abre esta puerta.' },
+  };
+  const memClubes = s => (s.memClubes && typeof s.memClubes === 'object' ? s.memClubes : (s.memClubes = {}));
+  function recordarClub(s, club, tipo) { if (!club) return; const m = memClubes(s); m[club] = m[club] || {}; if (m[club][tipo] == null) m[club][tipo] = s.semana; }
+  function notaClub(s, ofertaId) {
+    const O = P2.OFERTAS[ofertaId]; if (!O) return null; const m = memClubes(s)[O.club]; if (!m) return null;
+    if (m.rechazado != null) return `Hace ${s.semana - m.rechazado} semanas les dijiste que no. Han vuelto a llamar.`;
+    if (m.descarto != null) return `En las pruebas no te quisieron. Ahora son ellos los que te buscan.`;
+    if (m.jugaste != null) return 'Ya jugaste aquí: te conocen bien.';
+    return null;
+  }
+
+  // ---------- La familia opina sobre las grandes compras ----------
+  function opinionCompra(s, P) {
+    if (!P || P.precio < 1500) return null;
+    const vm = P2.valorRel(s, 'madre'), vp = P2.valorRel(s, 'padre');
+    const ahorro = s.p.dinero < P.precio * 0.3;
+    if (P.patrimonial >= 1) return vp >= 55 ? { ic: '👨', t: `Tu padre: «Una casa es una inversión. Bien hecho.»` } : { ic: '👨', t: 'Tu padre: «¿Tanto dinero de golpe? Espero que sepas lo que haces.»' };
+    if (ahorro) return { ic: '👩', t: `Tu madre: «¡Qué ilusión! Pero te has quedado sin colchón… ojo con los imprevistos.»` };
+    return vm >= 60 ? { ic: '👩', t: `Tu madre: «¡Te lo has ganado! Disfrútalo.»` } : { ic: '👨', t: `Tu padre: «Bonito. Aunque yo lo habría invertido.»` };
+  }
+
+  // El club con problemas económicos se nota: a veces paga tarde (identidad de UD Puerto)
+  P2.SUCESOS.push({ id: 'pagoRetrasado', ambito: 'carrera', fases: ['club'], enfria: 16, cond: s => !!s.contrato && s.contrato.oferta === 'puerto' && s.semana >= (s.contrato.desde || 0) + 4, peso: () => 1.2,
+    ic: '💸', titulo: 'UD Puerto se retrasa en pagar', texto: () => 'El club va justo de dinero: esta semana las nóminas llegan tarde.',
+    ops: [
+      { id: 'esperar', n: 'Esperar sin quejarte', ventaja: '+5 confianza del míster (le gusta la gente leal)', coste: 'Te quitan medio sueldo ahora; lo cobras dentro de 3 semanas', riesgo: 'Ninguno', tags: ['deporte'], fx: s => { const x = Math.round(s.contrato.sueldo * 0.5); s.p.dinero -= x; s.confianza = clamp(s.confianza + 5, 0, 100); P2.programar(s, 3, 'pagoAtrasado', { x }); return 'Aguantas. El vestuario lo valora.'; } },
+      { id: 'reclamar', n: 'Reclamar lo tuyo', ventaja: 'Cobras completo', coste: '−4 confianza del míster', riesgo: 'Te ganas fama de conflictivo/a', tags: ['dinero'], fx: s => { s.confianza = clamp(s.confianza - 4, 0, 100); return 'Te pagan… y te miran raro.'; } },
+    ] });
+  P2.EFECTOS.pagoAtrasado = (s, d) => { s.p.dinero += d.x; return ['💸', `UD Puerto por fin te paga lo que te debía (+${eur(d.x)}).`, 'bien']; };
+
+  // Primera semana: una pequeña victoria segura en el barrio (la lanza la agenda, sin azar)
+  P2.SUCESOS.push({ id: 'primeraPachanga', ambito: 'relacion', rel: 'dani', fases: ['barrio'], soloAgenda: true, cond: () => true, peso: () => 0,
+    ic: '🧑‍🦱', titulo: 'Reto 3 contra 3 en la plaza', texto: s => `${nombre(s, 'dani')} te escribe: «Esta tarde hay reto en la plaza. 30 € para el equipo que gane… y siempre hay alguien mirando.»`,
+    ops: [
+      { id: 'jugar', n: 'Jugar el reto', ventaja: '+3 reputación y 30 € si ganáis', coste: '−10 energía', riesgo: 'Ninguno: es una pachanga', tags: ['deporte'],
+        fx: s => { s.p.rep += 3; s.p.dinero += 30; s.p.energia = clamp(s.p.energia - 10, 0, 100); P2.anotar(s, '🏆', 'Ganas tu primer reto en la plaza.'); return '¡Ganáis! 30 € de premio y en el barrio ya se habla de ti.'; } },
+      { id: 'mirar', n: 'Ir solo a mirar', ventaja: '+1 reputación: te dejas ver', coste: 'Nada', riesgo: 'Ninguno', tags: ['seguro'], fx: s => { s.p.rep += 1; return 'Te dejas ver. La próxima vez, a jugar.'; } },
+    ] });
+  P2.EFECTOS.primeraPachanga = s => { if (s.fase !== 'barrio' || s.sucesosVistos.primeraPachanga != null) return null; s.sucesosVistos.primeraPachanga = s.semana; P2.encolar(s, { tipo: 'suceso', id: 'primeraPachanga' }); return null; };
+
+  Object.assign(P2, { SUENOS, sueno, METAS, metasDisponibles, objetivoPersonal, fijarMeta, revisarMeta, calendario, cuandoTxt, situacionSemana, narrarSemana, IDENTIDAD, recordarClub, notaClub, opinionCompra });
+})(globalThis.P2 = globalThis.P2 || {});
+
 // ===== 19_packs.js =====
 /* =====================================================================
    19 · PACKS: qué trae cada pack (ropa, poses, aspecto de vehículos, decoración de casa y despacho, insignias
@@ -9507,6 +9788,22 @@ globalThis.P2C = P2C;
         <p class="small">${esc(T.d)}</p>${kv('Precio normal', `${eur(T.precios.normal.valor)} ${esc(T.unidad)}`)}${kv('Alquiler y fijos', `${eur(T.alquiler + T.fijos)}/semana`)}${kv('Cómo lo dejan', `${T.configInicial.empleados} empleados, sueldos bajos, precios baratos`)}
         ${T.cajas.map((c, i) => { const b = P2.bloqueoCompra(s, k, i); return `<button class="opt" data-act="comprar" data-t="${k}" data-id="${i}" ${b ? 'disabled' : ''}><b>Comprar con ${eur(c)} de caja</b><span class="ls"><span class="l"><i class="v">✓</i> Total: ${eur(P2.capitalNecesario(k, i, s))}</span></span>${b ? `<span class="bl">🔒 ${esc(b)}</span>` : ''}</button>`; }).join('')}</details>`; }).join('')}`;
   }
+  const CARACTER_NEG = { peluqueria: '💈 Negocio de barrio: vive de clientes fieles. La fama sube despacio y se pierde rápido si bajas la calidad.' };
+  // Resumen semanal en lenguaje claro: entró, salió, ganaste; y el principal riesgo u oportunidad
+  function htmlResumenNegocio(s, n) {
+    const u = n.ultimo; if (!u) return '';
+    const T = NEGOCIOS[n.tipo], gastoSem = Math.max(1, u.totalCostes || 0), semanasCaja = n.caja / gastoSem;
+    let aviso;
+    if (n.caja < 0) aviso = ['🚨', 'Caja en negativo: pon dinero o recorta antes de que llegue una crisis.', 'mal'];
+    else if (semanasCaja < 1) aviso = ['⚠️', 'La caja no cubre ni una semana de gastos: una semana mala o una avería te ponen en apuros.', 'mal'];
+    else if (u.colas > 5) aviso = ['💡', `${u.colas} clientes se fueron por las colas: con otra persona en plantilla venderías más.`, 'bien'];
+    else if (n.ctx.competidor) aviso = ['🏪', 'Tienes competencia enfrente: el precio y la calidad deciden quién se queda los clientes.', ''];
+    else if (n.deuda > 0) aviso = ['🏦', `Debes ${eur(n.deuda)} al banco: la cuota se lleva ${eur(n.cuota)} cada semana.`, ''];
+    else if (n.fama < 35) aviso = ['📣', 'Poca fama: la publicidad o subir la calidad atraerían más clientes.', ''];
+    else aviso = ['💡', u.beneficio > 0 ? 'Va bien. Podrías subir precios o sacar dinero a tu cuenta.' : 'No ganas dinero: revisa precios, sueldos y personal.', u.beneficio > 0 ? 'bien' : 'mal'];
+    return `<div class="resNeg"><div class="resNegFila"><span>Entró<b>${esc(eur(u.ingresos))}</b></span><span>Salió<b>${esc(eur(u.totalCostes))}</b></span><span class="${u.beneficio >= 0 ? 'mas' : 'menos'}">${u.beneficio >= 0 ? 'Ganaste' : 'Perdiste'}<b>${esc(eur(Math.abs(u.beneficio)))}</b></span><span>En caja<b>${esc(eur(n.caja))}</b></span></div>
+      <p class="resNegAviso ${aviso[2]}">${aviso[0]} ${esc(aviso[1])}</p>${CARACTER_NEG[n.tipo] ? `<p class="small">${esc(CARACTER_NEG[n.tipo])}</p>` : ''}</div>`;
+  }
   function htmlNegocio(s, n) {
     const T = NEGOCIOS[n.tipo], x = P2.calcularSemana(s, n), v = P2.valorNegocio(n), bm = Math.round(P2.beneficioMedio(n));
     const seg = (campo, tabla) => `<div class="seg">${Object.entries(tabla).map(([k, o]) => `<button data-act="config" data-neg="${n.id}" data-c="${campo}" data-v="${k}" class="${n[campo] === k ? 'sel' : ''}">${esc(o.n)}${o.valor ? ` ${o.valor} €` : o.coste != null && campo !== 'sueldo' ? (o.coste ? ` ${o.coste} €` : '') : ''}</button>`).join('')}</div>`;
@@ -9516,7 +9813,8 @@ globalThis.P2C = P2C;
       ${n.crisis ? '<div class="ctx" style="background:#fde8e6;border-color:var(--bad)">🚨 En crisis: decide en «Semana».</div>' : ''}
       <div class="datos dos">${dato('Caja de la empresa', eur(n.caja))}${dato('Valor', eur(v))}${dato('Fama del negocio', Math.round(n.fama))}${dato('Beneficio medio', `${eur(bm)}/sem`)}</div>
       ${ctx.length ? `<div class="resumen" style="margin-top:8px">${ctx.map(t => chip(t)).join('')}</div>` : ''}
-      ${n.ultimo ? `<p class="small">Última semana: ${n.ultimo.clientes} clientes, ${n.ultimo.beneficio >= 0 ? 'beneficio' : 'pérdidas'} ${eur(n.ultimo.beneficio)}${n.ultimo.colas > 5 ? `, ${n.ultimo.colas} se fueron por las colas` : ''}.</p>` : '<p class="small">Aún no ha pasado ninguna semana contigo al mando.</p>'}
+      ${htmlResumenNegocio(s, n)}
+      ${n.ultimo ? `<p class="small">Última semana: ${n.ultimo.clientes} clientes.</p>` : '<p class="small">Aún no ha pasado ninguna semana contigo al mando.</p>'}
       <div class="sec">Precio ${esc(T.unidad || 'por cliente')}</div>${seg('precio', T.precios)}
       <div class="sec">Sueldos</div>${seg('sueldo', T.sueldos)}
       <div class="sec">Empleados</div><div class="paso"><button data-act="empleados" data-neg="${n.id}" data-v="-1" aria-label="Menos">−</button><b>${n.empleados}</b><button data-act="empleados" data-neg="${n.id}" data-v="1" aria-label="Más">+</button><span class="small">cada uno atiende ~${T.capacidadEmpleado} clientes/semana</span></div>
@@ -9578,18 +9876,25 @@ globalThis.P2C = P2C;
       const precio = pv !== P.precio ? `<s>${esc(eur(P.precio))}</s> ${esc(eur(pv))}` : esc(eur(P.precio));
       return `<div class="prod ${estado} rz-${P.rareza || 'comun'}" data-id="${P.id}"><span class="rz" style="--rz:${R.c}">${R.n}</span>
         ${P2.deseable(P) && !tuyo ? `<button class="deseo ${des ? 'sel' : ''}" data-act="quiero" data-id="${P.id}" aria-pressed="${des}" aria-label="Quiero esto">${des ? '❤️' : '🤍'}</button>` : ''}
-        <span class="pic">${P.ic}</span><b>${esc(P.n)}</b><span class="pd">${esc(efectoTxt(P))}</span>
-        ${bl && !tuyo ? `<span class="bl">🔒 ${esc(bl)}</span>` : ''}
+        <span class="pic">${P.ic}</span><b>${esc(P.n)}</b><span class="tipoBien ${P.patrimonial ? 'activo' : 'consumo'}">${P.patrimonial ? `🏦 Activo · conserva ${Math.round(P.patrimonial * 100)} % de su valor` : P.consumible ? '⚡ Se gasta al usarlo' : '🛍️ Estilo de vida'}</span><span class="pd">${esc(efectoTxt(P))}</span>
+        ${bl && !tuyo ? (/^Te faltan/.test(bl) ? `<span class="faltan">${esc(bl)}</span>` : `<span class="bl">🔒 ${esc(bl)}</span>`) : ''}
         <button class="precio" data-act="comprarP" data-id="${P.id}" ${tuyo || bl ? 'disabled' : ''}>${tuyo ? '✅ Es tuyo' : conf ? `¿Seguro? ${precio}` : `💶 ${precio}`}</button>
         ${!tuyo && P2.MONETIZATION.activa && !P.proximamente && !P.consumible && P.precio >= P2.MONETIZATION.rewarded.cupon.precioMin && pv === P.precio && !(P.req && P.req.hito && !s.hitos[P.req.hito]) ? rwBtn(s, 'cupon', { id: P.id }, `Cupón −${Math.round(P2.MONETIZATION.rewarded.cupon.pct * 100)} % · ahorras ${eur(P2.descuentoCupon(P.precio))}`) : ''}
         ${pv !== P.precio ? `<span class="cuponOk">${P2.ofertaVigente(s) && P2.ofertaVigente(s).id === P.id ? '🎁 Oferta especial' : '🏷️ Cupón activo'}</span>` : ''}</div>`;
     };
     return `<div class="card tiendaTop"><div class="fila"><div><h2>🛍️ Tienda</h2><p class="small">Disfruta lo que ganas. Nada es obligatorio para competir; algunos objetos ayudan un poco. Toca 🤍 para marcar tu objetivo.</p></div>
         <div class="saldoBox"><small>Disponible</small><b class="oro">${esc(eur(s.p.dinero))}</b></div></div></div>
-      ${tabs}${htmlOfertaEspecial(s, tile)}
+      ${tabs}${htmlEscaparate(s)}${htmlOfertaEspecial(s, tile)}
       <div class="cats" role="tablist">${P2.CATEGORIAS_TIENDA.map(c => `<button role="tab" aria-selected="${c.id === cat}" data-act="cat" data-v="${c.id}" class="${c.id === cat ? 'sel' : ''}"><span>${c.ic}</span>${c.n}</button>`).join('')}</div>
       <div class="prods">${prods.map(tile).join('')}</div>
       ${s.hitos.contrato ? '' : '<p class="small blanco">💎 Las colecciones Premium se abren con tu primer contrato profesional.</p>'}`;
+  }
+  // Escaparate: lo que todavía no puedes pagar (pero sí llegar a tener). Marca uno como objetivo con 🤍
+  function htmlEscaparate(s) {
+    const l = P2.PRODUCTOS.filter(P => P2.deseable(P) && !P2.posee(s, P.id) && !P2.bloqueoProducto(s, P, true) && P.precio > s.p.dinero).sort((a, b) => a.precio - b.precio).slice(0, 3);
+    if (!l.length) return '';
+    return `<div class="card vitrinaDeseo"><h3>✨ Escaparate</h3><p class="small">Todavía no puedes, pero estás cerca. Márcalo como objetivo y lo verás en Inicio.</p><div class="escRow">${l.map(P => { const p = Math.round(100 * Math.max(0, s.p.dinero) / P.precio);
+      return `<button class="escItem ${s.deseoActual === P.id ? 'sel' : ''}" data-act="quiero" data-id="${P.id}"><span class="pic">${P.ic}</span><b>${esc(P.n)}</b><span class="xp"><i style="width:${p}%"></i></span><small>${esc(eur(P.precio))} · ${s.deseoActual === P.id ? '❤️ Tu objetivo' : '🤍 Quiero esto'}</small></button>`; }).join('')}</div></div>`;
   }
   function htmlOfertaEspecial(s, tile) {
     if (!P2.MONETIZATION.activa) return '';
@@ -9661,7 +9966,7 @@ globalThis.P2C = P2C;
   function htmlNuevaCompra() {
     const P = P2.producto(ui.nuevaCompra); if (!P) return '';
     return `<div class="overlay" role="dialog" aria-label="Nueva compra"><div class="compraOk"><div class="rayos"></div><small>🎉 NUEVA COMPRA</small><div class="bigic">${P.ic}</div><h2>${esc(P.n)}</h2>
-      <p>${P.consumible ? 'Disfrutado. ' : 'Ahora es tuyo. '}${esc(efectoTxt(P))}.</p>
+      <p>${P.consumible ? 'Disfrutado. ' : 'Ahora es tuyo. '}${esc(efectoTxt(P))}.</p>${(() => { const o = S && P2.opinionCompra(S, P); return o ? `<p class="opinion">${o.ic} ${esc(o.t)}</p>` : ''; })()}
       ${P.look ? '<button class="btn w full" data-act="vista" data-v="personaje">👕 Probármelo</button>' : ''}<button class="btn full" data-act="cerrarCompra">¡Genial!</button></div></div>`;
   }
 
@@ -9746,7 +10051,7 @@ globalThis.P2C = P2C;
     const R = P2.listarPartidas().find(r => r.activa) || {};
     return `${htmlInforme(s)}<div class="card"><h2>👤 Cuenta y carreras</h2><p class="small">${conCuenta() ? `Has entrado como <b>${esc(COM.account().email || 'tu cuenta')}</b>.` : 'Juegas sin cuenta. Con una cuenta gratis, tus compras y tus carreras quedan a salvo.'}</p>
         <button class="btn full" data-act="guardarSalir">💾 Guardar y salir</button><button class="btn w full" data-act="carreras">🗂️ Mis carreras</button>
-        <button class="btn w full" data-act="cuenta">👤 ${conCuenta() ? 'Mi cuenta' : 'Crear cuenta o entrar'}</button><button class="btn w full" data-act="vista" data-v="premium">💎 Premium · Mis compras · Restaurar</button></div>${lab.length && false ? '' : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Carrera', esc(R.titulo || '—'))}${kv('Ranura', `${(R.n || 1)} de ${P2.ranurasMax()}`)}${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}${R.guardadoEn ? ` · ${esc(haceTxt(R.guardadoEn))}` : ''}`)}
+        <button class="btn w full" data-act="cuenta">👤 ${conCuenta() ? 'Mi cuenta' : 'Crear cuenta o entrar'}</button><button class="btn w full" data-act="histVer">🎬 Ver la introducción</button><button class="btn w full" data-act="vista" data-v="premium">💎 Premium · Mis compras · Restaurar</button></div>${lab.length && false ? '' : ''}<div class="card"><h2>⚙️ Partida</h2>${kv('Carrera', esc(R.titulo || '—'))}${kv('Ranura', `${(R.n || 1)} de ${P2.ranurasMax()}`)}${kv('Semana', s.semana)}${kv('Patrimonio', eur(P2.patrimonio(s)))}${kv('Guardado', `versión ${s.saveVersion}${R.guardadoEn ? ` · ${esc(haceTxt(R.guardadoEn))}` : ''}`)}
       <div class="sec">Copia de seguridad</div><p class="small">Copia este código para guardar la partida fuera del navegador.</p>
       <textarea id="codigo" readonly>${esc(btoa(unescape(encodeURIComponent(JSON.stringify(s)))))}</textarea>
       <textarea id="importar" placeholder="Pega aquí un código para cargarlo"></textarea>
@@ -9777,23 +10082,49 @@ globalThis.P2C = P2C;
   // Precio real de un deporte (la ficha se abre al tocarlo)
   const SKU_DEPORTE = { 'sport.climbing': 'sport_climbing', 'sport.tennis': 'sport_tennis', 'sport.basketball': 'sport_basketball', 'sport.skate': 'sport_skate', 'sport.surf': 'sport_surf' };
   function precioDeporte(X) { const P = globalThis.P2C && P2C.getProduct(SKU_DEPORTE[X.entitlement]); return P && P.prices && P.prices.EUR ? realTxt(P.prices.EUR) : 'Premium'; }
+  // ---- Introducción (P2.6): 4 pantallas, ~25 s, se puede saltar. Solo sale sola al empezar una carrera ----
+  const HISTORIA = [
+    { cls: 'h-barrio', eti: 'EMPIEZAS DESDE ABAJO', t: 'Tienes 17 años, 150 € en el bolsillo y un sueño por cumplir.', d: 'Nadie te conoce todavía. Tu futuro depende de tus decisiones.', look: {}, fx: ['🏘️', '💶 150 €', '⚽'] },
+    { cls: 'h-carrera', eti: 'CONSTRUYE TU CARRERA', t: 'Entrena, compite y demuestra hasta dónde puedes llegar.', d: 'Consigue contratos, gana patrocinadores y vive los partidos decisivos.', look: { ropa: 'equipacion', colorRopa: 'azul' }, fx: ['✍️ Contrato', '🤝 Patrocinador', '🏆'] },
+    { cls: 'h-imperio', eti: 'CONSTRUYE TU IMPERIO', t: 'Decide qué hacer con tu dinero.', d: 'Compra lo que siempre has querido, invierte en negocios y crea tu propio imperio.', look: { ropa: 'traje', pantalon: 'traje', calzado: 'zapatos' }, fx: ['🚗', '🏠', '🏢', '📈'] },
+    { cls: 'h-final', eti: '', t: 'De tenerlo todo por conseguir…', d: '…a poder conseguirlo todo.', look: { ropa: 'traje', pantalon: 'traje', calzado: 'zapatos', gafas: 'sol' }, fx: [] },
+  ];
+  let histTimer = null;
+  function htmlHistoria0() {
+    const i = Math.min(HISTORIA.length - 1, ui.historia || 0), H = HISTORIA[i], ultima = i === HISTORIA.length - 1;
+    const look = Object.assign({}, ui.look || P2.LOOK_INICIAL, H.look), av = P2.avatarSVG({ p: { energia: 85 }, hitos: {} }, P2.validarLook ? P2.validarLook(look) : look, 'cuerpo');
+    return `<div class="historiaIntro ${H.cls}" data-act="histSig" role="dialog" aria-label="Introducción">
+      <button class="histSaltar" data-act="histSaltar">${ui.histVer ? 'Cerrar ✕' : 'Saltar ›'}</button>
+      <div class="histEscena"><div class="histFx">${H.fx.map((f, k) => `<span style="animation-delay:${0.3 + k * 0.35}s">${f}</span>`).join('')}</div><div class="histAv">${av}</div></div>
+      <div class="histTxt">${H.eti ? `<small>${H.eti}</small>` : ''}<h1>${esc(H.t)}</h1><p>${esc(H.d)}</p></div>
+      <div class="histPuntos">${HISTORIA.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
+      ${ultima ? `<button class="cta oro histEmpezar" data-act="histSaltar">${ui.histVer ? 'Volver al juego' : 'EMPEZAR MI HISTORIA'}</button>` : '<p class="histToca">Toca para seguir</p>'}</div>`;
+  }
+  function programarHistoria() {
+    clearTimeout(histTimer);
+    if (ui.historia == null || ui.historia >= HISTORIA.length - 1) return;
+    histTimer = setTimeout(() => { if (ui.historia == null) return; ui.historia++; render(); }, 6500);
+  }
   function htmlIntro() {
+    if (ui.historia != null) return htmlHistoria0();
     const p1 = P2.partidaP1();
-    const dep = ui.deporte && P2.DEPORTES[ui.deporte] ? ui.deporte : 'futbol', D = P2.DEPORTES[dep];
-    const elegirDep = `<div class="card"><h3>Tu deporte</h3><div class="deportes" role="radiogroup">${Object.values(P2.DEPORTES).map(X => { const ok = P2.deporteDisponible(X.id);
-        return `<button role="radio" aria-checked="${X.id === dep}" class="dep ${X.id === dep ? 'sel' : ''} ${ok ? '' : 'lock'}" data-act="deporte" data-v="${X.id}" style="--dc:${X.color}"><span>${X.ic}</span><b>${esc(X.n)}</b><small>${ok ? (X.entitlement ? 'Disponible' : 'Disponible') : '🔒 Expansión'}</small></button>`; }).join('')}</div>
-      <p class="small">${esc(D.d)}</p>
-      ${D.especialidades ? `<p class="small"><b>Tu especialidad</b> (te da ventaja en las pruebas que son lo tuyo):</p><div class="chipsel">${D.especialidades.map(([id, n, ic, d]) => `<button data-act="especialidad" data-v="${id}" class="${(ui.esp || D.especialidades[0][0]) === id ? 'sel' : ''}" title="${esc(d)}">${ic} ${esc(n)}</button>`).join('')}</div>
-        <p class="small">${esc((D.especialidades.find(([id]) => id === (ui.esp || D.especialidades[0][0])) || [])[3] || '')}</p>` : ''}</div>`;
-    return `<div class="intro"><div style="font-size:48px">${D.ic} → 💈 → 🏢</div><h1>Del barrio al negocio</h1><p>Capítulo 1</p>${elegirDep}
-      <div class="card"><h3>Empiezas con 17 años</h3><p class="small">Tienes 8 semanas para que un club se fije en ti. Cada semana eliges una sola cosa. No hay una opción siempre buena: todo tiene ventaja, coste y riesgo.</p>
-        <label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="${esc(ui.nombre)}"></div>
-      <div class="card"><h3>Tu personaje</h3>${htmlEditor(null, ui.look || (ui.look = Object.assign({}, P2.LOOK_INICIAL)))}
-        <button class="btn g full" data-act="empezar">Empezar</button>
-        ${p1 ? `<button class="btn w full" data-act="desdeP1">📦 Seguir con tu jugador de P1</button><p class="small">Conserva tu nombre, parte de tus ahorros y algo de fama. Tu partida de P1 no se toca.</p>` : ''}</div>
+    const dep = ui.deporte && P2.DEPORTES[ui.deporte] ? ui.deporte : 'futbol', D = P2.DEPORTES[dep], sue = ui.sueno || 'primera';
+    const av = P2.avatarSVG({ p: { energia: 85 }, hitos: {} }, ui.look || (ui.look = Object.assign({}, P2.LOOK_INICIAL)), 'cuerpo');
+    return `<div class="intro crear"><small class="eti">TU HISTORIA EMPIEZA AQUÍ</small><h1>¿Quién eres?</h1>
+      <div class="card crearYo"><div class="crearAv">${av}</div><div class="crearDatos"><label class="small" for="nombre">Tu nombre</label><input type="text" id="nombre" maxlength="20" value="${esc(ui.nombre)}">
+        <div class="fila"><button class="btn w" data-act="lookAzar">🎲 Otro aspecto</button><button class="btn w" data-act="editarLook">${ui.editarLook ? '✓ Listo' : '✏️ Personalizar'}</button></div></div></div>
+      ${ui.editarLook ? `<div class="card">${htmlEditor(null, ui.look)}</div>` : ''}
+      <div class="card"><h3>Tu deporte</h3><div class="deportes" role="radiogroup">${Object.values(P2.DEPORTES).map(X => { const ok = P2.deporteDisponible(X.id);
+        return `<button role="radio" aria-checked="${X.id === dep}" class="dep ${X.id === dep ? 'sel' : ''} ${ok ? '' : 'lock'}" data-act="deporte" data-v="${X.id}" style="--dc:${X.color}"><span>${X.ic}</span><b>${esc(X.n)}</b><small>${ok ? 'Disponible' : '🔒 Expansión'}</small></button>`; }).join('')}</div>
+        ${D.especialidades ? `<p class="small"><b>Tu especialidad:</b></p><div class="chipsel">${D.especialidades.map(([id, n, ic, d]) => `<button data-act="especialidad" data-v="${id}" class="${(ui.esp || D.especialidades[0][0]) === id ? 'sel' : ''}" title="${esc(d)}">${ic} ${esc(n)}</button>`).join('')}</div>` : ''}</div>
+      <div class="card"><h3>Tu gran sueño</h3><p class="small">Lo que quieres conseguir algún día. Lo verás siempre en Inicio.</p><div class="suenos">${P2.SUENOS.map(x => `<button class="sueno ${x.id === sue ? 'sel' : ''}" data-act="elegirSueno" data-v="${x.id}" aria-pressed="${x.id === sue}"><span>${x.ic}</span><b>${esc(x.n)}</b></button>`).join('')}</div></div>
+      <button class="cta oro" data-act="empezar">EMPEZAR MI HISTORIA ▶</button>
+      <p class="small centro">Tienes 8 semanas para que un club se fije en ti. Cada semana eliges una cosa: todo tiene ventaja, coste y riesgo.</p>
+      ${p1 ? `<button class="btn w full" data-act="desdeP1">📦 Seguir con tu jugador de P1</button>` : ''}
       <div class="card introCuenta">${hayCarreras() ? '<button class="btn w full" data-act="carreras">🗂️ Mis carreras</button>' : ''}
         ${conCuenta() ? `<p class="small">👤 Has entrado como <b>${esc(COM.account().email || 'tu cuenta')}</b>.</p><button class="btn w full" data-act="cuenta">Mi cuenta</button>`
-          : comercio() ? '<button class="btn w full" data-act="cuEntrar" data-v="intro">🔐 ¿Ya tienes cuenta? Entra y trae tus carreras</button><p class="small">No hace falta cuenta para jugar.</p>' : ''}</div></div>`;
+          : comercio() ? '<button class="btn w full" data-act="cuEntrar" data-v="intro">🔐 ¿Ya tienes cuenta? Entra y trae tus carreras</button><p class="small">No hace falta cuenta para jugar.</p>' : ''}
+        <button class="masOps" data-act="histVer">🎬 Ver la introducción</button></div></div>`;
   }
 
   // Editor del avatar: al empezar (s = null, todo lo básico) y luego desde la cabecera (con prendas que abren los hitos)
@@ -9822,7 +10153,10 @@ globalThis.P2C = P2C;
   }
   function htmlHistoria(s) {
     const H = P2.miHistoria(s), cel = (ic, v, n) => `<div><span>${ic}</span><b>${v}</b><small>${n}</small></div>`;
-    return `<div class="card historia"><h2>🏆 Mi historia</h2><div class="trofeos">
+    const Su = P2.sueno(s);
+    return `<div class="card suenoCard"><small>⭐ TU GRAN SUEÑO</small>${Su ? `<b>${Su.ic} ${esc(Su.n)}</b><div class="xp"><i style="width:${Math.max(2, Math.round(Su.prog(s) * 100))}%"></i></div><small>${esc(Su.txt(s))}</small>` : '<b>Aún no has elegido tu sueño</b>'}
+      <div class="suenos mini">${P2.SUENOS.map(x => `<button class="sueno ${Su && Su.id === x.id ? 'sel' : ''}" data-act="elegirSueno" data-v="${x.id}">${x.ic} ${esc(x.n)}</button>`).join('')}</div></div>
+      <div class="card historia"><h2>🏆 Mi historia</h2><div class="trofeos">
         ${cel('🏆', H.trofeos.length, 'títulos')}${cel('⬆️', H.ascensos, 'ascensos')}${cel('📅', H.temporadas, 'temporadas')}${cel('⚽', H.goles, 'goles')}
         ${cel('🤝', H.marcas.length, 'patrocinadores')}${cel('💼', H.empresas, 'empresas')}${cel('🏦', esc(eur(H.patrimonioMax)), 'mayor patrimonio')}${cel('🏅', H.hitos.length, 'hitos')}</div></div>
       <div class="card">${kv('👕 Clubes', H.clubes.length ? esc(H.clubes.join(', ')) : '—')}${kv('🤝 Marcas', H.marcas.length ? H.marcas.map(M => `${M.ic} ${esc(M.n)}`).join(', ') : '—')}
@@ -9877,14 +10211,15 @@ globalThis.P2C = P2C;
   }
   function tarjetaOp(s, x, i) {
     const v = P2.varianteSemana(s, x.id), dest = P2.destacadaSemana(s) === x.id;
-    return `<button class="op ${COLORES_OP[i % COLORES_OP.length]} ${dest ? 'dest' : ''}" data-act="jugarYa" data-id="${x.id}">${dest ? '<span class="fuego">🔥 Esta semana rinde +20 %</span>' : ''}<span class="ic">${v ? v.ic : x.A.ic}</span><span class="tx"><b>${esc(v ? v.n : x.A.n)}</b>${v && v.d ? `<small>${esc(v.d)}</small>` : ''}<span class="chips">${chipsAccion(s, x.id)}</span></span><span class="go" aria-hidden="true">›</span></button>`;
+    return `<button class="op ${COLORES_OP[i % COLORES_OP.length]} ${dest ? 'dest' : ''}" data-act="jugarYa" data-id="${x.id}">${dest ? '<span class="fuego">🔥 Esta semana rinde +20 %</span>' : ''}<span class="ic">${v ? v.ic : x.A.ic}</span><span class="tx"><b>${esc(v ? v.n : x.A.n)}</b>${x.A.ventaja ? `<small class="ganas">✓ ${esc(x.A.ventaja)}${x.A.riesgo && x.A.riesgo !== 'Ninguno' ? ` · ⚠️ ${esc(x.A.riesgo)}` : ''}</small>` : v && v.d ? `<small>${esc(v.d)}</small>` : ''}<span class="chips">${chipsAccion(s, x.id)}</span></span><span class="go" aria-hidden="true">›</span></button>`;
   }
-  function escenaExterior(s) {
+  function escenaExterior(s, sit) {
     const e = etapa(s), V = vehiculo(s);
+    const bocadillo = sit ? `<div class="situ" role="note"><b>${sit.quien.ic} ${esc(sit.quien.n)}</b><p>${esc(sit.texto)}</p></div>` : '';   // la pista ya la dan las propias opciones (✓ ventaja · ⚠️ riesgo)
     const edif = { barrio: [[14, 70], [66, 96], [null, 60, 72]], club: [], empresa: [[10, 110], [58, 140], [null, 120, 60], [null, 90, 14]], magnate: [[10, 120], [58, 150], [null, 130, 60], [null, 100, 14]] }[e] || [];
     return `<div class="exterior e-${e}"><span class="sol"></span>${e === 'club' ? '<span class="grada"></span><span class="foco f1"></span><span class="foco f2"></span>' : ''}
       ${edif.map(([l, h, r]) => `<span class="edif" style="${l != null ? `left:${l}px` : `right:${r}px`};height:${h}px"></span>`).join('')}
-      <div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>`;
+      <div class="pj">${P2.avatarSVG(s, null, 'cuerpo')}</div>${V ? `<div class="veh">${vehiculoSVG(V.P.id, V.skin)}</div>` : ''}</div>${bocadillo}`;
   }
   function objetivo(s) {
     const H = P2.siguienteHito(s), K = CFG.captacion, hechos = HITOS.filter(h => s.hitos[h.id]).length;
@@ -9892,7 +10227,21 @@ globalThis.P2C = P2C;
     if (s.fase === 'barrio') { p = 100 * s.p.rep / K.repOjeador; izq = `⭐ Reputación ${Math.floor(s.p.rep)} de ${K.repOjeador}`; const q = P2.semanasCaptacion(s); der = `${q} ${q === 1 ? 'semana' : 'semanas'}`; }
     else if (s.fase === 'pruebas') { const k = s.invitacion.dia - s.semana + 1; p = 100 * (1 - Math.max(0, k) / 3); izq = `📋 Pruebas ${k <= 1 ? 'al final de esta semana' : `en ${k} semanas`}`; der = `💪 Nivel ${nf(s.p.nivel)}`; }
     else { p = 100 * hechos / HITOS.length; izq = `🏅 ${hechos} de ${HITOS.length} hitos`; const T = s.temporada; der = T && T.jornada ? `${P2.posicion(T)}º en la liga` : ''; }
-    return `<div class="obj"><b>🎯 ${H ? esc(H.n) : '¡Capítulo completado!'}</b><div class="prog"><i style="width:${Math.max(3, Math.min(100, Math.round(p)))}%"></i></div><div class="fila"><span>${izq}</span><span>${der}</span></div></div>`;
+    const O = P2.objetivoPersonal(s), Su = P2.sueno(s), barra = v => `<span class="xp"><i style="width:${Math.max(3, Math.min(100, Math.round(v)))}%"></i></span>`;
+    return `<div class="obj objs"><div class="oRow ahora"><small>🎯 AHORA</small><b>${H ? esc(H.n) : '¡Capítulo completado!'}</b><div class="prog"><i style="width:${Math.max(3, Math.min(100, Math.round(p)))}%"></i></div><div class="fila"><span>${izq}</span><span>${der}</span></div></div>
+      <button class="oRow mini" data-act="${O && O.tipo === 'deseo' ? 'verDeseo' : 'metaSel'}"><small>❤️ TU OBJETIVO</small>${O ? `<b>${O.ic} ${esc(O.n)}</b>${barra(O.prog * 100)}<em>${esc(O.txt)}${O.listo ? ' · ¡Ya puedes!' : ''}</em>` : '<b class="vacio">Elige tu objetivo ›</b>'}</button>
+      ${Su ? `<div class="oRow mini sueno"><small>⭐ TU GRAN SUEÑO</small><b>${Su.ic} ${esc(Su.n)}</b>${barra(Su.prog(s) * 100)}<em>${esc(Su.txt(s))}</em></div>` : ''}</div>`;
+  }
+  // Elegir objetivo personal: metas de la carrera (hitos, compras, patrimonio) o algo de la Tienda
+  function htmlElegirMeta(s) {
+    return `<div class="card metaSel"><h3>❤️ ¿Qué quieres conseguir?</h3><p class="small">Lo verás en Inicio con lo que te falta.</p>
+      ${P2.metasDisponibles(s).map(M => `<button class="btn w full metaOp ${s.metaPersonal === M.id ? 'sel' : ''}" data-act="fijarMeta" data-v="${M.id}">${M.ic} ${esc(M.n)} <small>${Math.round(M.prog(s) * 100)} %</small></button>`).join('')}
+      <button class="btn w full" data-act="metaTienda">🛍️ Algo concreto de la Tienda (toca 🤍)</button><button class="masOps" data-act="metaSel">Cerrar</button></div>`;
+  }
+  // Próximamente: 2–3 cosas que ayudan a decidir
+  function htmlCalendario(s) {
+    const l = P2.calendario(s, 3); if (!l.length) return '';
+    return `<div class="card cal"><h3>📅 Próximamente</h3>${l.map(x => `<div class="calRow"><span class="cuando">${esc(P2.cuandoTxt(x.sem))}</span><span>${x.ic} ${esc(x.t)}</span></div>`).join('')}</div>`;
   }
   // Lo que te juegas esta semana: promoción, final o el partido de liga
   function htmlEnJuego(s, pj) {
@@ -9911,12 +10260,13 @@ globalThis.P2C = P2C;
   function htmlSemana(s) {
     const o = opcionesSemana(s), enEquipo = s.fase === 'club' || s.fase === 'amateur', pj = enEquipo && s.temporada ? P2.partidoDeLaJornada(s.temporada) : null;
     const mas = ui.masOps ? `<div class="ops">${o.resto.map((x, i) => tarjetaOp(s, x, i + 3)).join('')}${o.bloq.map(x => `<button class="op gris" disabled><span class="ic">${x.A.ic}</span><span class="tx"><b>${esc(x.A.n)}</b><span class="chips"><span class="chip">🔒 ${esc(x.bloqueo)}</span></span></span></button>`).join('')}</div>` : '';
-    return `<div class="pant">${escenaExterior(s)}${objetivo(s)}${htmlPreparacion(s)}${htmlDeseo(s)}${P2.UIX && P2.UIX.inicio ? P2.UIX.inicio(s, HX) : ''}
+    // SITUACIÓN → OBJETIVO → DECISIÓN → (consecuencia en la pantalla de resultado) → PROGRESO
+    return `<div class="pant">${escenaExterior(s, P2.situacionSemana(s))}${ui.metaSel ? htmlElegirMeta(s) : objetivo(s)}${htmlPreparacion(s)}${P2.UIX && P2.UIX.inicio ? P2.UIX.inicio(s, HX) : ''}
       ${enEquipo ? htmlEnJuego(s, pj) : ''}
       <h1>${enEquipo ? '¿Qué haces además del partido?' : '¿Qué haces esta semana?'}</h1>
       <div class="ops">${o.top.map((x, i) => tarjetaOp(s, x, i)).join('')}</div>
       ${o.resto.length || o.bloq.length ? `<button class="masOps" data-act="masOps">${ui.masOps ? 'Menos opciones' : `Más opciones (${o.resto.length + o.bloq.length})`}</button>` : ''}${mas}
-      ${htmlExtrasInicio(s)}</div>`;
+      ${htmlCalendario(s)}${htmlExtrasInicio(s)}</div>`;
   }
   const hayNovedad = s => (s.seccionesNuevas || []).length > 0 || Object.values(avisos(s)).some(Boolean);
 
@@ -9936,10 +10286,11 @@ globalThis.P2C = P2C;
     const tit = G ? G.titulo : P ? (P.resultado === 'victoria' ? '¡Victoria!' : P.resultado === 'derrota' ? 'Derrota' : 'Empate') : V && V.i ? `¡${V.n}!` : TIT_ACC[id] || 'Semana jugada';
     const filas = filaCambio('💶', 'Dinero', a.dinero, b.dinero, true) + filaCambio('⚡', 'Energía', a.energia, b.energia) + filaCambio('💪', 'Nivel', a.nivel, b.nivel) + filaCambio('⭐', 'Reputación', a.rep, b.rep)
       + (s.contrato ? filaCambio('📣', 'Marca', a.marca, b.marca) + filaCambio('👔', 'Confianza del míster', a.confianza, b.confianza) : '');
-    const lineas = R.lineas.filter(l => !P || !/^Jornada \d+:/.test(l[1])).slice(0, 3);
+    const narra = P2.narrarSemana ? P2.narrarSemana(s, id, a, b, R) : null;
+    const lineas = R.lineas.filter((l, i) => (!P || !/^Jornada \d+:/.test(l[1])) && !(narra && i === 0 && !/^__/.test(id))).slice(0, 3);
     const sig = ui.fiestas && ui.fiestas.length ? 'Continuar ▶' : s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶';
     const Mo = R.momento, moHtml = Mo ? `<div class="momentoRes ${Mo.bien ? 'bien' : 'mal'}"><small>QUÉ PASÓ</small><b>${esc(Mo.titulo)}</b><p>${esc(Mo.que)}</p><small>POR QUÉ IMPORTA</small><ul>${Mo.porque.map(x => `<li>${esc(x)}</li>`).join('')}</ul></div>` : '';
-    return `<div class="pant res"><div class="grande">${G ? G.ic : ic}</div><h2>${esc(tit)}</h2>${moHtml}${(R.grandes || []).map(x => `<div class="enjuego ${x.bien ? 'bien' : 'mal'}"><b>${x.ic} ${esc(x.titulo)}</b><span>${esc(x.texto)}</span></div>`).join('')}<p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
+    return `<div class="pant res"><div class="grande">${G ? G.ic : ic}</div><h2>${esc(tit)}</h2>${narra && !G ? `<p class="narra">${esc(narra)}</p>` : ''}${moHtml}${(R.grandes || []).map(x => `<div class="enjuego ${x.bien ? 'bien' : 'mal'}"><b>${x.ic} ${esc(x.titulo)}</b><span>${esc(x.texto)}</span></div>`).join('')}<p>Semana ${R.semana} ${P ? `· ${esc(nom || '')}` : 'completada'}${R.destacada ? ' · 🔥 destacada' : ''}</p>
       ${P && P.formato === 'circuito' ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada}${P.cond ? ` · ${esc(P2.NOMBRE_COND[P.cond] || '')}` : ''}</small><b>${P.puesto && P.rol !== 'lesionado' && P.rol !== 'noConvocado' && P.rol !== 'banquillo' ? `<span>${P.puesto}º</span> de ${P.gc}` : 'No compites'}</b>${P.detalle ? `<small>${esc(P.detalle)}</small>` : ''}`
         : P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}${P.cond ? ` · ${esc(P2.NOMBRE_COND[P.cond] || '')}` : ''}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>${P.formato === 'sets' && P.detalle ? `<small>${esc(P.detalle)}</small>` : ''}` : ''}${P ? `
         <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.formato === 'puntos' && P.detalle ? ` · ${esc(P.detalle)}` : P.goles && (!P.formato || P.formato === 'goles') ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : P.goles && P.formato === 'sets' ? ` · 🎾 ${P.goles} aces` : ''}</small></div>` : ''}
@@ -10704,7 +11055,7 @@ globalThis.P2C = P2C;
       case 'carNueva': {
         const i = +b.dataset.i; if (S) P2.guardar(S);
         if (!P2.usarRanura(i)) return true;
-        S = null; resetUiPartida(); ui.pant = null; ui.nuevaEn = i; ui.deshacer = false; ui.look = Object.assign({}, P2.LOOK_INICIAL); ui.nombre = 'Alex'; render(); window.scrollTo(0, 0); return true;
+        S = null; resetUiPartida(); ui.pant = null; ui.nuevaEn = i; ui.deshacer = false; ui.look = Object.assign({}, P2.LOOK_INICIAL); ui.nombre = 'Alex'; ui.historia = 0; ui.histVer = false; render(); window.scrollTo(0, 0); return true;
       }
       case 'carRen': { ui.ren = +b.dataset.i; render(); const inp = $('carNombre'); if (inp) { inp.focus(); inp.select(); } return true; }
       case 'carRenOk': P2.renombrarPartida(+b.dataset.i, ($('carNombre') || {}).value); ui.ren = null; nubeAutoSubir(); render(); return true;
@@ -10743,6 +11094,9 @@ globalThis.P2C = P2C;
     if (S) { P2.activarDeporte(S.deporte); comprobarDeporte(); }
     if (ui.pant === 'cuenta') return pintarFuera(htmlCuenta());
     if (ui.pant === 'carreras' || (!S && ui.nuevaEn == null && hayCarreras())) return pintarFuera(htmlCarreras());
+    // La introducción: sola al empezar una carrera nueva; desde Ajustes, cuando quieras
+    if (!S && ui.historia === undefined && !ui.histHecha) ui.historia = 0;
+    if (ui.historia != null && ui.historia !== undefined) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = htmlHistoria0(); $('main').classList.remove('conBoton'); document.body.classList.remove('enSeccion'); programarHistoria(); return; }
     if (!S) { pintarEtapa('barrio'); $('top').innerHTML = ''; $('nav').innerHTML = ''; $('main').innerHTML = (ui.flash ? `<div class="flash">${esc(ui.flash)}</div>` : '') + htmlIntro() + (ui.cu ? htmlCuCapa() : ui.pm && (ui.pm.sku || ui.pm.paso) ? htmlPmCapa(null) : ''); ui.flash = ''; $('main').classList.remove('conBoton'); document.body.classList.remove('enSeccion'); return; }
     // Secciones abiertas por algo hecho fuera de la semana (firmar una marca, comprar…): se avisa aquí
     const nuevas = P2.revisarSecciones(S, null);
@@ -10814,7 +11168,12 @@ globalThis.P2C = P2C;
         ui.deporte = X.id; ui.esp = null; render(); break; }
       case 'especialidad': if ($('nombre')) ui.nombre = $('nombre').value; ui.esp = b.dataset.v; render(); break;
       case 'empezar': { const n = ($('nombre').value || '').trim().slice(0, 20) || 'Alex'; const dep = ui.deporte && P2.deporteDisponible(ui.deporte) ? ui.deporte : 'futbol';
-        S = P2.nuevaPartida({ nombre: n, look: ui.look, deporte: dep, especialidad: ui.esp }); ui.vista = 'semana'; ui.nuevaEn = null; guardarYPintar(); nubeAutoSubir(); window.scrollTo(0, 0); break; }
+        S = P2.nuevaPartida({ nombre: n, look: ui.look, deporte: dep, especialidad: ui.esp, sueno: ui.sueno || 'primera', introVista: true }); ui.vista = 'semana'; ui.nuevaEn = null; guardarYPintar(); nubeAutoSubir(); window.scrollTo(0, 0); break; }
+      case 'histSig': if (ui.historia != null && ui.historia < HISTORIA.length - 1) { ui.historia++; render(); } break;
+      case 'histSaltar': clearTimeout(histTimer); ui.historia = null; ui.histVer = false; ui.histHecha = true; render(); window.scrollTo(0, 0); break;
+      case 'histVer': ui.historia = 0; ui.histVer = true; render(); window.scrollTo(0, 0); break;
+      case 'editarLook': if ($('nombre')) ui.nombre = $('nombre').value; ui.editarLook = !ui.editarLook; render(); break;
+      case 'elegirSueno': if ($('nombre')) ui.nombre = $('nombre').value; if (S) { S.sueno = b.dataset.v; guardarYPintar(); } else { ui.sueno = b.dataset.v; render(); } break;
       case 'capa': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = b.dataset.v; render(); break;
       case 'grupoLook': if ($('nombre')) ui.nombre = $('nombre').value; ui.capa = (P2.CAPAS_LOOK.find(c => c[4] === b.dataset.v) || P2.CAPAS_LOOK[0])[0]; render(); break;
       case 'look': if ($('nombre')) ui.nombre = $('nombre').value;
@@ -10871,6 +11230,9 @@ globalThis.P2C = P2C;
         ui.confirmar = null; if (P2.comprar(S, id)) { ui.nuevaCompra = id; guardarYPintar(); } break; }
       case 'cerrarCompra': ui.nuevaCompra = null; render(); break;
       case 'quiero': if (P2.quiero(S, id)) guardarYPintar(); break;
+      case 'metaSel': ui.metaSel = !ui.metaSel; render(); break;
+      case 'fijarMeta': P2.fijarMeta(S, b.dataset.v); ui.metaSel = false; guardarYPintar(); break;
+      case 'metaTienda': ui.metaSel = false; ui.tiendaTab = 'tienda'; irA('tienda'); break;
       case 'sugDeseoNo': S.deseoSugerido = -1; guardarYPintar(); break;
       case 'tiendaTab': ui.tiendaTab = b.dataset.v; if (b.dataset.v === 'premium') irA('premium'); else { if (ui.vista === 'premium') ui.vista = 'tienda'; render(); } break;
       case 'verDeseo': { const P = P2.producto(S.deseoActual); if (P) { ui.cat = P.cat; irA('tienda'); } break; }
