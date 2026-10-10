@@ -67,6 +67,10 @@
       stats: { jugados: 0, titular: 0, suplente: 0, goles: 0, notas: [], titularTemp: 0, notasTemp: [] },
       primasCobradas: {},              // clave temporada-jornada: una prima nunca se cobra dos veces
       agente: false,
+      agenteId: null, agenteDesde: null,   // P2.8: qué agencia te lleva (sonia, elite, toni)
+      extractos: [],                   // P2.8: desgloses de dinero (fichajes, finiquitos, agentes…)
+      empleo: null, empleosPrevios: 0, // P2.8: trabajo en el barrio { empresa, desde, semanas, cobrado }
+      vivienda: 'padres', ahorro: null, bolsilloHist: [], hitosDin: {},
       patros: [],                      // contratos de patrocinio activos
       patroHist: [],
       negocios: [],                    // empresas (caja separada del dinero personal)

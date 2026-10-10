@@ -19,7 +19,7 @@
     { id: 'mister', rol: 'Entrenador', tipo: 'entrenador', ic: '👔', aparece: s => !!s.temporada, valor: s => s.confianza,
       nombre: s => ({ puerto: 'Míster Ruiz', atleticoB: 'Míster Gallardo', atletico: 'Míster Gallardo', sanroque: 'Míster Paco', costa: 'Míster Lago' }[P2.oferta(s) ? P2.oferta(s).club : ''] || 'Tu míster'),
       look: { piel: '2', pelo: 'calvo', colorPelo: 'canoso', ropa: 'chaqueta', colorRopa: 'negro', gafas: 'redondas', fondo: 'morado', edad: 'veterano', rasgo: 'cicatriz' } },
-    { id: 'sonia', n: 'Sonia Vidal', rol: 'Representante', tipo: 'representante', ic: '🤝', inicial: 55, aparece: s => !!s.agente, look: { piel: '1', pelo: 'largo', colorPelo: 'negro', ropa: 'traje', pantalon: 'traje', gafas: 'sol', fondo: 'morado', edad: 'adulto', piercing: 'nariz' } },
+    { id: 'sonia', n: 'Sonia Vidal', rol: 'Representante', tipo: 'representante', ic: '🤝', inicial: 55, aparece: s => !!s.agente && (s.agenteId || 'sonia') === 'sonia', look: { piel: '1', pelo: 'largo', colorPelo: 'negro', ropa: 'traje', pantalon: 'traje', gafas: 'sol', fondo: 'morado', edad: 'adulto', piercing: 'nariz' } },
     { id: 'pareja', rol: 'Pareja', tipo: 'pareja', ic: '❤️', bloqueada: 'Más adelante' },
     { id: 'contactos', rol: 'Contactos de empresa', tipo: 'contacto', ic: '💼', bloqueada: 'Más adelante' },
   ];
@@ -88,7 +88,7 @@
         { id: 'pacto', n: 'Hablarlo con él', ventaja: '+6 con Iker y +2 confianza del míster', coste: 'Nada', riesgo: 'Ninguno', tags: ['seguro'],
           fx: s => { cambiarRel(s, 'iker', 6, 'Hablasteis lo del puesto'); cambiarRel(s, 'mister', 2); return '«Que juegue el que esté mejor.» El míster lo valora.'; } },
       ] },
-    { id: 'soniaComision', ambito: 'relacion', rel: 'sonia', fases: ['club'], unaVez: true, cond: s => !!s.agente && s.semana >= (s.hitos.titular || 0) + 3, peso: () => 3,
+    { id: 'soniaComision', ambito: 'relacion', rel: 'sonia', fases: ['club'], unaVez: true, cond: s => !!s.agente && (s.agenteId || 'sonia') === 'sonia' && s.semana >= (s.hitos.titular || 0) + 3, peso: () => 3,
       ic: '🤝', titulo: 'Sonia, tu representante, quiere subir su comisión', texto: () => '«Te estoy consiguiendo cosas. Quiero el 10 % de las primas.»',
       ops: [
         { id: 'aceptar', n: 'Aceptar', ventaja: '+15 con Sonia: peleará más tus renovaciones', coste: 'Algo menos de primas', riesgo: 'Ninguno', tags: ['seguro'],

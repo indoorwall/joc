@@ -71,7 +71,7 @@
         { id: 'si', n: 'Aceptar sus 1.500 €', ventaja: '+1.500 € de caja ahora', coste: 'En 10 semanas, Iker espera su parte', riesgo: 'Si el negocio no gana, la relación sufre', tags: ['dinero', 'riesgo'], fx: s => { n0(s).caja += 1500; P2.cambiarRel(s, 'iker', 5, 'Invirtió en tu negocio'); prog(s, 10, 'ikerDividendo', { neg: n0(s).id }); return 'Os dais la mano en el vestuario.'; } },
         { id: 'no', n: 'Mejor no mezclar amistad y dinero', ventaja: 'Sin compromisos', coste: '−2 con Iker', riesgo: 'Ninguno', tags: ['seguro'], fx: s => { P2.cambiarRel(s, 'iker', -2, 'No aceptaste su inversión'); return 'Iker lo entiende.'; } },
       ] },
-    { id: 'soniaContacto', ambito: 'relacion', rel: 'sonia', fases: ['club'], unaVez: true, cond: s => s.negocios.length > 0 && s.agente && P2.valorRel(s, 'sonia') >= 55, peso: () => 2,
+    { id: 'soniaContacto', ambito: 'relacion', rel: 'sonia', fases: ['club'], unaVez: true, cond: s => s.negocios.length > 0 && s.agente && (s.agenteId || 'sonia') === 'sonia' && P2.valorRel(s, 'sonia') >= 55, peso: () => 2,
       ic: '🤝', titulo: 'Sonia te presenta un contacto de empresa', texto: () => '«Una empresa busca un sitio para sus empleados. He pensado en tu negocio.»',
       ops: [
         { id: 'si', n: 'Reunirte con ellos', ventaja: 'Contrato corporativo: 6 semanas con más clientes', coste: '−8 energía', riesgo: 'Ninguno', tags: ['dinero'], fx: s => { n0(s).ctx.corporativo = 6; s.p.energia = clamp(s.p.energia - 8, 0, 100); P2.cambiarRel(s, 'sonia', 4, 'Aprovechaste su contacto'); return 'Firmáis un acuerdo de 6 semanas.'; } },
@@ -94,7 +94,7 @@
       ops: [
         { id: 'gracias', n: 'Agradecérselo de corazón', ventaja: '+12 interés de otros clubes', coste: 'Nada', riesgo: 'Ninguno', tags: ['deporte', 'seguro'], fx: s => { s.interes = r1(clamp(s.interes + 12, 0, 100)); return 'Tu paso por el amateur vuelve a abrirte puertas.'; } },
       ] },
-    { id: 'soniaCampana', ambito: 'relacion', rel: 'sonia', fases: ['club'], enfria: 26, cond: s => s.agente && P2.valorRel(s, 'sonia') >= 65 && s.hitos.contrato, peso: () => 1.5,
+    { id: 'soniaCampana', ambito: 'relacion', rel: 'sonia', fases: ['club'], enfria: 26, cond: s => s.agente && (s.agenteId || 'sonia') === 'sonia' && P2.valorRel(s, 'sonia') >= 65 && s.hitos.contrato, peso: () => 1.5,
       ic: '📸', titulo: 'Sonia te consigue una campaña puntual', texto: () => 'Una marca de ropa deportiva quiere tu foto para una campaña de una semana.',
       ops: [
         { id: 'si', n: 'Hacer la campaña', ventaja: '+500 € y +2 marca personal', coste: '−10 energía', riesgo: 'Ninguno', tags: ['dinero'], fx: s => { s.p.dinero += 500; s.acum.patrocinio += 500; P2.sumarMarca(s, 2); s.p.energia = clamp(s.p.energia - 10, 0, 100); P2.cambiarRel(s, 'sonia', 3, 'Hiciste la campaña que consiguió'); return 'Sesión de fotos y +500 €.'; } },

@@ -20,7 +20,7 @@
     if (!H) return false;
     s.hitos[id] = s.semana;
     P2.tele(s, 'hito', { id });
-    if (id === 'titular') s.agente = true;
+    if (id === 'titular') { s.agente = true; s.agenteId = s.agenteId || 'sonia'; s.agenteDesde = s.semana; if (P2.DECISIONES.agentes) encolar(s, { tipo: 'agentes' }); }   // varias agencias llaman (P2.8)
     if (R && R.hitos) R.hitos.push(H);
     P2.anotar(s, '🏅', `Hito: ${H.n}. Se abre: ${H.abre}.`);
     if (id === 'rentable') encolar(s, { tipo: 'oportunidad' });
@@ -42,11 +42,11 @@
     suceso: {
       vista(s, ev) {
         const E = P2.SUCESOS.find(x => x.id === ev.id), n = neg(s, ev);
-        return { ic: E.ic, titulo: E.titulo, texto: typeof E.texto === 'function' ? E.texto(s, n) : E.texto, ops: E.ops.filter(o => !o.cond || o.cond(s, n)) };
+        return { ic: E.ic, titulo: E.titulo, texto: typeof E.texto === 'function' ? E.texto(s, n) : E.texto, ops: E.ops.filter(o => !o.cond || o.cond(s, n)).map(o => (typeof o.bloqueo === 'function' ? Object.assign({}, o, { bloqueo: o.bloqueo(s, n) }) : o)) };
       },
       resolver(s, ev, id) {
         const E = P2.SUCESOS.find(x => x.id === ev.id), n = neg(s, ev), o = E.ops.find(x => x.id === id);
-        if (!o || (o.cond && !o.cond(s, n))) return null;
+        if (!o || (o.cond && !o.cond(s, n)) || (typeof o.bloqueo === 'function' ? o.bloqueo(s, n) : o.bloqueo)) return null;
         return { texto: o.fx(s, n), titulo: E.titulo, ic: E.ic, semana: o.ocupaSemana ? '__evento' : null };
       },
     },
@@ -55,12 +55,16 @@
         const ops = ev.ofertas.map(id => {
           if (id === 'renovar') {
             const c = ev.condiciones.find(x => x.id === 'renovar'), O = P2.oferta(s);
-            return op('renovar', c.n, `${eur(c.sueldo)}/semana · prima ${eur(c.prima)} · ${c.temporadas} temporadas`, 'Sigues donde estás', `Techo de nivel ${O.techoNivel}`, { tags: ['seguro'], clubIc: O.ic });
+            return op('renovar', c.n, `${eur(c.sueldo)}/semana · prima ${eur(c.prima)} · ${c.temporadas} temporadas`, 'Sigues donde estás', `Techo de nivel ${O.techoNivel}`, { tags: ['seguro'], clubIc: O.ic, desglose: P2.desgloseContrato && P2.desgloseContrato(s, Object.assign(P2.contratoDeOferta(s, s.contrato.oferta), { n: c.n, sueldo: c.sueldo, prima: c.prima, temporadas: c.temporadas, renov: true })) });
+          }
+          if (id === 'renovarPrima') {
+            const c = ev.condiciones.find(x => x.id === 'renovarPrima'), O = P2.oferta(s);
+            return op('renovarPrima', c.n, `Prima de ${eur(c.prima)} ahora · ${c.temporadas} temporadas`, `Sueldo sin subida: ${eur(c.sueldo)}/semana`, 'Si te lesionas o no juegas, ya lo has cobrado; si te va bien, habrías ganado más con la subida', { tags: ['dinero'], clubIc: O.ic, desglose: P2.desgloseContrato(s, Object.assign(P2.contratoDeOferta(s, s.contrato.oferta), { n: c.n, sueldo: c.sueldo, prima: c.prima, temporadas: c.temporadas, renov: true })) });
           }
           const O = OFERTAS[id];
           const Id = P2.IDENTIDAD && P2.IDENTIDAD[id], nota = P2.notaClub && P2.notaClub(s, id);
           return op(id, `${O.ic} ${O.n} · ${Id ? `${Id.ic} ${Id.n}` : O.lema}${nota ? ` — ${nota}` : ''}`, `${eur(O.sueldo)}/semana${O.prima ? ` · prima ${eur(O.prima)}` : ''} · ${O.pros.join(' · ')}`, O.contras.join(' · ') || '—', `Entreno ×${nf(O.entreno)} · exposición ×${nf(O.exposicion)} · ${O.temporadas} ${O.temporadas === 1 ? 'temporada' : 'temporadas'}`,
-            { tags: O.sueldo >= 200 ? ['dinero'] : ['deporte'], oferta: id });
+            { tags: O.sueldo >= 200 ? ['dinero'] : ['deporte'], oferta: id, desglose: P2.desgloseOferta ? P2.desgloseOferta(s, id) : null });
         });
         if (ev.origen === 'fin' && ev.contratoVivo) ops.push(op('seguir', 'Seguir con tu contrato actual', `Te quedan ${s.contrato.temporadasRestantes} temporadas`, 'Nada', 'Ninguno', { tags: ['seguro'] }));
         if (ev.origen === 'sinOferta' && s.fase === 'amateur') ops.push(op('seguir', 'Seguir en CD San Roque', `Próxima repesca en ${CFG.amateur.repescaCada} semanas`, 'Sigues sin ser profesional', 'Ninguno', { tags: ['seguro'] }));
@@ -77,7 +81,7 @@
           if (ev.origen === 'fin') P2.nuevaTemporada(s, R);
           return { texto: 'Sigues donde estás.', titulo: 'Decisión', ic: '👍' };
         }
-        if (id === 'renovar') { P2.firmarRenovacion(s, ev.condiciones.find(x => x.id === 'renovar'), R); return { texto: `Renuevas con ${P2.oferta(s).n}.`, titulo: 'Renovación', ic: '✍️' }; }
+        if (id === 'renovar' || id === 'renovarPrima') { const c = ev.condiciones.find(x => x.id === id); if (!c) return null; P2.firmarRenovacion(s, c, R); return { texto: `Renuevas con ${P2.oferta(s).n}${id === 'renovarPrima' ? ' cobrando por adelantado' : ''}.`, titulo: 'Renovación', ic: '✍️' }; }
         if (!ev.ofertas.includes(id)) return null;
         // Memoria: a quién dijiste que no y dónde jugaste (los clubes se acuerdan)
         if (P2.recordarClub) { for (const o of ev.ofertas) if (o !== id && o !== 'renovar' && OFERTAS[o]) P2.recordarClub(s, OFERTAS[o].club, 'rechazado'); P2.recordarClub(s, OFERTAS[id].club, 'jugaste'); }
@@ -321,7 +325,7 @@
     { id: 'tienda', ic: '🛍️', n: 'Tienda', grupo: 'imperio', cond: () => true },
     { id: 'inversiones', ic: '📈', n: 'Inversiones', grupo: 'imperio', cond: () => true },
     { id: 'empresa', ic: '💼', n: 'Empresa', grupo: 'imperio', cond: s => P2.mercadoAbierto(s), d: 'Negocios en traspaso, tu empresa y su caja.' },
-    { id: 'patrimonio', ic: '💰', n: 'Patrimonio', grupo: 'imperio', cond: () => true },
+    { id: 'patrimonio', ic: '💶', n: 'Mi dinero', grupo: 'imperio', cond: () => true },
     { id: 'premium', ic: '💎', n: 'Personalización Premium', grupo: 'imperio', cond: s => !!s.hitos.contrato, d: 'Ya eres profesional. Se han desbloqueado colecciones especiales (dentro de la Tienda).' },
     { id: 'personaje', ic: '🧍', n: 'Personaje', grupo: 'perfil', cond: () => true },
     { id: 'historia', ic: '🏆', n: 'Mi historia', grupo: 'perfil', cond: () => true },
@@ -354,7 +358,7 @@
 
   // Patrimonio = tu dinero + valor de tus empresas (+ participación)
   // Patrimonio = dinero disponible + empresas + participación + tus cosas con valor (vehículo, vivienda, joyas…)
-  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio && !s.socio.vendida ? s.socio.valor : 0) + (P2.valorPosesiones ? P2.valorPosesiones(s) : 0) + (P2.valorExpansiones ? P2.valorExpansiones(s) : 0)); }
+  function patrimonio(s) { return Math.round(s.p.dinero + s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0) + (s.socio && !s.socio.vendida ? s.socio.valor : 0) + (P2.valorPosesiones ? P2.valorPosesiones(s) : 0) + (P2.valorExpansiones ? P2.valorExpansiones(s) : 0) + (P2.valorAhorro ? P2.valorAhorro(s) : 0)); }
 
   Object.assign(P2, { SECCIONES, GRUPOS, revisarSecciones, seccionesVisibles, encolar, siguiente, conseguirHito, revisarHitos, siguienteHito, DECISIONES, vistaPendiente, elegirOportunidad, patrimonio });
 })(globalThis.P2 = globalThis.P2 || {});

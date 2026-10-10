@@ -21,6 +21,26 @@
       ${o.ocupaSemana ? '<span class="ocupa">⏳ Ocupa la semana entera</span>' : ''}
       ${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`;
 
+  // ---- Dinero en números (P2.8): bruto, retenciones, comisiones y lo que te queda ----
+  const imp = v => `<b class="${v >= 0 ? 'mas' : 'menos'}">${v >= 0 ? '+' : '−'}${esc(eur(Math.abs(v)))}</b>`;
+  const totalDe = d => (d.total != null ? d.total : d.filas.reduce((a, f) => a + (f[3] === 'info' ? 0 : f[1]), 0));
+  function htmlDesglose(d) {
+    if (!d) return '';
+    const filas = d.filas.map(([c, v, nota, tipo]) => `<div class="dsF ${tipo === 'info' ? 'info' : ''}"><span>${esc(c)}${nota ? ` <small>${esc(nota)}</small>` : ''}</span>${tipo === 'info' ? `<b>${v < 0 ? '−' : ''}${esc(eur(Math.abs(v)))}</b>` : imp(v)}</div>`).join('');
+    const tot = d.filas.some(f => f[3] !== 'info') ? `<div class="dsT"><span>${esc(d.totalTxt || 'Total')}</span>${imp(totalDe(d))}</div>` : '';
+    return `<div class="desg"><b class="dsTit">${d.ic || '💶'} ${esc(d.titulo || '')}</b>${filas}${tot}${(d.clausulas || []).length ? `<ul class="dsC">${d.clausulas.map(c => `<li>📌 ${esc(c)}</li>`).join('')}</ul>` : ''}</div>`;
+  }
+  const desgPlegado = (d, txt) => (d ? `<details class="desgDet"><summary>${txt || (d.filas.some(f => f[3] !== 'info') ? `💶 ${esc(d.totalTxt || 'Total')}: ${esc(eur(totalDe(d)))} · ver en números` : '📌 Ver las condiciones')}</summary>${htmlDesglose(d)}</details>` : '');
+  function htmlBolsillo(s, R) {
+    const B = R && R.bolsillo; if (!B || (!B.entra && !B.sale)) return '';
+    const c = P2.colchon(s);
+    return `<details class="bolsillo"><summary><span>💶 Tu bolsillo</span>${B.entra ? `<b class="mas">+${esc(eur(B.entra))}</b>` : ""}${B.sale ? `<b class="menos">−${esc(eur(B.sale))}</b>` : ""}<span>= ${esc(eur(B.saldo))}</span></summary>
+      ${B.movs.map(([x, v]) => `<div class="dsF"><span>${esc(x)}</span>${imp(v)}</div>`).join('')}<p class="small">${c == null ? '🏠 Sin gastos fijos: vives con tus padres.' : `🛟 Colchón: aguantas ${c} ${c === 1 ? 'semana' : 'semanas'} sin ingresos.`}</p></details>`;
+  }
+  function dineroTop(s) {
+    const d = ui.dinPrev != null && ui.dinSeed === s.seed ? Math.round(s.p.dinero - ui.dinPrev) : 0; ui.dinPrev = s.p.dinero; ui.dinSeed = s.seed;
+    return `<div class="dinero" data-act="vista" data-v="patrimonio" role="button" aria-label="Mi dinero">💶 <b>${esc(eur(s.p.dinero))}</b>${d ? `<span class="dDelta ${d > 0 ? 'mas' : 'menos'}" aria-hidden="true">${d > 0 ? '+' : '−'}${esc(eur(Math.abs(d)))}</span>` : ''}</div>`;
+  }
   function nombreFase(s) {
     if (s.fase === 'retirado') { const id = P2.prestige(s).activa; return id ? `${P2.CARRERAS_PRESTIGE[id].ic} ${P2.CARRERAS_PRESTIGE[id].n}` : '👋 Retirado/a del deporte'; }
     const O = P2.oferta(s);
@@ -122,9 +142,9 @@
   // ---------- Cabecera y navegación ----------
   function htmlTop(s) {
     const SEC = P2.SECCIONES.find(x => x.id === ui.vista);
-    if (ui.vista !== 'semana') return `<button class="atras" data-act="vista" data-v="semana">‹ Jugar</button><div class="hwho"><b>${SEC ? `${SEC.ic} ${esc(SEC.id === 'relaciones' ? 'Vida' : SEC.id === 'personaje' ? 'Perfil' : SEC.n)}` : ''}</b></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>`;
+    if (ui.vista !== 'semana') return `<button class="atras" data-act="vista" data-v="semana">‹ Jugar</button><div class="hwho"><b>${SEC ? `${SEC.ic} ${esc(SEC.id === 'relaciones' ? 'Vida' : SEC.id === 'personaje' ? 'Perfil' : SEC.n)}` : ''}</b></div>${dineroTop(s)}`;
     return `<button class="hava" data-act="vista" data-v="personaje" aria-label="Tu personaje">${P2.avatarSVG(s, null, 'busto')}</button>
-      <div class="hwho"><b>Semana ${s.semana} ${insignias()}<span class="vidasTop">${'❤️'.repeat(P2.vidas(s).n)}</span></b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div><div class="dinero">💶 <b>${esc(eur(s.p.dinero))}</b></div>
+      <div class="hwho"><b>Semana ${s.semana} ${insignias()}<span class="vidasTop">${'❤️'.repeat(P2.vidas(s).n)}</span></b><span>${esc(nombreFase(s).replace(/ · semana \d+.*$/, ''))}</span></div>${dineroTop(s)}
       <button class="mundoBtn" data-act="mundo" aria-label="Mi mundo">🌍${hayNovedad(s) ? '<i aria-label="hay novedades"></i>' : ''}</button>
       <div class="ener" aria-label="Energía ${Math.round(s.p.energia)}">⚡<div class="bar"><i style="width:${Math.round(s.p.energia)}%"></i></div>${Math.round(s.p.energia)}</div>`;
   }
@@ -259,7 +279,7 @@
     const v = P2.vistaPendiente(s);
     if (v) {
       return `<div class="sec"><span>Decisión</span></div><div class="card dec evento ${v.fiesta ? 'fiesta' : ''} ${v.grande ? 'mega' : ''}">${v.grande ? `<div class="megaTop">${decorSVG('empresa')}<span>🔓</span></div>` : ''}<h2><span>${v.ic}</span>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
-        ${v.ops.map(o => opcion(o, 'decidir')).join('')}</div>`;
+        ${v.ops.map(o => opcion(o, 'decidir') + desgPlegado(o.desglose)).join('')}</div>`;
     }
     const l = P2.accionesDisponibles(s);
     const tit = s.fase === 'club' || s.fase === 'amateur' ? '¿Qué haces esta semana, además del partido?' : '¿Qué haces esta semana?';
@@ -584,11 +604,39 @@
   }
 
   // ---------- 💰 PATRIMONIO ----------
+  // ---- Mi dinero (P2.8): bolsillo, colchón, vivienda, ahorro, agente, trabajo y extractos ----
+  function htmlMiDinero(s) {
+    const c = P2.colchon(s), gf = P2.gastosFijos(s), inf = P2.ingresosFijos(s), sG = gf.reduce((a, x) => a + x[1], 0), sI = inf.reduce((a, x) => a + x[1], 0);
+    const H = (s.bolsilloHist || []).slice(-8), mx = Math.max(1, ...H.map(b => Math.max(b.entra, b.sale)));
+    const lista = (l, signo) => l.length ? l.map(([x, v]) => `<div class="dsF"><span>${esc(x)}</span>${imp(signo * v)}</div>`).join('') : '<p class="small">Nada fijo.</p>';
+    const bolsa = `<div class="card miDin"><small>💶 TU BOLSILLO</small><div class="big oro num">${esc(eur(s.p.dinero))}</div>
+      <p class="colchon ${c != null && c < 3 ? 'mal' : ''}">${c == null ? '🏠 Vives con tus padres: sin gastos fijos.' : `🛟 Colchón: aguantas <b>${c} ${c === 1 ? 'semana' : 'semanas'}</b> sin ingresos.${c < 3 ? ' Ojo: un imprevisto te pondría en apuros.' : ''}`}</p>
+      <div class="dosCol"><div><h4>Cada semana entra</h4>${lista(inf, 1)}</div><div><h4>Cada semana sale</h4>${lista(gf, -1)}</div></div>
+      ${sI || sG ? `<div class="dsT"><span>Te queda cada semana (sin primas ni imprevistos)</span>${imp(sI - sG)}</div>` : ''}
+      ${H.length ? `<div class="barrasDin" aria-label="Lo que entró y salió las últimas semanas">${H.map(b => `<div class="bd"><div class="par"><i class="e" style="height:${Math.round(100 * b.entra / mx)}%"></i><i class="s" style="height:${Math.round(100 * b.sale / mx)}%"></i></div><small>${b.semana}</small></div>`).join('')}</div><p class="small leyenda"><i class="e"></i> entró <i class="s"></i> salió · semanas</p>` : ''}</div>`;
+    const V = P2.vivienda(s), cur = s.vivienda || 'padres';
+    const viv = `<div class="card"><h3>${V.ic} Dónde vives: ${esc(V.n)}</h3><p class="small">${esc(V.d)}${V.alquiler ? ` Alquiler: ${esc(eur(V.alquiler))}/semana.` : ''}${V.energia ? ` +${V.energia} de energía cada semana.` : ''}</p>
+      ${!s.contrato ? '<p class="small">🔒 Para independizarte necesitas un sueldo (contrato).</p>' : V.n.includes('propiedad') ? '' : Object.entries(P2.VIVIENDAS).filter(([k]) => k !== cur).map(([k, X]) => `<button class="btn w full" data-act="mudarse" data-v="${k}">${ui.mudar === k ? '⚠️ Toca otra vez para mudarte' : `${X.ic} ${esc(X.n)}${X.alquiler ? ` · ${esc(eur(X.alquiler))}/semana · entrada ${esc(eur(X.alquiler * 4))}` : ' · sin alquiler'}`}</button>`).join('')}</div>`;
+    const Ah = s.ahorro || { cuenta: 0, fondo: 0, aportadoFondo: 0 }, gan = Math.round(Ah.fondo - Ah.aportadoFondo);
+    const aho = `<div class="card ahorro"><h3>🏦 Ahorro e inversión</h3>
+      <div class="dosCol"><div class="hucha"><small>Cuenta de ahorro</small><b>${esc(eur(Ah.cuenta))}</b><span class="small">${P2.AHORRO.interesCuenta * 100} % al año · sin riesgo · lo sacas cuando quieras</span></div>
+      <div class="hucha"><small>Fondo indexado</small><b>${esc(eur(Ah.fondo))}</b><span class="small ${gan >= 0 ? 'bienT' : 'malT'}">${Ah.aportadoFondo ? `${gan >= 0 ? '+' : '−'}${esc(eur(Math.abs(gan)))} desde que invertiste` : '≈ 7 % al año de media · sube y baja'}</span></div></div>
+      <input id="impAhorro" type="number" inputmode="numeric" min="0" placeholder="Importe (€)" aria-label="Importe para ahorrar o invertir">
+      <div class="fila4"><button class="btn w" data-act="ahorro" data-t="cuenta" data-s="1">➕ A la cuenta</button><button class="btn w" data-act="ahorro" data-t="cuenta" data-s="-1">➖ De la cuenta</button><button class="btn w" data-act="ahorro" data-t="fondo" data-s="1">📈 Invertir</button><button class="btn w" data-act="ahorro" data-t="fondo" data-s="-1">💵 Vender</button></div>
+      <p class="small">El fondo no es para dinero que vayas a necesitar pronto: hay semanas que baja. A largo plazo, de media, sube.</p></div>`;
+    const A = P2.agenteDe(s), pen = P2.penalAgente(s);
+    const age = `<div class="card"><h3>🤝 Tu agente</h3>${A ? `<p><b>${A.ic} ${esc(A.n)}</b> · ${esc(A.tipo)}</p><ul class="dsC">${[`Comisión sobre primas por victoria: ${Math.round((s.comisionAgente || 0) * 100)} %`, `Comisión sobre primas de fichaje y renovación: ${Math.round(A.comisionFichaje * 100)} %`].concat(pen ? [`Exclusividad: romper ahora cuesta ${eur(pen)}`] : ['Sin exclusividad vigente']).map(x => `<li>📌 ${esc(x)}</li>`).join('')}</ul>` : `<p class="small">${s.hitos.titular ? 'Sin agente: negocias tú.' : 'Cuando seas titular 3 veces, te llamarán varios agentes.'}</p>`}</div>`;
+    const E = s.empleo, F = E && P2.finiquito(s, 'voluntaria');
+    const tra = E ? `<div class="card"><h3>🛵 Tu trabajo: ${esc(E.empresa)}</h3>${kv('Contrato', 'Temporal, por semanas trabajadas')}${kv('Semanas trabajadas', E.semanas)}${kv('Cobrado', eur(E.cobrado))}${F ? kv('Si lo dejas hoy, finiquito', eur(F.filas.reduce((a, f) => a + f[1], 0))) : ''}<p class="small">Si te despiden, además cobras indemnización (20 días por año trabajado).</p></div>` : '';
+    const ex = (s.extractos || []).slice().reverse();
+    const ext = ex.length ? `<div class="sec"><span>📄 Tus extractos</span><span>tus papeles</span></div>${ex.map(d => desgPlegado(d, `${d.ic || '💶'} ${esc(d.titulo)} · semana ${d.semana}${d.filas.some(f => f[3] !== 'info') ? ` · ${d.total >= 0 ? '+' : '−'}${esc(eur(Math.abs(d.total)))}` : ''}`)).join('')}` : '';
+    return bolsa + viv + aho + age + tra + ext + '<div class="sec"><span>💰 Patrimonio</span></div>';
+  }
   function htmlPatrimonio(s) {
     const pos = P2.valorPosesiones(s), emp = s.negocios.reduce((a, n) => a + P2.valorNegocio(n), 0), soc = s.socio && !s.socio.vendida ? s.socio.valor : 0;
     const pat = (s.inventario || []).filter(it => (P2.producto(it.id) || {}).patrimonial);
-    return `<div class="card patri"><small>TU PATRIMONIO</small><div class="big oro num">${esc(eur(P2.patrimonio(s)))}</div>
-        ${kv('💶 Dinero disponible', eur(s.p.dinero))}${kv('🏠 Tus cosas con valor', eur(pos))}${kv('💼 Empresas', s.negocios.length ? eur(emp) : '—')}${s.socio ? kv('🤝 Participación', s.socio.vendida ? 'vendida' : eur(soc)) : ''}
+    return `${htmlMiDinero(s)}<div class="card patri"><small>TU PATRIMONIO</small><div class="big oro num">${esc(eur(P2.patrimonio(s)))}</div>
+        ${kv('💶 Dinero disponible', eur(s.p.dinero))}${P2.valorAhorro(s) ? kv('🏦 Ahorro e inversión', eur(P2.valorAhorro(s))) : ''}${kv('🏠 Tus cosas con valor', eur(pos))}${kv('💼 Empresas', s.negocios.length ? eur(emp) : '—')}${s.socio ? kv('🤝 Participación', s.socio.vendida ? 'vendida' : eur(soc)) : ''}
         <p class="small">La ropa, el ocio y la tecnología no suman: son para disfrutar. Vehículos, vivienda y joyas conservan parte de lo que pagaste.</p></div>
       ${pat.length ? `<div class="sec"><span>Posesiones</span></div><div class="card">${pat.map(it => { const P = P2.producto(it.id); return kv(`${P.ic} ${esc(P.n)}`, `${eur(it.precioCompra)} → <span class="oro2">${eur(it.valorActual)}</span>`); }).join('')}</div>` : ''}
       <div class="card">${kv('🛍️ Gastado en la tienda', eur((s.acum || {}).compras || 0))}${kv('💸 Gastos personales', eur((s.acum || {}).gastos || 0))}</div>
@@ -682,7 +730,7 @@
   function programarHistoria() {
     clearTimeout(histTimer);
     if (ui.historia == null || ui.historia >= HISTORIA.length - 1) return;
-    histTimer = setTimeout(() => { if (ui.historia == null) return; ui.historia++; render(); }, 6500);
+    histTimer = setTimeout(() => { if (ui.historia == null) return; ui.historia++; render(); }, 5000);
   }
   function htmlIntro() {
     if (ui.historia != null) return htmlHistoria0();
@@ -808,7 +856,7 @@
     else { p = 100 * hechos / HITOS.length; izq = `🏅 ${hechos} de ${HITOS.length} hitos`; const T = s.temporada; der = T && T.jornada ? `${P2.posicion(T)}º en la liga` : ''; }
     const O = P2.objetivoPersonal(s), Su = P2.sueno(s), barra = v => `<span class="xp"><i style="width:${Math.max(3, Math.min(100, Math.round(v)))}%"></i></span>`;
     return `<div class="obj objs"><div class="oRow ahora"><small>🎯 AHORA</small><b>${H ? esc(H.n) : '¡Capítulo completado!'}</b><div class="prog"><i style="width:${Math.max(3, Math.min(100, Math.round(p)))}%"></i></div><div class="fila"><span>${izq}</span><span>${der}</span></div></div>
-      <button class="oRow mini" data-act="${O && O.tipo === 'deseo' ? 'verDeseo' : 'metaSel'}"><small>❤️ TU OBJETIVO</small>${O ? `<b>${O.ic} ${esc(O.n)}</b>${barra(O.prog * 100)}<em>${esc(O.txt)}${O.listo ? ' · ¡Ya puedes!' : ''}</em>` : '<b class="vacio">Elige tu objetivo ›</b>'}</button>
+      <button class="oRow mini" data-act="${O && O.tipo === 'deseo' ? 'verDeseo' : !O && s.fase === 'barrio' && s.semana < 7 && !(s.cont.campus > 0) ? 'fijarMeta' : 'metaSel'}" data-v="campus"><small>❤️ TU OBJETIVO</small>${O ? `<b>${O.ic} ${esc(O.n)}</b>${barra(O.prog * 100)}<em>${esc(O.txt)}${O.listo ? ' · ¡Ya puedes!' : ''}</em>` : (s.fase === 'barrio' && s.semana < 7 && !(s.cont.campus > 0) ? '<b class="vacio">💡 Ahorra 400 € para el campus ›</b>' : '<b class="vacio">Elige tu objetivo ›</b>')}</button>
       ${Su ? `<div class="oRow mini sueno"><small>⭐ TU GRAN SUEÑO</small><b>${Su.ic} ${esc(Su.n)}</b>${barra(Su.prog(s) * 100)}<em>${esc(Su.txt(s))}</em></div>` : ''}</div>`;
   }
   // Elegir objetivo personal: metas de la carrera (hitos, compras, patrimonio) o algo de la Tienda
@@ -874,6 +922,7 @@
         : P ? `<div class="marcador ${P.resultado}"><small>Jornada ${P.jornada} · ${P.local ? 'en casa' : 'fuera'}${P.cond ? ` · ${esc(P2.NOMBRE_COND[P.cond] || '')}` : ''}</small><b>${P.local ? 'Tu equipo' : esc(P.rival)} <span>${P.local ? P.gf : P.gc} - ${P.local ? P.gc : P.gf}</span> ${P.local ? esc(P.rival) : 'Tu equipo'}</b>${P.formato === 'sets' && P.detalle ? `<small>${esc(P.detalle)}</small>` : ''}` : ''}${P ? `
         <small>${{ titular: 'Titular', suplente: 'Sales desde el banquillo', banquillo: 'No juegas', lesionado: 'Lesionado/a', noConvocado: 'No convocado/a' }[P.rol] || ''}${P.nota != null ? ` · nota ${nf(P.nota)}` : ''}${P.formato === 'puntos' && P.detalle ? ` · ${esc(P.detalle)}` : P.goles && (!P.formato || P.formato === 'goles') ? ` · ⚽ ${P.goles === 1 ? '1 gol' : P.goles + ' goles'}` : P.goles && P.formato === 'sets' ? ` · 🎾 ${P.goles} aces` : ''}</small></div>` : ''}
       <div class="cambios">${filas || '<div class="cam"><span>Sin cambios en tus números</span></div>'}</div>
+      ${htmlBolsillo(s, R)}${(R.desgloses || []).map(d => desgPlegado(d, `${d.ic || '💶'} ${esc(d.titulo)} · ver en números`)).join('')}
       ${lineas.length ? `<div class="lineasRes">${lineas.map(linea).join('')}</div>` : ''}
       ${R.porque.length || R.ingresos.length || R.lineas.length > lineas.length ? `<details class="por"><summary>❓ ¿Por qué?</summary>${R.lineas.slice(3).map(linea).join('')}${R.porque.map(x => `<p>${esc(x)}</p>`).join('')}${R.ingresos.map(([x, v]) => kv(esc(x), `${v >= 0 ? '+' : '−'}${eur(Math.abs(v))}`)).join('')}</details>` : ''}
       <button class="cta" data-act="seguir">${sig}</button></div>`;
@@ -881,7 +930,7 @@
   // ---- Después de decidir algo ----
   function htmlDecidido(s) {
     const D = ui.dec, W = D.semanaJugada ? s.ultimo : null;
-    return `<div class="pant res"><div class="grande">${D.ic || '✅'}</div><h2>${esc(D.titulo || '')}</h2>${D.texto ? `<p>${esc(D.texto)}</p>` : ''}
+    return `<div class="pant res"><div class="grande">${D.ic || '✅'}</div><h2>${esc(D.titulo || '')}</h2>${D.texto ? `<p>${esc(D.texto)}</p>` : ''}${(D.desgloses || []).map(htmlDesglose).join('')}
       ${(D.lineas || []).concat(W ? W.lineas : []).slice(0, 4).length ? `<div class="lineasRes">${(D.lineas || []).concat(W ? W.lineas : []).slice(0, 4).map(linea).join('')}</div>` : ''}
       <button class="cta" data-act="seguir">${ui.fiestas && ui.fiestas.length || s.pendiente ? 'Continuar ▶' : 'Siguiente semana ▶'}</button></div>`;
   }
@@ -895,7 +944,7 @@
       ${R && R.look ? `<div class="quien">${caraDe(R)}</div>` : `<div class="grande peq">${v.ic}</div>`}<h2>${esc(v.titulo)}</h2>${v.texto ? `<p>${esc(v.texto)}</p>` : ''}
       ${v.ops.map(o => `<button class="resp ${o.prin ? 'prin' : ''}" data-act="decidir" data-id="${esc(o.id)}" ${o.bloqueo ? 'disabled' : ''}><b>${esc(o.n)}</b>
         <span class="ls">${o.ventaja ? `<span class="l"><i class="v">✓</i> ${esc(o.ventaja)}</span>` : ''}${o.coste ? `<span class="l"><i class="c">−</i> ${esc(o.coste)}</span>` : ''}${o.riesgo && o.riesgo !== 'Ninguno' && o.riesgo !== '—' ? `<span class="l"><i class="r">⚠</i> ${esc(o.riesgo)}</span>` : ''}</span>
-        ${o.ocupaSemana ? '<span class="ocupa">⏳ Ocupa la semana entera</span>' : ''}${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>`).join('')}</div></div>`;
+        ${o.ocupaSemana ? '<span class="ocupa">⏳ Ocupa la semana entera</span>' : ''}${o.bloqueo ? `<span class="bl">🔒 ${esc(o.bloqueo)}</span>` : ''}</button>${desgPlegado(o.desglose)}`).join('')}</div></div>`;
   }
   // ---- Celebraciones: hitos y novedades ----
   function htmlFiesta(s) {
@@ -1164,7 +1213,7 @@
     hecho: (ok, txt, cls) => { if (ok === null || ok === undefined) { if (txt) ui.flash = txt; if (S) P2.guardar(S); render(); } else { ui.flash = ok; render(); } },
     premium: sku => { ui.pm = Object.assign(ui.pm || { tab: 'expansiones' }, { sku, paso: null, error: null, consent: false }); render(); }, irA: v => irA(v) };
   const MUNDO = [['personaje', '👤', 'Perfil', '#8b5cf6'], ['relaciones', '❤️', 'Vida', '#ff4f8b'], ['tienda', '🛍️', 'Tienda', '#d94bff'], ['inversiones', '📈', 'Inversiones', '#12bfae'],
-    ['liga', '📊', 'Liga', '#2f7bff', 'Al fichar'], ['marcas', '🤝', 'Marcas', '#ff9a2e', 'Al fichar'], ['empresa', '💼', 'Empresa', '#0b8a7e', 'Más adelante'], ['patrimonio', '💰', 'Patrimonio', '#e8a000'],
+    ['liga', '📊', 'Liga', '#2f7bff', 'Al fichar'], ['marcas', '🤝', 'Marcas', '#ff9a2e', 'Al fichar'], ['empresa', '💼', 'Empresa', '#0b8a7e', 'Más adelante'], ['patrimonio', '💶', 'Mi dinero', '#e8a000'],
     ['historia', '🏆', 'Historia', '#ffb000'], ['hitos', '🏅', 'Hitos', '#5f35c9'], ['ajustes', '⚙️', 'Ajustes', '#8e8aa8']];
   function htmlMundo(s) {
     const vis = P2.seccionesVisibles(s).map(x => x.id), av = avisos(s), nuevas = s.seccionesNuevas || [];
@@ -1324,7 +1373,7 @@
   const hayCarreras = () => P2.listarPartidas().some(r => r.existe);
   const conCuenta = () => !!(comercio() && !COM.isGuest());
   const nubeAuto = () => { try { return almacen.getItem('dban_nube_auto') !== '0'; } catch (_) { return true; } };
-  function resetUiPartida() { Object.assign(ui, { celes: [], pm: null, mj: null, rw: null, iap: null, iapCard: null, inter: false, nuevaCompra: null, fiestas: [], paso: null, mundo: false, desbloqueos: [], msg: '', vista: 'semana', borrarCar: null, ren: null }); }
+  function resetUiPartida() { Object.assign(ui, { dinPrev: null, mudar: null, celes: [], pm: null, mj: null, rw: null, iap: null, iapCard: null, inter: false, nuevaCompra: null, fiestas: [], paso: null, mundo: false, desbloqueos: [], msg: '', vista: 'semana', borrarCar: null, ren: null }); }
   // ---- Copia en la nube ----
   async function nubeSubir() { const r = await COM.putSaves(P2.exportarPartidas()); P2.limpiarBorradas(r.borradas || []); return r; }
   let nubeT = null;
@@ -1810,6 +1859,8 @@
       case 'cerrarCompra': ui.nuevaCompra = null; render(); break;
       case 'quiero': if (P2.quiero(S, id)) guardarYPintar(); break;
       case 'metaSel': ui.metaSel = !ui.metaSel; render(); break;
+      case 'mudarse': { const v = b.dataset.v; if (ui.mudar !== v) { ui.mudar = v; render(); break; } ui.mudar = null; const e = P2.mudarse(S, v); ui.flash = e ? `⚠️ ${e}` : `${P2.vivienda(S).ic} Te mudas: ${P2.vivienda(S).n}.`; guardarYPintar(); break; }
+      case 'ahorro': { const x = Math.abs(Number(($('impAhorro') || {}).value) || 0) * Number(b.dataset.s), e = P2.moverAhorro(S, b.dataset.t, x); ui.flash = e ? `⚠️ ${e}` : `🏦 Hecho: ${x > 0 ? 'ingresas' : 'sacas'} ${eur(Math.abs(x))}.`; guardarYPintar(); break; }
       case 'fijarMeta': P2.fijarMeta(S, b.dataset.v); ui.metaSel = false; guardarYPintar(); break;
       case 'metaTienda': ui.metaSel = false; ui.tiendaTab = 'tienda'; irA('tienda'); break;
       case 'sugDeseoNo': S.deseoSugerido = -1; guardarYPintar(); break;

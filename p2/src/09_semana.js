@@ -25,6 +25,7 @@
     if (P2.aplicarPreparacion) P2.aplicarPreparacion(s, accion, R);   // la semana antes de un gran partido cuenta
     s.ultAcciones = (Array.isArray(s.ultAcciones) ? s.ultAcciones : []).concat({ semana: s.semana, a: accion }).slice(-8);
     const repAntes = s.p.rep;
+    const din0 = s.p.dinero, trab0 = s.acum.trabajo;   // para «Tu bolsillo» (P2.8)
 
     if (!especial) P2.tele(s, 'accion', { id: accion });
     if (accion === '__acto') R.lineas.push(['📣', 'Dedicas la semana al acto de tu patrocinador.']);
@@ -32,6 +33,7 @@
     else { const x = P2.aplicarAccionSemana(s, accion, R); R.variante = x.v ? { ic: x.v.ic, n: x.v.n, i: x.v.i } : null; R.destacada = x.dest; }
     if (R.plazaX2 && accion === 'plaza') { const extra = r1(s.p.rep - repAntes); s.p.rep = r1(clamp(s.p.rep + extra, 0, 100)); R.lineas.push(['👀', `El ojeador estaba en la plaza: tu reputación sube el doble (+${nf(extra)} más).`, 'bien']); }
     s.accionesHechas = (s.accionesHechas || 0) + 1;
+    if (P2.cobroTrabajo) P2.cobroTrabajo(s, s.acum.trabajo - trab0, R);
 
     // Según la fase
     if (s.fase === 'barrio') P2.revisarOjeador(s, R);
@@ -50,6 +52,7 @@
     for (const n of s.negocios.slice()) P2.semanaNegocio(s, n, R, { gestion: R.gestion && n === s.negocios[0] });
     P2.semanaSocio(s, R);
     if (P2.semanaExpansiones) P2.semanaExpansiones(s, R);   // club, inmuebles, agencia, eventos, media (si los tienes)
+    if (P2.semanaDinero) P2.semanaDinero(s, R);   // vivienda, agente, ahorro, hitos de dinero
     P2.procesarAgenda(s, R);
 
     // Recuperación, lesiones
@@ -94,6 +97,7 @@
     if (P2.recargarVidas(s)) R.lineas.push(['❤️', `Recuperas una vida para los minijuegos (${P2.vidas(s).n}/${P2.VIDAS.max}).`, 'bien']);
     P2.anotarHistoria(s, 'semana');
     P2.revisarDeseo(s);
+    if (P2.cerrarBolsillo) P2.cerrarBolsillo(s, R, din0);
     R.dinero = s.p.dinero - R.dinero0;
     R.energia = s.p.energia - R.energia0;
     s.ultimo = R;
@@ -109,7 +113,7 @@
     const vista = D.vista(s, ev);
     const o = vista && vista.ops.find(x => x.id === opId);
     if (!o || o.bloqueo) return null;
-    const R = nuevoR(s);
+    const R = nuevoR(s), nx0 = s.nExtracto || 0;
     const r = D.resolver(s, ev, opId, R);
     if (!r) return null;
     if (P2.etiquetarSemana) {   // para el director de eventos: qué tipo de cosas pasan
@@ -120,7 +124,7 @@
     P2.tele(s, 'decision', { tipo: ev.tipo, id: ev.id || ev.origen || ev.marca || null, op: opId });
     if (r.semana) s.pendiente = null; else P2.siguiente(s);
     P2.revisarSecciones(s, R);
-    s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, desbloqueos: R.desbloqueos, firma: r.firma || null, ir: r.ir || null };
+    s.ultimaDecision = { semana: s.semana, ic: r.ic, titulo: r.titulo, texto: r.texto, lineas: R.lineas, hitos: R.hitos, desbloqueos: R.desbloqueos, firma: r.firma || null, ir: r.ir || null, desgloses: (s.extractos || []).filter(x => x.n > nx0) };
     if (r.texto) P2.anotar(s, r.ic, r.texto);
     // Un acto de patrocinio ocupa la semana entera
     if (r.semana) { const W = jugarSemana(s, r.semana, { motivo: o.n.toLowerCase() }); if (W) { s.ultimaDecision.semanaJugada = true; W.lineas.unshift([r.ic, `${r.titulo}: ${r.texto}`]); } if (!s.pendiente) P2.siguiente(s); }

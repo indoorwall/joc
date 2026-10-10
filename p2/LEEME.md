@@ -8,6 +8,29 @@ los partidos se simulan; tú decides qué haces cada semana y cómo respondes a 
 - Duración prevista del capítulo: unas 35–40 semanas de juego (estimación: 20–30 minutos; no lo he cronometrado con personas).
 - Sin anuncios, compras, cuentas, servidor ni IA externa. Clubes, marcas y lugares ficticios; importes de juego.
 
+## P2.8 · Dinero de la vida real
+
+Detalle, cifras y efecto en el equilibrio: [`docs/P2.8_DINERO.md`](../docs/P2.8_DINERO.md). Para probar con
+personas: [`docs/GUIA_PRUEBAS_PERSONAS.md`](../docs/GUIA_PRUEBAS_PERSONAS.md).
+
+- **Fichajes y renovaciones en números:**
+  - bruto, retención (12 %), neto por semana y del contrato, prima, comisión del agente, gastos de vida y
+    **«te queda limpio»**, con sus cláusulas;
+  - al renovar puedes **cobrar por adelantado**.
+- **Agentes:** Sonia (independiente), Élite Sports (adelanto de 1.500 €, 15 % de comisión, 40 semanas de
+  exclusividad) o Toni (barato), o ir sin agente. Romper una exclusividad cuesta la penalización.
+- **Trabajo en el barrio:** contrato temporal, **despido** y **finiquito** (vacaciones, pagas extra e indemnización).
+- **Tu bolsillo** tras cada semana (entró, salió, saldo) y la cabecera anima cada cambio de dinero.
+- **Mi dinero** (antes Patrimonio): colchón, lo que entra y sale cada semana, gráfico, vivienda, ahorro, agente,
+  trabajo y extractos.
+- **Imprevistos** (móvil, multa, luz en casa, dentista), como mucho uno cada 8 semanas.
+- **Decisiones con precio en el club:** fisio, nutricionista, cena de equipo, multa interna, post patrocinado,
+  invertir con un compañero, préstamo a Iker y otra agencia que te quiere.
+- **Vivienda:** con tus padres, piso compartido o piso propio (alquiler y más energía).
+- **Ahorro:** cuenta al 2,5 % y fondo indexado que sube y baja.
+- **Metas de ahorro** e **hitos de dinero** discretos.
+- **Pantallas:** la intro dura unos 20 s y hay un inicio compacto para el iPhone SE de 1.ª generación.
+
 ## P2.6 · Experiencia del primer contacto
 
 Detalle, ritmo por perfiles y lo que está o no verificado: [`docs/P2.6_EXPERIENCIA.md`](../docs/P2.6_EXPERIENCIA.md).
@@ -740,7 +763,7 @@ todas las combinaciones firman contrato; energía nunca negativa; sin decisiones
 
 ## 5. Pruebas
 
-`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **501 de 501 comprobaciones superadas**.
+`node tests/p2.test.cjs` (alrededor de un minuto; `--rapido` se salta la interfaz): **530 de 530 comprobaciones superadas**.
 
 - **Las de P2 y P2.1** (ver arriba).
 - **Nuevas de P2.2:**

@@ -37,6 +37,7 @@
     { id: 'p100k', ic: '🏦', n: 'Llegar a 100.000 € de patrimonio', hecho: s => P2.patrimonio(s) >= 1e5, prog: s => clamp(P2.patrimonio(s) / 1e5, 0, 1) },
     { id: 'p1m', ic: '💎', n: 'Llegar al millón de patrimonio', hecho: s => P2.patrimonio(s) >= 1e6, prog: s => clamp(P2.patrimonio(s) / 1e6, 0, 1), req: s => P2.patrimonio(s) >= 1e5 },
   ];
+  if (P2.METAS_DINERO) METAS.unshift(...P2.METAS_DINERO);   // P2.8: metas de ahorro
   const metasDisponibles = s => METAS.filter(m => !m.hecho(s) && (!m.req || m.req(s)));
   // El objetivo personal visible: la lista de deseos manda (es un producto concreto); si no, la meta elegida
   function objetivoPersonal(s) {

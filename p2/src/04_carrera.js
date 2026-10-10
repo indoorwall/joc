@@ -70,6 +70,7 @@
       case 'trabajar': case 'mediaJornada': {
         P.dinero += A.dinero; s.acum.trabajo += A.dinero;
         L.push(['🛵', `Trabajas: +${eur(A.dinero)}.`]);
+        if (P2.registrarTrabajo) P2.registrarTrabajo(s, A.dinero, R);   // contrato temporal (despido y finiquito: 19_dinero)
         break;
       }
       case 'descansar': L.push(['😴', `Descansas: +${A.energia} de energía.`]); break;
@@ -221,10 +222,12 @@
     const mismoClub = previo && OFERTAS[previo.oferta].club === O.club;
     s.contrato = { oferta: id, desde: s.semana, temporadasRestantes: O.temporadas, sueldo: O.sueldo, prima: O.prima, renovado: 0 };
     if (O.prima) {
-      const neto = Math.round(O.prima * (1 - CFG.club.impuesto));
-      s.p.dinero += neto; s.acum.primas += neto; s.acum.impuestos += O.prima - neto;
-      R && R.lineas.push(['✍️', `Prima de firma: +${eur(neto)} (neto).`, 'bien']);
+      const neto = Math.round(O.prima * (1 - CFG.club.impuesto)), com = O.amateur || !P2.comisionFichaje ? 0 : Math.round(neto * P2.comisionFichaje(s));
+      s.p.dinero += neto - com; s.acum.primas += neto - com; s.acum.impuestos += O.prima - neto;
+      R && R.lineas.push(['✍️', `Prima de firma: +${eur(neto - com)} (neta${com ? `, tras la comisión de tu agente` : ''}).`, 'bien']);
     }
+    if (P2.desgloseOferta) P2.extracto(s, Object.assign(P2.desgloseOferta(s, id), { titulo: `Tu fichaje por ${O.n}` }), R);   // el contrato en números
+    if (!O.amateur && s.empleo && P2.dejarEmpleo) P2.dejarEmpleo(s, 'voluntaria', R);   // dejas el trabajo del barrio: finiquito
     s.fase = O.amateur ? 'amateur' : 'club';
     s.invitacion = null;
     if (!mismoClub || !s.temporada || s.temporada.cerrada) {
@@ -497,8 +500,9 @@
     const O = oferta(s), l = [];
     if (s.contrato.temporadasRestantes <= 0 && s.confianza >= 45) {
       // Una representante con la que te llevas bien pelea más tu renovación
-      const mejora = (s.agente && s.confianza >= 65 ? 1.3 : 1.12) + (s.agente && P2.valorRel(s, 'sonia') >= 70 ? 0.08 : 0);
+      const mejora = (s.agente && s.confianza >= 65 ? 1.3 : 1.12) + (s.agente && (s.agenteId || 'sonia') === 'sonia' && P2.valorRel(s, 'sonia') >= 70 ? 0.08 : 0) + (P2.mejoraRenov ? P2.mejoraRenov(s) : 0);
       l.push({ id: 'renovar', n: `Renovar con ${O.n}`, sueldo: Math.max(s.contrato.sueldo, Math.min(topeSueldo(s), Math.round(s.contrato.sueldo * mejora))), prima: Math.round(O.prima * 0.5), temporadas: 2 });
+      const vp = P2.variantePrima && P2.variantePrima(s, l[l.length - 1]); if (vp && vp.prima > l[l.length - 1].prima) l.push(vp);   // o cobrar por adelantado (P2.8)
     }
     if (O.club === 'atleticoB' && s.confianza >= 60 && s.p.nivel >= 58) l.push({ id: 'atleticoPrimero' });
     if (s.interes >= 45 && O.club !== 'costa' && !O.sube) l.push({ id: 'costaReal' });
@@ -515,7 +519,8 @@
   function firmarRenovacion(s, cond, R) {
     const O = oferta(s);
     s.contrato.sueldo = cond.sueldo; s.contrato.temporadasRestantes = cond.temporadas; s.contrato.renovado++;
-    if (cond.prima) { const neto = Math.round(cond.prima * (1 - CFG.club.impuesto)); s.p.dinero += neto; s.acum.primas += neto; R && R.lineas.push(['✍️', `Prima de renovación: +${eur(neto)}.`, 'bien']); }
+    if (cond.prima) { const neto = Math.round(cond.prima * (1 - CFG.club.impuesto)), com = P2.comisionFichaje ? Math.round(neto * P2.comisionFichaje(s)) : 0; s.p.dinero += neto - com; s.acum.primas += neto - com; R && R.lineas.push(['✍️', `Prima de renovación: +${eur(neto - com)}${com ? ' (tras la comisión de tu agente)' : ''}.`, 'bien']); }
+    if (P2.desgloseContrato) P2.extracto(s, P2.desgloseContrato(s, Object.assign(P2.contratoDeOferta(s, s.contrato.oferta), { n: `Renovación con ${O.n}`, sueldo: cond.sueldo, prima: cond.prima, temporadas: cond.temporadas, renov: true })), R);
     P2.celebrar(s, { tipo: 'contrato', renov: true, club: O.n, ic: O.ic, c1: O.c1, c2: O.c2, liga: (LIGAS[P2.ligaDeClub(s, O.club) || O.liga] || {}).n, sueldo: cond.sueldo, prima: cond.prima ? Math.round(cond.prima * (1 - CFG.club.impuesto)) : 0, temporadas: cond.temporadas, primaVictoria: O.primaVictoria || 0 });
     P2.anotar(s, '✍️', `Renuevo con ${O.n}: ${eur(cond.sueldo)}/semana.`);
     P2.tele(s, 'renovacion', { sueldo: cond.sueldo });

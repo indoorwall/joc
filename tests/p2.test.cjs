@@ -881,6 +881,70 @@ let informe;
   check('P2.6: una partida guardada antes de P2.6 carga igual (mismo dinero y nombre) y sin sueño impuesto', m && m.nombre === 'Antigua' && m.p.dinero === 777 && m.memClubes && typeof m.memClubes === 'object' && P2.objetivoPersonal(m) === null && P2.calendario(m).length >= 0 && !!P2.situacionSemana(m));
 }
 
+// ---------- P2.8: dinero de la vida real ----------
+{
+  const R0 = () => ({ lineas: [], porque: [], ingresos: [], hitos: [] });
+  const imp = P2.CFG.club.impuesto;
+  // Desglose de una oferta: cuentas exactas
+  const sD = P2.nuevaPartida({ seed: 70 }), dO = P2.desgloseOferta(sD, 'puerto'), O = P2.OFERTAS.puerto;
+  const netoSem = Math.round(O.sueldo * (1 - imp)), esperado = netoSem * 14 * O.temporadas + O.prima - Math.round(O.prima * imp) - P2.CFG.club.gastosVida * 14 * O.temporadas;
+  check('P2.8: el desglose de un fichaje cuadra (sueldo neto × semanas + prima neta − gastos de vida)', Math.abs(dO.total - esperado) <= 1 && dO.filas.some(f => /Retención/.test(f[0])) && dO.clausulas.some(c => /Duración/.test(c)), `${dO.total} vs ${esperado}`);
+  check('P2.8: cada oferta de club trae su desglose para decidir', P2.vistaPendiente(Object.assign(P2.nuevaPartida({ seed: 71 }), { pendiente: { tipo: 'ofertas', origen: 'pruebas', ofertas: ['puerto', 'atleticoFilial'], score: 70 } })).ops.every(o => o.desglose && o.desglose.filas.length >= 4));
+  // Empleo y finiquito
+  const sE = P2.nuevaPartida({ seed: 72 }); let ganado = 0;
+  for (let k = 0; k < 4; k++) { const d0 = sE.p.dinero; sE.pendiente = null; sE.cola = []; P2.jugarSemana(sE, 'trabajar'); ganado += sE.ultimo.ingresos.filter(x => /^Trabajo/.test(x[0])).reduce((a, x) => a + x[1], 0); }
+  check('P2.8: trabajar en el barrio crea un contrato y anota lo cobrado de verdad', sE.empleo && sE.empleo.semanas === 4 && sE.empleo.cobrado === ganado && ganado > 0);
+  const Fd = P2.finiquito(sE, 'despido'), Fv = P2.finiquito(sE, 'voluntaria');
+  check('P2.8: finiquito = vacaciones + pagas extra; si te despiden, además indemnización (20 días por año)', Fd.filas.length === 3 && Fv.filas.length === 2 && Fd.filas[2][1] === Math.round(ganado * 20 / 365) && Fv.filas[0][1] === Math.round(ganado * 30 / 365));
+  const dF = sE.p.dinero; sE.p.nivel = 58; P2.firmar(sE, 'puerto', R0());
+  const exF = sE.extractos.map(x => x.titulo);
+  check('P2.8: al firmar como profesional dejas el trabajo, cobras el finiquito y ves tu fichaje en números', !sE.empleo && exF.some(t => /^Finiquito/.test(t)) && exF.some(t => /^Tu fichaje por UD Puerto/.test(t)) && sE.p.dinero > dF);
+  // Agentes
+  const sA = P2.nuevaPartida({ seed: 73 }); sA.p.nivel = 58; P2.firmar(sA, 'puerto', R0()); resolverTodo(sA); sA.stats.titular = 3; P2.revisarHitos(sA, R0());
+  const vA = P2.vistaPendiente(sA);
+  check('P2.8: al ser titular 3 veces te llaman varios agentes (3 y la opción de ir sin agente), cada uno con sus cláusulas', sA.pendiente && sA.pendiente.tipo === 'agentes' && vA.ops.length === 4 && vA.ops.filter(o => o.desglose).every(o => o.desglose.clausulas.length >= 4));
+  const dA = sA.p.dinero; P2.resolverDecision(sA, 'elite');
+  check('P2.8: Élite te adelanta 1.500 € (menos retención), se queda el 15 % de tus primas y te ata 40 semanas', sA.agenteId === 'elite' && sA.p.dinero === dA + Math.round(1500 * (1 - imp)) && sA.comisionAgente === 0.15 && P2.penalAgente(sA) === 3000);
+  sA.p.dinero = 10000; P2.cambiarAgente(sA, 'toni', R0());
+  check('P2.8: romper una exclusividad cuesta la penalización pactada', sA.agenteId === 'toni' && sA.p.dinero === 10000 - 3000 && sA.extractos.some(x => /Rompes con Élite/.test(x.titulo)));
+  check('P2.8: la comisión de tu agente se descuenta de la prima de fichaje', (() => { const s = P2.nuevaPartida({ seed: 74 }); s.agente = true; s.agenteId = 'elite'; const d = s.p.dinero; P2.firmar(s, 'puerto', R0()); return s.p.dinero === d + Math.round(1800 * (1 - imp)) - Math.round(Math.round(1800 * (1 - imp)) * 0.10); })());
+  // Bolsillo: lo que entra y sale cuadra con tu dinero
+  let malas = 0, vistas = 0;
+  for (const seed of [75, 76, 77]) for (let k = 2; k <= 36; k += 2) { const R = P2.jugarPartida('equilibrada', seed, k, { estado: true }).s.ultimo; if (!R || !R.bolsillo) continue; vistas++; const sum = R.bolsillo.movs.reduce((a, m) => a + m[1], 0); if (Math.abs(sum - Math.round(R.dinero)) > 1 || Math.abs(sum - (R.bolsillo.entra - R.bolsillo.sale)) > 1) malas++; }
+  check('P2.8: «Tu bolsillo» cuadra cada semana (entradas − salidas = cambio de tu dinero)', vistas >= 40 && malas === 0, `${malas} de ${vistas}`);
+  // Vivienda
+  const sV = P2.nuevaPartida({ seed: 76 });
+  check('P2.8: sin sueldo no te puedes independizar', /sueldo/.test(P2.mudarse(sV, 'alquiler') || ''));
+  sV.p.nivel = 58; P2.firmar(sV, 'puerto', R0()); resolverTodo(sV); sV.p.dinero = 2000;
+  P2.mudarse(sV, 'alquiler');
+  check('P2.8: mudarte cuesta la fianza y el primer mes', sV.vivienda === 'alquiler' && sV.p.dinero === 2000 - 190 * 4);
+  const R1 = P2.jugarSemana(sV, 'entrenoExtra') || {}; 
+  check('P2.8: el alquiler se paga cada semana y sale en tu bolsillo', (sV.ultimo.ingresos || []).some(x => /Alquiler/.test(x[0]) && x[1] === -190));
+  // Ahorro
+  const sH = P2.nuevaPartida({ seed: 77 }); sH.p.dinero = 5000; const pat0 = P2.patrimonio(sH);
+  P2.moverAhorro(sH, 'cuenta', 3000); P2.moverAhorro(sH, 'fondo', 1000);
+  check('P2.8: ahorrar o invertir no cambia tu patrimonio al momento (solo de dónde está el dinero)', sH.p.dinero === 1000 && P2.patrimonio(sH) === pat0);
+  check('P2.8: no puedes ahorrar más de lo que tienes', !!P2.moverAhorro(sH, 'cuenta', 999999));
+  for (let k = 0; k < 10; k++) { sH.pendiente = null; sH.cola = []; P2.jugarSemana(sH, 'descansar'); }
+  check('P2.8: la cuenta da intereses y el fondo se mueve (siempre igual con la misma partida)', sH.ahorro.cuenta > 3000 && sH.ahorro.fondo !== 1000 && P2.rentaFondo(sH, 5) === P2.rentaFondo(sH, 5));
+  // Imprevistos: nunca antes de la semana 5 y como mucho uno cada 8 semanas; si no tienes dinero, la opción de pagar se bloquea
+  const sI = P2.nuevaPartida({ seed: 78 }); const mov = P2.SUCESOS.find(x => x.id === 'movilRoto');
+  sI.semana = 3; const c1 = mov.cond(sI); sI.semana = 12; sI.sucesosVistos.multa = 8; const c2 = mov.cond(sI); sI.sucesosVistos.multa = 2; const c3 = mov.cond(sI);
+  check('P2.8: los imprevistos no salen antes de la semana 5 ni dos en menos de 8 semanas', !c1 && !c2 && c3);
+  sI.p.dinero = 50; sI.pendiente = { tipo: 'suceso', id: 'movilRoto' };
+  check('P2.8: sin dinero no puedes pagar el imprevisto (hay otras salidas)', P2.vistaPendiente(sI).ops.find(o => o.id === 'pagar').bloqueo && !P2.resolverDecision(sI, 'pagar') && !!P2.resolverDecision(sI, 'padres'));
+  // Renovar cobrando por adelantado
+  const sR = P2.jugarPartida('equilibrada', 79, 60, { estado: true, seguir: true }).s;
+  check('P2.8: la variante «cobrar por adelantado» da más prima y no sube el sueldo', (() => { const r = { sueldo: sR.contrato ? sR.contrato.sueldo + 100 : 300, prima: 500, temporadas: 2 }; const v = sR.contrato && P2.variantePrima(sR, r); return !sR.contrato || (v.prima > r.prima && v.sueldo === sR.contrato.sueldo); })());
+  // Hitos de dinero
+  const sM = P2.nuevaPartida({ seed: 80 }); sM.p.dinero = 1200; sM.pendiente = null; P2.jugarSemana(sM, 'descansar');
+  check('P2.8: llegar a 1.000 € se celebra con discreción (una línea, no una pantalla)', sM.hitosDin.m1 && sM.ultimo.lineas.some(l => /1\.000/.test(l[1])));
+  // Partidas antiguas
+  const vieja = JSON.parse(JSON.stringify(P2.nuevaPartida({ seed: 81 }))); for (const k of ['agenteId', 'extractos', 'empleo', 'vivienda', 'ahorro', 'bolsilloHist', 'hitosDin']) delete vieja[k]; vieja.agente = true;
+  const m = P2.migrateSave(vieja);
+  check('P2.8: una partida anterior carga con todo lo nuevo (vivienda con tus padres, sin ahorro, agente Sonia)', m && m.vivienda === 'padres' && Array.isArray(m.extractos) && P2.agenteDe(m).id === 'sonia' && P2.valorAhorro(m) === 0 && !!P2.jugarSemana(m, 'descansar'));
+}
+
 (async () => {
   if (process.argv.includes('--rapido')) return fin();
   require('child_process').execSync('node ' + path.join(__dirname, '..', 'p2', 'build.cjs'));
@@ -1010,6 +1074,26 @@ let informe;
   await page.tap('.histSaltar');
   check('P2.6 UI: al cerrarla vuelves a tu partida sin perder nada', await page.locator('.historiaIntro').count() === 0 && await page.evaluate(() => !!__P2.S && __P2.S.negocios.length === 1));
   await page.evaluate(() => { __P2.S.deseoActual = null; __P2.S.p.dinero = 5000; __P2.guardar(); __P2.render(); });
+  // P2.8: el dinero, a la vista
+  await page.evaluate(() => { __P2.S.p.dinero += 100; __P2.render(); });
+  check('P2.8 UI: cuando cambia tu dinero, la cabecera lo dice (+100 €)', (await page.textContent('.dDelta')).includes('+100'));
+  await page.evaluate(() => { __P2.S.p.dinero -= 100; __P2.render(); });
+  await ir(page, 'patrimonio');
+  check('P2.8 UI: «Mi dinero» enseña tu bolsillo, lo que entra y sale cada semana y tu colchón', await page.locator('.miDin').isVisible() && /TU BOLSILLO/.test(await page.textContent('.miDin')) && /Cada semana entra/.test(await page.textContent('.miDin')) && /(Colchón|padres)/.test(await page.textContent('.miDin .colchon')));
+  await page.fill('#impAhorro', '100'); await page.tap('[data-act="ahorro"][data-t="cuenta"][data-s="1"]');
+  check('P2.8 UI: ingresar en la cuenta de ahorro desde «Mi dinero»', await page.evaluate(() => __P2.S.ahorro && __P2.S.ahorro.cuenta === 100));
+  await page.fill('#impAhorro', '100'); await page.tap('[data-act="ahorro"][data-t="cuenta"][data-s="-1"]');
+  check('P2.8 UI: y sacarlo', await page.evaluate(() => __P2.S.ahorro.cuenta === 0));
+  await page.tap('[data-act="mudarse"][data-v="compartido"]');
+  check('P2.8 UI: mudarse pide confirmación (dos toques)', await page.evaluate(() => (__P2.S.vivienda || 'padres') === 'padres') && /Toca otra vez/.test(await page.textContent('[data-act="mudarse"][data-v="compartido"]')));
+  await page.tap('[data-act="mudarse"][data-v="compartido"]');
+  check('P2.8 UI: te mudas y se ve en tus extractos', await page.evaluate(() => __P2.S.vivienda === 'compartido') && (await page.textContent('#main')).includes('Te mudas: Piso compartido'));
+  await page.evaluate(() => { const S = __P2.S; S.pendiente = { tipo: 'ofertas', origen: 'fin', ofertas: ['costaReal'], condiciones: [{ id: 'costaReal' }], score: null, contratoVivo: true }; S.cola = []; __P2.render(); });
+  await ir(page, 'semana');
+  check('P2.8 UI: cada oferta enseña «te queda limpio» y su desglose al tocar', await page.locator('.desgDet').count() >= 1 && (await page.textContent('.desgDet summary')).includes('Te queda limpio'));
+  await page.click('.desgDet summary');
+  check('P2.8 UI: el desglose muestra bruto, retención, neto, prima y cláusulas', await page.locator('.desgDet .dsF').count() >= 5 && /Retención/.test(await page.textContent('.desgDet')) && await page.locator('.desgDet .dsC li').count() >= 2);
+  await page.evaluate(() => { __P2.S.pendiente = null; __P2.S.cola = []; __P2.render(); });
   // Tienda: comprar, ver la celebración, inventario y patrimonio
   await page.evaluate(() => { __P2.S.p.dinero = 5000; __P2.guardar(); });
   await ir(page, 'tienda');
