@@ -1794,6 +1794,27 @@ function createCommerceService({ repo, catalog = CATALOG, config: cfg = {}, stri
       await adminAction(a, 'revoke', userId, { entitlementId, reason });
       return { revoked: n };
     },
+    // Da de alta en Stripe los productos y precios del catálogo (solo los que faltan) y guarda sus ids.
+    // La clave secreta nunca sale del servidor. Idempotente: repetirlo no duplica nada.
+    async syncStripe(a) {
+      await requireAdmin(a); req(stripe, 'stripe_not_configured', 503);
+      const env = environment;
+      req(!stripe.livemode || (env === 'production' && config.liveModeAllowed), 'live_mode_not_allowed', 409);
+      const hechos = [], saltados = [];
+      for (const P of catalog.products) {
+        const eur = P.prices && P.prices.EUR;
+        if (!eur || P.promoOnly || P.status === 'draft' || P.status === 'retired') continue;
+        const ya = await repo.getProviderIds(P.id, 'stripe', env);
+        if (ya && ya.priceId) { saltados.push(P.id); continue; }
+        const k = `dban-${env}-${P.id}-v${P.version || 1}`;
+        const prod = await stripe.createProduct({ name: P.name, description: (P.description || P.name).slice(0, 500), 'metadata[sku]': P.id, 'metadata[environment]': env }, `${k}-prod`);
+        const price = await stripe.createPrice({ product: prod.id, unit_amount: eur, currency: 'eur', 'metadata[sku]': P.id }, `${k}-price-${eur}`);
+        await repo.setProviderIds({ sku: P.id, provider: 'stripe', environment: env, productId: prod.id, priceId: price.id });
+        hechos.push({ sku: P.id, product: prod.id, price: price.id });
+      }
+      await adminAction(a, 'stripe_sync', null, { creados: hechos.length, saltados: saltados.length, environment: env });
+      return { environment: env, livemode: stripe.livemode, creados: hechos, yaExistian: saltados };
+    },
     async webhookErrors(a) { await requireAdmin(a); return repo.listProviderEvents({ status: 'error' }); },
     async ordersNeedingAttention(a) { await requireAdmin(a); return (await repo.listOrdersByStatus('PAID')).concat(await repo.listOrdersByStatus('DISPUTED')); },
     async retryFulfillment(a, orderId) { await requireAdmin(a); const o = await safeFulfill(orderId); await adminAction(a, 'retry_fulfillment', o.userId, { orderId }); return o; },
@@ -1996,6 +2017,7 @@ function createMemoryRepo({ catalog = CATALOG, state = null } = {}) {
 
     // --- catálogo ---
     async getPrice(sku, currency) { return S.prices[`${sku}|${currency}`] || null; },
+    async setProviderIds(r) { S.providerIds = S.providerIds.filter(x => !(x.sku === r.sku && x.provider === r.provider && x.environment === r.environment)); S.providerIds.push(r); },
     async getProviderIds(sku, provider, environment) { return S.providerIds.find(r => r.sku === sku && r.provider === provider && r.environment === environment) || null; },
 
     // --- cuentas ---
